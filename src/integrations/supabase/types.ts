@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      applications: {
+        Row: {
+          candidate_id: string
+          cover_letter: string | null
+          created_at: string | null
+          id: string
+          job_id: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          candidate_id: string
+          cover_letter?: string | null
+          created_at?: string | null
+          id?: string
+          job_id: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          candidate_id?: string
+          cover_letter?: string | null
+          created_at?: string | null
+          id?: string
+          job_id?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidates: {
         Row: {
           bio: string | null
@@ -57,6 +102,41 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: true
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          created_at: string | null
+          id: string
+          job_id: string | null
+          last_message_at: string | null
+          participant_1: string
+          participant_2: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          job_id?: string | null
+          last_message_at?: string | null
+          participant_1: string
+          participant_2: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          job_id?: string | null
+          last_message_at?: string | null
+          participant_1?: string
+          participant_2?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
             referencedColumns: ["id"]
           },
         ]
@@ -152,6 +232,41 @@ export type Database = {
           },
         ]
       }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string | null
+          id: string
+          is_read: boolean | null
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string | null
+          id?: string
+          is_read?: boolean | null
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -161,6 +276,7 @@ export type Database = {
           is_visible_on_map: boolean | null
           latitude: number | null
           longitude: number | null
+          profile_completed: boolean | null
           updated_at: string | null
           user_id: string
           user_type: Database["public"]["Enums"]["user_type"]
@@ -173,6 +289,7 @@ export type Database = {
           is_visible_on_map?: boolean | null
           latitude?: number | null
           longitude?: number | null
+          profile_completed?: boolean | null
           updated_at?: string | null
           user_id: string
           user_type: Database["public"]["Enums"]["user_type"]
@@ -185,6 +302,7 @@ export type Database = {
           is_visible_on_map?: boolean | null
           latitude?: number | null
           longitude?: number | null
+          profile_completed?: boolean | null
           updated_at?: string | null
           user_id?: string
           user_type?: Database["public"]["Enums"]["user_type"]
