@@ -2,8 +2,9 @@ import { ViewMode } from '@/types';
 import { ViewToggle } from './ViewToggle';
 import { SearchBar } from './SearchBar';
 import { Button } from '@/components/ui/button';
-import { Menu, LogIn, UserPlus } from 'lucide-react';
+import { Menu, LogIn, UserPlus, LayoutDashboard } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 
 interface HeaderProps {
   mode: ViewMode;
@@ -13,6 +14,8 @@ interface HeaderProps {
 }
 
 export const Header = ({ mode, onModeChange, onSearch, onMenuClick }: HeaderProps) => {
+  const { user, profile } = useAuth();
+
   return (
     <header className="absolute top-0 left-0 right-0 z-[1000] p-4">
       <div className="flex items-center justify-between gap-4">
@@ -49,19 +52,30 @@ export const Header = ({ mode, onModeChange, onSearch, onMenuClick }: HeaderProp
 
         {/* Right - Auth buttons */}
         <div className="flex items-center gap-2">
-          <Link to="/login">
-            <Button variant="ghost" size="sm" className="hidden sm:flex">
-              <LogIn className="w-4 h-4 mr-2" />
-              Sign In
-            </Button>
-          </Link>
-          <Link to="/signup">
-            <Button size="sm" className="shadow-google">
-              <UserPlus className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">Get Started</span>
-              <span className="sm:hidden">Join</span>
-            </Button>
-          </Link>
+          {user ? (
+            <Link to="/dashboard">
+              <Button size="sm" className="shadow-google">
+                <LayoutDashboard className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Dashboard</span>
+              </Button>
+            </Link>
+          ) : (
+            <>
+              <Link to="/login">
+                <Button variant="ghost" size="sm" className="hidden sm:flex">
+                  <LogIn className="w-4 h-4 mr-2" />
+                  Sign In
+                </Button>
+              </Link>
+              <Link to="/signup">
+                <Button size="sm" className="shadow-google">
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Get Started</span>
+                  <span className="sm:hidden">Join</span>
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>
