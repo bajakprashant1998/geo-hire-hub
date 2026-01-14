@@ -152,11 +152,20 @@ const Messages = () => {
     }
   }, [messages]);
 
+  const MAX_MESSAGE_LENGTH = 10000;
+
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim() || !user || !activeConversation) return;
 
     const content = newMessage.trim();
+    
+    // Client-side validation
+    if (content.length > MAX_MESSAGE_LENGTH) {
+      toast.error(`Message too long (max ${MAX_MESSAGE_LENGTH} characters)`);
+      return;
+    }
+
     setNewMessage('');
 
     try {
