@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, MapPin, Briefcase, Send } from 'lucide-react';
+import { ArrowLeft, MapPin, Briefcase, Send, Sparkles, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -28,7 +28,43 @@ const PostJob = () => {
   const [jobType, setJobType] = useState('Full-time');
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [generatingDescription, setGeneratingDescription] = useState(false);
   const [employerId, setEmployerId] = useState<string | null>(null);
+
+  const generateDescription = async () => {
+    if (!title.trim()) {
+      toast.error('Please enter a job title first');
+      return;
+    }
+
+    setGeneratingDescription(true);
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-job-description`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ jobTitle: title, jobType }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate description');
+      }
+
+      setDescription(data.description);
+      toast.success('Description generated!');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to generate description');
+    } finally {
+      setGeneratingDescription(false);
+    }
+  };
 
   // Fetch employer ID
   useEffect(() => {
@@ -187,7 +223,24 @@ const PostJob = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="description">Description</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={generateDescription}
+                      disabled={generatingDescription || !title.trim()}
+                      className="gap-1.5"
+                    >
+                      {generatingDescription ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Sparkles className="w-3.5 h-3.5" />
+                      )}
+                      {generatingDescription ? 'Generating...' : 'Generate with AI'}
+                    </Button>
+                  </div>
                   <Textarea
                     id="description"
                     placeholder="Describe the role, responsibilities, and requirements..."
