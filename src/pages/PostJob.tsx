@@ -56,6 +56,22 @@ const currencies = [
   { code: 'PEN', symbol: 'S/', name: 'Peruvian Sol' },
 ];
 
+// Map country codes to currencies
+const countryCurrencyMap: Record<string, string> = {
+  US: 'USD', CA: 'CAD', MX: 'MXN',
+  GB: 'GBP', DE: 'EUR', FR: 'EUR', IT: 'EUR', ES: 'EUR', NL: 'EUR', BE: 'EUR', AT: 'EUR', IE: 'EUR', PT: 'EUR', GR: 'EUR', FI: 'EUR',
+  CH: 'CHF',
+  SE: 'SEK', NO: 'NOK', DK: 'EUR',
+  PL: 'PLN', RU: 'RUB', TR: 'TRY',
+  IN: 'INR', PK: 'PKR', BD: 'BDT',
+  CN: 'CNY', JP: 'JPY', KR: 'KRW', TW: 'TWD', HK: 'HKD',
+  SG: 'SGD', MY: 'MYR', TH: 'THB', ID: 'IDR', PH: 'PHP', VN: 'VND',
+  AU: 'AUD', NZ: 'NZD',
+  AE: 'AED', SA: 'SAR', IL: 'ILS', EG: 'EGP',
+  ZA: 'ZAR', NG: 'NGN',
+  BR: 'BRL', AR: 'ARS', CL: 'CLP', CO: 'COP', PE: 'PEN',
+};
+
 const PostJob = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
@@ -73,6 +89,30 @@ const PostJob = () => {
   const [loading, setLoading] = useState(false);
   const [generatingDescription, setGeneratingDescription] = useState(false);
   const [employerId, setEmployerId] = useState<string | null>(null);
+  const [detectedCountry, setDetectedCountry] = useState<string | null>(null);
+
+  // Reverse geocode to detect country from coordinates
+  const detectCurrencyFromLocation = async (lat: number, lng: number) => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=en`,
+        { headers: { 'User-Agent': 'GeoHireHub/1.0' } }
+      );
+      const data = await response.json();
+      const countryCode = data.address?.country_code?.toUpperCase();
+      
+      if (countryCode) {
+        setDetectedCountry(data.address?.country || countryCode);
+        const detectedCurrency = countryCurrencyMap[countryCode];
+        if (detectedCurrency && currencies.some(c => c.code === detectedCurrency)) {
+          setCurrency(detectedCurrency);
+          toast.success(`Currency set to ${detectedCurrency} for ${data.address?.country || countryCode}`);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to detect location:', error);
+    }
+  };
 
   const generateDescription = async () => {
     if (!title.trim()) {
@@ -149,6 +189,9 @@ const PostJob = () => {
     map.on('click', (e) => {
       const { lat, lng } = e.latlng;
       setLocation({ lat, lng });
+      
+      // Auto-detect currency based on location
+      detectCurrencyFromLocation(lat, lng);
 
       if (markerRef.current) {
         markerRef.current.setLatLng([lat, lng]);
@@ -357,7 +400,7 @@ const PostJob = () => {
                   <MapPin className="w-4 h-4" />
                   <span className="text-sm">
                     {location
-                      ? `Location: ${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`
+                      ? `${detectedCountry ? detectedCountry + ' • ' : ''}${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`
                       : 'Click on the map to set job location'}
                   </span>
                 </div>
