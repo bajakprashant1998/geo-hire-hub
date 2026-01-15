@@ -15,6 +15,47 @@ import 'leaflet/dist/leaflet.css';
 
 const jobTypes = ['Full-time', 'Part-time', 'Contract', 'Freelance', 'Internship', 'Audition'];
 
+const currencies = [
+  { code: 'USD', symbol: '$', name: 'US Dollar' },
+  { code: 'EUR', symbol: '€', name: 'Euro' },
+  { code: 'GBP', symbol: '£', name: 'British Pound' },
+  { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
+  { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
+  { code: 'CNY', symbol: '¥', name: 'Chinese Yuan' },
+  { code: 'AUD', symbol: 'A$', name: 'Australian Dollar' },
+  { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar' },
+  { code: 'CHF', symbol: 'CHF', name: 'Swiss Franc' },
+  { code: 'SGD', symbol: 'S$', name: 'Singapore Dollar' },
+  { code: 'AED', symbol: 'د.إ', name: 'UAE Dirham' },
+  { code: 'SAR', symbol: '﷼', name: 'Saudi Riyal' },
+  { code: 'BRL', symbol: 'R$', name: 'Brazilian Real' },
+  { code: 'MXN', symbol: '$', name: 'Mexican Peso' },
+  { code: 'ZAR', symbol: 'R', name: 'South African Rand' },
+  { code: 'KRW', symbol: '₩', name: 'South Korean Won' },
+  { code: 'SEK', symbol: 'kr', name: 'Swedish Krona' },
+  { code: 'NOK', symbol: 'kr', name: 'Norwegian Krone' },
+  { code: 'PLN', symbol: 'zł', name: 'Polish Zloty' },
+  { code: 'THB', symbol: '฿', name: 'Thai Baht' },
+  { code: 'IDR', symbol: 'Rp', name: 'Indonesian Rupiah' },
+  { code: 'MYR', symbol: 'RM', name: 'Malaysian Ringgit' },
+  { code: 'PHP', symbol: '₱', name: 'Philippine Peso' },
+  { code: 'VND', symbol: '₫', name: 'Vietnamese Dong' },
+  { code: 'NGN', symbol: '₦', name: 'Nigerian Naira' },
+  { code: 'EGP', symbol: 'E£', name: 'Egyptian Pound' },
+  { code: 'PKR', symbol: '₨', name: 'Pakistani Rupee' },
+  { code: 'BDT', symbol: '৳', name: 'Bangladeshi Taka' },
+  { code: 'TRY', symbol: '₺', name: 'Turkish Lira' },
+  { code: 'RUB', symbol: '₽', name: 'Russian Ruble' },
+  { code: 'ILS', symbol: '₪', name: 'Israeli Shekel' },
+  { code: 'NZD', symbol: 'NZ$', name: 'New Zealand Dollar' },
+  { code: 'HKD', symbol: 'HK$', name: 'Hong Kong Dollar' },
+  { code: 'TWD', symbol: 'NT$', name: 'Taiwan Dollar' },
+  { code: 'CLP', symbol: '$', name: 'Chilean Peso' },
+  { code: 'COP', symbol: '$', name: 'Colombian Peso' },
+  { code: 'ARS', symbol: '$', name: 'Argentine Peso' },
+  { code: 'PEN', symbol: 'S/', name: 'Peruvian Sol' },
+];
+
 const PostJob = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
@@ -24,7 +65,9 @@ const PostJob = () => {
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [salaryRange, setSalaryRange] = useState('');
+  const [salaryMin, setSalaryMin] = useState('');
+  const [salaryMax, setSalaryMax] = useState('');
+  const [currency, setCurrency] = useState('USD');
   const [jobType, setJobType] = useState('Full-time');
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [loading, setLoading] = useState(false);
@@ -148,11 +191,17 @@ const PostJob = () => {
     setLoading(true);
 
     try {
+      // Format salary range with currency
+      const selectedCurrency = currencies.find(c => c.code === currency);
+      const formattedSalary = salaryMin || salaryMax 
+        ? `${selectedCurrency?.symbol || ''}${salaryMin}${salaryMax ? ` - ${selectedCurrency?.symbol || ''}${salaryMax}` : ''} ${currency}`
+        : null;
+
       const { error } = await supabase.from('jobs').insert({
         employer_id: employerId,
         title,
         description,
-        salary_range: salaryRange,
+        salary_range: formattedSalary,
         job_type: jobType,
         latitude: location.lat,
         longitude: location.lng,
@@ -251,13 +300,37 @@ const PostJob = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="salary">Salary Range</Label>
-                  <Input
-                    id="salary"
-                    placeholder="e.g., ₹15L - ₹25L per annum"
-                    value={salaryRange}
-                    onChange={(e) => setSalaryRange(e.target.value)}
-                  />
+                  <Label>Salary Range</Label>
+                  <div className="flex gap-2">
+                    <Select value={currency} onValueChange={setCurrency}>
+                      <SelectTrigger className="w-[140px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px]">
+                        {currencies.map((curr) => (
+                          <SelectItem key={curr.code} value={curr.code}>
+                            {curr.symbol} {curr.code}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      placeholder="Min"
+                      value={salaryMin}
+                      onChange={(e) => setSalaryMin(e.target.value)}
+                      className="flex-1"
+                    />
+                    <span className="flex items-center text-muted-foreground">-</span>
+                    <Input
+                      placeholder="Max"
+                      value={salaryMax}
+                      onChange={(e) => setSalaryMax(e.target.value)}
+                      className="flex-1"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    e.g., {currencies.find(c => c.code === currency)?.symbol}50,000 - {currencies.find(c => c.code === currency)?.symbol}75,000
+                  </p>
                 </div>
 
                 <div className="space-y-2">
