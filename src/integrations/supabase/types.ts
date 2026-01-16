@@ -182,6 +182,33 @@ export type Database = {
           },
         ]
       }
+      job_category_stats: {
+        Row: {
+          category_name: string
+          created_at: string
+          id: string
+          last_used_at: string | null
+          search_count: number
+          selection_count: number
+        }
+        Insert: {
+          category_name: string
+          created_at?: string
+          id?: string
+          last_used_at?: string | null
+          search_count?: number
+          selection_count?: number
+        }
+        Update: {
+          category_name?: string
+          created_at?: string
+          id?: string
+          last_used_at?: string | null
+          search_count?: number
+          selection_count?: number
+        }
+        Relationships: []
+      }
       jobs: {
         Row: {
           created_at: string | null
@@ -367,12 +394,23 @@ export type Database = {
           title: string
         }[]
       }
+      get_popular_categories: {
+        Args: { p_limit?: number }
+        Returns: {
+          category_name: string
+          popularity_score: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      track_category_usage: {
+        Args: { p_category_name: string; p_is_selection?: boolean }
+        Returns: undefined
       }
     }
     Enums: {

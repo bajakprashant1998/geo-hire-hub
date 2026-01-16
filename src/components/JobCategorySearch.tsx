@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
-import { Search, Loader2, Briefcase, Sparkles, Clock } from 'lucide-react';
+import { Search, Loader2, Briefcase, Sparkles, Clock, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 // Extensive fallback job categories covering all major industries
 const COMMON_CATEGORIES = [
@@ -95,6 +96,11 @@ const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
 // Global rate limit tracker
 let globalRateLimitUntil = 0;
 
+// Popular categories cache
+let popularCategoriesCache: string[] = [];
+let popularCacheTimestamp = 0;
+const POPULAR_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 interface JobCategorySearchProps {
   value: string;
   onChange: (value: string) => void;
@@ -114,6 +120,7 @@ export const JobCategorySearch = ({
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [popularCategories, setPopularCategories] = useState<string[]>([]);
   const [usingFallback, setUsingFallback] = useState(false);
   
   const containerRef = useRef<HTMLDivElement>(null);
@@ -121,7 +128,7 @@ export const JobCategorySearch = ({
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Load recent searches from localStorage
+  // Load recent searches and popular categories
   useEffect(() => {
     try {
       const stored = localStorage.getItem('recentJobSearches');
@@ -131,7 +138,47 @@ export const JobCategorySearch = ({
     } catch (e) {
       console.error('Failed to load recent searches:', e);
     }
+
+    // Load popular categories
+    loadPopularCategories();
   }, []);
+
+  const loadPopularCategories = async () => {
+    // Check cache first
+    if (popularCategoriesCache.length > 0 && Date.now() - popularCacheTimestamp < POPULAR_CACHE_TTL) {
+      setPopularCategories(popularCategoriesCache);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.rpc('get_popular_categories', { p_limit: 10 });
+      
+      if (!error && data && data.length > 0) {
+        // Capitalize each word for display
+        const categories = data.map((item: { category_name: string }) => 
+          item.category_name.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+        );
+        popularCategoriesCache = categories;
+        popularCacheTimestamp = Date.now();
+        setPopularCategories(categories);
+      }
+    } catch (e) {
+      console.error('Failed to load popular categories:', e);
+    }
+  };
+
+  // Track category selection
+  const trackCategoryUsage = async (categoryName: string, isSelection: boolean) => {
+    try {
+      await supabase.rpc('track_category_usage', {
+        p_category_name: categoryName,
+        p_is_selection: isSelection
+      });
+    } catch (e) {
+      // Silent fail - tracking is not critical
+      console.debug('Failed to track category usage:', e);
+    }
+  };
 
   // Sync external value changes
   useEffect(() => {
@@ -149,15 +196,21 @@ export const JobCategorySearch = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Fallback filtering using local categories - smart fuzzy matching
+  // Fallback filtering using local categories + popular - smart fuzzy matching
   const getFallbackSuggestions = useCallback((searchQuery: string): string[] => {
     const normalizedQuery = searchQuery.toLowerCase().trim();
     const words = normalizedQuery.split(/\s+/);
     
+    // Combine popular categories with common categories, prioritizing popular ones
+    const allCategories = [...new Set([...popularCategories, ...COMMON_CATEGORIES])];
+    
     // Score each category based on match quality
-    const scored = COMMON_CATEGORIES.map(cat => {
+    const scored = allCategories.map((cat, index) => {
       const catLower = cat.toLowerCase();
       let score = 0;
+      
+      // Boost popular categories (first 10 in the list)
+      if (index < popularCategories.length) score += 20;
       
       // Exact match at start gets highest score
       if (catLower.startsWith(normalizedQuery)) score += 100;
@@ -179,7 +232,7 @@ export const JobCategorySearch = ({
       .sort((a, b) => b.score - a.score)
       .slice(0, 8)
       .map(s => s.cat);
-  }, []);
+  }, [popularCategories]);
 
   const fetchSuggestions = useCallback(async (searchQuery: string) => {
     if (searchQuery.trim().length < 2) {
@@ -261,7 +314,7 @@ export const JobCategorySearch = ({
       }
       setIsOpen(true);
     } catch (error: any) {
-      if (error.name === 'AbortError') return; // Request was cancelled, ignore
+      if (error.name === 'AbortError') return;
       
       console.error('Failed to fetch suggestions:', error);
       const fallback = getFallbackSuggestions(searchQuery);
@@ -313,6 +366,9 @@ export const JobCategorySearch = ({
     setIsOpen(false);
     setSuggestions([]);
 
+    // Track selection for popularity
+    trackCategoryUsage(suggestion, true);
+
     // Save to recent searches
     try {
       const updated = [suggestion, ...recentSearches.filter(s => s !== suggestion)].slice(0, 5);
@@ -324,7 +380,9 @@ export const JobCategorySearch = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    const items = suggestions.length > 0 ? suggestions : (query.length < 2 ? recentSearches : []);
+    const items = suggestions.length > 0 
+      ? suggestions 
+      : (query.length < 2 ? [...popularCategories.slice(0, 5), ...recentSearches].slice(0, 8) : []);
     
     switch (e.key) {
       case 'ArrowDown':
@@ -358,12 +416,15 @@ export const JobCategorySearch = ({
         setUsingFallback(true);
         setIsOpen(true);
       }
-    } else if (recentSearches.length > 0) {
+    } else if (popularCategories.length > 0 || recentSearches.length > 0) {
       setIsOpen(true);
     }
   };
 
-  const showDropdown = isOpen && (suggestions.length > 0 || (query.length < 2 && recentSearches.length > 0));
+  const showDropdown = isOpen && (
+    suggestions.length > 0 || 
+    (query.length < 2 && (popularCategories.length > 0 || recentSearches.length > 0))
+  );
   const isRateLimited = Date.now() < globalRateLimitUntil;
 
   return (
@@ -394,8 +455,8 @@ export const JobCategorySearch = ({
 
       {/* Dropdown */}
       {showDropdown && (
-        <div className="absolute z-50 w-full mt-1 bg-background border border-border rounded-lg shadow-lg overflow-hidden animate-in fade-in-0 zoom-in-95">
-          {/* Suggestions */}
+        <div className="absolute z-50 w-full mt-1 bg-background border border-border rounded-lg shadow-lg overflow-hidden animate-in fade-in-0 zoom-in-95 max-h-[350px] overflow-y-auto">
+          {/* Suggestions when typing */}
           {suggestions.length > 0 && (
             <div className="p-1">
               <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground flex items-center gap-1.5">
@@ -430,29 +491,61 @@ export const JobCategorySearch = ({
             </div>
           )}
 
-          {/* Recent Searches */}
-          {query.length < 2 && recentSearches.length > 0 && (
-            <div className="p-1">
-              <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground">
-                Recent Searches
-              </div>
-              {recentSearches.map((search, index) => (
-                <button
-                  key={search}
-                  onClick={() => handleSelect(search)}
-                  onMouseEnter={() => setHighlightedIndex(index)}
-                  className={cn(
-                    "w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-md transition-colors",
-                    highlightedIndex === index
-                      ? "bg-primary/10 text-primary"
-                      : "hover:bg-muted"
-                  )}
-                >
-                  <Clock className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
-                  <span className="flex-1 truncate">{search}</span>
-                </button>
-              ))}
-            </div>
+          {/* Popular & Recent when not typing */}
+          {query.length < 2 && (
+            <>
+              {/* Popular Categories */}
+              {popularCategories.length > 0 && (
+                <div className="p-1">
+                  <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                    <TrendingUp className="w-3 h-3" />
+                    Trending Categories
+                  </div>
+                  {popularCategories.slice(0, 5).map((category, index) => (
+                    <button
+                      key={`popular-${category}`}
+                      onClick={() => handleSelect(category)}
+                      onMouseEnter={() => setHighlightedIndex(index)}
+                      className={cn(
+                        "w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-md transition-colors",
+                        highlightedIndex === index
+                          ? "bg-primary/10 text-primary"
+                          : "hover:bg-muted"
+                      )}
+                    >
+                      <TrendingUp className="w-4 h-4 flex-shrink-0 text-orange-500" />
+                      <span className="flex-1 truncate">{category}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Recent Searches */}
+              {recentSearches.length > 0 && (
+                <div className="p-1 border-t border-border">
+                  <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                    <Clock className="w-3 h-3" />
+                    Recent Searches
+                  </div>
+                  {recentSearches.map((search, index) => (
+                    <button
+                      key={`recent-${search}`}
+                      onClick={() => handleSelect(search)}
+                      onMouseEnter={() => setHighlightedIndex(popularCategories.length + index)}
+                      className={cn(
+                        "w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-md transition-colors",
+                        highlightedIndex === popularCategories.length + index
+                          ? "bg-primary/10 text-primary"
+                          : "hover:bg-muted"
+                      )}
+                    >
+                      <Clock className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
+                      <span className="flex-1 truncate">{search}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
           )}
 
           {/* Helper text */}
