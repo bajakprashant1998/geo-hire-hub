@@ -1,44 +1,99 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
-import { Search, Loader2, Briefcase, Sparkles, AlertCircle } from 'lucide-react';
+import { Search, Loader2, Briefcase, Sparkles, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { toast } from 'sonner';
 
-// Fallback common job categories for when AI is rate limited
+// Extensive fallback job categories covering all major industries
 const COMMON_CATEGORIES = [
-  "Software Engineer", "Software Developer", "Software Architect",
-  "Data Scientist", "Data Analyst", "Data Engineer",
-  "Product Manager", "Project Manager", "Program Manager",
-  "UX Designer", "UI Designer", "Graphic Designer", "Interior Designer",
-  "Marketing Manager", "Digital Marketing Specialist", "Content Writer",
-  "Sales Representative", "Sales Manager", "Account Executive",
-  "HR Manager", "Recruiter", "Talent Acquisition Specialist",
-  "Accountant", "Financial Analyst", "Finance Manager",
-  "Nurse", "Doctor", "Medical Assistant", "Pharmacist",
-  "Teacher", "Professor", "Tutor", "Education Consultant",
-  "Lawyer", "Legal Assistant", "Paralegal",
-  "Chef", "Cook", "Restaurant Manager",
-  "Electrician", "Plumber", "Carpenter", "Mechanic",
-  "Driver", "Delivery Driver", "Truck Driver",
-  "Customer Service Representative", "Support Specialist",
-  "AI Engineer", "Machine Learning Engineer", "DevOps Engineer",
-  "Full Stack Developer", "Frontend Developer", "Backend Developer",
-  "Mobile Developer", "iOS Developer", "Android Developer",
-  "Security Analyst", "Cybersecurity Specialist",
-  "Business Analyst", "Operations Manager", "Administrative Assistant",
-  "Photographer", "Videographer", "Video Editor",
-  "Real Estate Agent", "Property Manager",
-  "Fitness Trainer", "Personal Trainer", "Yoga Instructor",
-  "Social Media Manager", "SEO Specialist", "PPC Specialist",
-  "AutoCAD Designer", "CAD Technician", "Architect",
-  "Civil Engineer", "Mechanical Engineer", "Electrical Engineer",
-  "Laboratory Technician", "Research Scientist", "Chemist",
-  "Pilot", "Flight Attendant", "Travel Agent",
+  // Technology
+  "Software Engineer", "Software Developer", "Software Architect", "Full Stack Developer",
+  "Frontend Developer", "Backend Developer", "Mobile Developer", "iOS Developer", "Android Developer",
+  "DevOps Engineer", "Site Reliability Engineer", "Cloud Engineer", "Data Engineer",
+  "Data Scientist", "Data Analyst", "Machine Learning Engineer", "AI Engineer", "AI Researcher",
+  "Cybersecurity Analyst", "Security Engineer", "Network Engineer", "Systems Administrator",
+  "Database Administrator", "QA Engineer", "Test Engineer", "Technical Writer",
+  "Product Manager", "Technical Product Manager", "Scrum Master", "Agile Coach",
+  
+  // Design
+  "UX Designer", "UI Designer", "Product Designer", "Graphic Designer", "Visual Designer",
+  "Interior Designer", "Web Designer", "Motion Designer", "Brand Designer",
+  "Creative Director", "Art Director", "Illustrator", "3D Artist", "Game Designer",
+  
+  // Business & Finance
+  "Business Analyst", "Financial Analyst", "Investment Banker", "Accountant", "Auditor",
+  "Tax Consultant", "Financial Controller", "CFO", "Treasurer", "Risk Analyst",
+  "Management Consultant", "Strategy Consultant", "Operations Manager", "Project Manager",
+  "Program Manager", "CEO", "COO", "General Manager", "Administrative Assistant",
+  
+  // Marketing & Sales
+  "Marketing Manager", "Digital Marketing Specialist", "SEO Specialist", "SEM Specialist",
+  "Content Writer", "Copywriter", "Social Media Manager", "Brand Manager",
+  "Sales Representative", "Sales Manager", "Account Executive", "Business Development Manager",
+  "Customer Success Manager", "Public Relations Specialist", "Communications Manager",
+  
+  // Human Resources
+  "HR Manager", "Recruiter", "Talent Acquisition Specialist", "HR Business Partner",
+  "Compensation Analyst", "Training Specialist", "Organizational Development Specialist",
+  
+  // Healthcare
+  "Doctor", "Physician", "Surgeon", "Nurse", "Registered Nurse", "Nurse Practitioner",
+  "Medical Assistant", "Pharmacist", "Physical Therapist", "Occupational Therapist",
+  "Dentist", "Dental Hygienist", "Radiologist", "Lab Technician", "Healthcare Administrator",
+  "Cardiac Nurse", "Pediatric Nurse", "Emergency Room Nurse", "Anesthesiologist",
+  
+  // Education
+  "Teacher", "Professor", "Lecturer", "Tutor", "Education Consultant", "School Principal",
+  "Curriculum Developer", "Instructional Designer", "Academic Advisor", "Librarian",
+  
+  // Legal
+  "Lawyer", "Attorney", "Legal Counsel", "Paralegal", "Legal Assistant", "Judge",
+  "Compliance Officer", "Contract Specialist", "Patent Attorney", "Immigration Lawyer",
+  
+  // Engineering
+  "Mechanical Engineer", "Civil Engineer", "Electrical Engineer", "Chemical Engineer",
+  "Structural Engineer", "Environmental Engineer", "Industrial Engineer", "Aerospace Engineer",
+  "AutoCAD Designer", "CAD Technician", "Architect", "Surveyor", "Construction Manager",
+  
+  // Trades & Services
+  "Electrician", "Plumber", "Carpenter", "Mechanic", "HVAC Technician", "Welder",
+  "Car Mechanic", "Auto Technician", "Maintenance Technician", "Handyman",
+  
+  // Hospitality & Food
+  "Chef", "Cook", "Sous Chef", "Restaurant Manager", "Hotel Manager", "Concierge",
+  "Bartender", "Server", "Barista", "Event Planner", "Catering Manager",
+  
+  // Transportation & Logistics
+  "Driver", "Truck Driver", "Delivery Driver", "Pilot", "Flight Attendant",
+  "Logistics Manager", "Supply Chain Manager", "Warehouse Manager", "Inventory Manager",
+  "Cargo Supervisor", "Shipping Coordinator", "Customs Broker",
+  
+  // Creative & Media
+  "Photographer", "Videographer", "Video Editor", "Film Director", "Producer",
+  "Journalist", "Editor", "Reporter", "Broadcaster", "Voice Actor",
+  
+  // Real Estate
+  "Real Estate Agent", "Property Manager", "Real Estate Broker", "Appraiser",
+  "Leasing Consultant", "Real Estate Developer",
+  
+  // Fitness & Wellness
+  "Personal Trainer", "Fitness Instructor", "Yoga Instructor", "Nutritionist",
+  "Physical Therapist", "Massage Therapist", "Life Coach", "Wellness Consultant",
+  
+  // Science & Research
+  "Research Scientist", "Laboratory Technician", "Chemist", "Biologist", "Physicist",
+  "Environmental Scientist", "Geologist", "Archaeologist", "Microbiologist",
+  
+  // Customer Service
+  "Customer Service Representative", "Support Specialist", "Call Center Agent",
+  "Help Desk Technician", "Client Relations Manager", "Customer Experience Manager",
 ];
 
-// Simple cache for AI suggestions
+// In-memory cache with longer TTL
 const suggestionCache = new Map<string, { suggestions: string[]; timestamp: number }>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
+// Global rate limit tracker
+let globalRateLimitUntil = 0;
 
 interface JobCategorySearchProps {
   value: string;
@@ -59,19 +114,22 @@ export const JobCategorySearch = ({
   const [isOpen, setIsOpen] = useState(false);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
-  const [isRateLimited, setIsRateLimited] = useState(false);
   const [usingFallback, setUsingFallback] = useState(false);
   
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
-  const rateLimitCooldown = useRef<NodeJS.Timeout | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Load recent searches from localStorage
   useEffect(() => {
-    const stored = localStorage.getItem('recentJobSearches');
-    if (stored) {
-      setRecentSearches(JSON.parse(stored).slice(0, 5));
+    try {
+      const stored = localStorage.getItem('recentJobSearches');
+      if (stored) {
+        setRecentSearches(JSON.parse(stored).slice(0, 5));
+      }
+    } catch (e) {
+      console.error('Failed to load recent searches:', e);
     }
   }, []);
 
@@ -91,12 +149,36 @@ export const JobCategorySearch = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Fallback filtering using local categories
+  // Fallback filtering using local categories - smart fuzzy matching
   const getFallbackSuggestions = useCallback((searchQuery: string): string[] => {
     const normalizedQuery = searchQuery.toLowerCase().trim();
-    return COMMON_CATEGORIES
-      .filter(cat => cat.toLowerCase().includes(normalizedQuery))
-      .slice(0, 8);
+    const words = normalizedQuery.split(/\s+/);
+    
+    // Score each category based on match quality
+    const scored = COMMON_CATEGORIES.map(cat => {
+      const catLower = cat.toLowerCase();
+      let score = 0;
+      
+      // Exact match at start gets highest score
+      if (catLower.startsWith(normalizedQuery)) score += 100;
+      // Contains full query
+      else if (catLower.includes(normalizedQuery)) score += 50;
+      // Contains all words
+      else if (words.every(w => catLower.includes(w))) score += 30;
+      // Contains some words
+      else {
+        const matchedWords = words.filter(w => catLower.includes(w));
+        score += matchedWords.length * 10;
+      }
+      
+      return { cat, score };
+    });
+    
+    return scored
+      .filter(s => s.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 8)
+      .map(s => s.cat);
   }, []);
 
   const fetchSuggestions = useCallback(async (searchQuery: string) => {
@@ -106,8 +188,14 @@ export const JobCategorySearch = ({
       return;
     }
 
-    // Check cache first
+    // Cancel any pending request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
     const cacheKey = searchQuery.toLowerCase().trim();
+    
+    // Check cache first
     const cached = suggestionCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
       setSuggestions(cached.suggestions);
@@ -116,8 +204,8 @@ export const JobCategorySearch = ({
       return;
     }
 
-    // If rate limited, use fallback immediately
-    if (isRateLimited) {
+    // Check if we're in global rate limit cooldown
+    if (Date.now() < globalRateLimitUntil) {
       const fallback = getFallbackSuggestions(searchQuery);
       setSuggestions(fallback);
       setUsingFallback(true);
@@ -126,6 +214,8 @@ export const JobCategorySearch = ({
     }
 
     setIsLoading(true);
+    abortControllerRef.current = new AbortController();
+    
     try {
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/suggest-job-categories`,
@@ -136,28 +226,22 @@ export const JobCategorySearch = ({
             Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
           body: JSON.stringify({ query: searchQuery }),
+          signal: abortControllerRef.current.signal,
         }
       );
 
-      if (response.status === 429) {
-        // Rate limited - use fallback and set cooldown
-        setIsRateLimited(true);
+      if (response.status === 429 || response.status === 402) {
+        // Rate limited - set global cooldown for 60 seconds
+        globalRateLimitUntil = Date.now() + 60000;
         const fallback = getFallbackSuggestions(searchQuery);
         setSuggestions(fallback);
         setUsingFallback(true);
         setIsOpen(true);
-        
-        toast.warning('High traffic - showing cached suggestions', {
-          description: 'AI suggestions will resume shortly',
-          duration: 3000,
-        });
-        
-        // Clear rate limit after 30 seconds
-        if (rateLimitCooldown.current) clearTimeout(rateLimitCooldown.current);
-        rateLimitCooldown.current = setTimeout(() => {
-          setIsRateLimited(false);
-        }, 30000);
         return;
+      }
+
+      if (!response.ok) {
+        throw new Error('Request failed');
       }
 
       const data = await response.json();
@@ -171,15 +255,15 @@ export const JobCategorySearch = ({
           timestamp: Date.now(),
         });
       } else {
-        // No AI results, use fallback
         const fallback = getFallbackSuggestions(searchQuery);
         setSuggestions(fallback);
         setUsingFallback(fallback.length > 0);
       }
       setIsOpen(true);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.name === 'AbortError') return; // Request was cancelled, ignore
+      
       console.error('Failed to fetch suggestions:', error);
-      // Use fallback on error
       const fallback = getFallbackSuggestions(searchQuery);
       setSuggestions(fallback);
       setUsingFallback(true);
@@ -187,22 +271,40 @@ export const JobCategorySearch = ({
     } finally {
       setIsLoading(false);
     }
-  }, [isRateLimited, getFallbackSuggestions]);
+  }, [getFallbackSuggestions]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setQuery(newValue);
     setHighlightedIndex(-1);
 
+    // Cancel pending request immediately
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
     // Clear existing debounce
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
 
-    // Longer debounce to reduce API calls (500ms instead of 200ms)
+    // Show instant fallback results while waiting for AI
+    if (newValue.trim().length >= 2) {
+      const instantFallback = getFallbackSuggestions(newValue);
+      if (instantFallback.length > 0) {
+        setSuggestions(instantFallback);
+        setUsingFallback(true);
+        setIsOpen(true);
+      }
+    }
+
+    // Longer debounce (800ms) to reduce API calls
     debounceRef.current = setTimeout(() => {
-      fetchSuggestions(newValue);
-    }, 500);
+      // Only call AI if not rate limited
+      if (Date.now() >= globalRateLimitUntil) {
+        fetchSuggestions(newValue);
+      }
+    }, 800);
   };
 
   const handleSelect = (suggestion: string) => {
@@ -212,9 +314,13 @@ export const JobCategorySearch = ({
     setSuggestions([]);
 
     // Save to recent searches
-    const updated = [suggestion, ...recentSearches.filter(s => s !== suggestion)].slice(0, 5);
-    setRecentSearches(updated);
-    localStorage.setItem('recentJobSearches', JSON.stringify(updated));
+    try {
+      const updated = [suggestion, ...recentSearches.filter(s => s !== suggestion)].slice(0, 5);
+      setRecentSearches(updated);
+      localStorage.setItem('recentJobSearches', JSON.stringify(updated));
+    } catch (e) {
+      console.error('Failed to save recent search:', e);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -245,14 +351,20 @@ export const JobCategorySearch = ({
   };
 
   const handleFocus = () => {
-    if (query.length >= 2 && suggestions.length > 0) {
-      setIsOpen(true);
-    } else if (query.length < 2 && recentSearches.length > 0) {
+    if (query.length >= 2) {
+      const fallback = getFallbackSuggestions(query);
+      if (fallback.length > 0) {
+        setSuggestions(fallback);
+        setUsingFallback(true);
+        setIsOpen(true);
+      }
+    } else if (recentSearches.length > 0) {
       setIsOpen(true);
     }
   };
 
   const showDropdown = isOpen && (suggestions.length > 0 || (query.length < 2 && recentSearches.length > 0));
+  const isRateLimited = Date.now() < globalRateLimitUntil;
 
   return (
     <div ref={containerRef} className={cn("relative", className)}>
@@ -273,7 +385,7 @@ export const JobCategorySearch = ({
           <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary animate-spin" />
         )}
         {!isLoading && isRateLimited && (
-          <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-warning" />
+          <Clock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         )}
         {!isLoading && !isRateLimited && query.length >= 2 && (
           <Sparkles className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/50" />
@@ -283,14 +395,14 @@ export const JobCategorySearch = ({
       {/* Dropdown */}
       {showDropdown && (
         <div className="absolute z-50 w-full mt-1 bg-background border border-border rounded-lg shadow-lg overflow-hidden animate-in fade-in-0 zoom-in-95">
-          {/* AI/Fallback Suggestions */}
+          {/* Suggestions */}
           {suggestions.length > 0 && (
             <div className="p-1">
               <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground flex items-center gap-1.5">
                 {usingFallback ? (
                   <>
                     <Search className="w-3 h-3" />
-                    Suggestions
+                    Matching Categories
                   </>
                 ) : (
                   <>
@@ -336,7 +448,7 @@ export const JobCategorySearch = ({
                       : "hover:bg-muted"
                   )}
                 >
-                  <Search className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
+                  <Clock className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
                   <span className="flex-1 truncate">{search}</span>
                 </button>
               ))}
@@ -345,9 +457,9 @@ export const JobCategorySearch = ({
 
           {/* Helper text */}
           <div className="px-3 py-2 border-t border-border bg-muted/30 text-xs text-muted-foreground">
-            {usingFallback 
-              ? "Showing common categories • AI will resume shortly"
-              : "Type to search 30,000+ job categories worldwide"
+            {isRateLimited 
+              ? "Showing cached suggestions • AI resumes soon"
+              : "Search 100+ job categories"
             }
           </div>
         </div>
