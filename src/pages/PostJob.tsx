@@ -10,6 +10,7 @@ import { ArrowLeft, MapPin, Briefcase, Send, Sparkles, Loader2 } from 'lucide-re
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { JobCategorySearch } from '@/components/JobCategorySearch';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -305,13 +306,14 @@ const PostJob = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">Job Title *</Label>
-                  <Input
-                    id="title"
-                    placeholder="e.g., Senior React Developer"
+                  <JobCategorySearch
                     value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    required
+                    onChange={setTitle}
+                    placeholder="Search job category (e.g., Software Engineer, Nurse, AI Engineer...)"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    AI-powered suggestions from 30,000+ global job categories
+                  </p>
                 </div>
 
                 <div className="space-y-2">

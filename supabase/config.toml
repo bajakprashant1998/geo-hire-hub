@@ -1,1 +1,7 @@
 project_id = "pzcecjuxiorqcmbtiipq"
+
+[functions.generate-job-description]
+verify_jwt = false
+
+[functions.suggest-job-categories]
+verify_jwt = false
