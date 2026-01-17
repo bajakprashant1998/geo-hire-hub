@@ -1,15 +1,17 @@
 import { useState, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ViewMode, Candidate, Job } from '@/types';
 import { mockCandidates, mockJobs } from '@/data/mockData';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { Header } from '@/components/map/Header';
-import { MapContainer } from '@/components/map/MapContainer';
+import { GoogleMapContainer } from '@/components/map/GoogleMapContainer';
 import { FloatingControls } from '@/components/map/FloatingControls';
 import { Sidebar } from '@/components/map/Sidebar';
 import { MarkerDetailSheet } from '@/components/map/MarkerDetailSheet';
 import { toast } from 'sonner';
 
 const Index = () => {
+  const navigate = useNavigate();
   const [mode, setMode] = useState<ViewMode>('seeking');
   const [radius, setRadius] = useState(50);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -99,7 +101,12 @@ const Index = () => {
 
   const handleMarkerClick = (item: Candidate | Job) => {
     setSelectedItem(item);
-    setDetailSheetOpen(true);
+    // Navigate to detail page
+    if ('job_title' in item) {
+      navigate(`/candidate/${item.id}`);
+    } else {
+      navigate(`/employer/${(item as Job).employer_id}`);
+    }
   };
 
   const handleSelectFromSidebar = (item: Candidate | Job) => {
@@ -118,8 +125,8 @@ const Index = () => {
 
   return (
     <div className="relative w-full h-screen overflow-hidden">
-      {/* Map */}
-      <MapContainer
+      {/* Google Map */}
+      <GoogleMapContainer
         mode={mode}
         candidates={filteredCandidates}
         jobs={filteredJobs}
