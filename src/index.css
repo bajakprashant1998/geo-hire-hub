@@ -520,3 +520,31 @@
   background: hsl(var(--primary) / 0.2);
   color: hsl(var(--foreground));
 }
+
+/* Ensure white text on blue backgrounds */
+.bg-primary,
+.bg-google-blue,
+[class*="bg-primary"]:not([class*="bg-primary/"]):not([class*="bg-primary-foreground"]) {
+  color: hsl(var(--primary-foreground));
+}
+
+.bg-primary h1, .bg-primary h2, .bg-primary h3, .bg-primary h4, .bg-primary h5, .bg-primary h6,
+.bg-primary p, .bg-primary span, .bg-primary div,
+.bg-google-blue h1, .bg-google-blue h2, .bg-google-blue h3, .bg-google-blue h4, .bg-google-blue h5, .bg-google-blue h6,
+.bg-google-blue p, .bg-google-blue span, .bg-google-blue div {
+  color: inherit;
+}
+
+/* Ensure white text on destructive backgrounds */
+.bg-destructive,
+.bg-google-red,
+[class*="bg-destructive"]:not([class*="bg-destructive/"]):not([class*="bg-destructive-foreground"]) {
+  color: hsl(var(--destructive-foreground));
+}
+
+.bg-destructive h1, .bg-destructive h2, .bg-destructive h3, .bg-destructive h4, .bg-destructive h5, .bg-destructive h6,
+.bg-destructive p, .bg-destructive span, .bg-destructive div,
+.bg-google-red h1, .bg-google-red h2, .bg-google-red h3, .bg-google-red h4, .bg-google-red h5, .bg-google-red h6,
+.bg-google-red p, .bg-google-red span, .bg-google-red div {
+  color: inherit;
+}
