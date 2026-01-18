@@ -15,6 +15,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { EmailVerificationGuard } from '@/components/auth/EmailVerificationGuard';
 
 import { ProfileCompletenessCard } from '@/components/candidate/ProfileCompletenessCard';
 import { ProfileEditModal } from '@/components/candidate/ProfileEditModal';
@@ -230,7 +231,8 @@ const CandidateDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-secondary/50 via-background to-secondary/30">
+    <EmailVerificationGuard fallbackMessage="Please verify your email to access your dashboard.">
+      <div className="min-h-screen bg-gradient-to-br from-secondary/50 via-background to-secondary/30">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-card/80 backdrop-blur-xl border-b border-border/50">
         <div className="container mx-auto px-4 py-3">
@@ -425,7 +427,8 @@ const CandidateDashboard = () => {
         candidate={candidate}
         onSave={handleProfileSave}
       />
-    </div>
+      </div>
+    </EmailVerificationGuard>
   );
 };
 

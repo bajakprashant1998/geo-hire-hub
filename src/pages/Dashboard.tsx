@@ -37,6 +37,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import { EmailVerificationGuard } from '@/components/auth/EmailVerificationGuard';
 
 // Employer components
 import { PlanUsagePanel } from '@/components/employer/PlanUsagePanel';
@@ -252,8 +253,9 @@ const Dashboard = () => {
   }
 
   return (
-    <TooltipProvider>
-      <div className="min-h-screen bg-gradient-to-b from-secondary/50 via-background to-background">
+    <EmailVerificationGuard fallbackMessage="Please verify your email to access your dashboard.">
+      <TooltipProvider>
+        <div className="min-h-screen bg-gradient-to-b from-secondary/50 via-background to-background">
         {/* Header */}
         <header className="bg-card/80 backdrop-blur-md border-b border-border/50 sticky top-0 z-50">
           <div className="container mx-auto px-4 py-3 flex items-center justify-between">
@@ -830,7 +832,8 @@ const Dashboard = () => {
           )}
         </main>
       </div>
-    </TooltipProvider>
+      </TooltipProvider>
+    </EmailVerificationGuard>
   );
 };
 

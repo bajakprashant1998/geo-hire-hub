@@ -58,6 +58,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { MailWarning } from 'lucide-react';
 
 interface JobDetails {
   id: string;
@@ -112,7 +113,7 @@ interface JobDetails {
 const JobDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user, profile } = useAuth();
+  const { user, profile, isEmailVerified } = useAuth();
 
   const [job, setJob] = useState<JobDetails | null>(null);
   const [loading, setLoading] = useState(true);
@@ -241,6 +242,13 @@ const JobDetail = () => {
     setApplying(true);
 
     try {
+      // Check if email is verified
+      if (!isEmailVerified) {
+        toast.error('Please verify your email before applying for jobs');
+        setApplying(false);
+        return;
+      }
+
       const { data: candidate, error: candidateError } = await supabase
         .from('candidates')
         .select('id')
