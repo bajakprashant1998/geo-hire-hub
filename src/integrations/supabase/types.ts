@@ -1110,6 +1110,10 @@ export type Database = {
           popularity_score: number
         }[]
       }
+      has_application_relationship: {
+        Args: { _profile_id: string; _viewer_user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
