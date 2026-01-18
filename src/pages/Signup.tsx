@@ -189,8 +189,11 @@ const Signup = () => {
         }
       }
 
-      toast.success('Account created! Welcome to Hire for Job.');
-      navigate('/profile-setup');
+      // Store email for verification page
+      sessionStorage.setItem('pendingVerificationEmail', email);
+      
+      toast.success('Account created! Please check your email to verify.');
+      navigate('/verify-email');
     } catch (error: any) {
       toast.error(error.message || 'Signup failed');
     } finally {
