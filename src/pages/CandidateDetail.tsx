@@ -32,8 +32,10 @@ import {
   Sparkles,
   Link as LinkIcon,
   ExternalLink,
+  Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useStartConversation } from '@/hooks/useStartConversation';
 
 interface Education {
   institution: string;
@@ -64,9 +66,12 @@ interface CandidateProfile {
 const CandidateDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { startConversation } = useStartConversation();
   const [candidate, setCandidate] = useState<CandidateProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
+  const [contacting, setContacting] = useState(false);
+  const [candidateUserId, setCandidateUserId] = useState<string | null>(null);
 
   const isValidUUID = (uuid: string | undefined): boolean => {
     if (!uuid) return false;
@@ -102,7 +107,8 @@ const CandidateDetail = () => {
             avatar_url,
             latitude,
             longitude,
-            created_at
+            created_at,
+            user_id
           )
         `)
         .eq('id', id)
@@ -124,6 +130,7 @@ const CandidateDetail = () => {
         }
       }
 
+      setCandidateUserId(data.profiles.user_id);
       setCandidate({
         id: data.id,
         profile_id: data.profile_id,
@@ -149,8 +156,14 @@ const CandidateDetail = () => {
     }
   };
 
-  const handleContact = () => {
-    toast.info('Contact feature coming soon!');
+  const handleContact = async () => {
+    if (!candidateUserId) {
+      toast.error('Unable to contact this candidate');
+      return;
+    }
+    setContacting(true);
+    await startConversation(candidateUserId);
+    setContacting(false);
   };
 
   const handleSave = () => {
@@ -629,11 +642,16 @@ const CandidateDetail = () => {
 
                     <Button 
                       onClick={handleContact} 
+                      disabled={contacting}
                       className="w-full h-12 text-base font-semibold shadow-google hover:shadow-google-hover transition-all bg-google-blue hover:bg-google-blue/90" 
                       size="lg"
                     >
-                      <MessageCircle className="w-5 h-5 mr-2" />
-                      Contact Candidate
+                      {contacting ? (
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      ) : (
+                        <MessageCircle className="w-5 h-5 mr-2" />
+                      )}
+                      {contacting ? 'Starting Chat...' : 'Contact Candidate'}
                     </Button>
 
                     <Separator />
@@ -766,11 +784,16 @@ const CandidateDetail = () => {
             <Share2 className="w-5 h-5" />
           </Button>
           <Button 
-            onClick={handleContact} 
+            onClick={handleContact}
+            disabled={contacting}
             className="flex-1 h-12 rounded-xl text-base font-semibold bg-google-blue hover:bg-google-blue/90"
           >
-            <MessageCircle className="w-5 h-5 mr-2" />
-            Contact
+            {contacting ? (
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+            ) : (
+              <MessageCircle className="w-5 h-5 mr-2" />
+            )}
+            {contacting ? 'Starting...' : 'Contact'}
           </Button>
         </div>
       </div>
