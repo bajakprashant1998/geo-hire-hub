@@ -212,9 +212,9 @@ const Messages = () => {
   }
 
   return (
-    <div className="h-screen bg-secondary flex">
+    <div className="h-screen bg-secondary flex flex-col md:flex-row">
       {/* Conversation List */}
-      <div className="w-80 bg-card border-r border-border flex flex-col">
+      <div className={`${conversationId ? 'hidden md:flex' : 'flex'} w-full md:w-80 bg-card border-r border-border flex-col ${conversationId ? '' : 'h-full'}`}>
         <div className="p-4 border-b border-border">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
@@ -268,11 +268,14 @@ const Messages = () => {
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 flex flex-col">
+      <div className={`${conversationId ? 'flex' : 'hidden md:flex'} flex-1 flex-col`}>
         {activeConversation ? (
           <>
             {/* Chat Header */}
             <div className="p-4 border-b border-border bg-card flex items-center gap-3">
+              <Button variant="ghost" size="icon" className="md:hidden" onClick={() => navigate('/messages')}>
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                 {otherUser?.avatar_url ? (
                   <img
