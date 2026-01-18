@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,8 +8,11 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, Send, User, MessageCircle, Search, Check, CheckCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { usePresence } from '@/hooks/usePresence';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import { TypingIndicator } from '@/components/messaging/TypingIndicator';
+import { OnlineStatus } from '@/components/messaging/OnlineStatus';
 
 interface Message {
   id: string;
@@ -41,6 +44,16 @@ const Messages = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastTypingRef = useRef<boolean>(false);
+
+  // Presence hook for online status and typing
+  const { isOnline, isTyping, setTyping } = usePresence(conversationId);
+  const otherUserId = activeConversation 
+    ? (activeConversation.participant_1 === user?.id 
+        ? activeConversation.participant_2 
+        : activeConversation.participant_1)
+    : null;
 
   // Fetch conversations
   useEffect(() => {
@@ -200,6 +213,15 @@ const Messages = () => {
       return;
     }
 
+    // Stop typing indicator
+    if (conversationId && lastTypingRef.current) {
+      setTyping(conversationId, false);
+      lastTypingRef.current = false;
+    }
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
     setNewMessage('');
 
     try {
@@ -316,6 +338,10 @@ const Messages = () => {
                           {getInitials(conv.otherProfile?.full_name)}
                         </AvatarFallback>
                       </Avatar>
+                      {/* Online indicator */}
+                      <div className="absolute bottom-0 right-0 p-0.5 bg-card rounded-full">
+                        <OnlineStatus isOnline={isOnline(conv.otherProfile?.user_id || '')} size="md" />
+                      </div>
                       {conv.unreadCount > 0 && (
                         <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center bg-google-red text-white text-xs">
                           {conv.unreadCount}
@@ -357,16 +383,22 @@ const Messages = () => {
               <Button variant="ghost" size="icon" className="md:hidden" onClick={() => navigate('/messages')}>
                 <ArrowLeft className="w-5 h-5" />
               </Button>
-              <Avatar className="w-10 h-10 border-2 border-background">
-                <AvatarImage src={otherUser?.avatar_url || ''} />
-                <AvatarFallback className="bg-google-blue/10 text-google-blue font-heading">
-                  {getInitials(otherUser?.full_name)}
-                </AvatarFallback>
-              </Avatar>
+              <div className="relative">
+                <Avatar className="w-10 h-10 border-2 border-background">
+                  <AvatarImage src={otherUser?.avatar_url || ''} />
+                  <AvatarFallback className="bg-google-blue/10 text-google-blue font-heading">
+                    {getInitials(otherUser?.full_name)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="absolute bottom-0 right-0 p-0.5 bg-card rounded-full">
+                  <OnlineStatus isOnline={otherUserId ? isOnline(otherUserId) : false} size="sm" />
+                </div>
+              </div>
               <div className="flex-1">
                 <p className="font-heading font-semibold">{otherUser?.full_name || 'Unknown User'}</p>
                 <p className="text-xs text-muted-foreground capitalize flex items-center gap-1">
-                  <span className="w-2 h-2 bg-google-green rounded-full" />
+                  <OnlineStatus isOnline={otherUserId ? isOnline(otherUserId) : false} showLabel />
+                  <span className="mx-1">•</span>
                   {otherUser?.user_type}
                 </p>
               </div>
@@ -428,6 +460,13 @@ const Messages = () => {
                     );
                   })}
                 </AnimatePresence>
+                
+                {/* Typing indicator */}
+                <AnimatePresence>
+                  {otherUserId && conversationId && isTyping(otherUserId, conversationId) && (
+                    <TypingIndicator userName={otherUser?.full_name?.split(' ')[0]} />
+                  )}
+                </AnimatePresence>
               </div>
             </ScrollArea>
 
@@ -437,7 +476,33 @@ const Messages = () => {
                 <Input
                   ref={inputRef}
                   value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
+                  onChange={(e) => {
+                    setNewMessage(e.target.value);
+                    
+                    // Handle typing indicator
+                    if (conversationId && e.target.value.trim()) {
+                      if (!lastTypingRef.current) {
+                        setTyping(conversationId, true);
+                        lastTypingRef.current = true;
+                      }
+                      
+                      // Clear existing timeout
+                      if (typingTimeoutRef.current) {
+                        clearTimeout(typingTimeoutRef.current);
+                      }
+                      
+                      // Set new timeout to stop typing
+                      typingTimeoutRef.current = setTimeout(() => {
+                        if (conversationId) {
+                          setTyping(conversationId, false);
+                          lastTypingRef.current = false;
+                        }
+                      }, 2000);
+                    } else if (conversationId && lastTypingRef.current) {
+                      setTyping(conversationId, false);
+                      lastTypingRef.current = false;
+                    }
+                  }}
                   placeholder="Type a message..."
                   className="flex-1 rounded-full px-4"
                 />

@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { MessageNotificationProvider } from "@/components/messaging/MessageNotificationProvider";
 import { EmailVerificationBanner } from "@/components/auth/EmailVerificationBanner";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
@@ -40,8 +41,9 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <EmailVerificationBanner />
-          <Routes>
+          <MessageNotificationProvider>
+            <EmailVerificationBanner />
+            <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -68,9 +70,10 @@ const App = () => (
             <Route path="/admin/plans" element={<AdminPlans />} />
             <Route path="/admin/reports" element={<AdminReports />} />
             <Route path="/admin/settings" element={<AdminSettings />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </MessageNotificationProvider>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
