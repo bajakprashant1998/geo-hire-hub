@@ -9,6 +9,8 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ProfileSetup from "./pages/ProfileSetup";
 import Dashboard from "./pages/Dashboard";
+import CandidateDashboard from "./pages/CandidateDashboard";
+import AIResumeBuilder from "./pages/AIResumeBuilder";
 import PostJob from "./pages/PostJob";
 import Messages from "./pages/Messages";
 import CandidateDetail from "./pages/CandidateDetail";
@@ -40,6 +42,8 @@ const App = () => (
             <Route path="/signup" element={<Signup />} />
             <Route path="/profile-setup" element={<ProfileSetup />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
+            <Route path="/ai-resume-builder" element={<AIResumeBuilder />} />
             <Route path="/post-job" element={<PostJob />} />
             <Route path="/messages" element={<Messages />} />
             <Route path="/messages/:conversationId" element={<Messages />} />

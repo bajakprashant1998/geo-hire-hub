@@ -158,6 +158,50 @@ export type Database = {
           },
         ]
       }
+      candidate_resumes: {
+        Row: {
+          candidate_id: string
+          content: Json
+          created_at: string
+          id: string
+          is_default: boolean | null
+          name: string
+          resume_score: number | null
+          style: string
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          content?: Json
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          resume_score?: number | null
+          style?: string
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          content?: Json
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          resume_score?: number | null
+          style?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_resumes_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidates: {
         Row: {
           bio: string | null
@@ -165,6 +209,7 @@ export type Database = {
           blocked_by: string | null
           blocked_reason: string | null
           created_at: string | null
+          education: Json | null
           expected_salary: string | null
           experience_years: number | null
           id: string
@@ -172,6 +217,10 @@ export type Database = {
           job_title: string
           portfolio_urls: string[] | null
           profile_id: string
+          resume_filename: string | null
+          resume_uploaded_at: string | null
+          resume_url: string | null
+          resume_visibility: string | null
           skills: string[] | null
           updated_at: string | null
         }
@@ -181,6 +230,7 @@ export type Database = {
           blocked_by?: string | null
           blocked_reason?: string | null
           created_at?: string | null
+          education?: Json | null
           expected_salary?: string | null
           experience_years?: number | null
           id?: string
@@ -188,6 +238,10 @@ export type Database = {
           job_title: string
           portfolio_urls?: string[] | null
           profile_id: string
+          resume_filename?: string | null
+          resume_uploaded_at?: string | null
+          resume_url?: string | null
+          resume_visibility?: string | null
           skills?: string[] | null
           updated_at?: string | null
         }
@@ -197,6 +251,7 @@ export type Database = {
           blocked_by?: string | null
           blocked_reason?: string | null
           created_at?: string | null
+          education?: Json | null
           expected_salary?: string | null
           experience_years?: number | null
           id?: string
@@ -204,6 +259,10 @@ export type Database = {
           job_title?: string
           portfolio_urls?: string[] | null
           profile_id?: string
+          resume_filename?: string | null
+          resume_uploaded_at?: string | null
+          resume_url?: string | null
+          resume_visibility?: string | null
           skills?: string[] | null
           updated_at?: string | null
         }
@@ -473,6 +532,56 @@ export type Database = {
           },
         ]
       }
+      job_alerts: {
+        Row: {
+          candidate_id: string
+          category: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          is_email_enabled: boolean | null
+          is_push_enabled: boolean | null
+          location: string | null
+          name: string
+          skills: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          is_email_enabled?: boolean | null
+          is_push_enabled?: boolean | null
+          location?: string | null
+          name: string
+          skills?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          is_email_enabled?: boolean | null
+          is_push_enabled?: boolean | null
+          location?: string | null
+          name?: string
+          skills?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_alerts_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_category_stats: {
         Row: {
           category_name: string
@@ -683,6 +792,39 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean | null
+          link: string | null
+          message: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          link?: string | null
+          message?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          link?: string | null
+          message?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -690,9 +832,11 @@ export type Database = {
           full_name: string
           id: string
           is_visible_on_map: boolean | null
+          last_login_at: string | null
           latitude: number | null
           longitude: number | null
           profile_completed: boolean | null
+          two_factor_enabled: boolean | null
           updated_at: string | null
           user_id: string
           user_type: Database["public"]["Enums"]["user_type"]
@@ -703,9 +847,11 @@ export type Database = {
           full_name: string
           id?: string
           is_visible_on_map?: boolean | null
+          last_login_at?: string | null
           latitude?: number | null
           longitude?: number | null
           profile_completed?: boolean | null
+          two_factor_enabled?: boolean | null
           updated_at?: string | null
           user_id: string
           user_type: Database["public"]["Enums"]["user_type"]
@@ -716,14 +862,52 @@ export type Database = {
           full_name?: string
           id?: string
           is_visible_on_map?: boolean | null
+          last_login_at?: string | null
           latitude?: number | null
           longitude?: number | null
           profile_completed?: boolean | null
+          two_factor_enabled?: boolean | null
           updated_at?: string | null
           user_id?: string
           user_type?: Database["public"]["Enums"]["user_type"]
         }
         Relationships: []
+      }
+      saved_jobs: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          id: string
+          job_id: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          id?: string
+          job_id: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          id?: string
+          job_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_jobs_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_jobs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
