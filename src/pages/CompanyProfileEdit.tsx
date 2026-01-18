@@ -445,7 +445,7 @@ const CompanyProfileEdit = () => {
             <AlertDialogTitle>Platform Rules & Terms</AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-4 text-sm">
-                <p>By using GeoJobs as an employer, you agree to:</p>
+                <p>By using Hire for Job as an employer, you agree to:</p>
                 <ul className="list-disc list-inside space-y-2">
                   <li>Post only legitimate job opportunities</li>
                   <li>Provide accurate company and job information</li>

@@ -144,7 +144,7 @@ const EmployerDetail = () => {
     try {
       await navigator.share({
         title: employer?.company_name,
-        text: `Check out ${employer?.company_name} on GeoJobs`,
+        text: `Check out ${employer?.company_name} on Hire for Job`,
         url: window.location.href,
       });
     } catch {

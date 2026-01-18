@@ -53,9 +53,9 @@ const Login = () => {
         {/* Logo */}
         <div className="flex items-center justify-center gap-3">
           <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center shadow-google">
-            <span className="text-primary-foreground font-bold text-xl">GJ</span>
+            <span className="text-primary-foreground font-bold text-xl">HJ</span>
           </div>
-          <span className="font-bold text-2xl">GeoJobs</span>
+          <span className="font-bold text-2xl">Hire for Job</span>
         </div>
 
         {/* Login Card */}

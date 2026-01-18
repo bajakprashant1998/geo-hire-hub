@@ -246,7 +246,7 @@ const CandidateDashboard = () => {
                 <div className="w-9 h-9 bg-gradient-to-br from-primary to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
                   <MapPin className="w-5 h-5 text-white" />
                 </div>
-                <span className="font-bold text-lg">GeoJobs</span>
+                <span className="font-bold text-lg">Hire for Job</span>
               </div>
             </div>
 

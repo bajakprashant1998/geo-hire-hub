@@ -172,7 +172,7 @@ const Signup = () => {
         }
       }
 
-      toast.success('Account created! Welcome to GeoJobs.');
+      toast.success('Account created! Welcome to Hire for Job.');
       navigate('/profile-setup');
     } catch (error: any) {
       toast.error(error.message || 'Signup failed');
