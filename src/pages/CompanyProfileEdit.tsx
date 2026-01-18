@@ -40,6 +40,7 @@ import { ProfileCompletenessBar } from '@/components/employer/ProfileCompletenes
 import { VerificationBadge } from '@/components/employer/VerificationBadge';
 import { DocumentUpload } from '@/components/employer/DocumentUpload';
 import { LogoUpload } from '@/components/employer/LogoUpload';
+import { EmailVerificationGuard } from '@/components/auth/EmailVerificationGuard';
 
 const countries = [
   { code: 'US', name: 'United States', taxLabel: 'EIN / Tax ID' },
@@ -223,8 +224,9 @@ const CompanyProfileEdit = () => {
   }
 
   return (
-    <div className="min-h-screen bg-secondary py-8 px-4">
-      <div className="max-w-3xl mx-auto space-y-6">
+    <EmailVerificationGuard fallbackMessage="Please verify your email to edit your company profile.">
+      <div className="min-h-screen bg-secondary py-8 px-4">
+        <div className="max-w-3xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -509,7 +511,8 @@ const CompanyProfileEdit = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+      </div>
+    </EmailVerificationGuard>
   );
 };
 

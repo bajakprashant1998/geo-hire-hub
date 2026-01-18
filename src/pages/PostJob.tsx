@@ -21,6 +21,7 @@ import {
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { EmailVerificationGuard } from '@/components/auth/EmailVerificationGuard';
 
 import { JobBasicsSection } from '@/components/post-job/JobBasicsSection';
 import { CandidateRequirementSection } from '@/components/post-job/CandidateRequirementSection';
@@ -586,7 +587,8 @@ const PostJob = () => {
   const progressPercent = (currentStep / 5) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/30 to-background">
+    <EmailVerificationGuard fallbackMessage="Please verify your email to post jobs.">
+      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/30 to-background">
       {/* Header */}
       <header className="bg-card/80 backdrop-blur-md border-b sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-4 py-3">
@@ -898,7 +900,8 @@ const PostJob = () => {
           </div>
         </div>
       </main>
-    </div>
+      </div>
+    </EmailVerificationGuard>
   );
 };
 
