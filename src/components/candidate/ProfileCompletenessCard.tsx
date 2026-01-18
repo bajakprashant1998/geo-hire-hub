@@ -1,7 +1,6 @@
-import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
-  CheckCircle2, Circle, User, Briefcase, GraduationCap, MapPin, 
+  CheckCircle2, User, Briefcase, GraduationCap, MapPin, 
   FileText, Camera, Zap, TrendingUp, Sparkles 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -46,27 +45,28 @@ export const ProfileCompletenessCard = ({ profile, candidate }: ProfileCompleten
   const completedCount = items.filter(item => item.completed).length;
   const completeness = Math.round((completedCount / items.length) * 100);
   
+  // Google colors for status
   const getStatusColor = () => {
-    if (completeness === 100) return 'text-emerald-500';
-    if (completeness >= 70) return 'text-amber-500';
-    return 'text-rose-500';
+    if (completeness === 100) return 'text-google-green';
+    if (completeness >= 70) return 'text-google-yellow';
+    return 'text-google-red';
   };
 
-  const getProgressColor = () => {
-    if (completeness === 100) return 'bg-gradient-to-r from-emerald-500 to-teal-500';
-    if (completeness >= 70) return 'bg-gradient-to-r from-amber-500 to-orange-500';
-    return 'bg-gradient-to-r from-rose-500 to-pink-500';
+  const getProgressStroke = () => {
+    if (completeness === 100) return 'hsl(142, 53%, 43%)'; // Google Green
+    if (completeness >= 70) return 'hsl(44, 98%, 50%)'; // Google Yellow
+    return 'hsl(5, 81%, 56%)'; // Google Red
   };
 
   const incompleteItems = items.filter(item => !item.completed);
   const highPriorityIncomplete = incompleteItems.filter(i => i.priority === 'high');
 
   return (
-    <Card className="overflow-hidden border-0 shadow-xl bg-gradient-to-br from-card via-card to-card/80">
-      <CardHeader className="pb-3 bg-gradient-to-r from-primary/5 to-purple-500/5">
-        <CardTitle className="text-lg flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-xl">
-            <Sparkles className="w-5 h-5 text-primary" />
+    <Card className="overflow-hidden border border-border shadow-google-lg bg-card">
+      <CardHeader className="pb-3 bg-secondary/50 border-b border-border">
+        <CardTitle className="text-lg flex items-center gap-3 font-heading">
+          <div className="p-2.5 bg-google-blue/10 rounded-xl">
+            <Sparkles className="w-5 h-5 text-google-blue" />
           </div>
           <div className="flex-1">
             <span>Profile Strength</span>
@@ -76,43 +76,36 @@ export const ProfileCompletenessCard = ({ profile, candidate }: ProfileCompleten
           </div>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-5 pt-4">
+      <CardContent className="space-y-5 pt-5">
         {/* Circular Progress */}
         <div className="flex items-center gap-4">
           <div className="relative">
             <svg className="w-20 h-20 transform -rotate-90">
               <circle 
                 cx="40" cy="40" r="34" fill="none" 
-                stroke="currentColor" strokeWidth="8"
-                className="text-secondary"
+                stroke="hsl(var(--border))" strokeWidth="6"
               />
               <circle 
                 cx="40" cy="40" r="34" fill="none" 
-                stroke="url(#progressGradient)" strokeWidth="8"
+                stroke={getProgressStroke()} strokeWidth="6"
                 strokeDasharray={`${completeness * 2.14} 214`}
                 strokeLinecap="round"
                 className="transition-all duration-1000 ease-out"
               />
-              <defs>
-                <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" stopColor={completeness >= 70 ? (completeness === 100 ? '#10b981' : '#f59e0b') : '#f43f5e'} />
-                  <stop offset="100%" stopColor={completeness >= 70 ? (completeness === 100 ? '#14b8a6' : '#f97316') : '#ec4899'} />
-                </linearGradient>
-              </defs>
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className={cn("text-2xl font-bold", getStatusColor())}>
+              <span className={cn("text-2xl font-bold font-heading", getStatusColor())}>
                 {completeness}%
               </span>
             </div>
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-sm font-medium">{completedCount} of {items.length}</span>
+              <span className="text-sm font-semibold">{completedCount} of {items.length}</span>
               <span className="text-xs text-muted-foreground">completed</span>
             </div>
             {completeness === 100 ? (
-              <p className="text-sm text-emerald-600 flex items-center gap-1">
+              <p className="text-sm text-google-green flex items-center gap-1.5 font-medium">
                 <CheckCircle2 className="w-4 h-4" />
                 Profile complete!
               </p>
@@ -128,7 +121,7 @@ export const ProfileCompletenessCard = ({ profile, candidate }: ProfileCompleten
 
         {/* Checklist */}
         <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
             Checklist
           </p>
           <div className="grid gap-1.5">
@@ -136,18 +129,18 @@ export const ProfileCompletenessCard = ({ profile, candidate }: ProfileCompleten
               <div 
                 key={index}
                 className={cn(
-                  "flex items-center gap-3 text-sm py-2 px-3 rounded-xl transition-all duration-200",
+                  "flex items-center gap-3 text-sm py-2.5 px-3 rounded-xl transition-all duration-200 border",
                   item.completed 
-                    ? "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400" 
+                    ? "bg-google-green/5 border-google-green/20 text-google-green" 
                     : item.priority === 'high'
-                      ? "bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400"
-                      : "bg-muted/50 text-muted-foreground hover:bg-muted"
+                      ? "bg-google-red/5 border-google-red/20 text-google-red"
+                      : "bg-secondary/50 border-border text-muted-foreground hover:bg-secondary"
                 )}
               >
                 <div className={cn(
                   "w-5 h-5 rounded-full flex items-center justify-center transition-all",
                   item.completed 
-                    ? "bg-emerald-500 text-white" 
+                    ? "bg-google-green text-white" 
                     : "border-2 border-current"
                 )}>
                   {item.completed ? (
@@ -156,12 +149,12 @@ export const ProfileCompletenessCard = ({ profile, candidate }: ProfileCompleten
                     <span className="w-2 h-2 rounded-full bg-current opacity-30" />
                   )}
                 </div>
-                <span className="flex items-center gap-2 flex-1">
+                <span className="flex items-center gap-2 flex-1 font-medium">
                   {item.icon}
                   {item.label}
                 </span>
                 {!item.completed && item.priority === 'high' && (
-                  <span className="text-[10px] font-medium px-1.5 py-0.5 bg-rose-200 dark:bg-rose-900 rounded-full">
+                  <span className="text-[10px] font-semibold px-2 py-0.5 bg-google-red/10 text-google-red rounded-full">
                     Priority
                   </span>
                 )}

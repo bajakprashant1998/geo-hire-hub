@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Sparkles, MapPin, Building2, DollarSign, Clock, Bookmark, 
-  BookmarkCheck, ExternalLink, TrendingUp, Zap, ArrowRight
+  BookmarkCheck, TrendingUp, Zap, ArrowRight
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -139,27 +139,28 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
     return d.toLocaleDateString();
   };
 
+  // Google-colored match badges
   const getMatchBadge = (score: number) => {
-    if (score >= 25) return { label: 'Perfect Match', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400', icon: Zap };
-    if (score >= 15) return { label: 'Great Match', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400', icon: TrendingUp };
-    if (score >= 5) return { label: 'Good Match', color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-400', icon: Sparkles };
+    if (score >= 25) return { label: 'Perfect Match', color: 'bg-google-green/10 text-google-green border-google-green/20', icon: Zap };
+    if (score >= 15) return { label: 'Great Match', color: 'bg-google-blue/10 text-google-blue border-google-blue/20', icon: TrendingUp };
+    if (score >= 5) return { label: 'Good Match', color: 'bg-google-yellow/10 text-google-yellow border-google-yellow/20', icon: Sparkles };
     return null;
   };
 
   if (loading) {
     return (
-      <Card className="border-0 shadow-xl bg-gradient-to-br from-card to-card/80">
-        <CardHeader className="bg-gradient-to-r from-primary/5 to-purple-500/5">
-          <CardTitle className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl">
-              <Sparkles className="w-5 h-5 text-white" />
+      <Card className="border border-border shadow-google-lg bg-card">
+        <CardHeader className="bg-secondary/50 border-b border-border">
+          <CardTitle className="flex items-center gap-3 font-heading">
+            <div className="p-2.5 bg-google-yellow/10 rounded-xl">
+              <Sparkles className="w-5 h-5 text-google-yellow" />
             </div>
             Recommended Jobs
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 pt-4">
           {[1, 2, 3].map(i => (
-            <div key={i} className="p-4 bg-muted/50 rounded-2xl space-y-3">
+            <div key={i} className="p-4 bg-secondary/50 rounded-xl space-y-3 border border-border">
               <Skeleton className="h-5 w-3/4" />
               <Skeleton className="h-4 w-1/2" />
               <div className="flex gap-2">
@@ -175,21 +176,21 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
 
   if (jobs.length === 0) {
     return (
-      <Card className="border-0 shadow-xl bg-gradient-to-br from-card to-card/80">
-        <CardHeader className="bg-gradient-to-r from-primary/5 to-purple-500/5">
-          <CardTitle className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl">
-              <Sparkles className="w-5 h-5 text-white" />
+      <Card className="border border-border shadow-google-lg bg-card">
+        <CardHeader className="bg-secondary/50 border-b border-border">
+          <CardTitle className="flex items-center gap-3 font-heading">
+            <div className="p-2.5 bg-google-yellow/10 rounded-xl">
+              <Sparkles className="w-5 h-5 text-google-yellow" />
             </div>
             Recommended Jobs
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-12">
-            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-secondary rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Sparkles className="w-8 h-8 text-muted-foreground/50" />
             </div>
-            <h3 className="font-medium mb-1">No matches yet</h3>
+            <h3 className="font-semibold font-heading mb-1">No matches yet</h3>
             <p className="text-sm text-muted-foreground">
               Complete your profile to get personalized recommendations
             </p>
@@ -200,11 +201,11 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
   }
 
   return (
-    <Card className="border-0 shadow-xl overflow-hidden bg-gradient-to-br from-card via-card to-card/80">
-      <CardHeader className="flex flex-row items-center justify-between bg-gradient-to-r from-primary/5 to-purple-500/5">
-        <CardTitle className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl shadow-lg">
-            <Sparkles className="w-5 h-5 text-white" />
+    <Card className="border border-border shadow-google-lg overflow-hidden bg-card">
+      <CardHeader className="flex flex-row items-center justify-between bg-secondary/50 border-b border-border">
+        <CardTitle className="flex items-center gap-3 font-heading">
+          <div className="p-2.5 bg-google-yellow/10 rounded-xl shadow-google">
+            <Sparkles className="w-5 h-5 text-google-yellow" />
           </div>
           <div>
             <span>Recommended Jobs</span>
@@ -213,7 +214,7 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
             </p>
           </div>
         </CardTitle>
-        <Badge className="bg-primary/10 text-primary hover:bg-primary/20 rounded-full px-3">
+        <Badge className="bg-google-blue/10 text-google-blue hover:bg-google-blue/20 rounded-full px-3 border border-google-blue/20 font-semibold">
           {jobs.length} matches
         </Badge>
       </CardHeader>
@@ -226,17 +227,17 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
             <Link 
               to={`/jobs/${job.id}`}
               key={job.id} 
-              className="block p-4 bg-muted/30 hover:bg-muted/60 rounded-2xl transition-all duration-200 group border border-transparent hover:border-primary/20"
+              className="block p-4 bg-secondary/30 hover:bg-secondary/60 rounded-xl transition-all duration-200 group border border-border hover:border-primary/30 hover:shadow-google"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-semibold text-sm group-hover:text-primary transition-colors line-clamp-1">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <h4 className="font-semibold text-sm group-hover:text-primary transition-colors line-clamp-1 font-heading">
                       {job.title}
                     </h4>
                     {matchBadge && (
                       <span className={cn(
-                        "inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full whitespace-nowrap",
+                        "inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap border",
                         matchBadge.color
                       )}>
                         <MatchIcon className="w-3 h-3" />
@@ -252,11 +253,11 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
                 <Button 
                   variant="ghost" 
                   size="icon"
-                  className="shrink-0 rounded-xl h-9 w-9 hover:bg-primary/10"
+                  className="shrink-0 rounded-xl h-9 w-9 hover:bg-google-blue/10"
                   onClick={(e) => toggleSaveJob(job.id, e)}
                 >
                   {savedJobIds.has(job.id) ? (
-                    <BookmarkCheck className="w-4 h-4 text-primary" />
+                    <BookmarkCheck className="w-4 h-4 text-google-blue" />
                   ) : (
                     <Bookmark className="w-4 h-4" />
                   )}
@@ -265,17 +266,17 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
 
               <div className="flex flex-wrap items-center gap-2 mt-3">
                 {job.salary_range && (
-                  <span className="inline-flex items-center gap-1 text-xs bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-2 py-1 rounded-full">
+                  <span className="inline-flex items-center gap-1 text-xs bg-google-green/10 text-google-green px-2.5 py-1 rounded-full font-medium border border-google-green/20">
                     <DollarSign className="w-3 h-3" />
                     {job.salary_range}
                   </span>
                 )}
                 {job.job_type && (
-                  <Badge variant="secondary" className="text-xs rounded-full">
+                  <Badge variant="secondary" className="text-xs rounded-full font-medium">
                     {job.job_type}
                   </Badge>
                 )}
-                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground ml-auto">
+                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground ml-auto font-medium">
                   <Clock className="w-3 h-3" />
                   {formatDate(job.created_at)}
                 </span>
@@ -285,7 +286,7 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
         })}
 
         <Link to="/" className="block">
-          <Button variant="outline" className="w-full rounded-xl mt-2 group">
+          <Button variant="outline" className="w-full rounded-xl mt-2 group border-border hover:border-primary/30 hover:bg-secondary">
             <MapPin className="w-4 h-4 mr-2" />
             View All Jobs on Map
             <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
