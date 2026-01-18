@@ -198,7 +198,14 @@ const createCandidatePopupContent = (candidate: Candidate): string => {
 };
 
 // Generate popup content for jobs - with apply and save buttons
-const createJobPopupContent = (job: Job): string => {
+const createJobPopupContent = (job: Job, isSaved: boolean = false): string => {
+  const savedButtonStyle = isSaved 
+    ? `background: hsl(45, 93%, 95%);`
+    : `background: hsl(220, 14%, 96%);`;
+  
+  const savedIconFill = isSaved ? `fill="hsl(45, 93%, 47%)"` : `fill="none"`;
+  const savedIconStroke = isSaved ? `stroke="hsl(45, 93%, 47%)"` : `stroke="hsl(220, 9%, 46%)"`;
+  
   return `
     <div class="marker-popup-content" data-type="job" data-id="${job.id}" style="
       min-width: 280px;
@@ -222,11 +229,11 @@ const createJobPopupContent = (job: Job): string => {
           <p style="margin: 4px 0 0; font-size: 13px; color: hsl(220, 9%, 46%);">${job.company_name || 'Company'}</p>
         </div>
         <!-- Save button -->
-        <button class="popup-save-btn" data-action="save" data-job-id="${job.id}" style="
+        <button class="popup-save-btn ${isSaved ? 'saved' : ''}" data-action="save" data-job-id="${job.id}" data-saved="${isSaved}" style="
           width: 36px;
           height: 36px;
           padding: 0;
-          background: hsl(220, 14%, 96%);
+          ${savedButtonStyle}
           border: none;
           border-radius: 8px;
           cursor: pointer;
@@ -236,7 +243,7 @@ const createJobPopupContent = (job: Job): string => {
           transition: all 0.15s ease;
           flex-shrink: 0;
         ">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="hsl(220, 9%, 46%)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" ${savedIconFill} ${savedIconStroke} stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
           </svg>
         </button>
@@ -316,6 +323,46 @@ export const MapContainer = ({
   const markerMapRef = useRef<Map<string, L.Marker>>(new Map());
   const [isMobile, setIsMobile] = useState(false);
   const [tappedMarkerId, setTappedMarkerId] = useState<string | null>(null);
+  const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set());
+
+  // Fetch saved jobs for current user
+  useEffect(() => {
+    const fetchSavedJobs = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (!profile) return;
+
+        const { data: candidate } = await supabase
+          .from('candidates')
+          .select('id')
+          .eq('profile_id', profile.id)
+          .single();
+
+        if (!candidate) return;
+
+        const { data: savedJobs } = await supabase
+          .from('saved_jobs')
+          .select('job_id')
+          .eq('candidate_id', candidate.id);
+
+        if (savedJobs) {
+          setSavedJobIds(new Set(savedJobs.map(sj => sj.job_id)));
+        }
+      } catch (error) {
+        console.error('Error fetching saved jobs:', error);
+      }
+    };
+
+    fetchSavedJobs();
+  }, []);
 
   // Detect mobile
   useEffect(() => {
@@ -374,6 +421,13 @@ export const MapContainer = ({
           .delete()
           .eq('id', existingSave.id);
         
+        // Update local state
+        setSavedJobIds(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(jobId);
+          return newSet;
+        });
+        
         // Update button appearance
         button.innerHTML = `
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="hsl(220, 9%, 46%)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -381,12 +435,16 @@ export const MapContainer = ({
           </svg>
         `;
         button.style.background = 'hsl(220, 14%, 96%)';
+        button.dataset.saved = 'false';
         toast.success('Job removed from saved');
       } else {
         // Save
         await supabase
           .from('saved_jobs')
           .insert({ candidate_id: candidate.id, job_id: jobId });
+        
+        // Update local state
+        setSavedJobIds(prev => new Set([...prev, jobId]));
         
         // Update button appearance
         button.innerHTML = `
@@ -395,6 +453,7 @@ export const MapContainer = ({
           </svg>
         `;
         button.style.background = 'hsl(45, 93%, 95%)';
+        button.dataset.saved = 'true';
         toast.success('Job saved!');
       }
     } catch (error) {
@@ -566,7 +625,7 @@ export const MapContainer = ({
         // Create popup with custom content for hover preview
         const popupContent = isCandidate 
           ? createCandidatePopupContent(item as Candidate)
-          : createJobPopupContent(item as Job);
+          : createJobPopupContent(item as Job, savedJobIds.has(item.id));
 
         const popup = L.popup({
           closeButton: false,
@@ -616,7 +675,7 @@ export const MapContainer = ({
         mapRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
       }
     }
-  }, [mode, candidates, jobs, isMobile, tappedMarkerId]);
+  }, [mode, candidates, jobs, isMobile, tappedMarkerId, savedJobIds]);
 
   // Pan to selected item
   useEffect(() => {
