@@ -13,6 +13,11 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["'Open Sans'", "'Trebuchet MS'", "system-ui", "sans-serif"],
+        heading: ["'Trebuchet MS'", "'Open Sans'", "system-ui", "sans-serif"],
+        display: ["'Trebuchet MS'", "'Open Sans'", "system-ui", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -55,6 +60,13 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Google brand colors
+        google: {
+          blue: "hsl(217, 89%, 61%)",
+          red: "hsl(5, 81%, 56%)",
+          yellow: "hsl(44, 98%, 50%)",
+          green: "hsl(142, 53%, 43%)",
+        },
         marker: {
           candidate: "hsl(var(--marker-candidate))",
           job: "hsl(var(--marker-job))",
@@ -74,16 +86,15 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        xl: "calc(var(--radius) + 4px)",
+        "2xl": "calc(var(--radius) + 8px)",
       },
       boxShadow: {
-        google: "var(--shadow-sm)",
-        "google-md": "var(--shadow-md)",
-        "google-lg": "var(--shadow-lg)",
-        "google-hover": "var(--shadow-hover)",
-      },
-      backgroundImage: {
-        "gradient-primary": "var(--gradient-primary)",
-        "gradient-hero": "var(--gradient-hero)",
+        google: "0 1px 3px 0 rgba(60, 64, 67, 0.15), 0 1px 2px 0 rgba(60, 64, 67, 0.1)",
+        "google-md": "0 4px 6px -1px rgba(60, 64, 67, 0.1), 0 2px 4px -1px rgba(60, 64, 67, 0.06)",
+        "google-lg": "0 10px 15px -3px rgba(60, 64, 67, 0.1), 0 4px 6px -2px rgba(60, 64, 67, 0.05)",
+        "google-xl": "0 20px 25px -5px rgba(60, 64, 67, 0.1), 0 10px 10px -5px rgba(60, 64, 67, 0.04)",
+        "google-hover": "0 1px 3px 0 rgba(60, 64, 67, 0.2), 0 8px 16px 0 rgba(60, 64, 67, 0.12)",
       },
       keyframes: {
         "accordion-down": {
@@ -98,21 +109,41 @@ export default {
           from: { opacity: "0", transform: "translateY(10px)" },
           to: { opacity: "1", transform: "translateY(0)" },
         },
+        "fade-in-up": {
+          from: { opacity: "0", transform: "translateY(20px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
         "slide-in-right": {
           from: { opacity: "0", transform: "translateX(20px)" },
           to: { opacity: "1", transform: "translateX(0)" },
         },
+        "slide-in-left": {
+          from: { opacity: "0", transform: "translateX(-20px)" },
+          to: { opacity: "1", transform: "translateX(0)" },
+        },
+        "scale-in": {
+          from: { opacity: "0", transform: "scale(0.95)" },
+          to: { opacity: "1", transform: "scale(1)" },
+        },
         "pulse-soft": {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.7" },
+        },
+        "bounce-gentle": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-5px)" },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.3s ease-out",
+        "fade-in-up": "fade-in-up 0.4s ease-out",
         "slide-in-right": "slide-in-right 0.3s ease-out",
+        "slide-in-left": "slide-in-left 0.3s ease-out",
+        "scale-in": "scale-in 0.2s ease-out",
         "pulse-soft": "pulse-soft 2s ease-in-out infinite",
+        "bounce-gentle": "bounce-gentle 2s ease-in-out infinite",
       },
     },
   },
