@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -21,15 +20,25 @@ import {
   MessageSquare,
   Clock,
   Building2,
-  Mail,
-  ExternalLink,
-  CheckCircle2,
-  XCircle,
+  Settings,
   Eye,
+  ToggleLeft,
+  Calendar,
+  TrendingUp,
+  AlertTriangle,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+
+// Employer components
+import { PlanUsagePanel } from '@/components/employer/PlanUsagePanel';
+import { ProfileCompletenessBar } from '@/components/employer/ProfileCompletenessBar';
+import { VerificationBadge } from '@/components/employer/VerificationBadge';
+import { JobActiveToggle } from '@/components/employer/JobActiveToggle';
+import { JobExpiryBadge } from '@/components/employer/JobExpiryBadge';
+import { JobAnalyticsCard } from '@/components/employer/JobAnalyticsCard';
+import { ApplicantTabs } from '@/components/employer/ApplicantTabs';
 
 const statusColors: Record<string, string> = {
   pending: 'bg-warning/10 text-warning-foreground',
@@ -38,6 +47,16 @@ const statusColors: Record<string, string> = {
   rejected: 'bg-destructive/10 text-destructive',
   hired: 'bg-success/10 text-success',
 };
+
+interface Job {
+  id: string;
+  title: string;
+  status: string;
+  is_active: boolean;
+  expires_at: string;
+  created_at: string;
+  view_count: number;
+}
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -49,10 +68,10 @@ const Dashboard = () => {
   const [candidateProfile, setCandidateProfile] = useState<any>(null);
 
   // Employer state
-  const [jobs, setJobs] = useState<any[]>([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [selectedJob, setSelectedJob] = useState<string | null>(null);
-  const [applicants, setApplicants] = useState<any[]>([]);
   const [employerProfile, setEmployerProfile] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState('jobs');
 
   const isCandidate = profile?.user_type === 'candidate';
 
@@ -102,13 +121,13 @@ const Dashboard = () => {
         setEmployerProfile(empData);
 
         if (empData) {
-          // Fetch jobs
+          // Fetch jobs with new fields
           const { data: jobsData } = await supabase
             .from('jobs')
-            .select('*')
+            .select('id, title, status, is_active, expires_at, created_at, view_count')
             .eq('employer_id', empData.id)
             .order('created_at', { ascending: false });
-          setJobs(jobsData || []);
+          setJobs((jobsData || []) as Job[]);
 
           if (jobsData && jobsData.length > 0) {
             setSelectedJob(jobsData[0].id);
@@ -122,79 +141,30 @@ const Dashboard = () => {
     fetchData();
   }, [user, profile, isCandidate]);
 
-  // Fetch applicants when selected job changes
-  useEffect(() => {
-    if (!selectedJob) return;
-
-    const fetchApplicants = async () => {
-      const { data } = await supabase
-        .from('applications')
-        .select(`
-          *,
-          candidates (
-            id,
-            job_title,
-            experience_years,
-            skills,
-            profiles (
-              full_name,
-              avatar_url,
-              user_id
-            )
-          )
-        `)
-        .eq('job_id', selectedJob)
-        .order('created_at', { ascending: false });
-      setApplicants(data || []);
-    };
-
-    fetchApplicants();
-  }, [selectedJob]);
-
-  const updateApplicationStatus = async (applicationId: string, status: string) => {
-    const { error } = await supabase
-      .from('applications')
-      .update({ status })
-      .eq('id', applicationId);
-
-    if (error) {
-      toast.error('Failed to update status');
-    } else {
-      toast.success(`Application ${status}`);
-      setApplicants((prev) =>
-        prev.map((app) => (app.id === applicationId ? { ...app, status } : app))
-      );
-    }
+  const handleJobToggle = (jobId: string, newState: boolean) => {
+    setJobs(prev => prev.map(job => 
+      job.id === jobId ? { ...job, is_active: newState } : job
+    ));
   };
 
-  const startConversation = async (otherUserId: string) => {
-    if (!user) return;
+  const renewJob = async (jobId: string) => {
+    try {
+      const newExpiry = new Date();
+      newExpiry.setDate(newExpiry.getDate() + 30);
+      
+      const { error } = await supabase
+        .from('jobs')
+        .update({ expires_at: newExpiry.toISOString() })
+        .eq('id', jobId);
 
-    // Check if conversation exists
-    const { data: existing } = await supabase
-      .from('conversations')
-      .select('id')
-      .or(`and(participant_1.eq.${user.id},participant_2.eq.${otherUserId}),and(participant_1.eq.${otherUserId},participant_2.eq.${user.id})`)
-      .maybeSingle();
+      if (error) throw error;
 
-    if (existing) {
-      navigate(`/messages/${existing.id}`);
-    } else {
-      // Create new conversation
-      const { data: newConv, error } = await supabase
-        .from('conversations')
-        .insert({
-          participant_1: user.id,
-          participant_2: otherUserId,
-        })
-        .select()
-        .single();
-
-      if (newConv && !error) {
-        navigate(`/messages/${newConv.id}`);
-      } else {
-        toast.error('Failed to start conversation');
-      }
+      setJobs(prev => prev.map(job => 
+        job.id === jobId ? { ...job, expires_at: newExpiry.toISOString() } : job
+      ));
+      toast.success('Job renewed for 30 days');
+    } catch (error) {
+      toast.error('Failed to renew job');
     }
   };
 
@@ -205,6 +175,10 @@ const Dashboard = () => {
       year: 'numeric',
     });
   };
+
+  const canPostJobs = employerProfile?.verification_status === 'approved' && 
+                      employerProfile?.profile_completeness >= 100 &&
+                      employerProfile?.terms_accepted_at;
 
   if (!user || !profile) {
     return (
@@ -289,7 +263,16 @@ const Dashboard = () => {
                   )}
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold">Welcome, {profile.full_name}</h1>
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-2xl font-bold">Welcome, {profile.full_name}</h1>
+                    {!isCandidate && employerProfile && (
+                      <VerificationBadge 
+                        status={employerProfile.verification_status || 'pending'} 
+                        size="sm"
+                        showLabel={false}
+                      />
+                    )}
+                  </div>
                   <p className="text-muted-foreground">
                     {isCandidate
                       ? candidateProfile?.job_title || 'Candidate'
@@ -299,12 +282,20 @@ const Dashboard = () => {
               </div>
 
               {!isCandidate && (
-                <Link to="/post-job">
-                  <Button>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Post a Job
-                  </Button>
-                </Link>
+                <div className="flex items-center gap-2">
+                  <Link to="/company-profile">
+                    <Button variant="outline">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Edit Profile
+                    </Button>
+                  </Link>
+                  <Link to="/post-job">
+                    <Button disabled={!canPostJobs}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Post a Job
+                    </Button>
+                  </Link>
+                </div>
               )}
             </div>
           </CardContent>
@@ -399,182 +390,222 @@ const Dashboard = () => {
           </div>
         ) : (
           /* Employer Dashboard */
-          <div className="space-y-6">
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid lg:grid-cols-4 gap-6">
+            {/* Sidebar */}
+            <div className="lg:col-span-1 space-y-6">
+              {/* Plan Usage Panel */}
+              {employerProfile && (
+                <PlanUsagePanel employerId={employerProfile.id} />
+              )}
+
+              {/* Profile Completeness */}
+              {employerProfile && employerProfile.profile_completeness < 100 && (
+                <Card className="shadow-google border-warning/50">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 text-warning" />
+                      Complete Profile
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ProfileCompletenessBar 
+                      completeness={employerProfile.profile_completeness || 0}
+                      compact
+                    />
+                    <Link to="/company-profile">
+                      <Button variant="outline" size="sm" className="w-full mt-3">
+                        Complete Profile
+                      </Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Quick Stats */}
               <Card className="shadow-google">
-                <CardContent className="p-4 text-center">
-                  <p className="text-3xl font-bold text-primary">{jobs.length}</p>
-                  <p className="text-sm text-muted-foreground">Active Jobs</p>
-                </CardContent>
-              </Card>
-              <Card className="shadow-google">
-                <CardContent className="p-4 text-center">
-                  <p className="text-3xl font-bold text-primary">{applicants.length}</p>
-                  <p className="text-sm text-muted-foreground">Total Applicants</p>
-                </CardContent>
-              </Card>
-              <Card className="shadow-google">
-                <CardContent className="p-4 text-center">
-                  <p className="text-3xl font-bold text-success">
-                    {applicants.filter((a) => a.status === 'shortlisted').length}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Shortlisted</p>
-                </CardContent>
-              </Card>
-              <Card className="shadow-google">
-                <CardContent className="p-4 text-center">
-                  <p className="text-3xl font-bold text-success">
-                    {applicants.filter((a) => a.status === 'hired').length}
-                  </p>
-                  <p className="text-sm text-muted-foreground">Hired</p>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">Quick Stats</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Total Jobs</span>
+                    <span className="font-medium">{jobs.length}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Active Jobs</span>
+                    <span className="font-medium text-success">
+                      {jobs.filter(j => j.is_active && j.status === 'open').length}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Expiring Soon</span>
+                    <span className="font-medium text-warning">
+                      {jobs.filter(j => {
+                        const days = Math.ceil((new Date(j.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                        return days <= 7 && days > 0;
+                      }).length}
+                    </span>
+                  </div>
                 </CardContent>
               </Card>
             </div>
 
-            {/* Job Selector and Applicants */}
-            <Card className="shadow-google-lg">
-              <CardHeader>
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <Users className="w-5 h-5 text-primary" />
-                      Applicants
-                    </CardTitle>
-                    <CardDescription>Review and manage job applications</CardDescription>
-                  </div>
+            {/* Main Content */}
+            <div className="lg:col-span-3 space-y-6">
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="grid grid-cols-2 w-full max-w-md">
+                  <TabsTrigger value="jobs" className="gap-2">
+                    <Briefcase className="w-4 h-4" />
+                    My Jobs
+                  </TabsTrigger>
+                  <TabsTrigger value="applicants" className="gap-2">
+                    <Users className="w-4 h-4" />
+                    Applicants
+                  </TabsTrigger>
+                </TabsList>
 
-                  {jobs.length > 0 && (
-                    <Select value={selectedJob || ''} onValueChange={setSelectedJob}>
-                      <SelectTrigger className="w-64">
-                        <SelectValue placeholder="Select a job" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {jobs.map((job) => (
-                          <SelectItem key={job.id} value={job.id}>
-                            {job.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent>
-                {jobs.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Briefcase className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>No jobs posted yet</p>
-                    <Link to="/post-job">
-                      <Button variant="link">Post Your First Job</Button>
-                    </Link>
-                  </div>
-                ) : applicants.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>No applicants for this job yet</p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {applicants.map((app) => (
-                      <div
-                        key={app.id}
-                        className="card-google p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4"
-                      >
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                            {app.candidates?.profiles?.avatar_url ? (
-                              <img
-                                src={app.candidates.profiles.avatar_url}
-                                alt=""
-                                className="w-full h-full rounded-full object-cover"
-                              />
-                            ) : (
-                              <Users className="w-6 h-6 text-primary" />
-                            )}
-                          </div>
-                          <div>
-                            <h3 className="font-medium">
-                              {app.candidates?.profiles?.full_name || 'Unknown'}
-                            </h3>
-                            <p className="text-sm text-muted-foreground">
-                              {app.candidates?.job_title} • {app.candidates?.experience_years}y exp
-                            </p>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {app.candidates?.skills?.slice(0, 3).map((skill: string) => (
-                                <Badge key={skill} variant="secondary" className="text-xs">
-                                  {skill}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Badge className={statusColors[app.status]}>{app.status}</Badge>
-
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => startConversation(app.candidates?.profiles?.user_id)}
-                          >
-                            <Mail className="w-4 h-4 mr-1" />
-                            Message
+                {/* Jobs Tab */}
+                <TabsContent value="jobs" className="mt-6">
+                  {jobs.length === 0 ? (
+                    <Card className="shadow-google">
+                      <CardContent className="p-8 text-center">
+                        <Briefcase className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                        <p className="text-muted-foreground mb-4">No jobs posted yet</p>
+                        <Link to="/post-job">
+                          <Button disabled={!canPostJobs}>
+                            <Plus className="w-4 h-4 mr-2" />
+                            Post Your First Job
                           </Button>
+                        </Link>
+                        {!canPostJobs && (
+                          <p className="text-xs text-muted-foreground mt-2">
+                            Complete your profile and get verified to post jobs
+                          </p>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <div className="space-y-4">
+                      {jobs.map((job) => (
+                        <Card key={job.id} className="shadow-google">
+                          <CardContent className="p-4">
+                            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                              {/* Job Info */}
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3">
+                                  <h3 className="font-semibold text-lg">{job.title}</h3>
+                                  <Badge variant={job.status === 'open' ? 'default' : 'secondary'}>
+                                    {job.status}
+                                  </Badge>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-4 mt-2 text-sm text-muted-foreground">
+                                  <span className="flex items-center gap-1">
+                                    <Calendar className="w-4 h-4" />
+                                    Posted {formatDate(job.created_at)}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <Eye className="w-4 h-4" />
+                                    {job.view_count || 0} views
+                                  </span>
+                                </div>
+                                
+                                {/* Expiry Badge */}
+                                <div className="mt-2">
+                                  <JobExpiryBadge 
+                                    expiresAt={job.expires_at} 
+                                    showRenewButton
+                                    onRenew={() => renewJob(job.id)}
+                                  />
+                                </div>
+                              </div>
 
-                          {app.status === 'pending' && (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => updateApplicationStatus(app.id, 'reviewed')}
-                              >
-                                <Eye className="w-4 h-4 mr-1" />
-                                Review
-                              </Button>
-                            </>
-                          )}
+                              {/* Controls */}
+                              <div className="flex items-center gap-4">
+                                {employerProfile && (
+                                  <JobActiveToggle
+                                    jobId={job.id}
+                                    employerId={employerProfile.id}
+                                    isActive={job.is_active}
+                                    onToggle={(newState) => handleJobToggle(job.id, newState)}
+                                  />
+                                )}
+                                <div className="flex items-center gap-2">
+                                  <Link to={`/jobs/${job.id}`}>
+                                    <Button variant="outline" size="sm">
+                                      <Eye className="w-4 h-4 mr-1" />
+                                      View
+                                    </Button>
+                                  </Link>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedJob(job.id);
+                                      setActiveTab('applicants');
+                                    }}
+                                  >
+                                    <Users className="w-4 h-4 mr-1" />
+                                    Applicants
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
 
-                          {(app.status === 'pending' || app.status === 'reviewed') && (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-success"
-                                onClick={() => updateApplicationStatus(app.id, 'shortlisted')}
-                              >
-                                <CheckCircle2 className="w-4 h-4 mr-1" />
-                                Shortlist
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="text-destructive"
-                                onClick={() => updateApplicationStatus(app.id, 'rejected')}
-                              >
-                                <XCircle className="w-4 h-4 mr-1" />
-                                Reject
-                              </Button>
-                            </>
-                          )}
+                            {/* Analytics */}
+                            <div className="mt-4 pt-4 border-t">
+                              <JobAnalyticsCard jobId={job.id} compact />
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
 
-                          {app.status === 'shortlisted' && (
-                            <Button
-                              size="sm"
-                              className="bg-success hover:bg-success/90"
-                              onClick={() => updateApplicationStatus(app.id, 'hired')}
-                            >
-                              <CheckCircle2 className="w-4 h-4 mr-1" />
-                              Hire
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                {/* Applicants Tab */}
+                <TabsContent value="applicants" className="mt-6">
+                  {jobs.length === 0 ? (
+                    <Card className="shadow-google">
+                      <CardContent className="p-8 text-center">
+                        <Users className="w-12 h-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                        <p className="text-muted-foreground">Post a job to receive applicants</p>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <div className="space-y-4">
+                      {/* Job Selector */}
+                      <Card className="shadow-google">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-4">
+                            <span className="text-sm text-muted-foreground">Viewing applicants for:</span>
+                            <Select value={selectedJob || ''} onValueChange={setSelectedJob}>
+                              <SelectTrigger className="w-64">
+                                <SelectValue placeholder="Select a job" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {jobs.map((job) => (
+                                  <SelectItem key={job.id} value={job.id}>
+                                    {job.title}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Applicant Tabs */}
+                      {selectedJob && employerProfile && (
+                        <ApplicantTabs 
+                          jobId={selectedJob} 
+                          employerId={employerProfile.id} 
+                        />
+                      )}
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
+            </div>
           </div>
         )}
       </main>

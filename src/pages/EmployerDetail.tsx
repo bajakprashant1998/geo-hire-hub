@@ -27,8 +27,11 @@ import {
   BookmarkPlus,
   Share2,
   ExternalLink,
+  ShieldCheck,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { VerificationBadge } from '@/components/employer/VerificationBadge';
 
 interface EmployerProfile {
   id: string;
@@ -41,6 +44,9 @@ interface EmployerProfile {
   latitude: number | null;
   longitude: number | null;
   created_at: string | null;
+  verification_status: 'pending' | 'approved' | 'rejected';
+  office_photo_url: string | null;
+  business_card_url: string | null;
 }
 
 interface Job {
@@ -97,6 +103,7 @@ const EmployerDetail = () => {
         latitude: data.profiles.latitude,
         longitude: data.profiles.longitude,
         created_at: data.profiles.created_at,
+        verification_status: (data.verification_status as 'pending' | 'approved' | 'rejected') || 'pending',
       });
     } catch (error: any) {
       console.error('Error fetching employer:', error);
@@ -223,8 +230,11 @@ const EmployerDetail = () => {
               <div className="flex-1">
                 <div className="flex flex-col md:flex-row md:items-center gap-4 md:justify-between">
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <h1 className="text-2xl font-bold">{employer.company_name}</h1>
+                      {employer.verification_status === 'approved' && (
+                        <VerificationBadge status="approved" size="sm" />
+                      )}
                       <div className="flex items-center gap-1">
                         {[1, 2, 3, 4, 5].map((star) => (
                           <Star
@@ -350,6 +360,48 @@ const EmployerDetail = () => {
                 )}
               </CardContent>
             </Card>
+
+            {/* Trust Documents */}
+            {(employer.office_photo_url || employer.business_card_url) && (
+              <Card className="shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-success" />
+                    Trust & Verification
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {employer.office_photo_url && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium flex items-center gap-2">
+                          <ImageIcon className="w-4 h-4" />
+                          Office Photo
+                        </p>
+                        <img
+                          src={employer.office_photo_url}
+                          alt="Office"
+                          className="w-full h-40 object-cover rounded-lg border"
+                        />
+                      </div>
+                    )}
+                    {employer.business_card_url && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium flex items-center gap-2">
+                          <ImageIcon className="w-4 h-4" />
+                          Business Card
+                        </p>
+                        <img
+                          src={employer.business_card_url}
+                          alt="Business Card"
+                          className="w-full h-40 object-cover rounded-lg border"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Open Positions */}
             {jobs.length > 0 && (
