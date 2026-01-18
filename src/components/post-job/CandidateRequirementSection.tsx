@@ -119,11 +119,9 @@ export const CandidateRequirementSection = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 mb-4">
-        <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
-          2
-        </div>
-        <h2 className="text-lg font-semibold">Candidate Requirement</h2>
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold">Candidate Requirements</h2>
+        <p className="text-sm text-muted-foreground">Define what you're looking for in ideal candidates</p>
       </div>
 
       {/* Experience Type Toggle */}

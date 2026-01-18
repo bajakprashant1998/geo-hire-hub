@@ -52,11 +52,9 @@ export const CompanyInfoSection = ({
 }: CompanyInfoSectionProps) => {
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-2 mb-4">
-        <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
-          4
-        </div>
-        <h2 className="text-lg font-semibold">About Your Company</h2>
+      <div className="mb-6">
+        <h2 className="text-xl font-semibold">Company Information</h2>
+        <p className="text-sm text-muted-foreground">Add contact details and company info for candidates</p>
       </div>
 
       {/* Company Name (Auto-filled) */}
