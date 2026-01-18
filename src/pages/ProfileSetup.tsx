@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useGeolocation } from '@/hooks/useGeolocation';
+import { PhotoUpload } from '@/components/PhotoUpload';
 
 const industries = [
   'Technology',
@@ -30,6 +31,9 @@ const ProfileSetup = () => {
   const navigate = useNavigate();
   const { user, profile, refreshProfile } = useAuth();
   const geolocation = useGeolocation();
+
+  // Profile photo
+  const [avatarUrl, setAvatarUrl] = useState<string>(profile?.avatar_url || '');
   
   // Candidate fields
   const [jobTitle, setJobTitle] = useState('');
@@ -71,6 +75,10 @@ const ProfileSetup = () => {
     setPortfolioUrls(portfolioUrls.filter((u) => u !== url));
   };
 
+  const handlePhotoUploaded = (url: string) => {
+    setAvatarUrl(url);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user || !profile) return;
@@ -78,12 +86,13 @@ const ProfileSetup = () => {
     setLoading(true);
 
     try {
-      // Update profile with location
+      // Update profile with location and avatar
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
           latitude: geolocation.latitude,
           longitude: geolocation.longitude,
+          avatar_url: avatarUrl || null,
           profile_completed: true,
         })
         .eq('user_id', user.id);
@@ -137,7 +146,7 @@ const ProfileSetup = () => {
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center">
-          <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto shadow-google mb-4">
+          <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center mx-auto shadow-lg mb-4">
             {isCandidate ? (
               <Briefcase className="w-8 h-8 text-primary-foreground" />
             ) : (
@@ -151,6 +160,24 @@ const ProfileSetup = () => {
               : 'Add your company details to start posting jobs'}
           </p>
         </div>
+
+        {/* Profile Photo Upload */}
+        {user && (
+          <Card className="shadow-lg">
+            <CardHeader className="text-center pb-2">
+              <CardTitle className="text-lg">Profile Photo</CardTitle>
+              <CardDescription>Add a photo to help others recognize you</CardDescription>
+            </CardHeader>
+            <CardContent className="flex justify-center pb-6">
+              <PhotoUpload
+                userId={user.id}
+                currentPhotoUrl={avatarUrl}
+                onPhotoUploaded={handlePhotoUploaded}
+                size="lg"
+              />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Location Status */}
         <div
@@ -171,7 +198,7 @@ const ProfileSetup = () => {
         </div>
 
         {/* Form */}
-        <Card className="shadow-google-lg">
+        <Card className="shadow-lg">
           <CardHeader>
             <CardTitle>{isCandidate ? 'Candidate Profile' : 'Company Profile'}</CardTitle>
             <CardDescription>
