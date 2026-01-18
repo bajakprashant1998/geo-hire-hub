@@ -1117,6 +1117,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_candidate: { Args: { _user_id: string }; Returns: boolean }
+      is_employer: { Args: { _user_id: string }; Returns: boolean }
       log_admin_action: {
         Args: {
           p_action_type: string
