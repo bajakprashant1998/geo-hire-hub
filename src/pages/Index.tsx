@@ -63,38 +63,47 @@ const Index = () => {
   };
 
   return (
-    <div className="relative w-full h-screen overflow-hidden">
-      {/* Leaflet Map with OpenStreetMap */}
-      <MapContainer
-        mode={mode}
-        candidates={candidates}
-        jobs={jobs}
-        userLocation={userLocation}
-        radius={radius}
-        onMarkerClick={handleMarkerClick}
-        selectedItem={selectedItem}
-      />
+    <div className="relative w-full h-screen overflow-hidden bg-background">
+      {/* Map Layer - Lowest z-index */}
+      <div className="absolute inset-0 z-0">
+        <MapContainer
+          mode={mode}
+          candidates={candidates}
+          jobs={jobs}
+          userLocation={userLocation}
+          radius={radius}
+          onMarkerClick={handleMarkerClick}
+          selectedItem={selectedItem}
+        />
+      </div>
 
-      {/* Header */}
-      <Header
-        mode={mode}
-        onModeChange={handleModeChange}
-        onSearch={setSearchQuery}
-        onMenuClick={() => setSidebarOpen(true)}
-      />
+      {/* UI Layer - Higher z-index */}
+      <div className="absolute inset-0 z-10 pointer-events-none">
+        {/* Header */}
+        <div className="pointer-events-auto">
+          <Header
+            mode={mode}
+            onModeChange={handleModeChange}
+            onSearch={setSearchQuery}
+            onMenuClick={() => setSidebarOpen(true)}
+          />
+        </div>
 
-      {/* Floating Controls */}
-      <FloatingControls
-        mode={mode}
-        radius={radius}
-        onRadiusChange={setRadius}
-        onToggleSidebar={() => setSidebarOpen(true)}
-        onCenterOnUser={handleCenterOnUser}
-        candidateCount={candidates.length}
-        jobCount={jobs.length}
-      />
+        {/* Floating Controls */}
+        <div className="pointer-events-auto">
+          <FloatingControls
+            mode={mode}
+            radius={radius}
+            onRadiusChange={setRadius}
+            onToggleSidebar={() => setSidebarOpen(true)}
+            onCenterOnUser={handleCenterOnUser}
+            candidateCount={candidates.length}
+            jobCount={jobs.length}
+          />
+        </div>
+      </div>
 
-      {/* Sidebar */}
+      {/* Overlay Layer - Highest z-index */}
       <Sidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
@@ -105,7 +114,6 @@ const Index = () => {
         onSelectJob={handleSelectFromSidebar}
       />
 
-      {/* Marker Preview Sheet */}
       <MarkerPreviewSheet
         isOpen={previewOpen}
         onClose={() => setPreviewOpen(false)}
