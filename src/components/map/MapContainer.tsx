@@ -24,12 +24,13 @@ interface MapContainerProps {
   selectedItem: Candidate | Job | null;
 }
 
-// Custom marker icons
-const createCandidateIcon = (isHovered: boolean = false) =>
+// Custom marker icons with animation support
+const createCandidateIcon = (isHovered: boolean = false, animationDelay: number = 0) =>
   L.divIcon({
-    className: 'custom-marker',
+    className: 'custom-marker marker-animated',
     html: `
-      <div style="
+      <div class="marker-pin candidate-pin ${isHovered ? 'hovered' : ''}" style="
+        --animation-delay: ${animationDelay}ms;
         width: ${isHovered ? '40px' : '32px'};
         height: ${isHovered ? '40px' : '32px'};
         background: hsl(217, 89%, 61%);
@@ -41,6 +42,9 @@ const createCandidateIcon = (isHovered: boolean = false) =>
         justify-content: center;
         transition: all 0.2s ease;
         transform: ${isHovered ? 'scale(1.1)' : 'scale(1)'};
+        animation: markerDrop 0.4s ease-out forwards;
+        animation-delay: var(--animation-delay);
+        opacity: 0;
       ">
         <svg width="${isHovered ? '20' : '16'}" height="${isHovered ? '20' : '16'}" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -53,11 +57,12 @@ const createCandidateIcon = (isHovered: boolean = false) =>
     popupAnchor: [0, isHovered ? -40 : -32],
   });
 
-const createJobIcon = (isHovered: boolean = false) =>
+const createJobIcon = (isHovered: boolean = false, animationDelay: number = 0) =>
   L.divIcon({
-    className: 'custom-marker',
+    className: 'custom-marker marker-animated',
     html: `
-      <div style="
+      <div class="marker-pin job-pin ${isHovered ? 'hovered' : ''}" style="
+        --animation-delay: ${animationDelay}ms;
         width: ${isHovered ? '40px' : '32px'};
         height: ${isHovered ? '40px' : '32px'};
         background: hsl(4, 90%, 58%);
@@ -69,6 +74,9 @@ const createJobIcon = (isHovered: boolean = false) =>
         justify-content: center;
         transition: all 0.2s ease;
         transform: ${isHovered ? 'scale(1.1)' : 'scale(1)'};
+        animation: markerDrop 0.4s ease-out forwards;
+        animation-delay: var(--animation-delay);
+        opacity: 0;
       ">
         <svg width="${isHovered ? '20' : '16'}" height="${isHovered ? '20' : '16'}" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
           <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
@@ -334,32 +342,35 @@ export const MapContainer = ({
 
     const items = mode === 'hiring' ? candidates : jobs;
 
-    items.forEach((item) => {
+    items.forEach((item, index) => {
       const lat = 'latitude' in item ? item.latitude : item.latitude;
       const lng = 'longitude' in item ? item.longitude : item.longitude;
 
       if (lat && lng) {
         const isCandidate = mode === 'hiring';
-        const icon = isCandidate ? createCandidateIcon(false) : createJobIcon(false);
-        const hoverIcon = isCandidate ? createCandidateIcon(true) : createJobIcon(true);
+        // Staggered animation delay for each marker (max 50 markers with 30ms delay each)
+        const animationDelay = Math.min(index, 50) * 30;
+        const icon = isCandidate ? createCandidateIcon(false, animationDelay) : createJobIcon(false, animationDelay);
+        const hoverIcon = isCandidate ? createCandidateIcon(true, 0) : createJobIcon(true, 0);
         
         const marker = L.marker([lat, lng], { icon });
 
-        // Create popup with custom content
+        // Create popup with custom content for hover preview
         const popupContent = isCandidate 
           ? createCandidatePopupContent(item as Candidate)
           : createJobPopupContent(item as Job);
 
         const popup = L.popup({
-          closeButton: true,
-          className: 'custom-popup',
+          closeButton: false,
+          className: 'custom-popup hover-popup',
           maxWidth: 280,
           offset: [0, -10],
+          autoPan: false,
         }).setContent(popupContent);
 
         marker.bindPopup(popup);
 
-        // Desktop: hover to show popup
+        // Desktop: hover to show popup preview
         if (!isMobile) {
           marker.on('mouseover', () => {
             marker.setIcon(hoverIcon);
@@ -367,24 +378,23 @@ export const MapContainer = ({
           });
 
           marker.on('mouseout', () => {
-            marker.setIcon(icon);
-            // Don't close popup immediately - let user interact with it
+            // Reset icon after a small delay
+            setTimeout(() => {
+              marker.setIcon(icon);
+            }, 100);
+          });
+
+          // Click opens the preview sheet
+          marker.on('click', () => {
+            marker.closePopup();
+            onMarkerClick(item);
+          });
+        } else {
+          // Mobile: tap to open preview sheet directly
+          marker.on('click', () => {
+            onMarkerClick(item);
           });
         }
-
-        // Mobile: tap to show popup, second tap on popup to navigate
-        marker.on('click', (e) => {
-          if (isMobile) {
-            // On mobile, first tap shows popup
-            if (tappedMarkerId !== item.id) {
-              setTappedMarkerId(item.id);
-              marker.openPopup();
-              L.DomEvent.stopPropagation(e);
-            }
-          }
-          // On desktop, click on marker (not popup) also opens popup
-          // Navigation happens through popup click handler
-        });
 
         markerMapRef.current.set(item.id, marker);
         markersRef.current?.addLayer(marker);
@@ -421,11 +431,53 @@ export const MapContainer = ({
   return (
     <>
       <style>{`
+        @keyframes markerDrop {
+          0% {
+            opacity: 0;
+            transform: translateY(-20px) scale(0.5);
+          }
+          60% {
+            opacity: 1;
+            transform: translateY(5px) scale(1.1);
+          }
+          80% {
+            transform: translateY(-3px) scale(0.95);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+        @keyframes markerPulse {
+          0%, 100% {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          }
+          50% {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+          }
+        }
+        .marker-animated .marker-pin {
+          animation: markerDrop 0.4s ease-out forwards;
+        }
+        .marker-pin.hovered {
+          animation: markerPulse 1s ease-in-out infinite;
+        }
         .custom-popup .leaflet-popup-content-wrapper {
           padding: 0;
           border-radius: 12px;
           box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
           overflow: hidden;
+          animation: popupFadeIn 0.2s ease-out;
+        }
+        @keyframes popupFadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(5px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
         .custom-popup .leaflet-popup-content {
           margin: 0;
@@ -435,12 +487,13 @@ export const MapContainer = ({
           background: white;
         }
         .custom-popup .leaflet-popup-close-button {
-          color: hsl(220, 9%, 46%) !important;
-          font-size: 18px;
-          padding: 8px 10px;
+          display: none;
         }
-        .custom-popup .leaflet-popup-close-button:hover {
-          color: hsl(220, 9%, 20%) !important;
+        .hover-popup .marker-popup-content {
+          pointer-events: none;
+        }
+        .marker-popup-content {
+          transition: background 0.15s ease;
         }
         .marker-popup-content:hover {
           background: hsl(220, 14%, 98%);
