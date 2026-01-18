@@ -39,6 +39,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { ProfileCompletenessBar } from '@/components/employer/ProfileCompletenessBar';
 import { VerificationBadge } from '@/components/employer/VerificationBadge';
 import { DocumentUpload } from '@/components/employer/DocumentUpload';
+import { LogoUpload } from '@/components/employer/LogoUpload';
 
 const countries = [
   { code: 'US', name: 'United States', taxLabel: 'EIN / Tax ID' },
@@ -88,6 +89,7 @@ const CompanyProfileEdit = () => {
   const [taxId, setTaxId] = useState('');
   const [officePhotoUrl, setOfficePhotoUrl] = useState('');
   const [businessCardUrl, setBusinessCardUrl] = useState('');
+  const [logoUrl, setLogoUrl] = useState('');
   const [verificationStatus, setVerificationStatus] = useState<'pending' | 'approved' | 'rejected'>('pending');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [completeness, setCompleteness] = useState(0);
@@ -102,7 +104,10 @@ const CompanyProfileEdit = () => {
     try {
       const { data, error } = await supabase
         .from('employers')
-        .select('*')
+        .select(`
+          *,
+          profiles!inner(avatar_url)
+        `)
         .eq('profile_id', profile.id)
         .maybeSingle();
 
@@ -118,6 +123,7 @@ const CompanyProfileEdit = () => {
         setTaxId(data.tax_id || '');
         setOfficePhotoUrl(data.office_photo_url || '');
         setBusinessCardUrl(data.business_card_url || '');
+        setLogoUrl(data.profiles?.avatar_url || '');
         setVerificationStatus((data.verification_status as 'pending' | 'approved' | 'rejected') || 'pending');
         setTermsAccepted(!!data.terms_accepted_at);
         setCompleteness(data.profile_completeness || 0);
@@ -149,7 +155,7 @@ const CompanyProfileEdit = () => {
   };
 
   const handleSave = async () => {
-    if (!employerId) return;
+    if (!employerId || !profile) return;
 
     setSaving(true);
     try {
@@ -172,6 +178,14 @@ const CompanyProfileEdit = () => {
         .eq('id', employerId);
 
       if (error) throw error;
+
+      // Update profile avatar_url for company logo
+      if (logoUrl !== profile.avatar_url) {
+        await supabase
+          .from('profiles')
+          .update({ avatar_url: logoUrl || null })
+          .eq('id', profile.id);
+      }
 
       // Recalculate completeness
       const { data: calcData } = await supabase
@@ -264,15 +278,37 @@ const CompanyProfileEdit = () => {
           </Card>
         )}
 
-        {/* Basic Info */}
+        {/* Company Logo & Basic Info */}
         <Card className="shadow-google">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Building2 className="w-5 h-5 text-primary" />
-              Basic Information
+              Company Branding
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
+            {/* Logo Upload */}
+            <div className="flex flex-col md:flex-row items-center gap-6 p-4 bg-secondary/50 rounded-lg">
+              {user && (
+                <LogoUpload
+                  userId={user.id}
+                  currentLogoUrl={logoUrl}
+                  onLogoUploaded={setLogoUrl}
+                  size="lg"
+                />
+              )}
+              <div className="text-center md:text-left">
+                <h3 className="font-semibold">Company Logo</h3>
+                <p className="text-sm text-muted-foreground">
+                  Upload your company logo. Recommended: Square image (1:1 ratio), at least 200x200px.
+                  Supports JPEG, PNG, WebP, or SVG.
+                </p>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Basic Info Fields */}
             <div className="grid md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="companyName">Company Name *</Label>

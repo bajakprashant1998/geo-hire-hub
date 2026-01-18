@@ -5,9 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { X, Plus, Loader2, GraduationCap } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { X, Plus, Loader2, GraduationCap, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { PhotoUpload } from '@/components/PhotoUpload';
 
 interface Education {
   institution: string;
@@ -28,6 +30,7 @@ interface ProfileEditModalProps {
 export const ProfileEditModal = ({ open, onOpenChange, profile, candidate, onSave }: ProfileEditModalProps) => {
   const [loading, setLoading] = useState(false);
   const [fullName, setFullName] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
   const [jobTitle, setJobTitle] = useState('');
   const [bio, setBio] = useState('');
   const [experienceYears, setExperienceYears] = useState(0);
@@ -39,6 +42,7 @@ export const ProfileEditModal = ({ open, onOpenChange, profile, candidate, onSav
   useEffect(() => {
     if (profile && candidate) {
       setFullName(profile.full_name || '');
+      setAvatarUrl(profile.avatar_url || '');
       setJobTitle(candidate.job_title || '');
       setBio(candidate.bio || '');
       setExperienceYears(candidate.experience_years || 0);
@@ -78,10 +82,13 @@ export const ProfileEditModal = ({ open, onOpenChange, profile, candidate, onSav
     
     setLoading(true);
     try {
-      // Update profile
+      // Update profile with avatar
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ full_name: fullName })
+        .update({ 
+          full_name: fullName,
+          avatar_url: avatarUrl || null
+        })
         .eq('id', profile.id);
 
       if (profileError) throw profileError;
@@ -120,6 +127,27 @@ export const ProfileEditModal = ({ open, onOpenChange, profile, candidate, onSav
         </DialogHeader>
 
         <div className="space-y-6 py-4">
+          {/* Profile Photo */}
+          <div className="flex flex-col items-center gap-4 p-4 bg-secondary/50 rounded-lg">
+            <PhotoUpload
+              userId={profile?.user_id || ''}
+              currentPhotoUrl={avatarUrl}
+              onPhotoUploaded={setAvatarUrl}
+              size="lg"
+            />
+            <div className="text-center">
+              <h3 className="font-semibold flex items-center justify-center gap-2">
+                <User className="w-4 h-4" />
+                Profile Photo
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Upload a professional photo. Recommended: Square image, at least 200x200px.
+              </p>
+            </div>
+          </div>
+
+          <Separator />
+
           {/* Basic Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
