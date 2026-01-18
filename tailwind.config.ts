@@ -15,10 +15,10 @@ export default {
     extend: {
       fontFamily: {
         sans: ["'Inter'", "-apple-system", "BlinkMacSystemFont", "'Segoe UI'", "sans-serif"],
-        serif: ["'Playfair Display'", "Georgia", "'Times New Roman'", "serif"],
-        heading: ["'Playfair Display'", "Georgia", "'Times New Roman'", "serif"],
+        serif: ["'Poppins'", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+        heading: ["'Poppins'", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
         body: ["'Inter'", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
-        display: ["'Playfair Display'", "Georgia", "serif"],
+        display: ["'Poppins'", "-apple-system", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
