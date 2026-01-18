@@ -6,6 +6,8 @@ import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import 'leaflet.markercluster';
 import { ViewMode, Candidate, Job } from '@/types';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 // Fix for default marker icons in Leaflet with Vite
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -195,7 +197,7 @@ const createCandidatePopupContent = (candidate: Candidate): string => {
   `;
 };
 
-// Generate popup content for jobs - with apply button
+// Generate popup content for jobs - with apply and save buttons
 const createJobPopupContent = (job: Job): string => {
   return `
     <div class="marker-popup-content" data-type="job" data-id="${job.id}" style="
@@ -219,6 +221,25 @@ const createJobPopupContent = (job: Job): string => {
           <h4 style="margin: 0; font-size: 16px; font-weight: 600; color: hsl(220, 9%, 15%); line-height: 1.3;">${job.title}</h4>
           <p style="margin: 4px 0 0; font-size: 13px; color: hsl(220, 9%, 46%);">${job.company_name || 'Company'}</p>
         </div>
+        <!-- Save button -->
+        <button class="popup-save-btn" data-action="save" data-job-id="${job.id}" style="
+          width: 36px;
+          height: 36px;
+          padding: 0;
+          background: hsl(220, 14%, 96%);
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.15s ease;
+          flex-shrink: 0;
+        ">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="hsl(220, 9%, 46%)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
+        </button>
       </div>
       
       <!-- Tags row -->
@@ -304,6 +325,84 @@ export const MapContainer = ({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Handle save job
+  const handleSaveJob = useCallback(async (jobId: string, button: HTMLButtonElement) => {
+    try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Please login to save jobs');
+        navigate('/login');
+        return;
+      }
+
+      // Get candidate ID
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!profile) {
+        toast.error('Profile not found');
+        return;
+      }
+
+      const { data: candidate } = await supabase
+        .from('candidates')
+        .select('id')
+        .eq('profile_id', profile.id)
+        .single();
+
+      if (!candidate) {
+        toast.error('Only candidates can save jobs');
+        return;
+      }
+
+      // Check if already saved
+      const { data: existingSave } = await supabase
+        .from('saved_jobs')
+        .select('id')
+        .eq('candidate_id', candidate.id)
+        .eq('job_id', jobId)
+        .maybeSingle();
+
+      if (existingSave) {
+        // Unsave
+        await supabase
+          .from('saved_jobs')
+          .delete()
+          .eq('id', existingSave.id);
+        
+        // Update button appearance
+        button.innerHTML = `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="hsl(220, 9%, 46%)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
+        `;
+        button.style.background = 'hsl(220, 14%, 96%)';
+        toast.success('Job removed from saved');
+      } else {
+        // Save
+        await supabase
+          .from('saved_jobs')
+          .insert({ candidate_id: candidate.id, job_id: jobId });
+        
+        // Update button appearance
+        button.innerHTML = `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="hsl(45, 93%, 47%)" stroke="hsl(45, 93%, 47%)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
+        `;
+        button.style.background = 'hsl(45, 93%, 95%)';
+        toast.success('Job saved!');
+      }
+    } catch (error) {
+      console.error('Error saving job:', error);
+      toast.error('Failed to save job');
+    }
+  }, [navigate]);
+
   // Handle popup button clicks
   const handlePopupClick = useCallback((e: MouseEvent) => {
     const target = e.target as HTMLElement;
@@ -322,7 +421,9 @@ export const MapContainer = ({
       
       const action = button.dataset.action;
       
-      if (action === 'apply' && id) {
+      if (action === 'save' && id) {
+        handleSaveJob(id, button);
+      } else if (action === 'apply' && id) {
         // Navigate to job detail with apply intent
         navigate(`/jobs/${id}?action=apply`);
       } else if (action === 'contact' && id) {
@@ -613,6 +714,13 @@ export const MapContainer = ({
         }
         .popup-view-btn:hover {
           background: hsl(220, 14%, 92%) !important;
+        }
+        .popup-save-btn:hover {
+          background: hsl(45, 93%, 95%) !important;
+          transform: scale(1.05);
+        }
+        .popup-save-btn:hover svg {
+          stroke: hsl(45, 93%, 47%);
         }
       `}</style>
       <div ref={containerRef} className="w-full h-full" style={{ minHeight: '100vh' }} />
