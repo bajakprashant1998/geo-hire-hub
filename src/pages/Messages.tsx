@@ -54,7 +54,7 @@ const Messages = () => {
           data.map(async (conv) => {
             const otherUserId = conv.participant_1 === user.id ? conv.participant_2 : conv.participant_1;
             const { data: profileData } = await supabase
-              .from('profiles')
+              .from('public_profiles')
               .select('*')
               .eq('user_id', otherUserId)
               .maybeSingle();
@@ -88,10 +88,10 @@ const Messages = () => {
       if (convData) {
         setActiveConversation(convData);
 
-        // Get other user profile
+        // Get other user profile (use public view to exclude sensitive fields)
         const otherUserId = convData.participant_1 === user?.id ? convData.participant_2 : convData.participant_1;
         const { data: profileData } = await supabase
-          .from('profiles')
+          .from('public_profiles')
           .select('*')
           .eq('user_id', otherUserId)
           .maybeSingle();
