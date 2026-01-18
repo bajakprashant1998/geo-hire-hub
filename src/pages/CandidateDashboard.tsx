@@ -20,6 +20,7 @@ import { JobActivityTabs } from '@/components/candidate/JobActivityTabs';
 import { NotificationCenter } from '@/components/candidate/NotificationCenter';
 import { JobAlertsManager } from '@/components/candidate/JobAlertsManager';
 import { SecuritySettings } from '@/components/candidate/SecuritySettings';
+import { RecommendedJobs } from '@/components/candidate/RecommendedJobs';
 
 const CandidateDashboard = () => {
   const navigate = useNavigate();
@@ -148,8 +149,20 @@ const CandidateDashboard = () => {
 
           <TabsContent value="overview">
             <div className="grid lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-1"><ProfileCompletenessCard profile={profile} candidate={candidate} /></div>
-              <div className="lg:col-span-2"><NotificationCenter /></div>
+              <div className="lg:col-span-1 space-y-6">
+                <ProfileCompletenessCard profile={profile} candidate={candidate} />
+              </div>
+              <div className="lg:col-span-2 space-y-6">
+                <NotificationCenter />
+                {candidate && (
+                  <RecommendedJobs 
+                    candidateId={candidate.id}
+                    skills={candidate.skills || []}
+                    latitude={profile.latitude}
+                    longitude={profile.longitude}
+                  />
+                )}
+              </div>
             </div>
           </TabsContent>
 
