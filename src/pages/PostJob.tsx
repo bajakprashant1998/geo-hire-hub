@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -14,7 +15,8 @@ import {
   Check,
   Users,
   Clock,
-  Building2
+  Building2,
+  Eye
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,6 +26,7 @@ import { JobBasicsSection } from '@/components/post-job/JobBasicsSection';
 import { CandidateRequirementSection } from '@/components/post-job/CandidateRequirementSection';
 import { TimingsSection } from '@/components/post-job/TimingsSection';
 import { CompanyInfoSection } from '@/components/post-job/CompanyInfoSection';
+import { JobPreviewStep } from '@/components/post-job/JobPreviewStep';
 import { PerformanceInsightsPanel } from '@/components/post-job/PerformanceInsightsPanel';
 
 const STEPS = [
@@ -31,11 +34,31 @@ const STEPS = [
   { id: 2, title: 'Requirements', icon: Users, description: 'Skills & experience' },
   { id: 3, title: 'Timings', icon: Clock, description: 'Work hours & interview' },
   { id: 4, title: 'Company', icon: Building2, description: 'Contact & details' },
+  { id: 5, title: 'Preview', icon: Eye, description: 'Review & publish' },
 ];
+
+// Animation variants for step transitions
+const stepVariants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? 50 : -50,
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+  },
+  exit: (direction: number) => ({
+    x: direction > 0 ? -50 : 50,
+    opacity: 0,
+  }),
+};
 
 const PostJob = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
+  
+  // Track animation direction
+  const [direction, setDirection] = useState(0);
 
   // Wizard state
   const [currentStep, setCurrentStep] = useState(1);
@@ -401,12 +424,14 @@ const PostJob = () => {
 
   const handleNext = () => {
     if (validateStep(currentStep)) {
-      setCurrentStep((prev) => Math.min(prev + 1, 4));
+      setDirection(1);
+      setCurrentStep((prev) => Math.min(prev + 1, 5));
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   const handlePrev = () => {
+    setDirection(-1);
     setCurrentStep((prev) => Math.max(prev - 1, 1));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -414,12 +439,14 @@ const PostJob = () => {
   const handleStepClick = (step: number) => {
     // Allow going back without validation, but validate when going forward
     if (step < currentStep) {
+      setDirection(-1);
       setCurrentStep(step);
     } else if (step > currentStep) {
       // Validate all steps up to the target
       for (let i = currentStep; i < step; i++) {
         if (!validateStep(i)) return;
       }
+      setDirection(1);
       setCurrentStep(step);
     }
   };
@@ -554,7 +581,7 @@ const PostJob = () => {
     );
   }
 
-  const progressPercent = (currentStep / 4) * 100;
+  const progressPercent = (currentStep / 5) * 100;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-secondary/30 to-background">
@@ -602,7 +629,7 @@ const PostJob = () => {
                   <div className="p-4 border-b bg-muted/30">
                     <div className="flex items-center justify-between text-sm mb-2">
                       <span className="font-medium">Progress</span>
-                      <span className="text-muted-foreground">{currentStep}/4</span>
+                      <span className="text-muted-foreground">{currentStep}/5</span>
                     </div>
                     <Progress value={progressPercent} className="h-2" />
                   </div>
@@ -672,100 +699,152 @@ const PostJob = () => {
           <div className="lg:col-span-3">
             <Card className="shadow-google-lg">
               <CardContent className="p-6 sm:p-8">
-                {/* Step Content */}
-                <div className="min-h-[500px]">
-                  {currentStep === 1 && (
-                    <JobBasicsSection
-                      jobType={jobType}
-                      setJobType={setJobType}
-                      title={title}
-                      setTitle={setTitle}
-                      coordinates={coordinates}
-                      setCoordinates={setCoordinates}
-                      address={address}
-                      setAddress={setAddress}
-                      openings={openings}
-                      setOpenings={setOpenings}
-                    />
-                  )}
+                {/* Step Content with Animations */}
+                <div className="min-h-[500px] overflow-hidden">
+                  <AnimatePresence mode="wait" custom={direction}>
+                    <motion.div
+                      key={currentStep}
+                      custom={direction}
+                      variants={stepVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      transition={{
+                        x: { type: "spring", stiffness: 300, damping: 30 },
+                        opacity: { duration: 0.2 },
+                      }}
+                    >
+                      {currentStep === 1 && (
+                        <JobBasicsSection
+                          jobType={jobType}
+                          setJobType={setJobType}
+                          title={title}
+                          setTitle={setTitle}
+                          coordinates={coordinates}
+                          setCoordinates={setCoordinates}
+                          address={address}
+                          setAddress={setAddress}
+                          openings={openings}
+                          setOpenings={setOpenings}
+                        />
+                      )}
 
-                  {currentStep === 2 && (
-                    <CandidateRequirementSection
-                      experienceType={experienceType}
-                      setExperienceType={setExperienceType}
-                      minExperience={minExperience}
-                      setMinExperience={setMinExperience}
-                      maxExperience={maxExperience}
-                      setMaxExperience={setMaxExperience}
-                      salaryMin={salaryMin}
-                      setSalaryMin={setSalaryMin}
-                      salaryMax={salaryMax}
-                      setSalaryMax={setSalaryMax}
-                      hasBonus={hasBonus}
-                      setHasBonus={setHasBonus}
-                      description={description}
-                      setDescription={setDescription}
-                      skills={skills}
-                      setSkills={setSkills}
-                      gender={gender}
-                      setGender={setGender}
-                      ageMin={ageMin}
-                      setAgeMin={setAgeMin}
-                      ageMax={ageMax}
-                      setAgeMax={setAgeMax}
-                      education={education}
-                      setEducation={setEducation}
-                      languages={languages}
-                      setLanguages={setLanguages}
-                      certifications={certifications}
-                      setCertifications={setCertifications}
-                      additionalNotes={additionalNotes}
-                      setAdditionalNotes={setAdditionalNotes}
-                      onGenerateDescription={generateDescription}
-                      generatingDescription={generatingDescription}
-                      title={title}
-                    />
-                  )}
+                      {currentStep === 2 && (
+                        <CandidateRequirementSection
+                          experienceType={experienceType}
+                          setExperienceType={setExperienceType}
+                          minExperience={minExperience}
+                          setMinExperience={setMinExperience}
+                          maxExperience={maxExperience}
+                          setMaxExperience={setMaxExperience}
+                          salaryMin={salaryMin}
+                          setSalaryMin={setSalaryMin}
+                          salaryMax={salaryMax}
+                          setSalaryMax={setSalaryMax}
+                          hasBonus={hasBonus}
+                          setHasBonus={setHasBonus}
+                          description={description}
+                          setDescription={setDescription}
+                          skills={skills}
+                          setSkills={setSkills}
+                          gender={gender}
+                          setGender={setGender}
+                          ageMin={ageMin}
+                          setAgeMin={setAgeMin}
+                          ageMax={ageMax}
+                          setAgeMax={setAgeMax}
+                          education={education}
+                          setEducation={setEducation}
+                          languages={languages}
+                          setLanguages={setLanguages}
+                          certifications={certifications}
+                          setCertifications={setCertifications}
+                          additionalNotes={additionalNotes}
+                          setAdditionalNotes={setAdditionalNotes}
+                          onGenerateDescription={generateDescription}
+                          generatingDescription={generatingDescription}
+                          title={title}
+                        />
+                      )}
 
-                  {currentStep === 3 && (
-                    <TimingsSection
-                      shiftType={shiftType}
-                      setShiftType={setShiftType}
-                      startTime={startTime}
-                      setStartTime={setStartTime}
-                      endTime={endTime}
-                      setEndTime={setEndTime}
-                      workDays={workDays}
-                      setWorkDays={setWorkDays}
-                      interviewTime={interviewTime}
-                      setInterviewTime={setInterviewTime}
-                      interviewDays={interviewDays}
-                      setInterviewDays={setInterviewDays}
-                    />
-                  )}
+                      {currentStep === 3 && (
+                        <TimingsSection
+                          shiftType={shiftType}
+                          setShiftType={setShiftType}
+                          startTime={startTime}
+                          setStartTime={setStartTime}
+                          endTime={endTime}
+                          setEndTime={setEndTime}
+                          workDays={workDays}
+                          setWorkDays={setWorkDays}
+                          interviewTime={interviewTime}
+                          setInterviewTime={setInterviewTime}
+                          interviewDays={interviewDays}
+                          setInterviewDays={setInterviewDays}
+                        />
+                      )}
 
-                  {currentStep === 4 && (
-                    <CompanyInfoSection
-                      companyName={companyName}
-                      contactPerson={contactPerson}
-                      setContactPerson={setContactPerson}
-                      phoneNumber={phoneNumber}
-                      setPhoneNumber={setPhoneNumber}
-                      email={email}
-                      setEmail={setEmail}
-                      contactRole={contactRole}
-                      setContactRole={setContactRole}
-                      organizationSize={organizationSize}
-                      setOrganizationSize={setOrganizationSize}
-                      hiringUrgency={hiringUrgency}
-                      setHiringUrgency={setHiringUrgency}
-                      hiringFrequency={hiringFrequency}
-                      setHiringFrequency={setHiringFrequency}
-                      jobAddress={jobAddress}
-                      setJobAddress={setJobAddress}
-                      isVerified={isVerified}
-                    />
-                  )}
+                      {currentStep === 4 && (
+                        <CompanyInfoSection
+                          companyName={companyName}
+                          contactPerson={contactPerson}
+                          setContactPerson={setContactPerson}
+                          phoneNumber={phoneNumber}
+                          setPhoneNumber={setPhoneNumber}
+                          email={email}
+                          setEmail={setEmail}
+                          contactRole={contactRole}
+                          setContactRole={setContactRole}
+                          organizationSize={organizationSize}
+                          setOrganizationSize={setOrganizationSize}
+                          hiringUrgency={hiringUrgency}
+                          setHiringUrgency={setHiringUrgency}
+                          hiringFrequency={hiringFrequency}
+                          setHiringFrequency={setHiringFrequency}
+                          jobAddress={jobAddress}
+                          setJobAddress={setJobAddress}
+                          isVerified={isVerified}
+                        />
+                      )}
+
+                      {currentStep === 5 && (
+                        <JobPreviewStep
+                          title={title}
+                          jobType={jobType}
+                          address={address}
+                          openings={openings}
+                          experienceType={experienceType}
+                          minExperience={minExperience}
+                          maxExperience={maxExperience}
+                          salaryMin={salaryMin}
+                          salaryMax={salaryMax}
+                          hasBonus={hasBonus}
+                          description={description}
+                          skills={skills}
+                          gender={gender}
+                          ageMin={ageMin}
+                          ageMax={ageMax}
+                          education={education}
+                          languages={languages}
+                          certifications={certifications}
+                          shiftType={shiftType}
+                          startTime={startTime}
+                          endTime={endTime}
+                          workDays={workDays}
+                          interviewTime={interviewTime}
+                          interviewDays={interviewDays}
+                          companyName={companyName}
+                          contactPerson={contactPerson}
+                          phoneNumber={phoneNumber}
+                          email={email}
+                          contactRole={contactRole}
+                          organizationSize={organizationSize}
+                          hiringUrgency={hiringUrgency}
+                          isVerified={isVerified}
+                        />
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
                 </div>
 
                 {/* Navigation */}
@@ -780,9 +859,9 @@ const PostJob = () => {
                     Previous
                   </Button>
 
-                  {currentStep < 4 ? (
+                  {currentStep < 5 ? (
                     <Button onClick={handleNext} className="gap-2">
-                      Next
+                      {currentStep === 4 ? 'Preview' : 'Next'}
                       <ArrowRight className="w-4 h-4" />
                     </Button>
                   ) : (
