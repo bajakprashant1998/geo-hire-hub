@@ -1,10 +1,10 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ViewMode, Candidate, Job } from '@/types';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useMapData } from '@/hooks/useMapData';
 import { Header } from '@/components/map/Header';
-import { GoogleMapContainer } from '@/components/map/GoogleMapContainer';
+import { MapContainer } from '@/components/map/MapContainer';
 import { FloatingControls } from '@/components/map/FloatingControls';
 import { Sidebar } from '@/components/map/Sidebar';
 import { MarkerDetailSheet } from '@/components/map/MarkerDetailSheet';
@@ -70,8 +70,8 @@ const Index = () => {
 
   return (
     <div className="relative w-full h-screen overflow-hidden">
-      {/* Google Map */}
-      <GoogleMapContainer
+      {/* Leaflet Map with OpenStreetMap */}
+      <MapContainer
         mode={mode}
         candidates={candidates}
         jobs={jobs}
