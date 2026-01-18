@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_action_logs: {
+        Row: {
+          action_type: string
+          admin_id: string
+          created_at: string | null
+          details: Json | null
+          id: string
+          target_id: string
+          target_type: string
+        }
+        Insert: {
+          action_type: string
+          admin_id: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          target_id: string
+          target_type: string
+        }
+        Update: {
+          action_type?: string
+          admin_id?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          target_id?: string
+          target_type?: string
+        }
+        Relationships: []
+      }
+      admin_settings: {
+        Row: {
+          description: string | null
+          id: string
+          key: string
+          updated_at: string | null
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       application_notes: {
         Row: {
           application_id: string
@@ -104,10 +161,14 @@ export type Database = {
       candidates: {
         Row: {
           bio: string | null
+          blocked_at: string | null
+          blocked_by: string | null
+          blocked_reason: string | null
           created_at: string | null
           expected_salary: string | null
           experience_years: number | null
           id: string
+          is_blocked: boolean | null
           job_title: string
           portfolio_urls: string[] | null
           profile_id: string
@@ -116,10 +177,14 @@ export type Database = {
         }
         Insert: {
           bio?: string | null
+          blocked_at?: string | null
+          blocked_by?: string | null
+          blocked_reason?: string | null
           created_at?: string | null
           expected_salary?: string | null
           experience_years?: number | null
           id?: string
+          is_blocked?: boolean | null
           job_title: string
           portfolio_urls?: string[] | null
           profile_id: string
@@ -128,10 +193,14 @@ export type Database = {
         }
         Update: {
           bio?: string | null
+          blocked_at?: string | null
+          blocked_by?: string | null
+          blocked_reason?: string | null
           created_at?: string | null
           expected_salary?: string | null
           experience_years?: number | null
           id?: string
+          is_blocked?: boolean | null
           job_title?: string
           portfolio_urls?: string[] | null
           profile_id?: string
@@ -225,6 +294,48 @@ export type Database = {
         }
         Relationships: []
       }
+      employer_reports: {
+        Row: {
+          admin_notes: string | null
+          created_at: string | null
+          details: string | null
+          employer_id: string
+          id: string
+          reason: string
+          reporter_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string | null
+          details?: string | null
+          employer_id: string
+          id?: string
+          reason: string
+          reporter_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string | null
+          details?: string | null
+          employer_id?: string
+          id?: string
+          reason?: string
+          reporter_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       employer_subscriptions: {
         Row: {
           billing_cycle: string | null
@@ -288,9 +399,13 @@ export type Database = {
           description: string | null
           id: string
           industry: string | null
+          is_suspended: boolean | null
           office_photo_url: string | null
           profile_completeness: number | null
           profile_id: string
+          suspended_at: string | null
+          suspended_by: string | null
+          suspended_reason: string | null
           tax_id: string | null
           tax_type: string | null
           terms_accepted_at: string | null
@@ -308,9 +423,13 @@ export type Database = {
           description?: string | null
           id?: string
           industry?: string | null
+          is_suspended?: boolean | null
           office_photo_url?: string | null
           profile_completeness?: number | null
           profile_id: string
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspended_reason?: string | null
           tax_id?: string | null
           tax_type?: string | null
           terms_accepted_at?: string | null
@@ -328,9 +447,13 @@ export type Database = {
           description?: string | null
           id?: string
           industry?: string | null
+          is_suspended?: boolean | null
           office_photo_url?: string | null
           profile_completeness?: number | null
           profile_id?: string
+          suspended_at?: string | null
+          suspended_by?: string | null
+          suspended_reason?: string | null
           tax_id?: string | null
           tax_type?: string | null
           terms_accepted_at?: string | null
@@ -377,6 +500,48 @@ export type Database = {
         }
         Relationships: []
       }
+      job_reports: {
+        Row: {
+          admin_notes: string | null
+          created_at: string | null
+          details: string | null
+          id: string
+          job_id: string
+          reason: string
+          reporter_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string | null
+          details?: string | null
+          id?: string
+          job_id: string
+          reason: string
+          reporter_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string | null
+          details?: string | null
+          id?: string
+          job_id?: string
+          reason?: string
+          reporter_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       job_views: {
         Row: {
           id: string
@@ -411,6 +576,7 @@ export type Database = {
       }
       jobs: {
         Row: {
+          admin_notes: string | null
           category: string | null
           created_at: string | null
           description: string | null
@@ -421,6 +587,9 @@ export type Database = {
           job_type: string | null
           latitude: number
           longitude: number
+          moderated_at: string | null
+          moderated_by: string | null
+          moderation_status: string | null
           salary_range: string | null
           status: Database["public"]["Enums"]["job_status"] | null
           title: string
@@ -428,6 +597,7 @@ export type Database = {
           view_count: number | null
         }
         Insert: {
+          admin_notes?: string | null
           category?: string | null
           created_at?: string | null
           description?: string | null
@@ -438,6 +608,9 @@ export type Database = {
           job_type?: string | null
           latitude: number
           longitude: number
+          moderated_at?: string | null
+          moderated_by?: string | null
+          moderation_status?: string | null
           salary_range?: string | null
           status?: Database["public"]["Enums"]["job_status"] | null
           title: string
@@ -445,6 +618,7 @@ export type Database = {
           view_count?: number | null
         }
         Update: {
+          admin_notes?: string | null
           category?: string | null
           created_at?: string | null
           description?: string | null
@@ -455,6 +629,9 @@ export type Database = {
           job_type?: string | null
           latitude?: number
           longitude?: number
+          moderated_at?: string | null
+          moderated_by?: string | null
+          moderation_status?: string | null
           salary_range?: string | null
           status?: Database["public"]["Enums"]["job_status"] | null
           title?: string
@@ -582,6 +759,7 @@ export type Database = {
         Args: { p_employer_id: string; p_exclude_job_id?: string }
         Returns: Json
       }
+      get_admin_dashboard_stats: { Args: never; Returns: Json }
       get_job_analytics: { Args: { p_job_id: string }; Returns: Json }
       get_nearby_candidates: {
         Args: { radius_km?: number; user_lat: number; user_lng: number }
@@ -628,6 +806,15 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      log_admin_action: {
+        Args: {
+          p_action_type: string
+          p_details?: Json
+          p_target_id: string
+          p_target_type: string
+        }
+        Returns: string
       }
       track_category_usage: {
         Args: { p_category_name: string; p_is_selection?: boolean }
