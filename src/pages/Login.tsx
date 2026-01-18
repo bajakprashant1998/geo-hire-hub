@@ -276,7 +276,7 @@ const Login = () => {
                 <Label htmlFor="password" className="text-sm font-medium">
                   Password
                 </Label>
-                <Link to="#" className="text-sm text-primary hover:underline">
+                <Link to="/forgot-password" className="text-sm text-primary hover:underline">
                   Forgot password?
                 </Link>
               </div>
