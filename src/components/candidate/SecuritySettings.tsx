@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, forwardRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+
+// Forward ref wrapper for AlertDialogTrigger buttons
+const TriggerButton = forwardRef<HTMLButtonElement, React.ComponentPropsWithoutRef<typeof Button>>(
+  (props, ref) => <Button ref={ref} {...props} />
+);
 
 export const SecuritySettings = () => {
   const { user, profile, signOut } = useAuth();
@@ -245,9 +250,9 @@ export const SecuritySettings = () => {
             </div>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="outline" className="text-destructive border-destructive/50">
+                <TriggerButton variant="outline" className="text-destructive border-destructive/50">
                   Deactivate
-                </Button>
+                </TriggerButton>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
@@ -280,10 +285,10 @@ export const SecuritySettings = () => {
             </div>
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive">
+                <TriggerButton variant="destructive">
                   <Trash2 className="w-4 h-4 mr-2" />
                   Delete
-                </Button>
+                </TriggerButton>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>

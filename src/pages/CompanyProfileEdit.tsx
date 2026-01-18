@@ -96,11 +96,19 @@ const CompanyProfileEdit = () => {
   const [completeness, setCompleteness] = useState(0);
 
   useEffect(() => {
-    fetchEmployerProfile();
-  }, [profile]);
+    if (profile) {
+      fetchEmployerProfile();
+    } else if (user === null) {
+      // User is not logged in - redirect to login
+      navigate('/login');
+    }
+  }, [profile, user]);
 
   const fetchEmployerProfile = async () => {
-    if (!profile) return;
+    if (!profile) {
+      setLoading(false);
+      return;
+    }
 
     try {
       const { data, error } = await supabase
@@ -135,9 +143,14 @@ const CompanyProfileEdit = () => {
         if (typeof calcData === 'number') {
           setCompleteness(calcData);
         }
+      } else {
+        // No employer profile found - user might be a candidate
+        toast.error('No employer profile found');
+        navigate('/dashboard');
       }
     } catch (error) {
       console.error('Error fetching employer:', error);
+      toast.error('Failed to load profile');
     } finally {
       setLoading(false);
     }
