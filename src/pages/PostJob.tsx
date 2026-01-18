@@ -2,7 +2,20 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowLeft, Briefcase, Send, Save, Loader2, Crown } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { 
+  ArrowLeft, 
+  ArrowRight, 
+  Briefcase, 
+  Send, 
+  Save, 
+  Loader2, 
+  Crown,
+  Check,
+  Users,
+  Clock,
+  Building2
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -13,9 +26,19 @@ import { TimingsSection } from '@/components/post-job/TimingsSection';
 import { CompanyInfoSection } from '@/components/post-job/CompanyInfoSection';
 import { PerformanceInsightsPanel } from '@/components/post-job/PerformanceInsightsPanel';
 
+const STEPS = [
+  { id: 1, title: 'Job Basics', icon: Briefcase, description: 'Title, type & location' },
+  { id: 2, title: 'Requirements', icon: Users, description: 'Skills & experience' },
+  { id: 3, title: 'Timings', icon: Clock, description: 'Work hours & interview' },
+  { id: 4, title: 'Company', icon: Building2, description: 'Contact & details' },
+];
+
 const PostJob = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
+
+  // Wizard state
+  const [currentStep, setCurrentStep] = useState(1);
 
   // Loading & submission states
   const [loading, setLoading] = useState(false);
@@ -336,37 +359,82 @@ const PostJob = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!user || !employerId) {
-      toast.error('Please login to post a job');
-      return;
+  // Step validation
+  const validateStep = (step: number): boolean => {
+    switch (step) {
+      case 1:
+        if (!title.trim()) {
+          toast.error('Please enter a job title');
+          return false;
+        }
+        if (!coordinates) {
+          toast.error('Please select a job location on the map');
+          return false;
+        }
+        return true;
+      case 2:
+        if (!salaryMin && !salaryMax) {
+          toast.error('Please specify a salary range');
+          return false;
+        }
+        if (!description.trim()) {
+          toast.error('Please add a job description');
+          return false;
+        }
+        if (skills.length === 0) {
+          toast.error('Please add at least one skill');
+          return false;
+        }
+        return true;
+      case 3:
+        return true; // Timings are optional
+      case 4:
+        if (!contactPerson || !phoneNumber || !email) {
+          toast.error('Please complete the contact information');
+          return false;
+        }
+        return true;
+      default:
+        return true;
+    }
+  };
+
+  const handleNext = () => {
+    if (validateStep(currentStep)) {
+      setCurrentStep((prev) => Math.min(prev + 1, 4));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handlePrev = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleStepClick = (step: number) => {
+    // Allow going back without validation, but validate when going forward
+    if (step < currentStep) {
+      setCurrentStep(step);
+    } else if (step > currentStep) {
+      // Validate all steps up to the target
+      for (let i = currentStep; i < step; i++) {
+        if (!validateStep(i)) return;
+      }
+      setCurrentStep(step);
+    }
+  };
+
+  const handleSubmit = async () => {
+    // Validate all steps
+    for (let i = 1; i <= 4; i++) {
+      if (!validateStep(i)) {
+        setCurrentStep(i);
+        return;
+      }
     }
 
-    // Validation
-    if (!title.trim()) {
-      toast.error('Please enter a job title');
-      return;
-    }
-    if (!coordinates) {
-      toast.error('Please select a job location on the map');
-      return;
-    }
-    if (!salaryMin && !salaryMax) {
-      toast.error('Please specify a salary range');
-      return;
-    }
-    if (!description.trim()) {
-      toast.error('Please add a job description');
-      return;
-    }
-    if (skills.length === 0) {
-      toast.error('Please add at least one skill');
-      return;
-    }
-    if (!contactPerson || !phoneNumber || !email) {
-      toast.error('Please complete the contact information');
+    if (!user || !employerId) {
+      toast.error('Please login to post a job');
       return;
     }
 
@@ -438,15 +506,15 @@ const PostJob = () => {
   // Non-employer view
   if (profile?.user_type !== 'employer') {
     return (
-      <div className="min-h-screen bg-secondary flex items-center justify-center p-4">
-        <Card className="max-w-md">
-          <CardContent className="p-6 text-center">
-            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-              <Briefcase className="w-8 h-8 text-muted-foreground" />
+      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-background flex items-center justify-center p-4">
+        <Card className="max-w-md shadow-google-lg">
+          <CardContent className="p-8 text-center">
+            <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
+              <Briefcase className="w-10 h-10 text-muted-foreground" />
             </div>
-            <h2 className="text-xl font-semibold mb-2">Employer Access Only</h2>
-            <p className="text-muted-foreground mb-4">Only employers can post jobs. Please sign in with an employer account.</p>
-            <Button onClick={() => navigate('/')}>Go to Home</Button>
+            <h2 className="text-2xl font-bold mb-3">Employer Access Only</h2>
+            <p className="text-muted-foreground mb-6">Only employers can post jobs. Please sign in with an employer account.</p>
+            <Button onClick={() => navigate('/')} size="lg">Go to Home</Button>
           </CardContent>
         </Card>
       </div>
@@ -456,23 +524,23 @@ const PostJob = () => {
   // Blocked view
   if (!canPost && blockReason) {
     return (
-      <div className="min-h-screen bg-secondary flex items-center justify-center p-4">
-        <Card className="max-w-md">
-          <CardContent className="p-6 text-center">
-            <div className={`w-16 h-16 ${showUpgradePrompt ? 'bg-primary/10' : 'bg-warning/10'} rounded-full flex items-center justify-center mx-auto mb-4`}>
+      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-background flex items-center justify-center p-4">
+        <Card className="max-w-md shadow-google-lg">
+          <CardContent className="p-8 text-center">
+            <div className={`w-20 h-20 ${showUpgradePrompt ? 'bg-primary/10' : 'bg-warning/10'} rounded-full flex items-center justify-center mx-auto mb-6`}>
               {showUpgradePrompt ? (
-                <Crown className="w-8 h-8 text-primary" />
+                <Crown className="w-10 h-10 text-primary" />
               ) : (
-                <Briefcase className="w-8 h-8 text-warning" />
+                <Briefcase className="w-10 h-10 text-warning" />
               )}
             </div>
-            <h2 className="text-xl font-semibold mb-2">
+            <h2 className="text-2xl font-bold mb-3">
               {showUpgradePrompt ? 'Upgrade Your Plan' : 'Cannot Post Jobs Yet'}
             </h2>
-            <p className="text-muted-foreground mb-4">{blockReason}</p>
-            <div className="flex gap-2 justify-center">
+            <p className="text-muted-foreground mb-6">{blockReason}</p>
+            <div className="flex gap-3 justify-center">
               <Button variant="outline" onClick={() => navigate('/dashboard')}>
-                Go to Dashboard
+                Dashboard
               </Button>
               {showUpgradePrompt ? (
                 <Button onClick={() => navigate('/plans')}>View Plans</Button>
@@ -486,196 +554,269 @@ const PostJob = () => {
     );
   }
 
+  const progressPercent = (currentStep / 4) * 100;
+
   return (
-    <div className="min-h-screen bg-secondary">
+    <div className="min-h-screen bg-gradient-to-br from-background via-secondary/30 to-background">
       {/* Header */}
-      <div className="bg-card border-b sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div>
-              <h1 className="text-xl font-bold">Post a New Job</h1>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>Create a job listing to find the best candidates</span>
+      <header className="bg-card/80 backdrop-blur-md border-b sticky top-0 z-20">
+        <div className="max-w-6xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="shrink-0">
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+              <div className="hidden sm:block">
+                <h1 className="text-lg font-semibold">Create Job Posting</h1>
                 {lastAutoSave && (
-                  <span className="text-xs text-muted-foreground/70">
-                    • Auto-saved {lastAutoSave.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
+                  <p className="text-xs text-muted-foreground">
+                    Auto-saved at {lastAutoSave.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </p>
                 )}
               </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={handleSaveDraft}
-              disabled={savingDraft}
-            >
-              {savingDraft ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4 mr-2" />
-              )}
-              Save Draft
-            </Button>
-            <Button onClick={handleSubmit} disabled={loading}>
-              {loading ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <Send className="w-4 h-4 mr-2" />
-              )}
-              Post Job
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSaveDraft}
+                disabled={savingDraft}
+                className="gap-1.5"
+              >
+                {savingDraft ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                <span className="hidden sm:inline">Save</span>
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Form Sections */}
-          <div className="lg:col-span-2 space-y-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Section 1: Job Basics */}
-              <Card className="shadow-google">
-                <CardContent className="p-6">
-                  <JobBasicsSection
-                    jobType={jobType}
-                    setJobType={setJobType}
-                    title={title}
-                    setTitle={setTitle}
-                    coordinates={coordinates}
-                    setCoordinates={setCoordinates}
-                    address={address}
-                    setAddress={setAddress}
-                    openings={openings}
-                    setOpenings={setOpenings}
-                  />
+      <main className="max-w-6xl mx-auto px-4 py-6">
+        <div className="grid lg:grid-cols-4 gap-6">
+          {/* Left Sidebar - Steps */}
+          <aside className="lg:col-span-1">
+            <div className="sticky top-24">
+              <Card className="shadow-google overflow-hidden">
+                <CardContent className="p-0">
+                  {/* Progress */}
+                  <div className="p-4 border-b bg-muted/30">
+                    <div className="flex items-center justify-between text-sm mb-2">
+                      <span className="font-medium">Progress</span>
+                      <span className="text-muted-foreground">{currentStep}/4</span>
+                    </div>
+                    <Progress value={progressPercent} className="h-2" />
+                  </div>
+
+                  {/* Steps */}
+                  <nav className="p-2">
+                    {STEPS.map((step) => {
+                      const StepIcon = step.icon;
+                      const isActive = currentStep === step.id;
+                      const isCompleted = currentStep > step.id;
+
+                      return (
+                        <button
+                          key={step.id}
+                          onClick={() => handleStepClick(step.id)}
+                          className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all ${
+                            isActive
+                              ? 'bg-primary text-primary-foreground'
+                              : isCompleted
+                              ? 'bg-success/10 text-success hover:bg-success/20'
+                              : 'hover:bg-muted text-muted-foreground'
+                          }`}
+                        >
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                            isActive
+                              ? 'bg-primary-foreground/20'
+                              : isCompleted
+                              ? 'bg-success/20'
+                              : 'bg-muted'
+                          }`}>
+                            {isCompleted ? (
+                              <Check className="w-5 h-5" />
+                            ) : (
+                              <StepIcon className="w-5 h-5" />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className={`font-medium text-sm truncate ${isActive ? 'text-primary-foreground' : ''}`}>
+                              {step.title}
+                            </p>
+                            <p className={`text-xs truncate ${isActive ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                              {step.description}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </nav>
                 </CardContent>
               </Card>
 
-              {/* Section 2: Candidate Requirements */}
-              <Card className="shadow-google">
-                <CardContent className="p-6">
-                  <CandidateRequirementSection
-                    experienceType={experienceType}
-                    setExperienceType={setExperienceType}
-                    minExperience={minExperience}
-                    setMinExperience={setMinExperience}
-                    maxExperience={maxExperience}
-                    setMaxExperience={setMaxExperience}
-                    salaryMin={salaryMin}
-                    setSalaryMin={setSalaryMin}
-                    salaryMax={salaryMax}
-                    setSalaryMax={setSalaryMax}
-                    hasBonus={hasBonus}
-                    setHasBonus={setHasBonus}
-                    description={description}
-                    setDescription={setDescription}
-                    skills={skills}
-                    setSkills={setSkills}
-                    gender={gender}
-                    setGender={setGender}
-                    ageMin={ageMin}
-                    setAgeMin={setAgeMin}
-                    ageMax={ageMax}
-                    setAgeMax={setAgeMax}
-                    education={education}
-                    setEducation={setEducation}
-                    languages={languages}
-                    setLanguages={setLanguages}
-                    certifications={certifications}
-                    setCertifications={setCertifications}
-                    additionalNotes={additionalNotes}
-                    setAdditionalNotes={setAdditionalNotes}
-                    onGenerateDescription={generateDescription}
-                    generatingDescription={generatingDescription}
-                    title={title}
-                  />
-                </CardContent>
-              </Card>
-
-              {/* Section 3: Timings */}
-              <Card className="shadow-google">
-                <CardContent className="p-6">
-                  <TimingsSection
-                    shiftType={shiftType}
-                    setShiftType={setShiftType}
-                    startTime={startTime}
-                    setStartTime={setStartTime}
-                    endTime={endTime}
-                    setEndTime={setEndTime}
-                    workDays={workDays}
-                    setWorkDays={setWorkDays}
-                    interviewTime={interviewTime}
-                    setInterviewTime={setInterviewTime}
-                    interviewDays={interviewDays}
-                    setInterviewDays={setInterviewDays}
-                  />
-                </CardContent>
-              </Card>
-
-              {/* Section 4: Company Info */}
-              <Card className="shadow-google">
-                <CardContent className="p-6">
-                  <CompanyInfoSection
-                    companyName={companyName}
-                    contactPerson={contactPerson}
-                    setContactPerson={setContactPerson}
-                    phoneNumber={phoneNumber}
-                    setPhoneNumber={setPhoneNumber}
-                    email={email}
-                    setEmail={setEmail}
-                    contactRole={contactRole}
-                    setContactRole={setContactRole}
-                    organizationSize={organizationSize}
-                    setOrganizationSize={setOrganizationSize}
-                    hiringUrgency={hiringUrgency}
-                    setHiringUrgency={setHiringUrgency}
-                    hiringFrequency={hiringFrequency}
-                    setHiringFrequency={setHiringFrequency}
-                    jobAddress={jobAddress}
-                    setJobAddress={setJobAddress}
-                    isVerified={isVerified}
-                  />
-                </CardContent>
-              </Card>
-
-              {/* Mobile Submit Button */}
-              <div className="lg:hidden flex gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1"
-                  onClick={handleSaveDraft}
-                  disabled={savingDraft}
-                >
-                  <Save className="w-4 h-4 mr-2" />
-                  Save Draft
-                </Button>
-                <Button type="submit" className="flex-1" disabled={loading}>
-                  <Send className="w-4 h-4 mr-2" />
-                  Post Job
-                </Button>
+              {/* Performance Insights - Desktop */}
+              <div className="hidden lg:block mt-6">
+                <PerformanceInsightsPanel
+                  title={title}
+                  description={description}
+                  skills={skills}
+                  salaryMin={salaryMin}
+                  salaryMax={salaryMax}
+                  location={address}
+                />
               </div>
-            </form>
-          </div>
+            </div>
+          </aside>
 
-          {/* Right Sidebar - Performance Insights */}
-          <div className="hidden lg:block">
-            <PerformanceInsightsPanel
-              title={title}
-              description={description}
-              skills={skills}
-              salaryMin={salaryMin}
-              salaryMax={salaryMax}
-              location={address}
-            />
+          {/* Main Content */}
+          <div className="lg:col-span-3">
+            <Card className="shadow-google-lg">
+              <CardContent className="p-6 sm:p-8">
+                {/* Step Content */}
+                <div className="min-h-[500px]">
+                  {currentStep === 1 && (
+                    <JobBasicsSection
+                      jobType={jobType}
+                      setJobType={setJobType}
+                      title={title}
+                      setTitle={setTitle}
+                      coordinates={coordinates}
+                      setCoordinates={setCoordinates}
+                      address={address}
+                      setAddress={setAddress}
+                      openings={openings}
+                      setOpenings={setOpenings}
+                    />
+                  )}
+
+                  {currentStep === 2 && (
+                    <CandidateRequirementSection
+                      experienceType={experienceType}
+                      setExperienceType={setExperienceType}
+                      minExperience={minExperience}
+                      setMinExperience={setMinExperience}
+                      maxExperience={maxExperience}
+                      setMaxExperience={setMaxExperience}
+                      salaryMin={salaryMin}
+                      setSalaryMin={setSalaryMin}
+                      salaryMax={salaryMax}
+                      setSalaryMax={setSalaryMax}
+                      hasBonus={hasBonus}
+                      setHasBonus={setHasBonus}
+                      description={description}
+                      setDescription={setDescription}
+                      skills={skills}
+                      setSkills={setSkills}
+                      gender={gender}
+                      setGender={setGender}
+                      ageMin={ageMin}
+                      setAgeMin={setAgeMin}
+                      ageMax={ageMax}
+                      setAgeMax={setAgeMax}
+                      education={education}
+                      setEducation={setEducation}
+                      languages={languages}
+                      setLanguages={setLanguages}
+                      certifications={certifications}
+                      setCertifications={setCertifications}
+                      additionalNotes={additionalNotes}
+                      setAdditionalNotes={setAdditionalNotes}
+                      onGenerateDescription={generateDescription}
+                      generatingDescription={generatingDescription}
+                      title={title}
+                    />
+                  )}
+
+                  {currentStep === 3 && (
+                    <TimingsSection
+                      shiftType={shiftType}
+                      setShiftType={setShiftType}
+                      startTime={startTime}
+                      setStartTime={setStartTime}
+                      endTime={endTime}
+                      setEndTime={setEndTime}
+                      workDays={workDays}
+                      setWorkDays={setWorkDays}
+                      interviewTime={interviewTime}
+                      setInterviewTime={setInterviewTime}
+                      interviewDays={interviewDays}
+                      setInterviewDays={setInterviewDays}
+                    />
+                  )}
+
+                  {currentStep === 4 && (
+                    <CompanyInfoSection
+                      companyName={companyName}
+                      contactPerson={contactPerson}
+                      setContactPerson={setContactPerson}
+                      phoneNumber={phoneNumber}
+                      setPhoneNumber={setPhoneNumber}
+                      email={email}
+                      setEmail={setEmail}
+                      contactRole={contactRole}
+                      setContactRole={setContactRole}
+                      organizationSize={organizationSize}
+                      setOrganizationSize={setOrganizationSize}
+                      hiringUrgency={hiringUrgency}
+                      setHiringUrgency={setHiringUrgency}
+                      hiringFrequency={hiringFrequency}
+                      setHiringFrequency={setHiringFrequency}
+                      jobAddress={jobAddress}
+                      setJobAddress={setJobAddress}
+                      isVerified={isVerified}
+                    />
+                  )}
+                </div>
+
+                {/* Navigation */}
+                <div className="flex items-center justify-between pt-6 mt-6 border-t">
+                  <Button
+                    variant="outline"
+                    onClick={handlePrev}
+                    disabled={currentStep === 1}
+                    className="gap-2"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Previous
+                  </Button>
+
+                  {currentStep < 4 ? (
+                    <Button onClick={handleNext} className="gap-2">
+                      Next
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  ) : (
+                    <Button 
+                      onClick={handleSubmit} 
+                      disabled={loading}
+                      className="gap-2 bg-success hover:bg-success/90"
+                    >
+                      {loading ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Send className="w-4 h-4" />
+                      )}
+                      Post Job
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Performance Insights - Mobile */}
+            <div className="lg:hidden mt-6">
+              <PerformanceInsightsPanel
+                title={title}
+                description={description}
+                skills={skills}
+                salaryMin={salaryMin}
+                salaryMax={salaryMax}
+                location={address}
+              />
+            </div>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };
