@@ -873,6 +873,42 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_candidates: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          employer_id: string
+          id: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          employer_id: string
+          id?: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          employer_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_candidates_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_candidates_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "employers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_jobs: {
         Row: {
           candidate_id: string

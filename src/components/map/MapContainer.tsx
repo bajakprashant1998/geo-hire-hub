@@ -117,11 +117,18 @@ const createUserIcon = () =>
     iconAnchor: [10, 10],
   });
 
-// Generate popup content for candidates - with contact button for employers
-const createCandidatePopupContent = (candidate: Candidate): string => {
+// Generate popup content for candidates - with contact and save buttons
+const createCandidatePopupContent = (candidate: Candidate, isSaved: boolean = false): string => {
   const avatarHtml = candidate.avatar_url 
     ? `<img src="${candidate.avatar_url}" alt="${candidate.full_name}" style="width: 48px; height: 48px; border-radius: 12px; object-fit: cover;" />`
     : `<div style="width: 48px; height: 48px; border-radius: 12px; background: hsl(217, 89%, 95%); display: flex; align-items: center; justify-content: center; color: hsl(217, 89%, 61%); font-weight: 600; font-size: 20px;">${candidate.full_name?.charAt(0) || 'C'}</div>`;
+
+  const savedButtonStyle = isSaved 
+    ? `background: hsl(45, 93%, 95%);`
+    : `background: hsl(220, 14%, 96%);`;
+  
+  const savedIconFill = isSaved ? `fill="hsl(45, 93%, 47%)"` : `fill="none"`;
+  const savedIconStroke = isSaved ? `stroke="hsl(45, 93%, 47%)"` : `stroke="hsl(220, 9%, 46%)"`;
 
   return `
     <div class="marker-popup-content" data-type="candidate" data-id="${candidate.id}" style="
@@ -140,6 +147,25 @@ const createCandidatePopupContent = (candidate: Candidate): string => {
           <h4 style="margin: 0; font-size: 16px; font-weight: 600; color: hsl(220, 9%, 15%); line-height: 1.3;">${candidate.full_name}</h4>
           <p style="margin: 4px 0 0; font-size: 13px; color: hsl(220, 9%, 46%);">${candidate.job_title || 'Job Seeker'}</p>
         </div>
+        <!-- Save button -->
+        <button class="popup-save-candidate-btn ${isSaved ? 'saved' : ''}" data-action="save-candidate" data-candidate-id="${candidate.id}" data-saved="${isSaved}" style="
+          width: 36px;
+          height: 36px;
+          padding: 0;
+          ${savedButtonStyle}
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.15s ease;
+          flex-shrink: 0;
+        ">
+          <svg width="18" height="18" viewBox="0 0 24 24" ${savedIconFill} ${savedIconStroke} stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
+        </button>
       </div>
       
       <!-- Tags row -->
@@ -324,8 +350,9 @@ export const MapContainer = ({
   const [isMobile, setIsMobile] = useState(false);
   const [tappedMarkerId, setTappedMarkerId] = useState<string | null>(null);
   const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set());
+  const [savedCandidateIds, setSavedCandidateIds] = useState<Set<string>>(new Set());
 
-  // Fetch saved jobs for current user
+  // Fetch saved jobs for current candidate user
   useEffect(() => {
     const fetchSavedJobs = async () => {
       try {
@@ -362,6 +389,45 @@ export const MapContainer = ({
     };
 
     fetchSavedJobs();
+  }, []);
+
+  // Fetch saved candidates for current employer user
+  useEffect(() => {
+    const fetchSavedCandidates = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .single();
+
+        if (!profile) return;
+
+        const { data: employer } = await supabase
+          .from('employers')
+          .select('id')
+          .eq('profile_id', profile.id)
+          .single();
+
+        if (!employer) return;
+
+        const { data: savedCandidates } = await supabase
+          .from('saved_candidates')
+          .select('candidate_id')
+          .eq('employer_id', employer.id);
+
+        if (savedCandidates) {
+          setSavedCandidateIds(new Set(savedCandidates.map(sc => sc.candidate_id)));
+        }
+      } catch (error) {
+        console.error('Error fetching saved candidates:', error);
+      }
+    };
+
+    fetchSavedCandidates();
   }, []);
 
   // Detect mobile
@@ -462,6 +528,96 @@ export const MapContainer = ({
     }
   }, [navigate]);
 
+  // Handle save candidate
+  const handleSaveCandidate = useCallback(async (candidateId: string, button: HTMLButtonElement) => {
+    try {
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Please login to save candidates');
+        navigate('/login');
+        return;
+      }
+
+      // Get employer ID
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!profile) {
+        toast.error('Profile not found');
+        return;
+      }
+
+      const { data: employer } = await supabase
+        .from('employers')
+        .select('id')
+        .eq('profile_id', profile.id)
+        .single();
+
+      if (!employer) {
+        toast.error('Only employers can save candidates');
+        return;
+      }
+
+      // Check if already saved
+      const { data: existingSave } = await supabase
+        .from('saved_candidates')
+        .select('id')
+        .eq('employer_id', employer.id)
+        .eq('candidate_id', candidateId)
+        .maybeSingle();
+
+      if (existingSave) {
+        // Unsave
+        await supabase
+          .from('saved_candidates')
+          .delete()
+          .eq('id', existingSave.id);
+        
+        // Update local state
+        setSavedCandidateIds(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(candidateId);
+          return newSet;
+        });
+        
+        // Update button appearance
+        button.innerHTML = `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="hsl(220, 9%, 46%)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
+        `;
+        button.style.background = 'hsl(220, 14%, 96%)';
+        button.dataset.saved = 'false';
+        toast.success('Candidate removed from saved');
+      } else {
+        // Save
+        await supabase
+          .from('saved_candidates')
+          .insert({ employer_id: employer.id, candidate_id: candidateId });
+        
+        // Update local state
+        setSavedCandidateIds(prev => new Set([...prev, candidateId]));
+        
+        // Update button appearance
+        button.innerHTML = `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="hsl(45, 93%, 47%)" stroke="hsl(45, 93%, 47%)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
+        `;
+        button.style.background = 'hsl(45, 93%, 95%)';
+        button.dataset.saved = 'true';
+        toast.success('Candidate saved!');
+      }
+    } catch (error) {
+      console.error('Error saving candidate:', error);
+      toast.error('Failed to save candidate');
+    }
+  }, [navigate]);
+
   // Handle popup button clicks
   const handlePopupClick = useCallback((e: MouseEvent) => {
     const target = e.target as HTMLElement;
@@ -482,6 +638,8 @@ export const MapContainer = ({
       
       if (action === 'save' && id) {
         handleSaveJob(id, button);
+      } else if (action === 'save-candidate' && id) {
+        handleSaveCandidate(id, button);
       } else if (action === 'apply' && id) {
         // Navigate to job detail with apply intent
         navigate(`/jobs/${id}?action=apply`);
@@ -497,7 +655,7 @@ export const MapContainer = ({
         }
       }
     }
-  }, [navigate]);
+  }, [navigate, handleSaveJob, handleSaveCandidate]);
 
   // Initialize map
   useEffect(() => {
@@ -624,7 +782,7 @@ export const MapContainer = ({
 
         // Create popup with custom content for hover preview
         const popupContent = isCandidate 
-          ? createCandidatePopupContent(item as Candidate)
+          ? createCandidatePopupContent(item as Candidate, savedCandidateIds.has(item.id))
           : createJobPopupContent(item as Job, savedJobIds.has(item.id));
 
         const popup = L.popup({
@@ -675,7 +833,7 @@ export const MapContainer = ({
         mapRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
       }
     }
-  }, [mode, candidates, jobs, isMobile, tappedMarkerId, savedJobIds]);
+  }, [mode, candidates, jobs, isMobile, tappedMarkerId, savedJobIds, savedCandidateIds]);
 
   // Pan to selected item
   useEffect(() => {
@@ -774,11 +932,13 @@ export const MapContainer = ({
         .popup-view-btn:hover {
           background: hsl(220, 14%, 92%) !important;
         }
-        .popup-save-btn:hover {
+        .popup-save-btn:hover,
+        .popup-save-candidate-btn:hover {
           background: hsl(45, 93%, 95%) !important;
           transform: scale(1.05);
         }
-        .popup-save-btn:hover svg {
+        .popup-save-btn:hover svg,
+        .popup-save-candidate-btn:hover svg {
           stroke: hsl(45, 93%, 47%);
         }
       `}</style>
