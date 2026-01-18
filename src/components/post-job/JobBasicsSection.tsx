@@ -1,35 +1,30 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { JobCategorySearch } from '@/components/JobCategorySearch';
+import { LocationMapPicker } from './LocationMapPicker';
 
 interface JobBasicsSectionProps {
   jobType: 'Full Time' | 'Part Time';
   setJobType: (type: 'Full Time' | 'Part Time') => void;
   title: string;
   setTitle: (title: string) => void;
-  location: string;
-  setLocation: (location: string) => void;
-  area: string;
-  setArea: (area: string) => void;
+  coordinates: { lat: number; lng: number } | null;
+  setCoordinates: (coords: { lat: number; lng: number } | null) => void;
+  address: string;
+  setAddress: (address: string) => void;
   openings: string;
   setOpenings: (openings: string) => void;
 }
-
-const locations = [
-  'Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Chennai', 'Kolkata', 
-  'Pune', 'Ahmedabad', 'Jaipur', 'Lucknow', 'Remote', 'Other'
-];
 
 export const JobBasicsSection = ({
   jobType,
   setJobType,
   title,
   setTitle,
-  location,
-  setLocation,
-  area,
-  setArea,
+  coordinates,
+  setCoordinates,
+  address,
+  setAddress,
   openings,
   setOpenings,
 }: JobBasicsSectionProps) => {
@@ -76,29 +71,13 @@ export const JobBasicsSection = ({
         </p>
       </div>
 
-      {/* Job Location */}
-      <div className="space-y-2">
-        <Label>Job Location *</Label>
-        <div className="grid grid-cols-2 gap-3">
-          <Select value={location} onValueChange={setLocation}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select City" />
-            </SelectTrigger>
-            <SelectContent>
-              {locations.map((loc) => (
-                <SelectItem key={loc} value={loc}>
-                  {loc}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Input
-            placeholder="Area / Locality"
-            value={area}
-            onChange={(e) => setArea(e.target.value)}
-          />
-        </div>
-      </div>
+      {/* Map Location Picker */}
+      <LocationMapPicker
+        coordinates={coordinates}
+        setCoordinates={setCoordinates}
+        address={address}
+        setAddress={setAddress}
+      />
 
       {/* Number of Openings */}
       <div className="space-y-2">

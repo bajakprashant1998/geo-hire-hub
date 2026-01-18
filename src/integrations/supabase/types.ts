@@ -609,6 +609,41 @@ export type Database = {
         }
         Relationships: []
       }
+      job_drafts: {
+        Row: {
+          created_at: string
+          draft_data: Json
+          employer_id: string
+          id: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          draft_data?: Json
+          employer_id: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          draft_data?: Json
+          employer_id?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_drafts_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "employers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_reports: {
         Row: {
           admin_notes: string | null
