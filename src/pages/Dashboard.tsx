@@ -40,7 +40,8 @@ import { JobExpiryBadge } from '@/components/employer/JobExpiryBadge';
 import { JobAnalyticsCard } from '@/components/employer/JobAnalyticsCard';
 import { ApplicantTabs } from '@/components/employer/ApplicantTabs';
 import { SavedCandidatesSection } from '@/components/employer/SavedCandidatesSection';
-import { Bookmark } from 'lucide-react';
+import { JobDraftsSection } from '@/components/employer/JobDraftsSection';
+import { Bookmark, FileEdit } from 'lucide-react';
 
 const statusColors: Record<string, string> = {
   pending: 'bg-warning/10 text-warning-foreground',
@@ -455,18 +456,22 @@ const Dashboard = () => {
             {/* Main Content */}
             <div className="lg:col-span-3 space-y-6">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid grid-cols-3 w-full max-w-lg">
+                <TabsList className="grid grid-cols-4 w-full max-w-xl">
                   <TabsTrigger value="jobs" className="gap-2">
                     <Briefcase className="w-4 h-4" />
-                    My Jobs
+                    <span className="hidden sm:inline">My Jobs</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="drafts" className="gap-2">
+                    <FileEdit className="w-4 h-4" />
+                    <span className="hidden sm:inline">Drafts</span>
                   </TabsTrigger>
                   <TabsTrigger value="applicants" className="gap-2">
                     <Users className="w-4 h-4" />
-                    Applicants
+                    <span className="hidden sm:inline">Applicants</span>
                   </TabsTrigger>
                   <TabsTrigger value="saved" className="gap-2">
                     <Bookmark className="w-4 h-4" />
-                    Saved
+                    <span className="hidden sm:inline">Saved</span>
                   </TabsTrigger>
                 </TabsList>
 
@@ -608,6 +613,13 @@ const Dashboard = () => {
                         />
                       )}
                     </div>
+                  )}
+                </TabsContent>
+
+                {/* Drafts Tab */}
+                <TabsContent value="drafts" className="mt-6">
+                  {employerProfile && (
+                    <JobDraftsSection employerId={employerProfile.id} />
                   )}
                 </TabsContent>
 
