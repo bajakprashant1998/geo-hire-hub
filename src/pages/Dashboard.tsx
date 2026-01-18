@@ -39,6 +39,8 @@ import { JobActiveToggle } from '@/components/employer/JobActiveToggle';
 import { JobExpiryBadge } from '@/components/employer/JobExpiryBadge';
 import { JobAnalyticsCard } from '@/components/employer/JobAnalyticsCard';
 import { ApplicantTabs } from '@/components/employer/ApplicantTabs';
+import { SavedCandidatesSection } from '@/components/employer/SavedCandidatesSection';
+import { Bookmark } from 'lucide-react';
 
 const statusColors: Record<string, string> = {
   pending: 'bg-warning/10 text-warning-foreground',
@@ -453,7 +455,7 @@ const Dashboard = () => {
             {/* Main Content */}
             <div className="lg:col-span-3 space-y-6">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid grid-cols-2 w-full max-w-md">
+                <TabsList className="grid grid-cols-3 w-full max-w-lg">
                   <TabsTrigger value="jobs" className="gap-2">
                     <Briefcase className="w-4 h-4" />
                     My Jobs
@@ -461,6 +463,10 @@ const Dashboard = () => {
                   <TabsTrigger value="applicants" className="gap-2">
                     <Users className="w-4 h-4" />
                     Applicants
+                  </TabsTrigger>
+                  <TabsTrigger value="saved" className="gap-2">
+                    <Bookmark className="w-4 h-4" />
+                    Saved
                   </TabsTrigger>
                 </TabsList>
 
@@ -602,6 +608,13 @@ const Dashboard = () => {
                         />
                       )}
                     </div>
+                  )}
+                </TabsContent>
+
+                {/* Saved Candidates Tab */}
+                <TabsContent value="saved" className="mt-6">
+                  {employerProfile && (
+                    <SavedCandidatesSection employerId={employerProfile.id} />
                   )}
                 </TabsContent>
               </Tabs>
