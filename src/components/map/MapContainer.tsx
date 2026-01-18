@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
@@ -114,74 +115,89 @@ const createUserIcon = () =>
     iconAnchor: [10, 10],
   });
 
-// Generate popup content for candidates
+// Generate popup content for candidates - matching reference design
 const createCandidatePopupContent = (candidate: Candidate): string => {
   const avatarHtml = candidate.avatar_url 
-    ? `<img src="${candidate.avatar_url}" alt="${candidate.full_name}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid hsl(217, 89%, 61%);" />`
-    : `<div style="width: 48px; height: 48px; border-radius: 50%; background: hsl(217, 89%, 61%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 18px;">${candidate.full_name?.charAt(0) || 'C'}</div>`;
+    ? `<img src="${candidate.avatar_url}" alt="${candidate.full_name}" style="width: 48px; height: 48px; border-radius: 12px; object-fit: cover;" />`
+    : `<div style="width: 48px; height: 48px; border-radius: 12px; background: hsl(217, 89%, 95%); display: flex; align-items: center; justify-content: center; color: hsl(217, 89%, 61%); font-weight: 600; font-size: 20px;">${candidate.full_name?.charAt(0) || 'C'}</div>`;
 
   return `
     <div class="marker-popup-content" data-type="candidate" data-id="${candidate.id}" style="
-      padding: 12px;
-      min-width: 220px;
+      min-width: 280px;
+      max-width: 320px;
       font-family: 'Google Sans', 'Roboto', sans-serif;
       cursor: pointer;
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
     ">
-      <div style="display: flex; gap: 12px; align-items: center;">
+      <!-- Header with avatar and name -->
+      <div style="padding: 16px 16px 12px; display: flex; gap: 14px; align-items: flex-start;">
         ${avatarHtml}
         <div style="flex: 1; min-width: 0;">
-          <h4 style="margin: 0; font-size: 14px; font-weight: 600; color: hsl(220, 9%, 20%); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${candidate.full_name}</h4>
-          <p style="margin: 2px 0 0; font-size: 12px; color: hsl(220, 9%, 46%); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${candidate.job_title || 'Job Seeker'}</p>
-          ${candidate.experience_years ? `<p style="margin: 4px 0 0; font-size: 11px; color: hsl(217, 89%, 61%); font-weight: 500;">${candidate.experience_years}+ years exp</p>` : ''}
+          <h4 style="margin: 0; font-size: 16px; font-weight: 600; color: hsl(220, 9%, 15%); line-height: 1.3;">${candidate.full_name}</h4>
+          <p style="margin: 4px 0 0; font-size: 13px; color: hsl(220, 9%, 46%);">${candidate.job_title || 'Job Seeker'}</p>
         </div>
       </div>
-      ${candidate.skills && candidate.skills.length > 0 ? `
-        <div style="margin-top: 8px; display: flex; gap: 4px; flex-wrap: wrap;">
-          ${candidate.skills.slice(0, 3).map(skill => `
-            <span style="padding: 2px 8px; background: hsl(217, 89%, 61%, 0.1); color: hsl(217, 89%, 50%); font-size: 10px; border-radius: 12px; font-weight: 500;">${skill}</span>
-          `).join('')}
-          ${candidate.skills.length > 3 ? `<span style="padding: 2px 8px; background: hsl(220, 14%, 96%); color: hsl(220, 9%, 46%); font-size: 10px; border-radius: 12px;">+${candidate.skills.length - 3}</span>` : ''}
-        </div>
-      ` : ''}
-      <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid hsl(220, 13%, 91%); display: flex; align-items: center; justify-content: space-between;">
-        <span style="font-size: 11px; color: hsl(220, 9%, 46%);">Click to view profile</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="hsl(217, 89%, 61%)" stroke-width="2">
-          <path d="M5 12h14M12 5l7 7-7 7"/>
+      
+      <!-- Tags row -->
+      <div style="padding: 0 16px 14px; display: flex; flex-wrap: wrap; gap: 8px;">
+        ${candidate.experience_years ? `<span style="padding: 6px 12px; background: hsl(220, 14%, 96%); color: hsl(220, 9%, 35%); font-size: 12px; border-radius: 6px; font-weight: 500;">${candidate.experience_years}+ years</span>` : ''}
+        ${candidate.skills && candidate.skills.length > 0 ? `<span style="padding: 6px 12px; background: hsl(217, 89%, 95%); color: hsl(217, 89%, 45%); font-size: 12px; border-radius: 6px; font-weight: 600;">${candidate.skills.length} skills</span>` : ''}
+      </div>
+      
+      <!-- Click to view details -->
+      <div class="popup-cta" style="padding: 12px 16px; border-top: 1px solid hsl(220, 13%, 93%); display: flex; align-items: center; justify-content: space-between; background: hsl(220, 14%, 99%); transition: background 0.15s ease;">
+        <span style="font-size: 13px; color: hsl(220, 9%, 40%); font-weight: 500;">Click to view profile</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="hsl(217, 89%, 61%)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14"/>
+          <path d="m12 5 7 7-7 7"/>
         </svg>
       </div>
     </div>
   `;
 };
 
-// Generate popup content for jobs
+// Generate popup content for jobs - matching reference design
 const createJobPopupContent = (job: Job): string => {
   return `
     <div class="marker-popup-content" data-type="job" data-id="${job.id}" style="
-      padding: 12px;
-      min-width: 240px;
+      min-width: 280px;
+      max-width: 320px;
       font-family: 'Google Sans', 'Roboto', sans-serif;
       cursor: pointer;
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
     ">
-      <div style="display: flex; gap: 12px; align-items: flex-start;">
-        <div style="width: 44px; height: 44px; border-radius: 8px; background: hsl(4, 90%, 58%, 0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="hsl(4, 90%, 58%)" stroke-width="2">
+      <!-- Header with icon and title -->
+      <div style="padding: 16px 16px 12px; display: flex; gap: 14px; align-items: flex-start;">
+        <div style="width: 48px; height: 48px; border-radius: 12px; background: hsl(4, 90%, 95%); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="hsl(4, 90%, 58%)" stroke="none">
             <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" fill="hsl(4, 90%, 95%)"/>
           </svg>
         </div>
         <div style="flex: 1; min-width: 0;">
-          <h4 style="margin: 0; font-size: 14px; font-weight: 600; color: hsl(220, 9%, 20%); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${job.title}</h4>
-          <p style="margin: 2px 0 0; font-size: 12px; color: hsl(220, 9%, 46%); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${job.company_name || 'Company'}</p>
+          <h4 style="margin: 0; font-size: 16px; font-weight: 600; color: hsl(220, 9%, 15%); line-height: 1.3;">${job.title}</h4>
+          <p style="margin: 4px 0 0; font-size: 13px; color: hsl(220, 9%, 46%);">${job.company_name || 'Company'}</p>
         </div>
       </div>
-      <div style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px;">
-        ${job.job_type ? `<span style="padding: 3px 8px; background: hsl(220, 14%, 96%); color: hsl(220, 9%, 46%); font-size: 11px; border-radius: 4px;">${job.job_type}</span>` : ''}
-        ${job.salary_range ? `<span style="padding: 3px 8px; background: hsl(142, 76%, 36%, 0.1); color: hsl(142, 76%, 30%); font-size: 11px; border-radius: 4px; font-weight: 500;">${job.salary_range}</span>` : ''}
+      
+      <!-- Tags row -->
+      <div style="padding: 0 16px 14px; display: flex; flex-wrap: wrap; gap: 8px;">
+        ${job.job_type ? `<span style="padding: 6px 12px; background: hsl(220, 14%, 96%); color: hsl(220, 9%, 35%); font-size: 12px; border-radius: 6px; font-weight: 500;">${job.job_type}</span>` : ''}
+        ${job.salary_range ? `<span style="padding: 6px 12px; background: hsl(142, 70%, 95%); color: hsl(142, 76%, 30%); font-size: 12px; border-radius: 6px; font-weight: 600;">₹${job.salary_range}</span>` : ''}
       </div>
-      <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid hsl(220, 13%, 91%); display: flex; align-items: center; justify-content: space-between;">
-        <span style="font-size: 11px; color: hsl(220, 9%, 46%);">Click to view details</span>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="hsl(4, 90%, 58%)" stroke-width="2">
-          <path d="M5 12h14M12 5l7 7-7 7"/>
+      
+      <!-- Click to view details -->
+      <div class="popup-cta" style="padding: 12px 16px; border-top: 1px solid hsl(220, 13%, 93%); display: flex; align-items: center; justify-content: space-between; background: hsl(220, 14%, 99%); transition: background 0.15s ease;">
+        <span style="font-size: 13px; color: hsl(220, 9%, 40%); font-weight: 500;">Click to view details</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="hsl(4, 90%, 58%)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14"/>
+          <path d="m12 5 7 7-7 7"/>
         </svg>
       </div>
     </div>
@@ -197,6 +213,7 @@ export const MapContainer = ({
   onMarkerClick,
   selectedItem,
 }: MapContainerProps) => {
+  const navigate = useNavigate();
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.MarkerClusterGroup | null>(null);
@@ -214,23 +231,24 @@ export const MapContainer = ({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Handle popup click to navigate
+  // Handle popup click to navigate directly to detail page
   const handlePopupClick = useCallback((e: MouseEvent) => {
     const target = e.target as HTMLElement;
     const popupContent = target.closest('.marker-popup-content') as HTMLElement;
     if (popupContent) {
+      e.preventDefault();
+      e.stopPropagation();
+      
       const type = popupContent.dataset.type;
       const id = popupContent.dataset.id;
       
-      if (type === 'candidate') {
-        const candidate = candidates.find(c => c.id === id);
-        if (candidate) onMarkerClick(candidate);
-      } else if (type === 'job') {
-        const job = jobs.find(j => j.id === id);
-        if (job) onMarkerClick(job);
+      if (type === 'candidate' && id) {
+        navigate(`/candidates/${id}`);
+      } else if (type === 'job' && id) {
+        navigate(`/jobs/${id}`);
       }
     }
-  }, [candidates, jobs, onMarkerClick]);
+  }, [navigate]);
 
   // Initialize map
   useEffect(() => {
@@ -464,39 +482,41 @@ export const MapContainer = ({
         }
         .custom-popup .leaflet-popup-content-wrapper {
           padding: 0;
-          border-radius: 12px;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+          border-radius: 16px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.16);
           overflow: hidden;
-          animation: popupFadeIn 0.2s ease-out;
+          animation: popupFadeIn 0.25s ease-out;
+          border: none;
+          background: transparent;
         }
         @keyframes popupFadeIn {
           from {
             opacity: 0;
-            transform: translateY(5px);
+            transform: translateY(8px) scale(0.96);
           }
           to {
             opacity: 1;
-            transform: translateY(0);
+            transform: translateY(0) scale(1);
           }
         }
         .custom-popup .leaflet-popup-content {
           margin: 0;
-          min-width: 200px;
+          min-width: 280px;
         }
-        .custom-popup .leaflet-popup-tip {
-          background: white;
+        .custom-popup .leaflet-popup-tip-container {
+          display: none;
         }
         .custom-popup .leaflet-popup-close-button {
           display: none;
         }
-        .hover-popup .marker-popup-content {
-          pointer-events: none;
-        }
         .marker-popup-content {
-          transition: background 0.15s ease;
+          pointer-events: auto !important;
         }
-        .marker-popup-content:hover {
-          background: hsl(220, 14%, 98%);
+        .marker-popup-content:hover .popup-cta {
+          background: hsl(220, 14%, 97%) !important;
+        }
+        .popup-cta:hover {
+          background: hsl(220, 14%, 95%) !important;
         }
       `}</style>
       <div ref={containerRef} className="w-full h-full" style={{ minHeight: '100vh' }} />
