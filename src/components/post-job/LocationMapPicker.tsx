@@ -147,15 +147,21 @@ export const LocationMapPicker = ({
     const newIsSatellite = !isSatellite;
     setIsSatellite(newIsSatellite);
 
+    const tileOptions: L.TileLayerOptions = {
+      maxZoom: 19,
+      attribution: newIsSatellite 
+        ? '&copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+        : '&copy; OpenStreetMap contributors &copy; CARTO',
+    };
+
+    // Only add subdomains for street view (satellite doesn't use them)
+    if (!newIsSatellite) {
+      tileOptions.subdomains = 'abcd';
+    }
+
     tileLayerRef.current = L.tileLayer(
       newIsSatellite ? satelliteTileUrl : streetTileUrl,
-      {
-        attribution: newIsSatellite 
-          ? '&copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-          : '&copy; OpenStreetMap contributors &copy; CARTO',
-        subdomains: newIsSatellite ? undefined : 'abcd',
-        maxZoom: 19,
-      }
+      tileOptions
     ).addTo(mapRef.current);
   };
 
