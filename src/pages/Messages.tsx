@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Send, User, MessageCircle, Search, Check, CheckCheck } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { ArrowLeft, Send, User, MessageCircle, Search, Check, CheckCheck, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { usePresence } from '@/hooks/usePresence';
@@ -13,6 +14,23 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TypingIndicator } from '@/components/messaging/TypingIndicator';
 import { OnlineStatus } from '@/components/messaging/OnlineStatus';
+import { EmojiReactions } from '@/components/messaging/EmojiReactions';
+import { MessageAttachment } from '@/components/messaging/MessageAttachment';
+import { AttachmentUpload, uploadAttachment } from '@/components/messaging/AttachmentUpload';
+
+interface Attachment {
+  id: string;
+  file_name: string;
+  file_url: string;
+  file_type: string;
+  file_size: number;
+}
+
+interface Reaction {
+  emoji: string;
+  count: number;
+  hasReacted: boolean;
+}
 
 interface Message {
   id: string;
@@ -20,6 +38,9 @@ interface Message {
   sender_id: string;
   created_at: string;
   is_read: boolean;
+  read_at?: string | null;
+  attachments?: Attachment[];
+  reactions?: Reaction[];
 }
 
 interface Conversation {
@@ -42,6 +63,8 @@ const Messages = () => {
   const [otherUser, setOtherUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [sending, setSending] = useState(false);
+  const [pendingAttachment, setPendingAttachment] = useState<{ file: File; localPreview?: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -138,23 +161,60 @@ const Messages = () => {
           .maybeSingle();
         setOtherUser(profileData);
 
-        // Get messages
+        // Get messages with attachments and reactions
         const { data: messagesData } = await supabase
           .from('messages')
-          .select('*')
+          .select('*, read_at')
           .eq('conversation_id', conversationId)
           .order('created_at', { ascending: true });
 
         if (messagesData) {
-          setMessages(messagesData);
+          // Fetch attachments and reactions for all messages
+          const messageIds = messagesData.map(m => m.id);
+          
+          const [attachmentsResult, reactionsResult] = await Promise.all([
+            supabase.from('message_attachments').select('*').in('message_id', messageIds),
+            supabase.from('message_reactions').select('*').in('message_id', messageIds)
+          ]);
+
+          const attachmentsByMessage = new Map<string, Attachment[]>();
+          attachmentsResult.data?.forEach(att => {
+            const existing = attachmentsByMessage.get(att.message_id) || [];
+            existing.push(att);
+            attachmentsByMessage.set(att.message_id, existing);
+          });
+
+          const reactionsByMessage = new Map<string, Map<string, { count: number; users: string[] }>>();
+          reactionsResult.data?.forEach(r => {
+            const msgReactions = reactionsByMessage.get(r.message_id) || new Map();
+            const emojiData = msgReactions.get(r.emoji) || { count: 0, users: [] };
+            emojiData.count++;
+            emojiData.users.push(r.user_id);
+            msgReactions.set(r.emoji, emojiData);
+            reactionsByMessage.set(r.message_id, msgReactions);
+          });
+
+          const messagesWithData = messagesData.map(msg => ({
+            ...msg,
+            attachments: attachmentsByMessage.get(msg.id) || [],
+            reactions: Array.from(reactionsByMessage.get(msg.id)?.entries() || []).map(([emoji, data]) => ({
+              emoji,
+              count: data.count,
+              hasReacted: data.users.includes(user?.id || '')
+            }))
+          }));
+
+          setMessages(messagesWithData);
         }
 
-        // Mark messages as read
+        // Mark messages as read with timestamp
+        const now = new Date().toISOString();
         await supabase
           .from('messages')
-          .update({ is_read: true })
+          .update({ is_read: true, read_at: now })
           .eq('conversation_id', conversationId)
-          .neq('sender_id', user?.id);
+          .neq('sender_id', user?.id)
+          .is('read_at', null);
 
         // Focus input
         setTimeout(() => inputRef.current?.focus(), 100);
@@ -204,9 +264,9 @@ const Messages = () => {
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !user || !activeConversation) return;
+    if ((!newMessage.trim() && !pendingAttachment) || !user || !activeConversation) return;
 
-    const content = newMessage.trim();
+    const content = newMessage.trim() || (pendingAttachment ? '📎 Attachment' : '');
     
     if (content.length > MAX_MESSAGE_LENGTH) {
       toast.error(`Message too long (max ${MAX_MESSAGE_LENGTH} characters)`);
@@ -222,16 +282,41 @@ const Messages = () => {
       clearTimeout(typingTimeoutRef.current);
     }
 
+    setSending(true);
     setNewMessage('');
+    const attachment = pendingAttachment;
+    setPendingAttachment(null);
 
     try {
-      const { error } = await supabase.from('messages').insert({
+      // Insert message first
+      const { data: messageData, error } = await supabase.from('messages').insert({
         conversation_id: activeConversation.id,
         sender_id: user.id,
         content,
-      });
+      }).select().single();
 
       if (error) throw error;
+
+      // Upload attachment if present
+      if (attachment && messageData) {
+        const uploadedAttachment = await uploadAttachment(
+          attachment.file,
+          user.id,
+          messageData.id
+        );
+        
+        if (uploadedAttachment) {
+          await supabase.from('message_attachments').insert({
+            message_id: messageData.id,
+            ...uploadedAttachment
+          });
+        }
+        
+        // Cleanup preview URL
+        if (attachment.localPreview) {
+          URL.revokeObjectURL(attachment.localPreview);
+        }
+      }
 
       // Update last message time
       await supabase
@@ -240,7 +325,74 @@ const Messages = () => {
         .eq('id', activeConversation.id);
     } catch (error: any) {
       toast.error('Failed to send message');
+    } finally {
+      setSending(false);
     }
+  };
+
+  // Add reaction to message
+  const handleAddReaction = async (messageId: string, emoji: string) => {
+    if (!user) return;
+    
+    try {
+      await supabase.from('message_reactions').insert({
+        message_id: messageId,
+        user_id: user.id,
+        emoji
+      });
+      
+      // Update local state
+      setMessages(prev => prev.map(msg => {
+        if (msg.id !== messageId) return msg;
+        const reactions = [...(msg.reactions || [])];
+        const existing = reactions.find(r => r.emoji === emoji);
+        if (existing) {
+          existing.count++;
+          existing.hasReacted = true;
+        } else {
+          reactions.push({ emoji, count: 1, hasReacted: true });
+        }
+        return { ...msg, reactions };
+      }));
+    } catch (error) {
+      console.error('Failed to add reaction:', error);
+    }
+  };
+
+  // Remove reaction from message
+  const handleRemoveReaction = async (messageId: string, emoji: string) => {
+    if (!user) return;
+    
+    try {
+      await supabase.from('message_reactions')
+        .delete()
+        .eq('message_id', messageId)
+        .eq('user_id', user.id)
+        .eq('emoji', emoji);
+      
+      // Update local state
+      setMessages(prev => prev.map(msg => {
+        if (msg.id !== messageId) return msg;
+        const reactions = [...(msg.reactions || [])].map(r => {
+          if (r.emoji !== emoji) return r;
+          return { ...r, count: r.count - 1, hasReacted: false };
+        }).filter(r => r.count > 0);
+        return { ...msg, reactions };
+      }));
+    } catch (error) {
+      console.error('Failed to remove reaction:', error);
+    }
+  };
+
+  const formatReadTime = (dateString: string | null | undefined) => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   const formatTime = (dateString: string) => {
@@ -419,13 +571,14 @@ const Messages = () => {
                   {messages.map((message, index) => {
                     const isOwn = message.sender_id === user.id;
                     const showAvatar = index === 0 || messages[index - 1]?.sender_id !== message.sender_id;
+                    const readTime = formatReadTime(message.read_at);
                     
                     return (
                       <motion.div
                         key={message.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className={`flex ${isOwn ? 'justify-end' : 'justify-start'} ${!showAvatar ? 'mt-1' : ''}`}
+                        className={`group flex ${isOwn ? 'justify-end' : 'justify-start'} ${!showAvatar ? 'mt-1' : ''}`}
                       >
                         {!isOwn && showAvatar && (
                           <Avatar className="w-8 h-8 mr-2 flex-shrink-0">
@@ -437,24 +590,57 @@ const Messages = () => {
                         )}
                         {!isOwn && !showAvatar && <div className="w-8 mr-2" />}
                         
-                        <div
-                          className={`max-w-[70%] rounded-2xl px-4 py-2.5 ${
-                            isOwn
-                              ? 'bg-google-blue text-white rounded-br-md'
-                              : 'bg-card border border-border rounded-bl-md shadow-sm'
-                          }`}
-                        >
-                          <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
-                          <div className={`flex items-center gap-1 mt-1 ${isOwn ? 'justify-end' : ''}`}>
-                            <p className={`text-xs ${isOwn ? 'text-white/70' : 'text-muted-foreground'}`}>
-                              {formatTime(message.created_at)}
-                            </p>
-                            {isOwn && (
-                              message.is_read 
-                                ? <CheckCheck className="w-3.5 h-3.5 text-white/70" />
-                                : <Check className="w-3.5 h-3.5 text-white/70" />
+                        <div className="max-w-[70%]">
+                          <div
+                            className={`rounded-2xl px-4 py-2.5 ${
+                              isOwn
+                                ? 'bg-google-blue text-white rounded-br-md'
+                                : 'bg-card border border-border rounded-bl-md shadow-sm'
+                            }`}
+                          >
+                            {message.content !== '📎 Attachment' && (
+                              <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
                             )}
+                            
+                            {/* Attachments */}
+                            {message.attachments && message.attachments.length > 0 && (
+                              <div className="space-y-2">
+                                {message.attachments.map(att => (
+                                  <MessageAttachment key={att.id} attachment={att} isOwn={isOwn} />
+                                ))}
+                              </div>
+                            )}
+                            
+                            <div className={`flex items-center gap-1 mt-1 ${isOwn ? 'justify-end' : ''}`}>
+                              <p className={`text-xs ${isOwn ? 'text-white/70' : 'text-muted-foreground'}`}>
+                                {formatTime(message.created_at)}
+                              </p>
+                              {isOwn && (
+                                message.is_read ? (
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <span className="inline-flex items-center cursor-help">
+                                        <CheckCheck className="w-3.5 h-3.5 text-white/70" />
+                                      </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="left" className="text-xs">
+                                      {readTime ? `Seen ${readTime}` : 'Seen'}
+                                    </TooltipContent>
+                                  </Tooltip>
+                                ) : (
+                                  <Check className="w-3.5 h-3.5 text-white/70" />
+                                )
+                              )}
+                            </div>
                           </div>
+                          
+                          {/* Emoji Reactions */}
+                          <EmojiReactions
+                            reactions={message.reactions || []}
+                            onAddReaction={(emoji) => handleAddReaction(message.id, emoji)}
+                            onRemoveReaction={(emoji) => handleRemoveReaction(message.id, emoji)}
+                            isOwn={isOwn}
+                          />
                         </div>
                       </motion.div>
                     );
@@ -472,47 +658,75 @@ const Messages = () => {
 
             {/* Input */}
             <form onSubmit={sendMessage} className="p-4 border-t border-border bg-card">
-              <div className="max-w-3xl mx-auto flex gap-2">
-                <Input
-                  ref={inputRef}
-                  value={newMessage}
-                  onChange={(e) => {
-                    setNewMessage(e.target.value);
-                    
-                    // Handle typing indicator
-                    if (conversationId && e.target.value.trim()) {
-                      if (!lastTypingRef.current) {
-                        setTyping(conversationId, true);
-                        lastTypingRef.current = true;
-                      }
-                      
-                      // Clear existing timeout
-                      if (typingTimeoutRef.current) {
-                        clearTimeout(typingTimeoutRef.current);
-                      }
-                      
-                      // Set new timeout to stop typing
-                      typingTimeoutRef.current = setTimeout(() => {
-                        if (conversationId) {
-                          setTyping(conversationId, false);
-                          lastTypingRef.current = false;
+              <div className="max-w-3xl mx-auto">
+                {/* Pending attachment preview */}
+                {pendingAttachment && (
+                  <div className="mb-2">
+                    <AttachmentUpload
+                      userId={user.id}
+                      conversationId={conversationId || ''}
+                      onAttachmentReady={setPendingAttachment}
+                      pendingAttachment={pendingAttachment}
+                      onClearAttachment={() => {
+                        if (pendingAttachment?.localPreview) {
+                          URL.revokeObjectURL(pendingAttachment.localPreview);
                         }
-                      }, 2000);
-                    } else if (conversationId && lastTypingRef.current) {
-                      setTyping(conversationId, false);
-                      lastTypingRef.current = false;
-                    }
-                  }}
-                  placeholder="Type a message..."
-                  className="flex-1 rounded-full px-4"
-                />
-                <Button 
-                  type="submit" 
-                  disabled={!newMessage.trim()}
-                  className="rounded-full w-10 h-10 p-0 bg-google-blue hover:bg-google-blue/90"
-                >
-                  <Send className="w-4 h-4" />
-                </Button>
+                        setPendingAttachment(null);
+                      }}
+                    />
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  {!pendingAttachment && (
+                    <AttachmentUpload
+                      userId={user.id}
+                      conversationId={conversationId || ''}
+                      onAttachmentReady={setPendingAttachment}
+                      pendingAttachment={null}
+                      onClearAttachment={() => setPendingAttachment(null)}
+                    />
+                  )}
+                  <Input
+                    ref={inputRef}
+                    value={newMessage}
+                    onChange={(e) => {
+                      setNewMessage(e.target.value);
+                      
+                      // Handle typing indicator
+                      if (conversationId && e.target.value.trim()) {
+                        if (!lastTypingRef.current) {
+                          setTyping(conversationId, true);
+                          lastTypingRef.current = true;
+                        }
+                        
+                        // Clear existing timeout
+                        if (typingTimeoutRef.current) {
+                          clearTimeout(typingTimeoutRef.current);
+                        }
+                        
+                        // Set new timeout to stop typing
+                        typingTimeoutRef.current = setTimeout(() => {
+                          if (conversationId) {
+                            setTyping(conversationId, false);
+                            lastTypingRef.current = false;
+                          }
+                        }, 2000);
+                      } else if (conversationId && lastTypingRef.current) {
+                        setTyping(conversationId, false);
+                        lastTypingRef.current = false;
+                      }
+                    }}
+                    placeholder="Type a message..."
+                    className="flex-1 rounded-full px-4"
+                  />
+                  <Button 
+                    type="submit" 
+                    disabled={(!newMessage.trim() && !pendingAttachment) || sending}
+                    className="rounded-full w-10 h-10 p-0 bg-google-blue hover:bg-google-blue/90"
+                  >
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </form>
           </>
