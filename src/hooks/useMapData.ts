@@ -38,70 +38,70 @@ export const useMapData = ({ userLocation, radius, searchQuery }: UseMapDataProp
 
   // Fetch candidates from database
   const fetchCandidates = useCallback(async () => {
-    if (!user || !userLocation) return [];
+    if (!userLocation) return [];
 
     try {
-      // Use the database function for geospatial query
-      const { data, error } = await supabase.rpc('get_nearby_candidates', {
-        user_lat: userLocation.lat,
-        user_lng: userLocation.lng,
-        radius_km: radius,
-      });
+      // Use the database function for geospatial query if user is logged in
+      if (user) {
+        const { data, error } = await supabase.rpc('get_nearby_candidates', {
+          user_lat: userLocation.lat,
+          user_lng: userLocation.lng,
+          radius_km: radius,
+        });
 
-      if (error) {
-        // If RPC fails (user might not be employer), try direct query
-        console.warn('RPC failed, falling back to direct query:', error.message);
-        
-        const { data: directData, error: directError } = await supabase
-          .from('candidates')
-          .select(`
-            id,
-            profile_id,
-            job_title,
-            experience_years,
-            skills,
-            profiles!inner (
-              full_name,
-              latitude,
-              longitude,
-              avatar_url,
-              is_visible_on_map
-            )
-          `)
-          .not('profiles.latitude', 'is', null)
-          .not('profiles.longitude', 'is', null);
-
-        if (directError) throw directError;
-
-        return (directData || [])
-          .filter((c: any) => c.profiles?.is_visible_on_map)
-          .map((c: any) => ({
+        if (!error && data) {
+          return (data || []).map((c: any) => ({
             id: c.id,
             profile_id: c.profile_id,
-            full_name: c.profiles.full_name,
+            full_name: c.full_name,
             job_title: c.job_title,
             experience_years: c.experience_years || 0,
             skills: c.skills || [],
-            latitude: c.profiles.latitude,
-            longitude: c.profiles.longitude,
-            avatar_url: c.profiles.avatar_url,
-            distance_km: calculateDistance(c.profiles.latitude, c.profiles.longitude),
-          }))
-          .filter((c: Candidate) => !c.distance_km || c.distance_km <= radius);
+            latitude: c.latitude,
+            longitude: c.longitude,
+            avatar_url: c.avatar_url,
+            distance_km: c.distance_km,
+          }));
+        }
       }
 
-      return (data || []).map((c: any) => ({
-        id: c.id,
-        profile_id: c.profile_id,
-        full_name: c.full_name,
-        job_title: c.job_title,
-        experience_years: c.experience_years || 0,
-        skills: c.skills || [],
-        latitude: c.latitude,
-        longitude: c.longitude,
-        avatar_url: c.avatar_url,
-        distance_km: c.distance_km,
-      }));
+      // Fallback to direct query (works for logged out users too)
+      const { data: directData, error: directError } = await supabase
+        .from('candidates')
+        .select(`
+          id,
+          profile_id,
+          job_title,
+          experience_years,
+          skills,
+          profiles!inner (
+            full_name,
+            latitude,
+            longitude,
+            avatar_url,
+            is_visible_on_map
+          )
+        `)
+        .not('profiles.latitude', 'is', null)
+        .not('profiles.longitude', 'is', null);
+
+      if (directError) throw directError;
+
+      return (directData || [])
+        .filter((c: any) => c.profiles?.is_visible_on_map)
+        .map((c: any) => ({
+          id: c.id,
+          profile_id: c.profile_id,
+          full_name: c.profiles.full_name,
+          job_title: c.job_title,
+          experience_years: c.experience_years || 0,
+          skills: c.skills || [],
+          latitude: c.profiles.latitude,
+          longitude: c.profiles.longitude,
+          avatar_url: c.profiles.avatar_url,
+          distance_km: calculateDistance(c.profiles.latitude, c.profiles.longitude),
+        }))
+        .filter((c: Candidate) => !c.distance_km || c.distance_km <= radius);
     } catch (err: any) {
       console.error('Error fetching candidates:', err);
       return [];
@@ -110,43 +110,19 @@ export const useMapData = ({ userLocation, radius, searchQuery }: UseMapDataProp
 
   // Fetch jobs from database
   const fetchJobs = useCallback(async () => {
-    if (!user || !userLocation) return [];
+    if (!userLocation) return [];
 
     try {
-      // Use the database function for geospatial query
-      const { data, error } = await supabase.rpc('get_nearby_jobs', {
-        user_lat: userLocation.lat,
-        user_lng: userLocation.lng,
-        radius_km: radius,
-      });
+      // Use the database function for geospatial query if user is logged in
+      if (user) {
+        const { data, error } = await supabase.rpc('get_nearby_jobs', {
+          user_lat: userLocation.lat,
+          user_lng: userLocation.lng,
+          radius_km: radius,
+        });
 
-      if (error) {
-        console.warn('RPC failed, falling back to direct query:', error.message);
-        
-        // Fallback to direct query
-        const { data: directData, error: directError } = await supabase
-          .from('jobs')
-          .select(`
-            id,
-            employer_id,
-            title,
-            description,
-            salary_range,
-            job_type,
-            latitude,
-            longitude,
-            status,
-            created_at,
-            employers!inner (
-              company_name
-            )
-          `)
-          .eq('status', 'open');
-
-        if (directError) throw directError;
-
-        return (directData || [])
-          .map((j: any) => ({
+        if (!error && data) {
+          return (data || []).map((j: any) => ({
             id: j.id,
             employer_id: j.employer_id,
             title: j.title,
@@ -157,26 +133,51 @@ export const useMapData = ({ userLocation, radius, searchQuery }: UseMapDataProp
             longitude: j.longitude,
             status: j.status as 'open' | 'closed',
             created_at: j.created_at,
-            company_name: j.employers.company_name,
-            distance_km: calculateDistance(j.latitude, j.longitude),
-          }))
-          .filter((j: Job) => !j.distance_km || j.distance_km <= radius);
+            company_name: j.company_name,
+            distance_km: j.distance_km,
+          }));
+        }
       }
 
-      return (data || []).map((j: any) => ({
-        id: j.id,
-        employer_id: j.employer_id,
-        title: j.title,
-        description: j.description,
-        salary_range: j.salary_range,
-        job_type: j.job_type || 'Full-time',
-        latitude: j.latitude,
-        longitude: j.longitude,
-        status: j.status as 'open' | 'closed',
-        created_at: j.created_at,
-        company_name: j.company_name,
-        distance_km: j.distance_km,
-      }));
+      // Fallback to direct query (works for logged out users too)
+      const { data: directData, error: directError } = await supabase
+        .from('jobs')
+        .select(`
+          id,
+          employer_id,
+          title,
+          description,
+          salary_range,
+          job_type,
+          latitude,
+          longitude,
+          status,
+          created_at,
+          employers!inner (
+            company_name
+          )
+        `)
+        .eq('status', 'open')
+        .eq('is_active', true);
+
+      if (directError) throw directError;
+
+      return (directData || [])
+        .map((j: any) => ({
+          id: j.id,
+          employer_id: j.employer_id,
+          title: j.title,
+          description: j.description,
+          salary_range: j.salary_range,
+          job_type: j.job_type || 'Full-time',
+          latitude: j.latitude,
+          longitude: j.longitude,
+          status: j.status as 'open' | 'closed',
+          created_at: j.created_at,
+          company_name: j.employers.company_name,
+          distance_km: calculateDistance(j.latitude, j.longitude),
+        }))
+        .filter((j: Job) => !j.distance_km || j.distance_km <= radius);
     } catch (err: any) {
       console.error('Error fetching jobs:', err);
       return [];

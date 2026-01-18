@@ -1,5 +1,5 @@
-import { Search, MapPin, X, Loader2 } from 'lucide-react';
-import { useState, useCallback } from 'react';
+import { Search, MapPin, X } from 'lucide-react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -9,25 +9,47 @@ interface SearchBarProps {
 export const SearchBar = ({ onSearch, placeholder = 'Search...' }: SearchBarProps) => {
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Clear any pending debounce and search immediately
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
     onSearch(query);
   };
 
   const handleClear = () => {
     setQuery('');
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
     onSearch('');
   };
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setQuery(value);
+    
+    // Clear previous timeout
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    
     // Debounced search on type
-    const timeoutId = setTimeout(() => {
+    debounceRef.current = setTimeout(() => {
       onSearch(value);
     }, 300);
-    return () => clearTimeout(timeoutId);
   }, [onSearch]);
 
   return (
