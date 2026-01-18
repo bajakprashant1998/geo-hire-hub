@@ -14,10 +14,11 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["'Open Sans'", "Arial", "Helvetica", "sans-serif"],
-        serif: ["Georgia", "'Times New Roman'", "Times", "serif"],
-        heading: ["'Open Sans'", "Arial", "Helvetica", "sans-serif"],
-        body: ["Georgia", "'Times New Roman'", "Times", "serif"],
+        sans: ["'Inter'", "-apple-system", "BlinkMacSystemFont", "'Segoe UI'", "sans-serif"],
+        serif: ["'Playfair Display'", "Georgia", "'Times New Roman'", "serif"],
+        heading: ["'Playfair Display'", "Georgia", "'Times New Roman'", "serif"],
+        body: ["'Inter'", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+        display: ["'Playfair Display'", "Georgia", "serif"],
       },
       colors: {
         border: "hsl(var(--border))",
