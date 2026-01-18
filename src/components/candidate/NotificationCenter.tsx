@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Bell, CheckCircle2, AlertCircle, MessageSquare, Briefcase, 
-  Eye, Star, X, Check, Loader2 
+  Eye, Star, X, Check, Loader2, Sparkles, Clock
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -22,22 +22,37 @@ interface Notification {
   created_at: string;
 }
 
-const notificationIcons: Record<string, React.ReactNode> = {
-  application_update: <Briefcase className="w-4 h-4" />,
-  message: <MessageSquare className="w-4 h-4" />,
-  shortlisted: <Star className="w-4 h-4" />,
-  rejected: <X className="w-4 h-4" />,
-  viewed: <Eye className="w-4 h-4" />,
-  default: <Bell className="w-4 h-4" />,
-};
-
-const notificationColors: Record<string, string> = {
-  application_update: 'bg-primary/10 text-primary',
-  message: 'bg-blue-100 text-blue-600',
-  shortlisted: 'bg-success/10 text-success',
-  rejected: 'bg-destructive/10 text-destructive',
-  viewed: 'bg-warning/10 text-warning-foreground',
-  default: 'bg-muted text-muted-foreground',
+const notificationConfig: Record<string, { icon: React.ReactNode; gradient: string; iconBg: string }> = {
+  application_update: { 
+    icon: <Briefcase className="w-4 h-4" />, 
+    gradient: 'from-blue-500 to-cyan-500',
+    iconBg: 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400'
+  },
+  message: { 
+    icon: <MessageSquare className="w-4 h-4" />, 
+    gradient: 'from-violet-500 to-purple-500',
+    iconBg: 'bg-violet-100 dark:bg-violet-900/50 text-violet-600 dark:text-violet-400'
+  },
+  shortlisted: { 
+    icon: <Star className="w-4 h-4" />, 
+    gradient: 'from-amber-500 to-orange-500',
+    iconBg: 'bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400'
+  },
+  rejected: { 
+    icon: <X className="w-4 h-4" />, 
+    gradient: 'from-rose-500 to-pink-500',
+    iconBg: 'bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400'
+  },
+  viewed: { 
+    icon: <Eye className="w-4 h-4" />, 
+    gradient: 'from-emerald-500 to-teal-500',
+    iconBg: 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400'
+  },
+  default: { 
+    icon: <Bell className="w-4 h-4" />, 
+    gradient: 'from-gray-500 to-slate-500',
+    iconBg: 'bg-muted text-muted-foreground'
+  },
 };
 
 export const NotificationCenter = () => {
@@ -50,7 +65,6 @@ export const NotificationCenter = () => {
 
     fetchNotifications();
 
-    // Subscribe to new notifications
     const channel = supabase
       .channel('notifications')
       .on(
@@ -132,7 +146,7 @@ export const NotificationCenter = () => {
 
   if (loading) {
     return (
-      <Card className="shadow-google">
+      <Card className="border-0 shadow-xl bg-gradient-to-br from-card to-card/80">
         <CardContent className="p-8 flex justify-center">
           <Loader2 className="w-6 h-6 animate-spin text-primary" />
         </CardContent>
@@ -141,86 +155,101 @@ export const NotificationCenter = () => {
   }
 
   return (
-    <Card className="shadow-google">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="flex items-center gap-2">
-          <Bell className="w-5 h-5 text-primary" />
-          Notifications
-          {unreadCount > 0 && (
-            <Badge className="bg-destructive">{unreadCount}</Badge>
-          )}
+    <Card className="border-0 shadow-xl overflow-hidden bg-gradient-to-br from-card via-card to-card/80">
+      <CardHeader className="flex flex-row items-center justify-between pb-3 bg-gradient-to-r from-primary/5 to-purple-500/5">
+        <CardTitle className="flex items-center gap-3">
+          <div className="p-2 bg-primary/10 rounded-xl relative">
+            <Bell className="w-5 h-5 text-primary" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive rounded-full text-[10px] text-white flex items-center justify-center font-bold animate-pulse">
+                {unreadCount}
+              </span>
+            )}
+          </div>
+          <div>
+            <span>Notifications</span>
+            <p className="text-xs font-normal text-muted-foreground mt-0.5">
+              Stay updated on your applications
+            </p>
+          </div>
         </CardTitle>
         {unreadCount > 0 && (
-          <Button variant="ghost" size="sm" onClick={markAllAsRead}>
-            <Check className="w-4 h-4 mr-1" />
+          <Button variant="ghost" size="sm" onClick={markAllAsRead} className="rounded-xl text-xs">
+            <Check className="w-3.5 h-3.5 mr-1" />
             Mark all read
           </Button>
         )}
       </CardHeader>
-      <CardContent>
-        <ScrollArea className="h-[400px]">
+      <CardContent className="p-0">
+        <ScrollArea className="h-[380px]">
           {notifications.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Bell className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No notifications yet</p>
+            <div className="text-center py-12 px-6">
+              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="w-8 h-8 text-muted-foreground/50" />
+              </div>
+              <h3 className="font-medium mb-1">No notifications yet</h3>
+              <p className="text-sm text-muted-foreground">
+                We'll notify you when something happens
+              </p>
             </div>
           ) : (
-            <div className="space-y-2">
-              {notifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  className={cn(
-                    "p-3 rounded-lg transition-colors cursor-pointer",
-                    notification.is_read 
-                      ? "bg-transparent hover:bg-muted/50" 
-                      : "bg-primary/5 hover:bg-primary/10"
-                  )}
-                  onClick={() => !notification.is_read && markAsRead(notification.id)}
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={cn(
-                        "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
-                        notificationColors[notification.type] || notificationColors.default
-                      )}
-                    >
-                      {notificationIcons[notification.type] || notificationIcons.default}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className={cn(
-                          "font-medium text-sm",
-                          !notification.is_read && "font-semibold"
-                        )}>
-                          {notification.title}
-                        </p>
-                        {!notification.is_read && (
-                          <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5" />
-                        )}
+            <div className="divide-y divide-border/50">
+              {notifications.map((notification) => {
+                const config = notificationConfig[notification.type] || notificationConfig.default;
+                
+                return (
+                  <div
+                    key={notification.id}
+                    className={cn(
+                      "p-4 transition-all cursor-pointer hover:bg-muted/50",
+                      !notification.is_read && "bg-primary/5"
+                    )}
+                    onClick={() => !notification.is_read && markAsRead(notification.id)}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className={cn(
+                        "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0",
+                        config.iconBg
+                      )}>
+                        {config.icon}
                       </div>
-                      {notification.message && (
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {notification.message}
-                        </p>
-                      )}
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-muted-foreground">
-                          {formatTime(notification.created_at)}
-                        </span>
-                        {notification.link && (
-                          <Link 
-                            to={notification.link} 
-                            className="text-xs text-primary hover:underline"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            View details
-                          </Link>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className={cn(
+                            "font-medium text-sm line-clamp-1",
+                            !notification.is_read && "font-semibold"
+                          )}>
+                            {notification.title}
+                          </p>
+                          {!notification.is_read && (
+                            <span className="w-2.5 h-2.5 rounded-full bg-primary flex-shrink-0 mt-1.5 animate-pulse" />
+                          )}
+                        </div>
+                        {notification.message && (
+                          <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">
+                            {notification.message}
+                          </p>
                         )}
+                        <div className="flex items-center gap-3 mt-2">
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {formatTime(notification.created_at)}
+                          </span>
+                          {notification.link && (
+                            <Link 
+                              to={notification.link} 
+                              className="text-xs text-primary hover:underline font-medium"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              View details →
+                            </Link>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </ScrollArea>
