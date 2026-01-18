@@ -119,9 +119,10 @@ const createUserIcon = () =>
 
 // Generate popup content for candidates - with contact and save buttons
 const createCandidatePopupContent = (candidate: Candidate, isSaved: boolean = false): string => {
+  const initials = candidate.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'C';
   const avatarHtml = candidate.avatar_url 
-    ? `<img src="${candidate.avatar_url}" alt="${candidate.full_name}" style="width: 48px; height: 48px; border-radius: 12px; object-fit: cover;" />`
-    : `<div style="width: 48px; height: 48px; border-radius: 12px; background: hsl(217, 89%, 95%); display: flex; align-items: center; justify-content: center; color: hsl(217, 89%, 61%); font-weight: 600; font-size: 20px;">${candidate.full_name?.charAt(0) || 'C'}</div>`;
+    ? `<img src="${candidate.avatar_url}" alt="${candidate.full_name}" style="width: 48px; height: 48px; border-radius: 12px; object-fit: cover; border: 2px solid hsl(217, 89%, 85%);" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" /><div style="display: none; width: 48px; height: 48px; border-radius: 12px; background: hsl(217, 89%, 95%); align-items: center; justify-content: center; color: hsl(217, 89%, 61%); font-weight: 600; font-size: 18px;">${initials}</div>`
+    : `<div style="width: 48px; height: 48px; border-radius: 12px; background: hsl(217, 89%, 95%); display: flex; align-items: center; justify-content: center; color: hsl(217, 89%, 61%); font-weight: 600; font-size: 18px;">${initials}</div>`;
 
   const savedButtonStyle = isSaved 
     ? `background: hsl(45, 93%, 95%);`
@@ -134,7 +135,7 @@ const createCandidatePopupContent = (candidate: Candidate, isSaved: boolean = fa
     <div class="marker-popup-content" data-type="candidate" data-id="${candidate.id}" style="
       min-width: 280px;
       max-width: 320px;
-      font-family: 'Google Sans', 'Roboto', sans-serif;
+      font-family: 'Trebuchet MS', 'Open Sans', sans-serif;
       background: white;
       border-radius: 16px;
       overflow: hidden;
@@ -144,8 +145,8 @@ const createCandidatePopupContent = (candidate: Candidate, isSaved: boolean = fa
       <div style="padding: 16px 16px 12px; display: flex; gap: 14px; align-items: flex-start;">
         ${avatarHtml}
         <div style="flex: 1; min-width: 0;">
-          <h4 style="margin: 0; font-size: 16px; font-weight: 600; color: hsl(220, 9%, 15%); line-height: 1.3;">${candidate.full_name}</h4>
-          <p style="margin: 4px 0 0; font-size: 13px; color: hsl(220, 9%, 46%);">${candidate.job_title || 'Job Seeker'}</p>
+          <h4 style="margin: 0; font-size: 16px; font-weight: 600; color: hsl(220, 9%, 15%); line-height: 1.3; font-family: 'Trebuchet MS', sans-serif;">${candidate.full_name}</h4>
+          <p style="margin: 4px 0 0; font-size: 13px; color: hsl(217, 89%, 61%); font-weight: 500;">${candidate.job_title || 'Job Seeker'}</p>
         </div>
         <!-- Save button -->
         <button class="popup-save-candidate-btn ${isSaved ? 'saved' : ''}" data-action="save-candidate" data-candidate-id="${candidate.id}" data-saved="${isSaved}" style="
@@ -168,13 +169,14 @@ const createCandidatePopupContent = (candidate: Candidate, isSaved: boolean = fa
         </button>
       </div>
       
-      <!-- Tags row -->
+      <!-- Tags row with Google colors -->
       <div style="padding: 0 16px 14px; display: flex; flex-wrap: wrap; gap: 8px;">
-        ${candidate.experience_years ? `<span style="padding: 6px 12px; background: hsl(220, 14%, 96%); color: hsl(220, 9%, 35%); font-size: 12px; border-radius: 6px; font-weight: 500;">${candidate.experience_years}+ years</span>` : ''}
-        ${candidate.skills && candidate.skills.length > 0 ? `<span style="padding: 6px 12px; background: hsl(217, 89%, 95%); color: hsl(217, 89%, 45%); font-size: 12px; border-radius: 6px; font-weight: 600;">${candidate.skills.length} skills</span>` : ''}
+        ${candidate.experience_years ? `<span style="padding: 6px 12px; background: hsl(217, 89%, 95%); color: hsl(217, 89%, 45%); font-size: 12px; border-radius: 6px; font-weight: 500;">${candidate.experience_years}+ years</span>` : ''}
+        ${candidate.skills && candidate.skills.length > 0 ? `<span style="padding: 6px 12px; background: hsl(142, 70%, 95%); color: hsl(142, 76%, 30%); font-size: 12px; border-radius: 6px; font-weight: 600;">${candidate.skills.length} skills</span>` : ''}
+        ${candidate.distance_km !== undefined ? `<span style="padding: 6px 12px; background: hsl(4, 90%, 95%); color: hsl(4, 90%, 50%); font-size: 12px; border-radius: 6px; font-weight: 500;">${candidate.distance_km.toFixed(1)} km</span>` : ''}
       </div>
       
-      <!-- Action buttons -->
+      <!-- Action buttons with Google Blue -->
       <div style="padding: 12px 16px; border-top: 1px solid hsl(220, 13%, 93%); display: flex; gap: 8px;">
         <button class="popup-contact-btn" data-action="contact" data-candidate-id="${candidate.id}" style="
           flex: 1;
