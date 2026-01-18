@@ -274,6 +274,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "candidates_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       conversations: {
@@ -528,6 +535,13 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: true
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employers_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1003,7 +1017,48 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string | null
+          is_visible_on_map: boolean | null
+          latitude: number | null
+          longitude: number | null
+          profile_completed: boolean | null
+          updated_at: string | null
+          user_id: string | null
+          user_type: Database["public"]["Enums"]["user_type"] | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          is_visible_on_map?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          profile_completed?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+          user_type?: Database["public"]["Enums"]["user_type"] | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          is_visible_on_map?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          profile_completed?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+          user_type?: Database["public"]["Enums"]["user_type"] | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       calculate_employer_profile_completeness: {
