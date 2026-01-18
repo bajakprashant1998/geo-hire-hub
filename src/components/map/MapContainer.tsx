@@ -135,7 +135,7 @@ const createCandidatePopupContent = (candidate: Candidate, isSaved: boolean = fa
     <div class="marker-popup-content" data-type="candidate" data-id="${candidate.id}" style="
       min-width: 280px;
       max-width: 320px;
-      font-family: 'Trebuchet MS', 'Open Sans', sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background: white;
       border-radius: 16px;
       overflow: hidden;
@@ -145,7 +145,7 @@ const createCandidatePopupContent = (candidate: Candidate, isSaved: boolean = fa
       <div style="padding: 16px 16px 12px; display: flex; gap: 14px; align-items: flex-start;">
         ${avatarHtml}
         <div style="flex: 1; min-width: 0;">
-          <h4 style="margin: 0; font-size: 16px; font-weight: 600; color: hsl(220, 9%, 15%); line-height: 1.3; font-family: 'Trebuchet MS', sans-serif;">${candidate.full_name}</h4>
+          <h4 style="margin: 0; font-size: 16px; font-weight: 600; color: hsl(220, 9%, 15%); line-height: 1.3; font-family: 'Playfair Display', Georgia, serif;">${candidate.full_name}</h4>
           <p style="margin: 4px 0 0; font-size: 13px; color: hsl(217, 89%, 61%); font-weight: 500;">${candidate.job_title || 'Job Seeker'}</p>
         </div>
         <!-- Save button -->
@@ -238,7 +238,7 @@ const createJobPopupContent = (job: Job, isSaved: boolean = false): string => {
     <div class="marker-popup-content" data-type="job" data-id="${job.id}" style="
       min-width: 280px;
       max-width: 320px;
-      font-family: 'Google Sans', 'Roboto', sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background: white;
       border-radius: 16px;
       overflow: hidden;
@@ -253,7 +253,7 @@ const createJobPopupContent = (job: Job, isSaved: boolean = false): string => {
           </svg>
         </div>
         <div style="flex: 1; min-width: 0;">
-          <h4 style="margin: 0; font-size: 16px; font-weight: 600; color: hsl(220, 9%, 15%); line-height: 1.3;">${job.title}</h4>
+          <h4 style="margin: 0; font-size: 16px; font-weight: 600; color: hsl(220, 9%, 15%); line-height: 1.3; font-family: 'Playfair Display', Georgia, serif;">${job.title}</h4>
           <p style="margin: 4px 0 0; font-size: 13px; color: hsl(220, 9%, 46%);">${job.company_name || 'Company'}</p>
         </div>
         <!-- Save button -->
