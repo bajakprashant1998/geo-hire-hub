@@ -227,9 +227,9 @@ const Dashboard = () => {
             </Link>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">GJ</span>
+                <span className="text-primary-foreground font-bold text-sm">HJ</span>
               </div>
-              <span className="font-semibold hidden sm:inline">GeoJobs Dashboard</span>
+              <span className="font-semibold hidden sm:inline">Hire for Job</span>
             </div>
           </div>
 

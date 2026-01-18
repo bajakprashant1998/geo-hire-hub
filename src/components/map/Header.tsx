@@ -33,7 +33,7 @@ export const Header = ({ mode, onModeChange, onSearch, onMenuClick }: HeaderProp
             <div className="w-9 h-9 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-shadow">
               <MapPin className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-bold text-lg text-foreground tracking-tight">GeoJobs</span>
+            <span className="font-bold text-lg text-foreground tracking-tight">Hire for Job</span>
           </Link>
         </div>
 

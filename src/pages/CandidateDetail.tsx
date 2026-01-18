@@ -112,7 +112,7 @@ const CandidateDetail = () => {
     try {
       await navigator.share({
         title: candidate?.full_name,
-        text: `Check out ${candidate?.full_name}'s profile on GeoJobs`,
+        text: `Check out ${candidate?.full_name}'s profile on Hire for Job`,
         url: window.location.href,
       });
     } catch {
