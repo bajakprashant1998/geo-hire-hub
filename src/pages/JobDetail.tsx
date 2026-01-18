@@ -43,6 +43,18 @@ import {
   Zap,
   Heart,
   MessageSquare,
+  GraduationCap,
+  Languages,
+  Phone,
+  Mail,
+  User,
+  Gift,
+  UserCheck,
+  Sunrise,
+  Sunset,
+  CalendarDays,
+  BadgeCheck,
+  AlertCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
@@ -59,6 +71,34 @@ interface JobDetails {
   status: string;
   view_count: number | null;
   created_at: string | null;
+  // New fields
+  openings: number | null;
+  experience_type: string | null;
+  min_experience: number | null;
+  max_experience: number | null;
+  has_bonus: boolean | null;
+  skills: string[] | null;
+  gender_preference: string | null;
+  min_age: number | null;
+  max_age: number | null;
+  education: string | null;
+  languages: string[] | null;
+  certifications: string | null;
+  additional_notes: string | null;
+  shift_type: string | null;
+  start_time: string | null;
+  end_time: string | null;
+  work_days: string[] | null;
+  interview_time: string | null;
+  interview_days: string[] | null;
+  contact_person: string | null;
+  contact_phone: string | null;
+  contact_email: string | null;
+  contact_role: string | null;
+  organization_size: string | null;
+  hiring_urgency: string | null;
+  hiring_frequency: string | null;
+  job_address: string | null;
   employer: {
     id: string;
     company_name: string;
@@ -266,10 +306,18 @@ const JobDetail = () => {
     return date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
+  const formatTime = (time: string | null) => {
+    if (!time) return null;
+    const [hours, minutes] = time.split(':');
+    const h = parseInt(hours);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const formattedHour = h % 12 || 12;
+    return `${formattedHour}:${minutes} ${ampm}`;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-secondary/30">
-        {/* Hero Skeleton */}
         <div className="relative h-64 md:h-72 bg-gradient-to-r from-destructive/30 to-destructive/10">
           <div className="absolute inset-0 bg-black/20" />
         </div>
@@ -318,7 +366,7 @@ const JobDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-secondary/50 to-background">
+    <div className="min-h-screen bg-gradient-to-b from-secondary/50 to-background pb-24 lg:pb-12">
       {/* Hero Banner with Overlay */}
       <div
         className="relative h-64 md:h-80 bg-cover bg-center"
@@ -327,16 +375,12 @@ const JobDetail = () => {
             'url("https://images.unsplash.com/photo-1497366216548-37526070297c?w=1920&h=600&fit=crop")',
         }}
       >
-        {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-r from-destructive/85 via-destructive/70 to-destructive/50" />
-        
-        {/* Pattern Overlay for texture */}
         <div className="absolute inset-0 opacity-10" style={{
           backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
           backgroundSize: '24px 24px'
         }} />
         
-        {/* Back Button */}
         <div className="absolute top-0 left-0 right-0 z-10">
           <div className="container mx-auto px-4 pt-4 md:pt-6">
             <Button
@@ -398,10 +442,12 @@ const JobDetail = () => {
 
                       {/* Info Pills */}
                       <div className="flex flex-wrap items-center gap-3 pt-2">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-foreground text-sm font-medium">
-                          <MapPin className="w-4 h-4 text-muted-foreground" />
-                          Location on map
-                        </div>
+                        {job.job_address && (
+                          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-foreground text-sm font-medium">
+                            <MapPin className="w-4 h-4 text-muted-foreground" />
+                            {job.job_address}
+                          </div>
+                        )}
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-foreground text-sm font-medium">
                           <Briefcase className="w-4 h-4 text-muted-foreground" />
                           {job.job_type || 'Full-time'}
@@ -410,6 +456,12 @@ const JobDetail = () => {
                           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-success/10 text-success text-sm font-bold">
                             <DollarSign className="w-4 h-4" />
                             {job.salary_range}
+                          </div>
+                        )}
+                        {job.has_bonus && (
+                          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-warning/10 text-warning text-sm font-bold">
+                            <Gift className="w-4 h-4" />
+                            Bonus Available
                           </div>
                         )}
                       </div>
@@ -449,14 +501,21 @@ const JobDetail = () => {
                 </div>
                 <div className="flex items-center gap-2 px-6 py-4 text-sm">
                   <Eye className="w-4 h-4 text-muted-foreground" />
-                  <span className="font-semibold">{job.view_count || Math.floor(Math.random() * 500) + 100}</span>
+                  <span className="font-semibold">{job.view_count || 0}</span>
                   <span className="text-muted-foreground">views</span>
                 </div>
                 <div className="flex items-center gap-2 px-6 py-4 text-sm">
                   <Users className="w-4 h-4 text-muted-foreground" />
-                  <span className="font-semibold">{applicantCount || Math.floor(Math.random() * 50) + 5}</span>
+                  <span className="font-semibold">{applicantCount}</span>
                   <span className="text-muted-foreground">applicants</span>
                 </div>
+                {job.openings && job.openings > 1 && (
+                  <div className="flex items-center gap-2 px-6 py-4 text-sm">
+                    <UserCheck className="w-4 h-4 text-muted-foreground" />
+                    <span className="font-semibold">{job.openings}</span>
+                    <span className="text-muted-foreground">openings</span>
+                  </div>
+                )}
                 {job.category && (
                   <div className="flex items-center gap-2 px-6 py-4 text-sm">
                     <Layers className="w-4 h-4 text-muted-foreground" />
@@ -470,116 +529,355 @@ const JobDetail = () => {
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-8">
+          <div className="lg:col-span-2 space-y-6">
             {/* Job Description */}
-            <Card className="shadow-lg border-0 overflow-hidden">
-              <CardHeader className="border-b bg-secondary/30">
-                <CardTitle className="flex items-center gap-3 text-xl">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <FileText className="w-5 h-5 text-primary" />
-                  </div>
-                  Job Description
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6 md:p-8">
-                <div className="prose prose-gray max-w-none">
-                  {job.description ? (
-                    <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap text-base">
-                      {job.description}
-                    </p>
-                  ) : (
-                    <p className="text-muted-foreground leading-relaxed">
-                      We are looking for talented individuals to join our team at{' '}
-                      <span className="font-semibold text-foreground">{job.employer.company_name}</span>. 
-                      This is an exciting opportunity to work on challenging projects and grow your career 
-                      in a dynamic environment. The ideal candidate will be passionate about their work 
-                      and eager to contribute to our team's success.
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+            {job.description && (
+              <Card className="shadow-lg border-0 overflow-hidden">
+                <CardHeader className="border-b bg-secondary/30">
+                  <CardTitle className="flex items-center gap-3 text-lg">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <FileText className="w-5 h-5 text-primary" />
+                    </div>
+                    Job Description
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                    {job.description}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
 
-            {/* Job Highlights - Infographic Style */}
+            {/* Skills Required */}
+            {job.skills && job.skills.length > 0 && (
+              <Card className="shadow-lg border-0 overflow-hidden">
+                <CardHeader className="border-b bg-secondary/30">
+                  <CardTitle className="flex items-center gap-3 text-lg">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <Zap className="w-5 h-5 text-primary" />
+                    </div>
+                    Skills Required
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="flex flex-wrap gap-2">
+                    {job.skills.map((skill, index) => (
+                      <Badge key={index} variant="secondary" className="px-4 py-2 text-sm rounded-full">
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Job Requirements */}
             <Card className="shadow-lg border-0 overflow-hidden">
               <CardHeader className="border-b bg-secondary/30">
-                <CardTitle className="flex items-center gap-3 text-xl">
+                <CardTitle className="flex items-center gap-3 text-lg">
                   <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
-                    <Zap className="w-5 h-5 text-success" />
+                    <Target className="w-5 h-5 text-success" />
                   </div>
-                  Job Highlights
+                  Requirements & Preferences
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6 md:p-8">
-                <div className="grid sm:grid-cols-2 gap-6">
-                  {/* Job Type */}
-                  <div className="flex items-start gap-4 p-4 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/10">
-                    <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
-                      <Briefcase className="w-6 h-6 text-primary" />
+              <CardContent className="p-6">
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {/* Experience */}
+                  <div className="flex items-start gap-4 p-4 rounded-xl bg-muted/50 border border-border/50">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <TrendingUp className="w-5 h-5 text-primary" />
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground mb-1">Job Type</p>
-                      <p className="font-semibold text-lg">{job.job_type || 'Full-time'}</p>
-                    </div>
-                  </div>
-
-                  {/* Salary */}
-                  <div className="flex items-start gap-4 p-4 rounded-xl bg-gradient-to-br from-success/5 to-success/10 border border-success/10">
-                    <div className="w-12 h-12 rounded-xl bg-success/20 flex items-center justify-center flex-shrink-0">
-                      <DollarSign className="w-6 h-6 text-success" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Salary Range</p>
-                      <p className="font-semibold text-lg text-success">{job.salary_range || 'Competitive'}</p>
-                    </div>
-                  </div>
-
-                  {/* Industry */}
-                  <div className="flex items-start gap-4 p-4 rounded-xl bg-gradient-to-br from-warning/5 to-warning/10 border border-warning/10">
-                    <div className="w-12 h-12 rounded-xl bg-warning/20 flex items-center justify-center flex-shrink-0">
-                      <Target className="w-6 h-6 text-warning" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Industry</p>
-                      <p className="font-semibold text-lg">{job.employer.industry || 'Various'}</p>
-                    </div>
-                  </div>
-
-                  {/* Posted Date */}
-                  <div className="flex items-start gap-4 p-4 rounded-xl bg-gradient-to-br from-destructive/5 to-destructive/10 border border-destructive/10">
-                    <div className="w-12 h-12 rounded-xl bg-destructive/20 flex items-center justify-center flex-shrink-0">
-                      <Calendar className="w-6 h-6 text-destructive" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground mb-1">Posted Date</p>
-                      <p className="font-semibold text-lg">
-                        {job.created_at
-                          ? new Date(job.created_at).toLocaleDateString('en-IN', {
-                              month: 'long',
-                              day: 'numeric',
-                              year: 'numeric',
-                            })
-                          : 'Recently'}
+                      <p className="text-sm text-muted-foreground mb-1">Experience</p>
+                      <p className="font-medium">
+                        {job.experience_type === 'Any' ? 'Any Experience Level' :
+                         job.experience_type === 'Fresher Only' ? 'Freshers Only' :
+                         job.min_experience || job.max_experience 
+                           ? `${job.min_experience || 0} - ${job.max_experience || '10+'} years`
+                           : job.experience_type || 'Not specified'}
                       </p>
                     </div>
                   </div>
+
+                  {/* Education */}
+                  {job.education && (
+                    <div className="flex items-start gap-4 p-4 rounded-xl bg-muted/50 border border-border/50">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <GraduationCap className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Education</p>
+                        <p className="font-medium">{job.education}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Languages */}
+                  {job.languages && job.languages.length > 0 && (
+                    <div className="flex items-start gap-4 p-4 rounded-xl bg-muted/50 border border-border/50">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <Languages className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Languages</p>
+                        <p className="font-medium">{job.languages.join(', ')}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Age Preference */}
+                  {(job.min_age || job.max_age) && (
+                    <div className="flex items-start gap-4 p-4 rounded-xl bg-muted/50 border border-border/50">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <User className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Age Preference</p>
+                        <p className="font-medium">
+                          {job.min_age && job.max_age 
+                            ? `${job.min_age} - ${job.max_age} years`
+                            : job.min_age 
+                              ? `Minimum ${job.min_age} years`
+                              : `Maximum ${job.max_age} years`}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Gender Preference */}
+                  {job.gender_preference && job.gender_preference !== 'Any' && (
+                    <div className="flex items-start gap-4 p-4 rounded-xl bg-muted/50 border border-border/50">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <Users className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Gender Preference</p>
+                        <p className="font-medium">{job.gender_preference}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Certifications */}
+                  {job.certifications && (
+                    <div className="flex items-start gap-4 p-4 rounded-xl bg-muted/50 border border-border/50">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <BadgeCheck className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-1">Certifications</p>
+                        <p className="font-medium">{job.certifications}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
+
+                {/* Additional Notes */}
+                {job.additional_notes && (
+                  <div className="mt-4 p-4 rounded-xl bg-warning/5 border border-warning/20">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium text-warning mb-1">Additional Notes</p>
+                        <p className="text-sm text-muted-foreground">{job.additional_notes}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
+
+            {/* Work Schedule */}
+            {(job.shift_type || job.start_time || job.work_days?.length) && (
+              <Card className="shadow-lg border-0 overflow-hidden">
+                <CardHeader className="border-b bg-secondary/30">
+                  <CardTitle className="flex items-center gap-3 text-lg">
+                    <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
+                      <Clock className="w-5 h-5 text-warning" />
+                    </div>
+                    Work Schedule
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {/* Shift Type */}
+                    {job.shift_type && (
+                      <div className="flex items-start gap-4 p-4 rounded-xl bg-muted/50 border border-border/50">
+                        <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center flex-shrink-0">
+                          {job.shift_type.toLowerCase().includes('night') ? (
+                            <Sunset className="w-5 h-5 text-warning" />
+                          ) : (
+                            <Sunrise className="w-5 h-5 text-warning" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-1">Shift Type</p>
+                          <p className="font-medium">{job.shift_type}</p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Work Hours */}
+                    {(job.start_time || job.end_time) && (
+                      <div className="flex items-start gap-4 p-4 rounded-xl bg-muted/50 border border-border/50">
+                        <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center flex-shrink-0">
+                          <Clock className="w-5 h-5 text-warning" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-1">Work Hours</p>
+                          <p className="font-medium">
+                            {formatTime(job.start_time)} - {formatTime(job.end_time)}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Work Days */}
+                    {job.work_days && job.work_days.length > 0 && (
+                      <div className="sm:col-span-2 flex items-start gap-4 p-4 rounded-xl bg-muted/50 border border-border/50">
+                        <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center flex-shrink-0">
+                          <CalendarDays className="w-5 h-5 text-warning" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-2">Working Days</p>
+                          <div className="flex flex-wrap gap-2">
+                            {job.work_days.map((day, index) => (
+                              <Badge key={index} variant="outline" className="rounded-full">
+                                {day}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Interview Schedule */}
+                  {(job.interview_time || (job.interview_days && job.interview_days.length > 0)) && (
+                    <div className="mt-4 p-4 rounded-xl bg-primary/5 border border-primary/20">
+                      <p className="text-sm font-medium text-primary mb-2">Interview Schedule</p>
+                      <div className="flex flex-wrap gap-4 text-sm">
+                        {job.interview_time && (
+                          <span className="flex items-center gap-2">
+                            <Clock className="w-4 h-4 text-muted-foreground" />
+                            {job.interview_time}
+                          </span>
+                        )}
+                        {job.interview_days && job.interview_days.length > 0 && (
+                          <span className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-muted-foreground" />
+                            {job.interview_days.join(', ')}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Contact Information */}
+            {(job.contact_person || job.contact_phone || job.contact_email) && (
+              <Card className="shadow-lg border-0 overflow-hidden">
+                <CardHeader className="border-b bg-secondary/30">
+                  <CardTitle className="flex items-center gap-3 text-lg">
+                    <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
+                      <Phone className="w-5 h-5 text-destructive" />
+                    </div>
+                    Contact Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {job.contact_person && (
+                      <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/50 border border-border/50">
+                        <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center flex-shrink-0">
+                          <User className="w-5 h-5 text-destructive" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Contact Person</p>
+                          <p className="font-medium">{job.contact_person}</p>
+                          {job.contact_role && (
+                            <p className="text-xs text-muted-foreground">{job.contact_role}</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {job.contact_phone && (
+                      <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/50 border border-border/50">
+                        <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center flex-shrink-0">
+                          <Phone className="w-5 h-5 text-destructive" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Phone</p>
+                          <a href={`tel:${job.contact_phone}`} className="font-medium text-primary hover:underline">
+                            {job.contact_phone}
+                          </a>
+                        </div>
+                      </div>
+                    )}
+
+                    {job.contact_email && (
+                      <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/50 border border-border/50">
+                        <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center flex-shrink-0">
+                          <Mail className="w-5 h-5 text-destructive" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Email</p>
+                          <a href={`mailto:${job.contact_email}`} className="font-medium text-primary hover:underline break-all">
+                            {job.contact_email}
+                          </a>
+                        </div>
+                      </div>
+                    )}
+
+                    {job.organization_size && (
+                      <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/50 border border-border/50">
+                        <div className="w-10 h-10 rounded-lg bg-destructive/10 flex items-center justify-center flex-shrink-0">
+                          <Building2 className="w-5 h-5 text-destructive" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-muted-foreground">Organization Size</p>
+                          <p className="font-medium">{job.organization_size}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Hiring Urgency */}
+                  {job.hiring_urgency && (
+                    <div className="mt-4 flex items-center gap-2">
+                      <Badge 
+                        variant={job.hiring_urgency === 'Immediately' ? 'destructive' : 'secondary'}
+                        className="rounded-full"
+                      >
+                        {job.hiring_urgency === 'Immediately' ? '🔥 Hiring Immediately' : '⏳ Can Wait'}
+                      </Badge>
+                      {job.hiring_frequency && (
+                        <Badge variant="outline" className="rounded-full">
+                          {job.hiring_frequency}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Company Overview */}
             <Card className="shadow-lg border-0 overflow-hidden">
               <CardHeader className="border-b bg-secondary/30">
-                <CardTitle className="flex items-center gap-3 text-xl">
+                <CardTitle className="flex items-center gap-3 text-lg">
                   <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                     <Building2 className="w-5 h-5 text-primary" />
                   </div>
                   About {job.employer.company_name}
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-6 md:p-8">
+              <CardContent className="p-6">
                 <div className="flex flex-col sm:flex-row items-start gap-6">
-                  {/* Company Logo */}
                   <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center border border-primary/10 flex-shrink-0">
                     {job.employer.avatar_url ? (
                       <Avatar className="w-16 h-16 rounded-xl">
@@ -601,7 +899,12 @@ const JobDetail = () => {
                       </p>
                     </div>
 
-                    {/* Rating */}
+                    {job.employer.description && (
+                      <p className="text-sm text-muted-foreground">
+                        {job.employer.description}
+                      </p>
+                    )}
+
                     <div className="flex items-center gap-2">
                       <div className="flex items-center gap-0.5">
                         {[1, 2, 3, 4, 5].map((star) => (
@@ -617,12 +920,13 @@ const JobDetail = () => {
                       <span className="text-sm text-muted-foreground">(128 reviews)</span>
                     </div>
 
-                    {/* Company Stats */}
                     <div className="flex flex-wrap gap-4">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Users className="w-4 h-4" />
-                        <span>50-200 employees</span>
-                      </div>
+                      {job.organization_size && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Users className="w-4 h-4" />
+                          <span>{job.organization_size}</span>
+                        </div>
+                      )}
                       {job.employer.website_url && (
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Globe className="w-4 h-4" />
@@ -649,16 +953,16 @@ const JobDetail = () => {
             {relatedJobs.length > 0 && (
               <Card className="shadow-lg border-0 overflow-hidden">
                 <CardHeader className="border-b bg-secondary/30">
-                  <CardTitle className="flex items-center gap-3 text-xl">
+                  <CardTitle className="flex items-center gap-3 text-lg">
                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                       <TrendingUp className="w-5 h-5 text-primary" />
                     </div>
                     More Jobs from {job.employer.company_name}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-6 md:p-8">
+                <CardContent className="p-6">
                   <div className="space-y-4">
-                    {relatedJobs.map((relJob, index) => (
+                    {relatedJobs.map((relJob) => (
                       <Link
                         key={relJob.id}
                         to={`/jobs/${relJob.id}`}
@@ -811,7 +1115,7 @@ const JobDetail = () => {
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground text-sm">Competition</span>
                       <Badge variant="secondary" className="bg-warning/10 text-warning border-0">
-                        Medium
+                        {applicantCount > 20 ? 'High' : applicantCount > 10 ? 'Medium' : 'Low'}
                       </Badge>
                     </div>
                     <div className="flex items-center justify-between">

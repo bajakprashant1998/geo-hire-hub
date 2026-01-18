@@ -734,67 +734,148 @@ export type Database = {
       }
       jobs: {
         Row: {
+          additional_notes: string | null
           admin_notes: string | null
           category: string | null
+          certifications: string | null
+          contact_email: string | null
+          contact_person: string | null
+          contact_phone: string | null
+          contact_role: string | null
           created_at: string | null
           description: string | null
+          education: string | null
           employer_id: string
+          end_time: string | null
+          experience_type: string | null
           expires_at: string | null
+          gender_preference: string | null
+          has_bonus: boolean | null
+          hiring_frequency: string | null
+          hiring_urgency: string | null
           id: string
+          interview_days: string[] | null
+          interview_time: string | null
           is_active: boolean | null
+          job_address: string | null
           job_type: string | null
+          languages: string[] | null
           latitude: number
           longitude: number
+          max_age: number | null
+          max_experience: number | null
+          min_age: number | null
+          min_experience: number | null
           moderated_at: string | null
           moderated_by: string | null
           moderation_status: string | null
+          openings: number | null
+          organization_size: string | null
           salary_range: string | null
+          shift_type: string | null
+          skills: string[] | null
+          start_time: string | null
           status: Database["public"]["Enums"]["job_status"] | null
           title: string
           updated_at: string | null
           view_count: number | null
+          work_days: string[] | null
         }
         Insert: {
+          additional_notes?: string | null
           admin_notes?: string | null
           category?: string | null
+          certifications?: string | null
+          contact_email?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          contact_role?: string | null
           created_at?: string | null
           description?: string | null
+          education?: string | null
           employer_id: string
+          end_time?: string | null
+          experience_type?: string | null
           expires_at?: string | null
+          gender_preference?: string | null
+          has_bonus?: boolean | null
+          hiring_frequency?: string | null
+          hiring_urgency?: string | null
           id?: string
+          interview_days?: string[] | null
+          interview_time?: string | null
           is_active?: boolean | null
+          job_address?: string | null
           job_type?: string | null
+          languages?: string[] | null
           latitude: number
           longitude: number
+          max_age?: number | null
+          max_experience?: number | null
+          min_age?: number | null
+          min_experience?: number | null
           moderated_at?: string | null
           moderated_by?: string | null
           moderation_status?: string | null
+          openings?: number | null
+          organization_size?: string | null
           salary_range?: string | null
+          shift_type?: string | null
+          skills?: string[] | null
+          start_time?: string | null
           status?: Database["public"]["Enums"]["job_status"] | null
           title: string
           updated_at?: string | null
           view_count?: number | null
+          work_days?: string[] | null
         }
         Update: {
+          additional_notes?: string | null
           admin_notes?: string | null
           category?: string | null
+          certifications?: string | null
+          contact_email?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          contact_role?: string | null
           created_at?: string | null
           description?: string | null
+          education?: string | null
           employer_id?: string
+          end_time?: string | null
+          experience_type?: string | null
           expires_at?: string | null
+          gender_preference?: string | null
+          has_bonus?: boolean | null
+          hiring_frequency?: string | null
+          hiring_urgency?: string | null
           id?: string
+          interview_days?: string[] | null
+          interview_time?: string | null
           is_active?: boolean | null
+          job_address?: string | null
           job_type?: string | null
+          languages?: string[] | null
           latitude?: number
           longitude?: number
+          max_age?: number | null
+          max_experience?: number | null
+          min_age?: number | null
+          min_experience?: number | null
           moderated_at?: string | null
           moderated_by?: string | null
           moderation_status?: string | null
+          openings?: number | null
+          organization_size?: string | null
           salary_range?: string | null
+          shift_type?: string | null
+          skills?: string[] | null
+          start_time?: string | null
           status?: Database["public"]["Enums"]["job_status"] | null
           title?: string
           updated_at?: string | null
           view_count?: number | null
+          work_days?: string[] | null
         }
         Relationships: [
           {
