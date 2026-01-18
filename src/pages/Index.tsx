@@ -4,6 +4,7 @@ import { useGeolocation } from '@/hooks/useGeolocation';
 import { useMapData } from '@/hooks/useMapData';
 import { Header } from '@/components/map/Header';
 import { MapContainer } from '@/components/map/MapContainer';
+import { MapLoadingSkeleton } from '@/components/map/MapLoadingSkeleton';
 import { FloatingControls } from '@/components/map/FloatingControls';
 import { Sidebar } from '@/components/map/Sidebar';
 import { MarkerPreviewSheet } from '@/components/map/MarkerPreviewSheet';
@@ -64,6 +65,9 @@ const Index = () => {
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-background">
+      {/* Loading Skeleton */}
+      {loading && <MapLoadingSkeleton />}
+      
       {/* Map Layer - Lowest z-index */}
       <div className="absolute inset-0 z-0">
         <MapContainer
