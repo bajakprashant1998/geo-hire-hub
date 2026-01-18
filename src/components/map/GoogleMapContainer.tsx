@@ -36,7 +36,8 @@ const mapOptions: google.maps.MapOptions = {
   ],
 };
 
-export const GoogleMapContainer = ({
+// Inner component that only renders when we have the API key
+const GoogleMapInner = ({
   mode,
   candidates,
   jobs,
@@ -44,13 +45,13 @@ export const GoogleMapContainer = ({
   radius,
   onMarkerClick,
   selectedItem,
-}: GoogleMapContainerProps) => {
-  const { apiKey, loading: keyLoading, error: keyError } = useGoogleMapsKey();
+  apiKey,
+}: GoogleMapContainerProps & { apiKey: string }) => {
   const [map, setMap] = useState<google.maps.Map | null>(null);
 
   const { isLoaded, loadError } = useJsApiLoader({
     id: 'google-map-script',
-    googleMapsApiKey: apiKey || '',
+    googleMapsApiKey: apiKey,
   });
 
   const center = useMemo(() => {
@@ -101,29 +102,18 @@ export const GoogleMapContainer = ({
   const items = mode === 'hiring' ? candidates : jobs;
   const markerColor = mode === 'hiring' ? '#4285F4' : '#EA4335';
 
-  if (keyLoading) {
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-secondary">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
-          <p className="mt-2 text-muted-foreground">Loading map...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (keyError || loadError) {
+  if (loadError) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-secondary">
         <div className="text-center">
           <p className="text-destructive">Failed to load map</p>
-          <p className="text-sm text-muted-foreground mt-1">{keyError || 'Please check your API key'}</p>
+          <p className="text-sm text-muted-foreground mt-1">Please check your API key</p>
         </div>
       </div>
     );
   }
 
-  if (!isLoaded || !apiKey) {
+  if (!isLoaded) {
     return (
       <div className="w-full h-full flex items-center justify-center bg-secondary">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -200,5 +190,53 @@ export const GoogleMapContainer = ({
         )}
       </MarkerClusterer>
     </GoogleMap>
+  );
+};
+
+// Wrapper component that handles API key loading
+export const GoogleMapContainer = ({
+  mode,
+  candidates,
+  jobs,
+  userLocation,
+  radius,
+  onMarkerClick,
+  selectedItem,
+}: GoogleMapContainerProps) => {
+  const { apiKey, loading: keyLoading, error: keyError } = useGoogleMapsKey();
+
+  if (keyLoading) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-secondary">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary" />
+          <p className="mt-2 text-muted-foreground">Loading map...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (keyError || !apiKey) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-secondary">
+        <div className="text-center">
+          <p className="text-destructive">Failed to load map</p>
+          <p className="text-sm text-muted-foreground mt-1">{keyError || 'API key not available'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <GoogleMapInner
+      mode={mode}
+      candidates={candidates}
+      jobs={jobs}
+      userLocation={userLocation}
+      radius={radius}
+      onMarkerClick={onMarkerClick}
+      selectedItem={selectedItem}
+      apiKey={apiKey}
+    />
   );
 };
