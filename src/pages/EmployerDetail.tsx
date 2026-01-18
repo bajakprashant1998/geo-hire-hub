@@ -35,9 +35,13 @@ import {
   Clock,
   FileText,
   MessageSquare,
+  Lock,
+  LogIn,
+  UserPlus,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { VerificationBadge } from '@/components/employer/VerificationBadge';
+import { useAuth } from '@/hooks/useAuth';
 
 interface EmployerProfile {
   id: string;
@@ -67,6 +71,9 @@ interface Job {
 const EmployerDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isAuthenticated = !!user;
+  
   const [employer, setEmployer] = useState<EmployerProfile | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
@@ -146,6 +153,11 @@ const EmployerDetail = () => {
   };
 
   const handleFollow = () => {
+    if (!isAuthenticated) {
+      toast.error('Please login to follow companies');
+      navigate('/login');
+      return;
+    }
     setIsFollowing(!isFollowing);
     toast.success(isFollowing ? 'Unfollowed company' : 'Now following this company!');
   };
@@ -165,6 +177,11 @@ const EmployerDetail = () => {
 
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAuthenticated) {
+      toast.error('Please login to contact this company');
+      navigate('/login');
+      return;
+    }
     toast.success('Message sent successfully!');
     setContactForm({ name: '', email: '', phone: '', message: '' });
   };
@@ -595,69 +612,113 @@ const EmployerDetail = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="p-6">
-                  <form onSubmit={handleContactSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Your Name</Label>
-                      <Input
-                        id="name"
-                        placeholder="Enter your name"
-                        value={contactForm.name}
-                        onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
-                        required
-                        className="h-11"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email Address</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="Enter your email"
-                        value={contactForm.email}
-                        onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
-                        required
-                        className="h-11"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="message">Message</Label>
-                      <Textarea
-                        id="message"
-                        placeholder="Type your message..."
-                        rows={4}
-                        value={contactForm.message}
-                        onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
-                        required
-                        className="resize-none"
-                      />
-                    </div>
-                    <Button type="submit" className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all">
-                      <Send className="w-5 h-5 mr-2" />
-                      Send Message
-                    </Button>
-                  </form>
+                  {isAuthenticated ? (
+                    <>
+                      <form onSubmit={handleContactSubmit} className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="name">Your Name</Label>
+                          <Input
+                            id="name"
+                            placeholder="Enter your name"
+                            value={contactForm.name}
+                            onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                            required
+                            className="h-11"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="email">Email Address</Label>
+                          <Input
+                            id="email"
+                            type="email"
+                            placeholder="Enter your email"
+                            value={contactForm.email}
+                            onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                            required
+                            className="h-11"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="message">Message</Label>
+                          <Textarea
+                            id="message"
+                            placeholder="Type your message..."
+                            rows={4}
+                            value={contactForm.message}
+                            onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                            required
+                            className="resize-none"
+                          />
+                        </div>
+                        <Button type="submit" className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all">
+                          <Send className="w-5 h-5 mr-2" />
+                          Send Message
+                        </Button>
+                      </form>
 
-                  <Separator className="my-5" />
+                      <Separator className="my-5" />
 
-                  <div className="space-y-3">
-                    <Button
-                      variant="outline"
-                      className="w-full h-11 justify-center gap-2 hover:bg-secondary transition-colors"
-                      onClick={handleFollow}
-                    >
-                      <Heart className={`w-5 h-5 ${isFollowing ? 'fill-primary text-primary' : ''}`} />
-                      {isFollowing ? 'Following' : 'Follow Company'}
-                    </Button>
+                      <div className="space-y-3">
+                        <Button
+                          variant="outline"
+                          className="w-full h-11 justify-center gap-2 hover:bg-secondary transition-colors"
+                          onClick={handleFollow}
+                        >
+                          <Heart className={`w-5 h-5 ${isFollowing ? 'fill-primary text-primary' : ''}`} />
+                          {isFollowing ? 'Following' : 'Follow Company'}
+                        </Button>
 
-                    <Button 
-                      variant="outline" 
-                      className="w-full h-11 justify-center gap-2 hover:bg-secondary transition-colors" 
-                      onClick={handleShare}
-                    >
-                      <Share2 className="w-5 h-5" />
-                      Share Profile
-                    </Button>
-                  </div>
+                        <Button 
+                          variant="outline" 
+                          className="w-full h-11 justify-center gap-2 hover:bg-secondary transition-colors" 
+                          onClick={handleShare}
+                        >
+                          <Share2 className="w-5 h-5" />
+                          Share Profile
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center space-y-4">
+                      <div className="w-16 h-16 mx-auto rounded-full bg-muted flex items-center justify-center">
+                        <Lock className="w-8 h-8 text-muted-foreground" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-lg">Sign in to Contact</h4>
+                        <p className="text-muted-foreground text-sm mt-1">
+                          Create an account or login to message this company
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <Button 
+                          className="w-full h-11"
+                          onClick={() => navigate('/signup')}
+                        >
+                          <UserPlus className="w-4 h-4 mr-2" />
+                          Create Account
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          className="w-full h-11"
+                          onClick={() => navigate('/login')}
+                        >
+                          <LogIn className="w-4 h-4 mr-2" />
+                          Sign In
+                        </Button>
+                      </div>
+                      
+                      <Separator className="my-4" />
+                      
+                      <Button 
+                        variant="ghost" 
+                        className="w-full h-11 justify-center gap-2" 
+                        onClick={handleShare}
+                      >
+                        <Share2 className="w-5 h-5" />
+                        Share Profile
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -723,31 +784,59 @@ const EmployerDetail = () => {
 
       {/* Mobile Fixed Bottom Bar */}
       <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-background/95 backdrop-blur-lg border-t shadow-lg p-4 z-50">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleFollow}
-            className={`w-12 h-12 rounded-xl flex-shrink-0 ${isFollowing ? 'bg-primary/10 border-primary text-primary' : ''}`}
-          >
-            <Heart className={`w-5 h-5 ${isFollowing ? 'fill-current' : ''}`} />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleShare}
-            className="w-12 h-12 rounded-xl flex-shrink-0"
-          >
-            <Share2 className="w-5 h-5" />
-          </Button>
-          <Button 
-            onClick={() => document.getElementById('message')?.focus()} 
-            className="flex-1 h-12 rounded-xl text-base font-semibold"
-          >
-            <Mail className="w-5 h-5 mr-2" />
-            Contact
-          </Button>
-        </div>
+        {isAuthenticated ? (
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleFollow}
+              className={`w-12 h-12 rounded-xl flex-shrink-0 ${isFollowing ? 'bg-primary/10 border-primary text-primary' : ''}`}
+            >
+              <Heart className={`w-5 h-5 ${isFollowing ? 'fill-current' : ''}`} />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleShare}
+              className="w-12 h-12 rounded-xl flex-shrink-0"
+            >
+              <Share2 className="w-5 h-5" />
+            </Button>
+            <Button 
+              onClick={() => document.getElementById('message')?.focus()} 
+              className="flex-1 h-12 rounded-xl text-base font-semibold"
+            >
+              <Mail className="w-5 h-5 mr-2" />
+              Contact
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleShare}
+              className="w-12 h-12 rounded-xl flex-shrink-0"
+            >
+              <Share2 className="w-5 h-5" />
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => navigate('/login')} 
+              className="flex-1 h-12 rounded-xl text-base font-medium"
+            >
+              <LogIn className="w-5 h-5 mr-2" />
+              Sign In
+            </Button>
+            <Button 
+              onClick={() => navigate('/signup')} 
+              className="flex-1 h-12 rounded-xl text-base font-semibold"
+            >
+              <UserPlus className="w-5 h-5 mr-2" />
+              Sign Up
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
