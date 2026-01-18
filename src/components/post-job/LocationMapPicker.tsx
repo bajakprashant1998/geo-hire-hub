@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,13 @@ interface LocationMapPickerProps {
   setAddress: (address: string) => void;
 }
 
+interface LocationSuggestion {
+  place_id: number;
+  display_name: string;
+  lat: string;
+  lon: string;
+}
+
 export const LocationMapPicker = ({
   coordinates,
   setCoordinates,
@@ -24,10 +31,15 @@ export const LocationMapPicker = ({
   const markerRef = useRef<L.Marker | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [searching, setSearching] = useState(false);
   const [locating, setLocating] = useState(false);
   const [isSatellite, setIsSatellite] = useState(false);
+  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
   const streetTileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
   const satelliteTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
@@ -67,6 +79,64 @@ export const LocationMapPicker = ({
       mapRef.current = null;
     };
   }, []);
+
+  // Debounced autocomplete search
+  const fetchSuggestions = useCallback(async (query: string) => {
+    if (query.length < 3) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    setLoadingSuggestions(true);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&accept-language=en&addressdetails=1`,
+        { headers: { 'User-Agent': 'HireForJob/1.0' } }
+      );
+      const data = await response.json();
+      setSuggestions(data);
+      setShowSuggestions(data.length > 0);
+    } catch (error) {
+      console.error('Autocomplete failed:', error);
+      setSuggestions([]);
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  }, []);
+
+  // Handle search input change with debouncing
+  const handleSearchInputChange = (value: string) => {
+    setSearchQuery(value);
+    
+    // Clear previous timeout
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    
+    // Set new timeout for debounced search
+    debounceRef.current = setTimeout(() => {
+      fetchSuggestions(value);
+    }, 300);
+  };
+
+  // Handle suggestion selection
+  const handleSelectSuggestion = (suggestion: LocationSuggestion) => {
+    const latitude = parseFloat(suggestion.lat);
+    const longitude = parseFloat(suggestion.lon);
+
+    setCoordinates({ lat: latitude, lng: longitude });
+    setAddress(suggestion.display_name);
+    setSearchQuery('');
+    setSuggestions([]);
+    setShowSuggestions(false);
+
+    if (mapRef.current) {
+      updateMarker(mapRef.current, latitude, longitude);
+    }
+    
+    toast.success('Location selected!');
+  };
 
   // Toggle satellite view
   const toggleSatelliteView = () => {
@@ -144,6 +214,7 @@ export const LocationMapPicker = ({
     }
 
     setSearching(true);
+    setShowSuggestions(false);
     try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=1&accept-language=en`,
@@ -183,6 +254,7 @@ export const LocationMapPicker = ({
     }
 
     setLocating(true);
+    setShowSuggestions(false);
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
@@ -205,26 +277,70 @@ export const LocationMapPicker = ({
     );
   };
 
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.location-search-container')) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
   return (
     <div className="space-y-4">
       <Label>Job Location *</Label>
 
-      {/* Search Bar */}
-      <div className="flex gap-2">
+      {/* Search Bar with Autocomplete */}
+      <div className="flex gap-2 location-search-container">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
           <Input
             placeholder="Search for a city, area or address..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearchInputChange(e.target.value)}
+            onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
                 handleSearch();
               }
+              if (e.key === 'Escape') {
+                setShowSuggestions(false);
+              }
             }}
             className="pl-9"
           />
+          
+          {/* Autocomplete Dropdown */}
+          {showSuggestions && (
+            <div className="absolute top-full left-0 right-0 mt-1 bg-card border rounded-lg shadow-lg z-50 max-h-[200px] overflow-y-auto">
+              {loadingSuggestions ? (
+                <div className="p-3 text-center text-sm text-muted-foreground">
+                  <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
+                  Searching...
+                </div>
+              ) : suggestions.length > 0 ? (
+                suggestions.map((suggestion) => (
+                  <button
+                    key={suggestion.place_id}
+                    type="button"
+                    onClick={() => handleSelectSuggestion(suggestion)}
+                    className="w-full text-left px-3 py-2.5 hover:bg-muted transition-colors flex items-start gap-2 border-b last:border-b-0"
+                  >
+                    <MapPin className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
+                    <span className="text-sm line-clamp-2">{suggestion.display_name}</span>
+                  </button>
+                ))
+              ) : (
+                <div className="p-3 text-center text-sm text-muted-foreground">
+                  No results found
+                </div>
+              )}
+            </div>
+          )}
         </div>
         <Button
           type="button"
