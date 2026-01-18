@@ -78,10 +78,20 @@ const EmployerDetail = () => {
     message: '',
   });
 
+  // Validate UUID format
+  const isValidUUID = (uuid: string | undefined): boolean => {
+    if (!uuid) return false;
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(uuid);
+  };
+
   useEffect(() => {
-    if (id) {
+    if (id && isValidUUID(id)) {
       fetchEmployer();
       fetchJobs();
+    } else if (id) {
+      // Invalid ID format
+      setLoading(false);
     }
   }, [id]);
 
