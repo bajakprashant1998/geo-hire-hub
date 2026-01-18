@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { ViewMode, Candidate, Job } from '@/types';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useMapData } from '@/hooks/useMapData';
@@ -7,16 +6,15 @@ import { Header } from '@/components/map/Header';
 import { MapContainer } from '@/components/map/MapContainer';
 import { FloatingControls } from '@/components/map/FloatingControls';
 import { Sidebar } from '@/components/map/Sidebar';
-import { MarkerDetailSheet } from '@/components/map/MarkerDetailSheet';
+import { MarkerPreviewSheet } from '@/components/map/MarkerPreviewSheet';
 import { toast } from 'sonner';
 
 const Index = () => {
-  const navigate = useNavigate();
   const [mode, setMode] = useState<ViewMode>('seeking');
   const [radius, setRadius] = useState(50);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Candidate | Job | null>(null);
-  const [detailSheetOpen, setDetailSheetOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const geolocation = useGeolocation();
@@ -37,6 +35,7 @@ const Index = () => {
   const handleModeChange = (newMode: ViewMode) => {
     setMode(newMode);
     setSelectedItem(null);
+    setPreviewOpen(false);
     toast.info(
       newMode === 'hiring'
         ? 'Now showing candidates near you'
@@ -46,18 +45,13 @@ const Index = () => {
 
   const handleMarkerClick = (item: Candidate | Job) => {
     setSelectedItem(item);
-    // Navigate to detail page
-    if ('job_title' in item) {
-      navigate(`/candidates/${item.id}`);
-    } else {
-      navigate(`/jobs/${(item as Job).id}`);
-    }
+    setPreviewOpen(true);
   };
 
   const handleSelectFromSidebar = (item: Candidate | Job) => {
     setSelectedItem(item);
     setSidebarOpen(false);
-    setDetailSheetOpen(true);
+    setPreviewOpen(true);
   };
 
   const handleCenterOnUser = () => {
@@ -111,12 +105,12 @@ const Index = () => {
         onSelectJob={handleSelectFromSidebar}
       />
 
-      {/* Detail Sheet (Mobile) */}
-      <MarkerDetailSheet
-        isOpen={detailSheetOpen}
-        onClose={() => setDetailSheetOpen(false)}
+      {/* Marker Preview Sheet */}
+      <MarkerPreviewSheet
+        isOpen={previewOpen}
+        onClose={() => setPreviewOpen(false)}
         mode={mode}
-        selectedItem={selectedItem}
+        item={selectedItem}
       />
     </div>
   );
