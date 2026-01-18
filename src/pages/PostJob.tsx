@@ -471,32 +471,6 @@ const PostJob = () => {
       // Create salary range string
       const formattedSalary = `₹${salaryMin || '0'} - ₹${salaryMax || salaryMin} /month`;
 
-      // Build description with all details
-      let fullDescription = description;
-      
-      if (experienceType !== 'Any') {
-        fullDescription += `\n\nExperience: ${experienceType}`;
-        if (experienceType === 'Experienced Only' && (minExperience || maxExperience)) {
-          fullDescription += ` (${minExperience || '0'} - ${maxExperience || '10+'} years)`;
-        }
-      }
-      
-      if (hasBonus) {
-        fullDescription += '\n\n✓ Bonus/Incentive Available';
-      }
-
-      if (education) {
-        fullDescription += `\n\nEducation: ${education}`;
-      }
-
-      if (languages.length > 0) {
-        fullDescription += `\nLanguages: ${languages.join(', ')}`;
-      }
-
-      if (additionalNotes) {
-        fullDescription += `\n\n${additionalNotes}`;
-      }
-
       // Use coordinates from map picker
       const latitude = coordinates!.lat;
       const longitude = coordinates!.lng;
@@ -504,13 +478,41 @@ const PostJob = () => {
       const { error } = await supabase.from('jobs').insert({
         employer_id: employerId,
         title,
-        description: fullDescription,
+        description,
         salary_range: formattedSalary,
         job_type: jobType === 'Full Time' ? 'Full-time' : 'Part-time',
         latitude,
         longitude,
         status: 'open',
         is_active: true,
+        // New fields
+        openings: parseInt(openings) || 1,
+        experience_type: experienceType,
+        min_experience: minExperience ? parseInt(minExperience) : null,
+        max_experience: maxExperience ? parseInt(maxExperience) : null,
+        has_bonus: hasBonus,
+        skills,
+        gender_preference: gender,
+        min_age: ageMin ? parseInt(ageMin) : null,
+        max_age: ageMax ? parseInt(ageMax) : null,
+        education,
+        languages,
+        certifications,
+        additional_notes: additionalNotes,
+        shift_type: shiftType,
+        start_time: startTime || null,
+        end_time: endTime || null,
+        work_days: workDays,
+        interview_time: interviewTime || null,
+        interview_days: interviewDays,
+        contact_person: contactPerson,
+        contact_phone: phoneNumber,
+        contact_email: email,
+        contact_role: contactRole,
+        organization_size: organizationSize,
+        hiring_urgency: hiringUrgency,
+        hiring_frequency: hiringFrequency,
+        job_address: jobAddress || address,
       });
 
       if (error) throw error;
