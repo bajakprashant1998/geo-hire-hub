@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      application_notes: {
+        Row: {
+          application_id: string
+          created_at: string
+          employer_id: string
+          id: string
+          note: string
+          updated_at: string
+        }
+        Insert: {
+          application_id: string
+          created_at?: string
+          employer_id: string
+          id?: string
+          note: string
+          updated_at?: string
+        }
+        Update: {
+          application_id?: string
+          created_at?: string
+          employer_id?: string
+          id?: string
+          note?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_notes_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "application_notes_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "employers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       applications: {
         Row: {
           candidate_id: string
@@ -141,35 +183,161 @@ export type Database = {
           },
         ]
       }
+      employer_plans: {
+        Row: {
+          created_at: string
+          description: string | null
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          max_active_jobs: number
+          name: string
+          price_monthly: number
+          price_yearly: number | null
+          sort_order: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          max_active_jobs?: number
+          name: string
+          price_monthly?: number
+          price_yearly?: number | null
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          max_active_jobs?: number
+          name?: string
+          price_monthly?: number
+          price_yearly?: number | null
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      employer_subscriptions: {
+        Row: {
+          billing_cycle: string | null
+          cancelled_at: string | null
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string
+          employer_id: string
+          id: string
+          plan_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          billing_cycle?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string
+          employer_id: string
+          id?: string
+          plan_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          billing_cycle?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string
+          employer_id?: string
+          id?: string
+          plan_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employer_subscriptions_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: true
+            referencedRelation: "employers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employer_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "employer_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employers: {
         Row: {
+          business_card_url: string | null
           company_name: string
+          country_code: string | null
           created_at: string | null
           description: string | null
           id: string
           industry: string | null
+          office_photo_url: string | null
+          profile_completeness: number | null
           profile_id: string
+          tax_id: string | null
+          tax_type: string | null
+          terms_accepted_at: string | null
           updated_at: string | null
+          verification_notes: string | null
+          verification_status: string | null
+          verified_at: string | null
           website_url: string | null
         }
         Insert: {
+          business_card_url?: string | null
           company_name: string
+          country_code?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           industry?: string | null
+          office_photo_url?: string | null
+          profile_completeness?: number | null
           profile_id: string
+          tax_id?: string | null
+          tax_type?: string | null
+          terms_accepted_at?: string | null
           updated_at?: string | null
+          verification_notes?: string | null
+          verification_status?: string | null
+          verified_at?: string | null
           website_url?: string | null
         }
         Update: {
+          business_card_url?: string | null
           company_name?: string
+          country_code?: string | null
           created_at?: string | null
           description?: string | null
           id?: string
           industry?: string | null
+          office_photo_url?: string | null
+          profile_completeness?: number | null
           profile_id?: string
+          tax_id?: string | null
+          tax_type?: string | null
+          terms_accepted_at?: string | null
           updated_at?: string | null
+          verification_notes?: string | null
+          verification_status?: string | null
+          verified_at?: string | null
           website_url?: string | null
         }
         Relationships: [
@@ -209,12 +377,47 @@ export type Database = {
         }
         Relationships: []
       }
+      job_views: {
+        Row: {
+          id: string
+          ip_hash: string | null
+          job_id: string
+          viewed_at: string
+          viewer_id: string | null
+        }
+        Insert: {
+          id?: string
+          ip_hash?: string | null
+          job_id: string
+          viewed_at?: string
+          viewer_id?: string | null
+        }
+        Update: {
+          id?: string
+          ip_hash?: string | null
+          job_id?: string
+          viewed_at?: string
+          viewer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_views_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jobs: {
         Row: {
+          category: string | null
           created_at: string | null
           description: string | null
           employer_id: string
+          expires_at: string | null
           id: string
+          is_active: boolean | null
           job_type: string | null
           latitude: number
           longitude: number
@@ -222,12 +425,16 @@ export type Database = {
           status: Database["public"]["Enums"]["job_status"] | null
           title: string
           updated_at: string | null
+          view_count: number | null
         }
         Insert: {
+          category?: string | null
           created_at?: string | null
           description?: string | null
           employer_id: string
+          expires_at?: string | null
           id?: string
+          is_active?: boolean | null
           job_type?: string | null
           latitude: number
           longitude: number
@@ -235,12 +442,16 @@ export type Database = {
           status?: Database["public"]["Enums"]["job_status"] | null
           title: string
           updated_at?: string | null
+          view_count?: number | null
         }
         Update: {
+          category?: string | null
           created_at?: string | null
           description?: string | null
           employer_id?: string
+          expires_at?: string | null
           id?: string
+          is_active?: boolean | null
           job_type?: string | null
           latitude?: number
           longitude?: number
@@ -248,6 +459,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["job_status"] | null
           title?: string
           updated_at?: string | null
+          view_count?: number | null
         }
         Relationships: [
           {
@@ -362,6 +574,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_employer_profile_completeness: {
+        Args: { p_employer_id: string }
+        Returns: number
+      }
+      can_employer_activate_job: {
+        Args: { p_employer_id: string; p_exclude_job_id?: string }
+        Returns: Json
+      }
+      get_job_analytics: { Args: { p_job_id: string }; Returns: Json }
       get_nearby_candidates: {
         Args: { radius_km?: number; user_lat: number; user_lng: number }
         Returns: {
