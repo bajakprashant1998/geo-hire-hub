@@ -55,10 +55,13 @@ import {
   CalendarDays,
   BadgeCheck,
   AlertCircle,
+  MessageCircle,
+  Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { MailWarning } from 'lucide-react';
+import { useStartConversation } from '@/hooks/useStartConversation';
 
 interface JobDetails {
   id: string;
@@ -107,6 +110,7 @@ interface JobDetails {
     website_url: string | null;
     avatar_url: string | null;
     description: string | null;
+    user_id: string | null;
   };
 }
 
@@ -114,6 +118,7 @@ const JobDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, profile, isEmailVerified } = useAuth();
+  const { startConversation } = useStartConversation();
 
   const [job, setJob] = useState<JobDetails | null>(null);
   const [loading, setLoading] = useState(true);
@@ -124,6 +129,7 @@ const JobDetail = () => {
   const [applying, setApplying] = useState(false);
   const [relatedJobs, setRelatedJobs] = useState<any[]>([]);
   const [applicantCount, setApplicantCount] = useState(0);
+  const [contacting, setContacting] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -146,7 +152,8 @@ const JobDetail = () => {
             website_url,
             description,
             profiles!inner (
-              avatar_url
+              avatar_url,
+              user_id
             )
           )
         `)
@@ -169,6 +176,7 @@ const JobDetail = () => {
           website_url: data.employers.website_url,
           avatar_url: data.employers.profiles?.avatar_url,
           description: data.employers.description,
+          user_id: data.employers.profiles?.user_id,
         },
       });
 
@@ -300,6 +308,16 @@ const JobDetail = () => {
       navigator.clipboard.writeText(window.location.href);
       toast.success('Link copied to clipboard!');
     }
+  };
+
+  const handleContactEmployer = async () => {
+    if (!job?.employer.user_id) {
+      toast.error('Unable to contact this employer');
+      return;
+    }
+    setContacting(true);
+    await startConversation(job.employer.user_id, job.id);
+    setContacting(false);
   };
 
   const formatDate = (dateString: string) => {

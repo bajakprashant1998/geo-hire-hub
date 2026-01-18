@@ -3,10 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ArrowLeft, Send, User } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, Send, User, MessageCircle, Search, Check, CheckCheck } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Message {
   id: string;
@@ -35,7 +38,9 @@ const Messages = () => {
   const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
   const [otherUser, setOtherUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Fetch conversations
   useEffect(() => {
@@ -49,16 +54,27 @@ const Messages = () => {
         .order('last_message_at', { ascending: false });
 
       if (data && !error) {
-        // Fetch profile info for each conversation
+        // Fetch profile info and unread count for each conversation
         const convosWithProfiles = await Promise.all(
           data.map(async (conv) => {
             const otherUserId = conv.participant_1 === user.id ? conv.participant_2 : conv.participant_1;
-            const { data: profileData } = await supabase
-              .from('public_profiles')
-              .select('*')
-              .eq('user_id', otherUserId)
-              .maybeSingle();
-            return { ...conv, otherProfile: profileData };
+            
+            const [profileResult, unreadResult, lastMessageResult] = await Promise.all([
+              supabase.from('public_profiles').select('*').eq('user_id', otherUserId).maybeSingle(),
+              supabase.from('messages').select('id', { count: 'exact' })
+                .eq('conversation_id', conv.id)
+                .eq('is_read', false)
+                .neq('sender_id', user.id),
+              supabase.from('messages').select('content').eq('conversation_id', conv.id)
+                .order('created_at', { ascending: false }).limit(1).maybeSingle()
+            ]);
+            
+            return { 
+              ...conv, 
+              otherProfile: profileResult.data,
+              unreadCount: unreadResult.count || 0,
+              lastMessage: lastMessageResult.data?.content
+            };
           })
         );
         setConversations(convosWithProfiles);
@@ -67,6 +83,18 @@ const Messages = () => {
     };
 
     fetchConversations();
+
+    // Subscribe to conversation updates
+    const channel = supabase
+      .channel('conversations-list')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => {
+        fetchConversations();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   // Fetch messages for active conversation
@@ -88,7 +116,7 @@ const Messages = () => {
       if (convData) {
         setActiveConversation(convData);
 
-        // Get other user profile (use public view to exclude sensitive fields)
+        // Get other user profile
         const otherUserId = convData.participant_1 === user?.id ? convData.participant_2 : convData.participant_1;
         const { data: profileData } = await supabase
           .from('public_profiles')
@@ -114,6 +142,9 @@ const Messages = () => {
           .update({ is_read: true })
           .eq('conversation_id', conversationId)
           .neq('sender_id', user?.id);
+
+        // Focus input
+        setTimeout(() => inputRef.current?.focus(), 100);
       }
     };
 
@@ -136,6 +167,10 @@ const Messages = () => {
         },
         (payload) => {
           setMessages((prev) => [...prev, payload.new as Message]);
+          // Mark as read if not sender
+          if ((payload.new as Message).sender_id !== user?.id) {
+            supabase.from('messages').update({ is_read: true }).eq('id', (payload.new as Message).id);
+          }
         }
       )
       .subscribe();
@@ -143,7 +178,7 @@ const Messages = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [conversationId]);
+  }, [conversationId, user]);
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -160,7 +195,6 @@ const Messages = () => {
 
     const content = newMessage.trim();
     
-    // Client-side validation
     if (content.length > MAX_MESSAGE_LENGTH) {
       toast.error(`Message too long (max ${MAX_MESSAGE_LENGTH} characters)`);
       return;
@@ -203,64 +237,111 @@ const Messages = () => {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
+  const filteredConversations = conversations.filter((conv) =>
+    conv.otherProfile?.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const getInitials = (name: string) => name?.split(' ').map(n => n[0]).join('').slice(0, 2) || '?';
+
   if (!user || !profile) {
     return (
-      <div className="min-h-screen bg-secondary flex items-center justify-center">
-        <p className="text-muted-foreground">Please log in to view messages</p>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <MessageCircle className="w-16 h-16 text-google-blue mx-auto mb-4" />
+          <p className="text-muted-foreground mb-4">Please log in to view messages</p>
+          <Button onClick={() => navigate('/login')} className="bg-google-blue hover:bg-google-blue/90">
+            Log In
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="h-screen bg-secondary flex flex-col md:flex-row">
+    <div className="h-screen bg-background flex flex-col md:flex-row">
       {/* Conversation List */}
-      <div className={`${conversationId ? 'hidden md:flex' : 'flex'} w-full md:w-80 bg-card border-r border-border flex-col ${conversationId ? '' : 'h-full'}`}>
-        <div className="p-4 border-b border-border">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')}>
+      <div className={`${conversationId ? 'hidden md:flex' : 'flex'} w-full md:w-96 bg-card border-r border-border flex-col`}>
+        {/* Header */}
+        <div className="p-4 border-b border-border bg-google-blue text-white">
+          <div className="flex items-center gap-3 mb-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="text-white hover:bg-white/20">
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <h1 className="text-lg font-semibold">Messages</h1>
+            <h1 className="text-xl font-heading font-semibold">Messages</h1>
+          </div>
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search conversations..."
+              className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:bg-white/20"
+            />
           </div>
         </div>
 
         <ScrollArea className="flex-1">
           {loading ? (
-            <div className="p-4 text-center text-muted-foreground">Loading...</div>
-          ) : conversations.length === 0 ? (
-            <div className="p-4 text-center text-muted-foreground">No conversations yet</div>
+            <div className="p-8 text-center">
+              <div className="w-8 h-8 border-2 border-google-blue border-t-transparent rounded-full animate-spin mx-auto" />
+            </div>
+          ) : filteredConversations.length === 0 ? (
+            <div className="p-8 text-center">
+              <MessageCircle className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground">
+                {searchQuery ? 'No conversations found' : 'No conversations yet'}
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Start chatting from a candidate or job page
+              </p>
+            </div>
           ) : (
             <div className="divide-y divide-border">
-              {conversations.map((conv) => (
-                <button
+              {filteredConversations.map((conv) => (
+                <motion.button
                   key={conv.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   onClick={() => navigate(`/messages/${conv.id}`)}
-                  className={`w-full p-4 text-left hover:bg-secondary transition-colors ${
-                    conversationId === conv.id ? 'bg-secondary' : ''
+                  className={`w-full p-4 text-left hover:bg-muted/50 transition-colors ${
+                    conversationId === conv.id ? 'bg-google-blue/5 border-l-4 border-google-blue' : ''
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      {conv.otherProfile?.avatar_url ? (
-                        <img
-                          src={conv.otherProfile.avatar_url}
-                          alt=""
-                          className="w-full h-full rounded-full object-cover"
-                        />
-                      ) : (
-                        <User className="w-5 h-5 text-primary" />
+                    <div className="relative">
+                      <Avatar className="w-12 h-12 border-2 border-background shadow">
+                        <AvatarImage src={conv.otherProfile?.avatar_url || ''} />
+                        <AvatarFallback className="bg-google-blue/10 text-google-blue font-heading">
+                          {getInitials(conv.otherProfile?.full_name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      {conv.unreadCount > 0 && (
+                        <Badge className="absolute -top-1 -right-1 w-5 h-5 p-0 flex items-center justify-center bg-google-red text-white text-xs">
+                          {conv.unreadCount}
+                        </Badge>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">
-                        {conv.otherProfile?.full_name || 'Unknown User'}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatTime(conv.last_message_at)}
-                      </p>
+                      <div className="flex items-center justify-between">
+                        <p className={`font-medium truncate ${conv.unreadCount > 0 ? 'text-foreground' : ''}`}>
+                          {conv.otherProfile?.full_name || 'Unknown User'}
+                        </p>
+                        <span className="text-xs text-muted-foreground">
+                          {formatTime(conv.last_message_at)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <p className={`text-sm truncate ${conv.unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                          {conv.lastMessage || 'No messages yet'}
+                        </p>
+                      </div>
+                      <Badge variant="secondary" className="mt-1 text-xs capitalize bg-muted">
+                        {conv.otherProfile?.user_type}
+                      </Badge>
                     </div>
                   </div>
-                </button>
+                </motion.button>
               ))}
             </div>
           )}
@@ -268,83 +349,117 @@ const Messages = () => {
       </div>
 
       {/* Chat Area */}
-      <div className={`${conversationId ? 'flex' : 'hidden md:flex'} flex-1 flex-col`}>
+      <div className={`${conversationId ? 'flex' : 'hidden md:flex'} flex-1 flex-col bg-muted/30`}>
         {activeConversation ? (
           <>
             {/* Chat Header */}
-            <div className="p-4 border-b border-border bg-card flex items-center gap-3">
+            <div className="p-4 border-b border-border bg-card shadow-sm flex items-center gap-3">
               <Button variant="ghost" size="icon" className="md:hidden" onClick={() => navigate('/messages')}>
                 <ArrowLeft className="w-5 h-5" />
               </Button>
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                {otherUser?.avatar_url ? (
-                  <img
-                    src={otherUser.avatar_url}
-                    alt=""
-                    className="w-full h-full rounded-full object-cover"
-                  />
-                ) : (
-                  <User className="w-5 h-5 text-primary" />
-                )}
-              </div>
-              <div>
-                <p className="font-medium">{otherUser?.full_name || 'Unknown User'}</p>
-                <p className="text-xs text-muted-foreground capitalize">
+              <Avatar className="w-10 h-10 border-2 border-background">
+                <AvatarImage src={otherUser?.avatar_url || ''} />
+                <AvatarFallback className="bg-google-blue/10 text-google-blue font-heading">
+                  {getInitials(otherUser?.full_name)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1">
+                <p className="font-heading font-semibold">{otherUser?.full_name || 'Unknown User'}</p>
+                <p className="text-xs text-muted-foreground capitalize flex items-center gap-1">
+                  <span className="w-2 h-2 bg-google-green rounded-full" />
                   {otherUser?.user_type}
                 </p>
               </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate(otherUser?.user_type === 'candidate' ? `/candidates/${otherUser?.id}` : `/employers/${otherUser?.id}`)}
+                className="hidden sm:flex"
+              >
+                View Profile
+              </Button>
             </div>
 
             {/* Messages */}
             <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-              <div className="space-y-4">
-                {messages.map((message) => {
-                  const isOwn = message.sender_id === user.id;
-                  return (
-                    <div
-                      key={message.id}
-                      className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div
-                        className={`max-w-[70%] rounded-2xl px-4 py-2 ${
-                          isOwn
-                            ? 'bg-primary text-primary-foreground rounded-br-md'
-                            : 'bg-card border border-border rounded-bl-md'
-                        }`}
+              <div className="max-w-3xl mx-auto space-y-3">
+                <AnimatePresence>
+                  {messages.map((message, index) => {
+                    const isOwn = message.sender_id === user.id;
+                    const showAvatar = index === 0 || messages[index - 1]?.sender_id !== message.sender_id;
+                    
+                    return (
+                      <motion.div
+                        key={message.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={`flex ${isOwn ? 'justify-end' : 'justify-start'} ${!showAvatar ? 'mt-1' : ''}`}
                       >
-                        <p className="text-sm">{message.content}</p>
-                        <p
-                          className={`text-xs mt-1 ${
-                            isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                        {!isOwn && showAvatar && (
+                          <Avatar className="w-8 h-8 mr-2 flex-shrink-0">
+                            <AvatarImage src={otherUser?.avatar_url || ''} />
+                            <AvatarFallback className="bg-google-blue/10 text-google-blue text-xs">
+                              {getInitials(otherUser?.full_name)}
+                            </AvatarFallback>
+                          </Avatar>
+                        )}
+                        {!isOwn && !showAvatar && <div className="w-8 mr-2" />}
+                        
+                        <div
+                          className={`max-w-[70%] rounded-2xl px-4 py-2.5 ${
+                            isOwn
+                              ? 'bg-google-blue text-white rounded-br-md'
+                              : 'bg-card border border-border rounded-bl-md shadow-sm'
                           }`}
                         >
-                          {formatTime(message.created_at)}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
+                          <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
+                          <div className={`flex items-center gap-1 mt-1 ${isOwn ? 'justify-end' : ''}`}>
+                            <p className={`text-xs ${isOwn ? 'text-white/70' : 'text-muted-foreground'}`}>
+                              {formatTime(message.created_at)}
+                            </p>
+                            {isOwn && (
+                              message.is_read 
+                                ? <CheckCheck className="w-3.5 h-3.5 text-white/70" />
+                                : <Check className="w-3.5 h-3.5 text-white/70" />
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
               </div>
             </ScrollArea>
 
             {/* Input */}
             <form onSubmit={sendMessage} className="p-4 border-t border-border bg-card">
-              <div className="flex gap-2">
+              <div className="max-w-3xl mx-auto flex gap-2">
                 <Input
+                  ref={inputRef}
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   placeholder="Type a message..."
-                  className="flex-1"
+                  className="flex-1 rounded-full px-4"
                 />
-                <Button type="submit" disabled={!newMessage.trim()}>
+                <Button 
+                  type="submit" 
+                  disabled={!newMessage.trim()}
+                  className="rounded-full w-10 h-10 p-0 bg-google-blue hover:bg-google-blue/90"
+                >
                   <Send className="w-4 h-4" />
                 </Button>
               </div>
             </form>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center text-muted-foreground">
-            Select a conversation to start messaging
+          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-8">
+            <div className="w-24 h-24 rounded-full bg-google-blue/10 flex items-center justify-center mb-6">
+              <MessageCircle className="w-12 h-12 text-google-blue" />
+            </div>
+            <h2 className="text-xl font-heading font-semibold text-foreground mb-2">Your Messages</h2>
+            <p className="text-center max-w-sm">
+              Select a conversation to start messaging, or contact a candidate/employer from their profile page.
+            </p>
           </div>
         )}
       </div>
