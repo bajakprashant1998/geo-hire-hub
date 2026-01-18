@@ -1,8 +1,8 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ViewMode, Candidate, Job } from '@/types';
-import { mockCandidates, mockJobs } from '@/data/mockData';
 import { useGeolocation } from '@/hooks/useGeolocation';
+import { useMapData } from '@/hooks/useMapData';
 import { Header } from '@/components/map/Header';
 import { GoogleMapContainer } from '@/components/map/GoogleMapContainer';
 import { FloatingControls } from '@/components/map/FloatingControls';
@@ -27,67 +27,12 @@ const Index = () => {
     return null;
   }, [geolocation.latitude, geolocation.longitude]);
 
-  // Calculate distance for items
-  const calculateDistance = useCallback(
-    (lat: number, lng: number) => {
-      if (!userLocation) return undefined;
-      const R = 6371; // Earth's radius in km
-      const dLat = ((lat - userLocation.lat) * Math.PI) / 180;
-      const dLon = ((lng - userLocation.lng) * Math.PI) / 180;
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos((userLocation.lat * Math.PI) / 180) *
-          Math.cos((lat * Math.PI) / 180) *
-          Math.sin(dLon / 2) *
-          Math.sin(dLon / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c;
-    },
-    [userLocation]
-  );
-
-  // Filter candidates and jobs based on radius and search
-  const filteredCandidates = useMemo(() => {
-    return mockCandidates
-      .map((candidate) => ({
-        ...candidate,
-        distance_km: calculateDistance(candidate.latitude, candidate.longitude),
-      }))
-      .filter((candidate) => {
-        if (!candidate.distance_km || candidate.distance_km > radius) return false;
-        if (searchQuery) {
-          const query = searchQuery.toLowerCase();
-          return (
-            candidate.full_name.toLowerCase().includes(query) ||
-            candidate.job_title.toLowerCase().includes(query) ||
-            candidate.skills.some((s) => s.toLowerCase().includes(query))
-          );
-        }
-        return true;
-      })
-      .sort((a, b) => (a.distance_km || 0) - (b.distance_km || 0));
-  }, [calculateDistance, radius, searchQuery]);
-
-  const filteredJobs = useMemo(() => {
-    return mockJobs
-      .map((job) => ({
-        ...job,
-        distance_km: calculateDistance(job.latitude, job.longitude),
-      }))
-      .filter((job) => {
-        if (!job.distance_km || job.distance_km > radius) return false;
-        if (searchQuery) {
-          const query = searchQuery.toLowerCase();
-          return (
-            job.title.toLowerCase().includes(query) ||
-            job.company_name.toLowerCase().includes(query) ||
-            job.job_type.toLowerCase().includes(query)
-          );
-        }
-        return true;
-      })
-      .sort((a, b) => (a.distance_km || 0) - (b.distance_km || 0));
-  }, [calculateDistance, radius, searchQuery]);
+  // Fetch real data from Supabase
+  const { candidates, jobs, loading } = useMapData({
+    userLocation,
+    radius,
+    searchQuery,
+  });
 
   const handleModeChange = (newMode: ViewMode) => {
     setMode(newMode);
@@ -105,7 +50,7 @@ const Index = () => {
     if ('job_title' in item) {
       navigate(`/candidate/${item.id}`);
     } else {
-      navigate(`/employer/${(item as Job).employer_id}`);
+      navigate(`/job/${(item as Job).id}`);
     }
   };
 
@@ -128,8 +73,8 @@ const Index = () => {
       {/* Google Map */}
       <GoogleMapContainer
         mode={mode}
-        candidates={filteredCandidates}
-        jobs={filteredJobs}
+        candidates={candidates}
+        jobs={jobs}
         userLocation={userLocation}
         radius={radius}
         onMarkerClick={handleMarkerClick}
@@ -151,8 +96,8 @@ const Index = () => {
         onRadiusChange={setRadius}
         onToggleSidebar={() => setSidebarOpen(true)}
         onCenterOnUser={handleCenterOnUser}
-        candidateCount={filteredCandidates.length}
-        jobCount={filteredJobs.length}
+        candidateCount={candidates.length}
+        jobCount={jobs.length}
       />
 
       {/* Sidebar */}
@@ -160,8 +105,8 @@ const Index = () => {
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         mode={mode}
-        candidates={filteredCandidates}
-        jobs={filteredJobs}
+        candidates={candidates}
+        jobs={jobs}
         onSelectCandidate={handleSelectFromSidebar}
         onSelectJob={handleSelectFromSidebar}
       />
