@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { MapPin, Search, Loader2, Navigation } from 'lucide-react';
+import { MapPin, Search, Loader2, Navigation, Layers } from 'lucide-react';
+import { toast } from 'sonner';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -21,10 +22,15 @@ export const LocationMapPicker = ({
 }: LocationMapPickerProps) => {
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searching, setSearching] = useState(false);
   const [locating, setLocating] = useState(false);
+  const [isSatellite, setIsSatellite] = useState(false);
+
+  const streetTileUrl = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+  const satelliteTileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
 
   // Initialize map
   useEffect(() => {
@@ -35,7 +41,7 @@ export const LocationMapPicker = ({
       zoom: coordinates ? 15 : 5,
     });
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    tileLayerRef.current = L.tileLayer(streetTileUrl, {
       attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
       subdomains: 'abcd',
       maxZoom: 19,
@@ -61,6 +67,27 @@ export const LocationMapPicker = ({
       mapRef.current = null;
     };
   }, []);
+
+  // Toggle satellite view
+  const toggleSatelliteView = () => {
+    if (!mapRef.current || !tileLayerRef.current) return;
+
+    mapRef.current.removeLayer(tileLayerRef.current);
+
+    const newIsSatellite = !isSatellite;
+    setIsSatellite(newIsSatellite);
+
+    tileLayerRef.current = L.tileLayer(
+      newIsSatellite ? satelliteTileUrl : streetTileUrl,
+      {
+        attribution: newIsSatellite 
+          ? '&copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+          : '&copy; OpenStreetMap contributors &copy; CARTO',
+        subdomains: newIsSatellite ? undefined : 'abcd',
+        maxZoom: 19,
+      }
+    ).addTo(mapRef.current);
+  };
 
   const updateMarker = (map: L.Map, lat: number, lng: number) => {
     if (markerRef.current) {
@@ -111,12 +138,15 @@ export const LocationMapPicker = ({
   };
 
   const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
+    if (!searchQuery.trim()) {
+      toast.error('Please enter a location to search');
+      return;
+    }
 
     setSearching(true);
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=1`,
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=1&accept-language=en`,
         { headers: { 'User-Agent': 'HireForJob/1.0' } }
       );
       const data = await response.json();
@@ -128,23 +158,29 @@ export const LocationMapPicker = ({
 
         setCoordinates({ lat: latitude, lng: longitude });
         setAddress(display_name);
+        setSearchQuery('');
 
         if (mapRef.current) {
           updateMarker(mapRef.current, latitude, longitude);
         }
+        
+        toast.success('Location found!');
       } else {
-        // Could show a toast here
-        console.log('No results found');
+        toast.error('No location found. Try a different search term.');
       }
     } catch (error) {
       console.error('Search failed:', error);
+      toast.error('Search failed. Please try again.');
     } finally {
       setSearching(false);
     }
   };
 
   const handleUseMyLocation = () => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      toast.error('Geolocation is not supported by your browser');
+      return;
+    }
 
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
@@ -158,12 +194,14 @@ export const LocationMapPicker = ({
 
         await reverseGeocode(latitude, longitude);
         setLocating(false);
+        toast.success('Location detected!');
       },
       (error) => {
         console.error('Geolocation error:', error);
         setLocating(false);
+        toast.error('Failed to get your location. Please enable location access.');
       },
-      { enableHighAccuracy: true }
+      { enableHighAccuracy: true, timeout: 10000 }
     );
   };
 
@@ -176,7 +214,7 @@ export const LocationMapPicker = ({
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search for a location..."
+            placeholder="Search for a city, area or address..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => {
@@ -214,6 +252,20 @@ export const LocationMapPicker = ({
       {/* Map Container */}
       <div className="relative rounded-lg overflow-hidden border">
         <div ref={containerRef} className="h-[300px] w-full" />
+        
+        {/* Map Controls */}
+        <div className="absolute top-3 right-3 z-[1000]">
+          <Button
+            type="button"
+            variant={isSatellite ? 'default' : 'secondary'}
+            size="sm"
+            onClick={toggleSatelliteView}
+            className="gap-1.5 shadow-md"
+          >
+            <Layers className="w-4 h-4" />
+            {isSatellite ? 'Street' : 'Satellite'}
+          </Button>
+        </div>
         
         {/* Instruction Overlay */}
         {!coordinates && (
