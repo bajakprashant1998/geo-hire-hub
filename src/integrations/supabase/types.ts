@@ -887,6 +887,76 @@ export type Database = {
           },
         ]
       }
+      message_attachments: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_size: number
+          file_type: string
+          file_url: string
+          id: string
+          message_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_size: number
+          file_type: string
+          file_url: string
+          id?: string
+          message_id: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_size?: number
+          file_type?: string
+          file_url?: string
+          id?: string
+          message_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          id?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
@@ -894,6 +964,7 @@ export type Database = {
           created_at: string | null
           id: string
           is_read: boolean | null
+          read_at: string | null
           sender_id: string
         }
         Insert: {
@@ -902,6 +973,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_read?: boolean | null
+          read_at?: string | null
           sender_id: string
         }
         Update: {
@@ -910,6 +982,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           is_read?: boolean | null
+          read_at?: string | null
           sender_id?: string
         }
         Relationships: [
@@ -1150,6 +1223,7 @@ export type Database = {
         Args: { p_employer_id: string; p_exclude_job_id?: string }
         Returns: Json
       }
+      cleanup_old_messages: { Args: never; Returns: undefined }
       get_admin_dashboard_stats: { Args: never; Returns: Json }
       get_job_analytics: { Args: { p_job_id: string }; Returns: Json }
       get_nearby_candidates: {
