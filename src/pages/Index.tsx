@@ -48,9 +48,9 @@ const Index = () => {
     setSelectedItem(item);
     // Navigate to detail page
     if ('job_title' in item) {
-      navigate(`/candidate/${item.id}`);
+      navigate(`/candidates/${item.id}`);
     } else {
-      navigate(`/job/${(item as Job).id}`);
+      navigate(`/jobs/${(item as Job).id}`);
     }
   };
 

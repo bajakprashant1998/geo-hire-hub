@@ -264,7 +264,7 @@ const Dashboard = () => {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h1 className="text-2xl font-bold">Welcome, {profile.full_name}</h1>
+                    <h1 className="text-xl sm:text-2xl font-bold">Welcome, {profile.full_name}</h1>
                     {!isCandidate && employerProfile && (
                       <VerificationBadge 
                         status={employerProfile.verification_status || 'pending'} 
@@ -282,17 +282,17 @@ const Dashboard = () => {
               </div>
 
               {!isCandidate && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Link to="/company-profile">
-                    <Button variant="outline">
-                      <Settings className="w-4 h-4 mr-2" />
-                      Edit Profile
+                    <Button variant="outline" size="sm" className="sm:size-default">
+                      <Settings className="w-4 h-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Edit Profile</span>
                     </Button>
                   </Link>
                   <Link to="/post-job">
-                    <Button disabled={!canPostJobs}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Post a Job
+                    <Button disabled={!canPostJobs} size="sm" className="sm:size-default">
+                      <Plus className="w-4 h-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Post a Job</span>
                     </Button>
                   </Link>
                 </div>

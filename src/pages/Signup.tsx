@@ -174,11 +174,11 @@ const Signup = () => {
 
           <CardContent>
             {/* User Type Selector */}
-            <div className="flex justify-center gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row justify-center gap-4 mb-6">
               <button
                 type="button"
                 onClick={() => setUserType('candidate')}
-                className={`flex flex-col items-center p-4 rounded-lg border-2 transition-all w-40 ${
+                className={`flex flex-col items-center p-4 rounded-lg border-2 transition-all flex-1 sm:max-w-40 ${
                   userType === 'candidate'
                     ? 'border-primary bg-primary/5'
                     : 'border-border hover:border-muted-foreground'
@@ -210,7 +210,7 @@ const Signup = () => {
               <button
                 type="button"
                 onClick={() => setUserType('employer')}
-                className={`flex flex-col items-center p-4 rounded-lg border-2 transition-all w-40 ${
+                className={`flex flex-col items-center p-4 rounded-lg border-2 transition-all flex-1 sm:max-w-40 ${
                   userType === 'employer'
                     ? 'border-primary bg-primary/5'
                     : 'border-border hover:border-muted-foreground'
@@ -242,7 +242,7 @@ const Signup = () => {
 
             <form onSubmit={handleSignup} className="space-y-4">
               {/* Name Fields */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name *</Label>
                   <div className="relative">
@@ -276,7 +276,7 @@ const Signup = () => {
               </div>
 
               {/* Username and Email */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="username">Username *</Label>
                   <div className="relative">
@@ -310,7 +310,7 @@ const Signup = () => {
               </div>
 
               {/* Passwords */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="password">Password *</Label>
                   <div className="relative">
