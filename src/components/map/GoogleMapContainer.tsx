@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, Circle, MarkerClusterer } from '@react-google-maps/api';
 import { ViewMode, Candidate, Job } from '@/types';
 import { useGoogleMapsKey } from '@/hooks/useGoogleMapsKey';
+import { GoogleMapsLoaderBoundary } from '@/components/map/GoogleMapsLoaderBoundary';
 import { Loader2 } from 'lucide-react';
 
 interface GoogleMapContainerProps {
@@ -50,7 +51,9 @@ const GoogleMapInner = ({
   const [map, setMap] = useState<google.maps.Map | null>(null);
 
   const { isLoaded, loadError } = useJsApiLoader({
-    id: 'google-map-script',
+    // Use a key-derived script id to avoid "different options" crashes during hot reloads
+    // or when the loader was previously initialized with an empty key.
+    id: `google-map-script-${apiKey.slice(0, 8)}`,
     googleMapsApiKey: apiKey,
   });
 
@@ -228,15 +231,18 @@ export const GoogleMapContainer = ({
   }
 
   return (
-    <GoogleMapInner
-      mode={mode}
-      candidates={candidates}
-      jobs={jobs}
-      userLocation={userLocation}
-      radius={radius}
-      onMarkerClick={onMarkerClick}
-      selectedItem={selectedItem}
-      apiKey={apiKey}
-    />
+    <GoogleMapsLoaderBoundary>
+      <GoogleMapInner
+        key={apiKey}
+        mode={mode}
+        candidates={candidates}
+        jobs={jobs}
+        userLocation={userLocation}
+        radius={radius}
+        onMarkerClick={onMarkerClick}
+        selectedItem={selectedItem}
+        apiKey={apiKey}
+      />
+    </GoogleMapsLoaderBoundary>
   );
 };
