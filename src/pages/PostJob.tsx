@@ -33,8 +33,8 @@ const PostJob = () => {
   // Section 1: Job Basics
   const [jobType, setJobType] = useState<'Full Time' | 'Part Time'>('Full Time');
   const [title, setTitle] = useState('');
-  const [location, setLocation] = useState('');
-  const [area, setArea] = useState('');
+  const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+  const [address, setAddress] = useState('');
   const [openings, setOpenings] = useState('1');
 
   // Section 2: Candidate Requirements
@@ -74,9 +74,9 @@ const PostJob = () => {
   const [hiringFrequency, setHiringFrequency] = useState('');
   const [jobAddress, setJobAddress] = useState('');
 
-  // Fetch employer data
+  // Fetch employer data and load draft
   useEffect(() => {
-    const fetchEmployer = async () => {
+    const fetchEmployerAndDraft = async () => {
       if (!profile) return;
 
       const { data, error } = await supabase
@@ -121,12 +121,62 @@ const PostJob = () => {
         if (profile?.full_name) {
           setContactPerson(profile.full_name);
         }
+
+        // Load existing draft
+        const { data: draftData } = await supabase
+          .from('job_drafts')
+          .select('*')
+          .eq('employer_id', data.id)
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (draftData?.draft_data) {
+          const draft = draftData.draft_data as Record<string, any>;
+          // Restore draft values
+          if (draft.title) setTitle(draft.title);
+          if (draft.jobType) setJobType(draft.jobType);
+          if (draft.coordinates) setCoordinates(draft.coordinates);
+          if (draft.address) setAddress(draft.address);
+          if (draft.openings) setOpenings(draft.openings);
+          if (draft.experienceType) setExperienceType(draft.experienceType);
+          if (draft.minExperience) setMinExperience(draft.minExperience);
+          if (draft.maxExperience) setMaxExperience(draft.maxExperience);
+          if (draft.salaryMin) setSalaryMin(draft.salaryMin);
+          if (draft.salaryMax) setSalaryMax(draft.salaryMax);
+          if (draft.hasBonus !== undefined) setHasBonus(draft.hasBonus);
+          if (draft.description) setDescription(draft.description);
+          if (draft.skills) setSkills(draft.skills);
+          if (draft.gender) setGender(draft.gender);
+          if (draft.ageMin) setAgeMin(draft.ageMin);
+          if (draft.ageMax) setAgeMax(draft.ageMax);
+          if (draft.education) setEducation(draft.education);
+          if (draft.languages) setLanguages(draft.languages);
+          if (draft.certifications) setCertifications(draft.certifications);
+          if (draft.additionalNotes) setAdditionalNotes(draft.additionalNotes);
+          if (draft.shiftType) setShiftType(draft.shiftType);
+          if (draft.startTime) setStartTime(draft.startTime);
+          if (draft.endTime) setEndTime(draft.endTime);
+          if (draft.workDays) setWorkDays(draft.workDays);
+          if (draft.interviewTime) setInterviewTime(draft.interviewTime);
+          if (draft.interviewDays) setInterviewDays(draft.interviewDays);
+          if (draft.contactPerson) setContactPerson(draft.contactPerson);
+          if (draft.phoneNumber) setPhoneNumber(draft.phoneNumber);
+          if (draft.email) setEmail(draft.email);
+          if (draft.contactRole) setContactRole(draft.contactRole);
+          if (draft.organizationSize) setOrganizationSize(draft.organizationSize);
+          if (draft.hiringUrgency) setHiringUrgency(draft.hiringUrgency);
+          if (draft.hiringFrequency) setHiringFrequency(draft.hiringFrequency);
+          if (draft.jobAddress) setJobAddress(draft.jobAddress);
+          
+          toast.info('Draft restored from your last session');
+        }
       } else if (error) {
         console.error('Error fetching employer:', error);
       }
     };
 
-    fetchEmployer();
+    fetchEmployerAndDraft();
   }, [profile, user]);
 
   const generateDescription = async () => {
@@ -172,7 +222,39 @@ const PostJob = () => {
 
     setSavingDraft(true);
     try {
-      // For now, just show success - draft saving would need a separate table
+      const draftData = {
+        title, jobType, coordinates, address, openings,
+        experienceType, minExperience, maxExperience,
+        salaryMin, salaryMax, hasBonus, description, skills,
+        gender, ageMin, ageMax, education, languages,
+        certifications, additionalNotes,
+        shiftType, startTime, endTime, workDays,
+        interviewTime, interviewDays,
+        contactPerson, phoneNumber, email, contactRole,
+        organizationSize, hiringUrgency, hiringFrequency, jobAddress,
+      };
+
+      // Check if draft exists
+      const { data: existingDraft } = await supabase
+        .from('job_drafts')
+        .select('id')
+        .eq('employer_id', employerId)
+        .limit(1)
+        .maybeSingle();
+
+      if (existingDraft) {
+        // Update existing draft
+        await supabase
+          .from('job_drafts')
+          .update({ draft_data: draftData, title, updated_at: new Date().toISOString() })
+          .eq('id', existingDraft.id);
+      } else {
+        // Create new draft
+        await supabase
+          .from('job_drafts')
+          .insert({ employer_id: employerId, draft_data: draftData, title });
+      }
+
       toast.success('Draft saved successfully!');
     } catch (error: any) {
       toast.error(error.message || 'Failed to save draft');
@@ -194,8 +276,8 @@ const PostJob = () => {
       toast.error('Please enter a job title');
       return;
     }
-    if (!location) {
-      toast.error('Please select a job location');
+    if (!coordinates) {
+      toast.error('Please select a job location on the map');
       return;
     }
     if (!salaryMin && !salaryMax) {
@@ -247,20 +329,9 @@ const PostJob = () => {
         fullDescription += `\n\n${additionalNotes}`;
       }
 
-      // Use geocoding to get coordinates from location
-      const geocodeResponse = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(location + ', ' + area + ', India')}&format=json&limit=1`,
-        { headers: { 'User-Agent': 'HireForJob/1.0' } }
-      );
-      const geocodeData = await geocodeResponse.json();
-      
-      let latitude = 20.5937; // Default to India center
-      let longitude = 78.9629;
-      
-      if (geocodeData.length > 0) {
-        latitude = parseFloat(geocodeData[0].lat);
-        longitude = parseFloat(geocodeData[0].lon);
-      }
+      // Use coordinates from map picker
+      const latitude = coordinates!.lat;
+      const longitude = coordinates!.lng;
 
       const { error } = await supabase.from('jobs').insert({
         employer_id: employerId,
@@ -275,6 +346,12 @@ const PostJob = () => {
       });
 
       if (error) throw error;
+
+      // Delete draft after successful posting
+      await supabase
+        .from('job_drafts')
+        .delete()
+        .eq('employer_id', employerId);
 
       toast.success('Job posted successfully!');
       navigate('/dashboard');
@@ -389,10 +466,10 @@ const PostJob = () => {
                     setJobType={setJobType}
                     title={title}
                     setTitle={setTitle}
-                    location={location}
-                    setLocation={setLocation}
-                    area={area}
-                    setArea={setArea}
+                    coordinates={coordinates}
+                    setCoordinates={setCoordinates}
+                    address={address}
+                    setAddress={setAddress}
                     openings={openings}
                     setOpenings={setOpenings}
                   />
@@ -514,7 +591,7 @@ const PostJob = () => {
               skills={skills}
               salaryMin={salaryMin}
               salaryMax={salaryMax}
-              location={location}
+              location={address}
             />
           </div>
         </div>
