@@ -2,8 +2,9 @@ import { useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Camera, Loader2, User, X } from 'lucide-react';
+import { Camera, Loader2, User, X, Crop } from 'lucide-react';
 import { toast } from 'sonner';
+import { ImageCropper } from './ImageCropper';
 
 interface PhotoUploadProps {
   userId: string;
@@ -28,11 +29,18 @@ export const PhotoUpload = ({
 }: PhotoUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentPhotoUrl || null);
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
 
     // Validate file type
     const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
@@ -41,32 +49,44 @@ export const PhotoUpload = ({
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image size should be less than 5MB');
+    // Validate file size (max 10MB for cropping)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image size should be less than 10MB');
       return;
     }
 
-    // Create preview
+    // Create preview for cropper
     const reader = new FileReader();
     reader.onload = (e) => {
-      setPreviewUrl(e.target?.result as string);
+      setSelectedImage(e.target?.result as string);
+      setCropperOpen(true);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
+    // Create preview
+    const croppedUrl = URL.createObjectURL(croppedBlob);
+    setPreviewUrl(croppedUrl);
 
     // Upload to Supabase Storage
     setUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${userId}/avatar.${fileExt}`;
+      const fileName = `${userId}/avatar.jpg`;
 
       // Delete old avatar if exists
-      await supabase.storage.from('avatars').remove([`${userId}/avatar.jpg`, `${userId}/avatar.png`, `${userId}/avatar.webp`, `${userId}/avatar.gif`]);
+      await supabase.storage.from('avatars').remove([
+        `${userId}/avatar.jpg`,
+        `${userId}/avatar.png`,
+        `${userId}/avatar.webp`,
+        `${userId}/avatar.gif`,
+      ]);
 
-      // Upload new avatar
+      // Upload new cropped avatar
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(fileName, file, {
+        .upload(fileName, croppedBlob, {
+          contentType: 'image/jpeg',
           cacheControl: '3600',
           upsert: true,
         });
@@ -89,6 +109,7 @@ export const PhotoUpload = ({
       setPreviewUrl(currentPhotoUrl || null);
     } finally {
       setUploading(false);
+      setSelectedImage(null);
     }
   };
 
@@ -100,7 +121,12 @@ export const PhotoUpload = ({
       // Remove from storage
       await supabase.storage
         .from('avatars')
-        .remove([`${userId}/avatar.jpg`, `${userId}/avatar.png`, `${userId}/avatar.webp`, `${userId}/avatar.gif`]);
+        .remove([
+          `${userId}/avatar.jpg`,
+          `${userId}/avatar.png`,
+          `${userId}/avatar.webp`,
+          `${userId}/avatar.gif`,
+        ]);
 
       setPreviewUrl(null);
       onPhotoUploaded('');
@@ -117,72 +143,93 @@ export const PhotoUpload = ({
   };
 
   return (
-    <div className={`flex flex-col items-center gap-3 ${className}`}>
-      <div className="relative group">
-        <Avatar className={`${sizeClasses[size]} border-4 border-background shadow-lg`}>
-          <AvatarImage src={previewUrl || ''} alt="Profile photo" />
-          <AvatarFallback className="bg-primary/10">
-            <User className="w-1/2 h-1/2 text-muted-foreground" />
-          </AvatarFallback>
-        </Avatar>
+    <>
+      <div className={`flex flex-col items-center gap-3 ${className}`}>
+        <div className="relative group">
+          <Avatar className={`${sizeClasses[size]} border-4 border-background shadow-google`}>
+            <AvatarImage src={previewUrl || ''} alt="Profile photo" />
+            <AvatarFallback className="bg-google-blue/10">
+              <User className="w-1/2 h-1/2 text-google-blue" />
+            </AvatarFallback>
+          </Avatar>
 
-        {/* Overlay */}
-        <div
-          className={`absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer ${
-            uploading ? 'opacity-100' : ''
-          }`}
-          onClick={triggerFileInput}
-        >
-          {uploading ? (
-            <Loader2 className="w-6 h-6 text-white animate-spin" />
-          ) : (
-            <Camera className="w-6 h-6 text-white" />
+          {/* Overlay */}
+          <div
+            className={`absolute inset-0 rounded-full bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer ${
+              uploading ? 'opacity-100' : ''
+            }`}
+            onClick={triggerFileInput}
+          >
+            {uploading ? (
+              <Loader2 className="w-6 h-6 text-white animate-spin" />
+            ) : (
+              <div className="flex flex-col items-center">
+                <Camera className="w-5 h-5 text-white" />
+                <span className="text-[10px] text-white mt-1">Edit</span>
+              </div>
+            )}
+          </div>
+
+          {/* Remove button */}
+          {previewUrl && !uploading && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRemove();
+              }}
+              className="absolute -top-1 -right-1 w-6 h-6 bg-google-red text-white rounded-full flex items-center justify-center shadow-md hover:bg-google-red/90 transition-colors"
+            >
+              <X className="w-3 h-3" />
+            </button>
           )}
         </div>
 
-        {/* Remove button */}
-        {previewUrl && !uploading && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleRemove();
-            }}
-            className="absolute -top-1 -right-1 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center shadow-md hover:bg-destructive/90 transition-colors"
-          >
-            <X className="w-3 h-3" />
-          </button>
-        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/gif"
+          onChange={handleFileSelect}
+          className="hidden"
+          disabled={uploading}
+        />
+
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={triggerFileInput}
+          disabled={uploading}
+          className="gap-2 hover:bg-google-blue/10 hover:text-google-blue hover:border-google-blue"
+        >
+          {uploading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Uploading...
+            </>
+          ) : (
+            <>
+              <Crop className="w-4 h-4" />
+              {previewUrl ? 'Change Photo' : 'Upload Photo'}
+            </>
+          )}
+        </Button>
       </div>
 
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif"
-        onChange={handleFileSelect}
-        className="hidden"
-        disabled={uploading}
-      />
-
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={triggerFileInput}
-        disabled={uploading}
-      >
-        {uploading ? (
-          <>
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            Uploading...
-          </>
-        ) : (
-          <>
-            <Camera className="w-4 h-4 mr-2" />
-            {previewUrl ? 'Change Photo' : 'Upload Photo'}
-          </>
-        )}
-      </Button>
-    </div>
+      {/* Image Cropper Modal */}
+      {selectedImage && (
+        <ImageCropper
+          open={cropperOpen}
+          onOpenChange={(open) => {
+            setCropperOpen(open);
+            if (!open) setSelectedImage(null);
+          }}
+          imageSrc={selectedImage}
+          onCropComplete={handleCropComplete}
+          aspectRatio={1}
+          circularCrop={true}
+        />
+      )}
+    </>
   );
 };
