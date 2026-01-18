@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -21,6 +21,8 @@ const PostJob = () => {
   const [loading, setLoading] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
   const [generatingDescription, setGeneratingDescription] = useState(false);
+  const [lastAutoSave, setLastAutoSave] = useState<Date | null>(null);
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Employer data
   const [employerId, setEmployerId] = useState<string | null>(null);
@@ -214,6 +216,79 @@ const PostJob = () => {
     }
   };
 
+  // Silent auto-save function (no toast)
+  const autoSaveDraft = useCallback(async () => {
+    if (!user || !employerId || savingDraft) return;
+
+    try {
+      const draftData = {
+        title, jobType, coordinates, address, openings,
+        experienceType, minExperience, maxExperience,
+        salaryMin, salaryMax, hasBonus, description, skills,
+        gender, ageMin, ageMax, education, languages,
+        certifications, additionalNotes,
+        shiftType, startTime, endTime, workDays,
+        interviewTime, interviewDays,
+        contactPerson, phoneNumber, email, contactRole,
+        organizationSize, hiringUrgency, hiringFrequency, jobAddress,
+      };
+
+      // Only save if there's some content
+      if (!title && !description && skills.length === 0) return;
+
+      const { data: existingDraft } = await supabase
+        .from('job_drafts')
+        .select('id')
+        .eq('employer_id', employerId)
+        .limit(1)
+        .maybeSingle();
+
+      if (existingDraft) {
+        await supabase
+          .from('job_drafts')
+          .update({ draft_data: draftData, title: title || 'Untitled Draft', updated_at: new Date().toISOString() })
+          .eq('id', existingDraft.id);
+      } else {
+        await supabase
+          .from('job_drafts')
+          .insert({ employer_id: employerId, draft_data: draftData, title: title || 'Untitled Draft' });
+      }
+
+      setLastAutoSave(new Date());
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+    }
+  }, [
+    user, employerId, savingDraft, title, jobType, coordinates, address, openings,
+    experienceType, minExperience, maxExperience, salaryMin, salaryMax, hasBonus,
+    description, skills, gender, ageMin, ageMax, education, languages,
+    certifications, additionalNotes, shiftType, startTime, endTime, workDays,
+    interviewTime, interviewDays, contactPerson, phoneNumber, email, contactRole,
+    organizationSize, hiringUrgency, hiringFrequency, jobAddress
+  ]);
+
+  // Auto-save every 30 seconds
+  useEffect(() => {
+    if (!employerId) return;
+
+    // Clear existing timer
+    if (autoSaveTimerRef.current) {
+      clearInterval(autoSaveTimerRef.current);
+    }
+
+    // Set up new timer
+    autoSaveTimerRef.current = setInterval(() => {
+      autoSaveDraft();
+    }, 30000); // 30 seconds
+
+    return () => {
+      if (autoSaveTimerRef.current) {
+        clearInterval(autoSaveTimerRef.current);
+      }
+    };
+  }, [employerId, autoSaveDraft]);
+
+  // Manual save with toast
   const handleSaveDraft = async () => {
     if (!user || !employerId) {
       toast.error('Please login to save draft');
@@ -234,7 +309,6 @@ const PostJob = () => {
         organizationSize, hiringUrgency, hiringFrequency, jobAddress,
       };
 
-      // Check if draft exists
       const { data: existingDraft } = await supabase
         .from('job_drafts')
         .select('id')
@@ -243,18 +317,17 @@ const PostJob = () => {
         .maybeSingle();
 
       if (existingDraft) {
-        // Update existing draft
         await supabase
           .from('job_drafts')
-          .update({ draft_data: draftData, title, updated_at: new Date().toISOString() })
+          .update({ draft_data: draftData, title: title || 'Untitled Draft', updated_at: new Date().toISOString() })
           .eq('id', existingDraft.id);
       } else {
-        // Create new draft
         await supabase
           .from('job_drafts')
-          .insert({ employer_id: employerId, draft_data: draftData, title });
+          .insert({ employer_id: employerId, draft_data: draftData, title: title || 'Untitled Draft' });
       }
 
+      setLastAutoSave(new Date());
       toast.success('Draft saved successfully!');
     } catch (error: any) {
       toast.error(error.message || 'Failed to save draft');
@@ -424,7 +497,14 @@ const PostJob = () => {
             </Button>
             <div>
               <h1 className="text-xl font-bold">Post a New Job</h1>
-              <p className="text-sm text-muted-foreground">Create a job listing to find the best candidates</p>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>Create a job listing to find the best candidates</span>
+                {lastAutoSave && (
+                  <span className="text-xs text-muted-foreground/70">
+                    • Auto-saved {lastAutoSave.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
