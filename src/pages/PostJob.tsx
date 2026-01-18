@@ -150,19 +150,38 @@ const PostJob = () => {
     }
   };
 
-  // Fetch employer ID
+  // State for employer verification
+  const [canPost, setCanPost] = useState(true);
+  const [blockReason, setBlockReason] = useState<string | null>(null);
+
+  // Fetch employer ID and check posting eligibility
   useEffect(() => {
     const fetchEmployer = async () => {
       if (!profile) return;
 
       const { data, error } = await supabase
         .from('employers')
-        .select('id')
+        .select('id, verification_status, profile_completeness, terms_accepted_at')
         .eq('profile_id', profile.id)
         .maybeSingle();
 
       if (data) {
         setEmployerId(data.id);
+        
+        // Check posting eligibility
+        if (data.profile_completeness < 100) {
+          setCanPost(false);
+          setBlockReason('Complete your company profile to 100% before posting jobs.');
+        } else if (data.verification_status !== 'approved') {
+          setCanPost(false);
+          setBlockReason('Your company profile is pending admin approval. You can post jobs once approved.');
+        } else if (!data.terms_accepted_at) {
+          setCanPost(false);
+          setBlockReason('Please accept the platform terms in your company profile settings.');
+        } else {
+          setCanPost(true);
+          setBlockReason(null);
+        }
       } else if (error) {
         console.error('Error fetching employer:', error);
       }
@@ -272,6 +291,30 @@ const PostJob = () => {
             <Button onClick={() => navigate('/')} className="mt-4">
               Go to Map
             </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!canPost && blockReason) {
+    return (
+      <div className="min-h-screen bg-secondary flex items-center justify-center p-4">
+        <Card className="max-w-md">
+          <CardContent className="p-6 text-center">
+            <div className="w-16 h-16 bg-warning/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Briefcase className="w-8 h-8 text-warning" />
+            </div>
+            <h2 className="text-xl font-semibold mb-2">Cannot Post Jobs Yet</h2>
+            <p className="text-muted-foreground mb-4">{blockReason}</p>
+            <div className="flex gap-2 justify-center">
+              <Button variant="outline" onClick={() => navigate('/dashboard')}>
+                Go to Dashboard
+              </Button>
+              <Button onClick={() => navigate('/company-profile')}>
+                Complete Profile
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
