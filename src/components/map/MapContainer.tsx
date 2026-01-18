@@ -115,7 +115,7 @@ const createUserIcon = () =>
     iconAnchor: [10, 10],
   });
 
-// Generate popup content for candidates - matching reference design
+// Generate popup content for candidates - with contact button for employers
 const createCandidatePopupContent = (candidate: Candidate): string => {
   const avatarHtml = candidate.avatar_url 
     ? `<img src="${candidate.avatar_url}" alt="${candidate.full_name}" style="width: 48px; height: 48px; border-radius: 12px; object-fit: cover;" />`
@@ -126,7 +126,6 @@ const createCandidatePopupContent = (candidate: Candidate): string => {
       min-width: 280px;
       max-width: 320px;
       font-family: 'Google Sans', 'Roboto', sans-serif;
-      cursor: pointer;
       background: white;
       border-radius: 16px;
       overflow: hidden;
@@ -147,26 +146,62 @@ const createCandidatePopupContent = (candidate: Candidate): string => {
         ${candidate.skills && candidate.skills.length > 0 ? `<span style="padding: 6px 12px; background: hsl(217, 89%, 95%); color: hsl(217, 89%, 45%); font-size: 12px; border-radius: 6px; font-weight: 600;">${candidate.skills.length} skills</span>` : ''}
       </div>
       
-      <!-- Click to view details -->
-      <div class="popup-cta" style="padding: 12px 16px; border-top: 1px solid hsl(220, 13%, 93%); display: flex; align-items: center; justify-content: space-between; background: hsl(220, 14%, 99%); transition: background 0.15s ease;">
-        <span style="font-size: 13px; color: hsl(220, 9%, 40%); font-weight: 500;">Click to view profile</span>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="hsl(217, 89%, 61%)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M5 12h14"/>
-          <path d="m12 5 7 7-7 7"/>
-        </svg>
+      <!-- Action buttons -->
+      <div style="padding: 12px 16px; border-top: 1px solid hsl(220, 13%, 93%); display: flex; gap: 8px;">
+        <button class="popup-contact-btn" data-action="contact" data-candidate-id="${candidate.id}" style="
+          flex: 1;
+          padding: 10px 16px;
+          background: hsl(217, 89%, 61%);
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          transition: all 0.15s ease;
+        ">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          Contact
+        </button>
+        <button class="popup-view-btn" data-action="view" style="
+          padding: 10px 16px;
+          background: hsl(220, 14%, 96%);
+          color: hsl(220, 9%, 35%);
+          border: none;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 500;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          transition: all 0.15s ease;
+        ">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14"/>
+            <path d="m12 5 7 7-7 7"/>
+          </svg>
+          View
+        </button>
       </div>
     </div>
   `;
 };
 
-// Generate popup content for jobs - matching reference design
+// Generate popup content for jobs - with apply button
 const createJobPopupContent = (job: Job): string => {
   return `
     <div class="marker-popup-content" data-type="job" data-id="${job.id}" style="
       min-width: 280px;
       max-width: 320px;
       font-family: 'Google Sans', 'Roboto', sans-serif;
-      cursor: pointer;
       background: white;
       border-radius: 16px;
       overflow: hidden;
@@ -192,13 +227,51 @@ const createJobPopupContent = (job: Job): string => {
         ${job.salary_range ? `<span style="padding: 6px 12px; background: hsl(142, 70%, 95%); color: hsl(142, 76%, 30%); font-size: 12px; border-radius: 6px; font-weight: 600;">₹${job.salary_range}</span>` : ''}
       </div>
       
-      <!-- Click to view details -->
-      <div class="popup-cta" style="padding: 12px 16px; border-top: 1px solid hsl(220, 13%, 93%); display: flex; align-items: center; justify-content: space-between; background: hsl(220, 14%, 99%); transition: background 0.15s ease;">
-        <span style="font-size: 13px; color: hsl(220, 9%, 40%); font-weight: 500;">Click to view details</span>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="hsl(4, 90%, 58%)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M5 12h14"/>
-          <path d="m12 5 7 7-7 7"/>
-        </svg>
+      <!-- Action buttons -->
+      <div style="padding: 12px 16px; border-top: 1px solid hsl(220, 13%, 93%); display: flex; gap: 8px;">
+        <button class="popup-apply-btn" data-action="apply" data-job-id="${job.id}" style="
+          flex: 1;
+          padding: 10px 16px;
+          background: hsl(4, 90%, 58%);
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          transition: all 0.15s ease;
+        ">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+          Apply Now
+        </button>
+        <button class="popup-view-btn" data-action="view" style="
+          padding: 10px 16px;
+          background: hsl(220, 14%, 96%);
+          color: hsl(220, 9%, 35%);
+          border: none;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 500;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          transition: all 0.15s ease;
+        ">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14"/>
+            <path d="m12 5 7 7-7 7"/>
+          </svg>
+          View
+        </button>
       </div>
     </div>
   `;
@@ -231,21 +304,37 @@ export const MapContainer = ({
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Handle popup click to navigate directly to detail page
+  // Handle popup button clicks
   const handlePopupClick = useCallback((e: MouseEvent) => {
     const target = e.target as HTMLElement;
+    const button = target.closest('button') as HTMLButtonElement;
     const popupContent = target.closest('.marker-popup-content') as HTMLElement;
-    if (popupContent) {
+    
+    if (!popupContent) return;
+    
+    const type = popupContent.dataset.type;
+    const id = popupContent.dataset.id;
+    
+    // Handle button clicks
+    if (button) {
       e.preventDefault();
       e.stopPropagation();
       
-      const type = popupContent.dataset.type;
-      const id = popupContent.dataset.id;
+      const action = button.dataset.action;
       
-      if (type === 'candidate' && id) {
-        navigate(`/candidates/${id}`);
-      } else if (type === 'job' && id) {
-        navigate(`/jobs/${id}`);
+      if (action === 'apply' && id) {
+        // Navigate to job detail with apply intent
+        navigate(`/jobs/${id}?action=apply`);
+      } else if (action === 'contact' && id) {
+        // Navigate to messages with candidate
+        navigate(`/messages?candidate=${id}`);
+      } else if (action === 'view' && id) {
+        // Navigate to detail page
+        if (type === 'candidate') {
+          navigate(`/candidates/${id}`);
+        } else if (type === 'job') {
+          navigate(`/jobs/${id}`);
+        }
       }
     }
   }, [navigate]);
@@ -512,11 +601,18 @@ export const MapContainer = ({
         .marker-popup-content {
           pointer-events: auto !important;
         }
-        .marker-popup-content:hover .popup-cta {
-          background: hsl(220, 14%, 97%) !important;
+        .popup-apply-btn:hover {
+          background: hsl(4, 90%, 52%) !important;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px hsla(4, 90%, 58%, 0.3);
         }
-        .popup-cta:hover {
-          background: hsl(220, 14%, 95%) !important;
+        .popup-contact-btn:hover {
+          background: hsl(217, 89%, 55%) !important;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px hsla(217, 89%, 61%, 0.3);
+        }
+        .popup-view-btn:hover {
+          background: hsl(220, 14%, 92%) !important;
         }
       `}</style>
       <div ref={containerRef} className="w-full h-full" style={{ minHeight: '100vh' }} />
