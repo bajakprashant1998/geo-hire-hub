@@ -14,9 +14,10 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["'Open Sans'", "'Trebuchet MS'", "system-ui", "sans-serif"],
-        heading: ["'Trebuchet MS'", "'Open Sans'", "system-ui", "sans-serif"],
-        display: ["'Trebuchet MS'", "'Open Sans'", "system-ui", "sans-serif"],
+        sans: ["'Open Sans'", "Arial", "Helvetica", "sans-serif"],
+        serif: ["Georgia", "'Times New Roman'", "Times", "serif"],
+        heading: ["'Open Sans'", "Arial", "Helvetica", "sans-serif"],
+        body: ["Georgia", "'Times New Roman'", "Times", "serif"],
       },
       colors: {
         border: "hsl(var(--border))",
