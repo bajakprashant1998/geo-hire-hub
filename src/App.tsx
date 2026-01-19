@@ -15,6 +15,7 @@ import VerifyEmail from "./pages/VerifyEmail";
 import ProfileSetup from "./pages/ProfileSetup";
 
 import CandidateDashboard from "./pages/CandidateDashboard";
+import CandidateSettings from "./pages/CandidateSettings";
 import EmployerDashboard from "./pages/EmployerDashboard";
 import AIResumeBuilder from "./pages/AIResumeBuilder";
 import PostJob from "./pages/PostJob";
@@ -66,6 +67,7 @@ const App = () => (
 
               {/* ==================== CANDIDATE ROUTES ==================== */}
               <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
+              <Route path="/candidate-settings" element={<CandidateSettings />} />
               <Route path="/ai-resume-builder" element={<AIResumeBuilder />} />
 
               {/* ==================== EMPLOYER ROUTES ==================== */}
