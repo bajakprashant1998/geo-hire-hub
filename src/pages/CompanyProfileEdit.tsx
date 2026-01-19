@@ -146,7 +146,7 @@ const CompanyProfileEdit = () => {
       } else {
         // No employer profile found - user might be a candidate
         toast.error('No employer profile found');
-        navigate('/candidate-dashboard');
+        navigate('/employer-dashboard');
       }
     } catch (error) {
       console.error('Error fetching employer:', error);
@@ -243,7 +243,7 @@ const CompanyProfileEdit = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/candidate-dashboard')}>
+            <Button variant="ghost" size="icon" onClick={() => navigate('/employer-dashboard')}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>

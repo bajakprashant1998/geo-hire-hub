@@ -131,7 +131,7 @@ const ProfileSetup = () => {
 
       await refreshProfile();
       toast.success('Profile completed successfully!');
-      navigate('/candidate-dashboard');
+      navigate(profile?.user_type === 'employer' ? '/employer-dashboard' : '/candidate-dashboard');
     } catch (error: any) {
       toast.error(error.message || 'Failed to complete profile');
     } finally {
