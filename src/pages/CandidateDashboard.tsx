@@ -145,7 +145,7 @@ const CandidateDashboard = () => {
   useEffect(() => {
     if (!user || !profile) return;
     if (profile.user_type !== 'candidate') {
-      navigate('/dashboard');
+      navigate('/candidate-dashboard');
       return;
     }
     fetchCandidate();
