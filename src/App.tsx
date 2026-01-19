@@ -45,35 +45,48 @@ const App = () => (
           <MessageNotificationProvider>
             <EmailVerificationBanner />
             <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/update-password" element={<UpdatePassword />} />
-            <Route path="/verify-email" element={<VerifyEmail />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/profile-setup" element={<ProfileSetup />} />
-            <Route path="/dashboard" element={<Navigate to="/candidate-dashboard" replace />} />
-            <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
-            <Route path="/employer-dashboard" element={<EmployerDashboard />} />
-            <Route path="/ai-resume-builder" element={<AIResumeBuilder />} />
-            <Route path="/post-job" element={<PostJob />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/messages/:conversationId" element={<Messages />} />
-            <Route path="/candidates/:id" element={<CandidateDetail />} />
-            <Route path="/employers/:id" element={<EmployerDetail />} />
-            <Route path="/employer/:id" element={<EmployerDetail />} />
-            <Route path="/jobs/:id" element={<JobDetail />} />
-            <Route path="/plans" element={<Plans />} />
-            <Route path="/company-profile" element={<CompanyProfileEdit />} />
-            {/* Admin Routes */}
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/employers" element={<AdminEmployers />} />
-            <Route path="/admin/jobs" element={<AdminJobs />} />
-            <Route path="/admin/candidates" element={<AdminCandidates />} />
-            <Route path="/admin/plans" element={<AdminPlans />} />
-            <Route path="/admin/reports" element={<AdminReports />} />
-            <Route path="/admin/settings" element={<AdminSettings />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              {/* ==================== PUBLIC ROUTES ==================== */}
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/update-password" element={<UpdatePassword />} />
+              <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/profile-setup" element={<ProfileSetup />} />
+              <Route path="/plans" element={<Plans />} />
+
+              {/* ==================== SHARED ROUTES ==================== */}
+              <Route path="/messages" element={<Messages />} />
+              <Route path="/messages/:conversationId" element={<Messages />} />
+              
+              {/* ==================== PUBLIC DETAIL PAGES ==================== */}
+              <Route path="/jobs/:id" element={<JobDetail />} />
+              <Route path="/candidates/:id" element={<CandidateDetail />} />
+              <Route path="/employers/:id" element={<EmployerDetail />} />
+
+              {/* ==================== CANDIDATE ROUTES ==================== */}
+              <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
+              <Route path="/ai-resume-builder" element={<AIResumeBuilder />} />
+
+              {/* ==================== EMPLOYER ROUTES ==================== */}
+              <Route path="/employer-dashboard" element={<EmployerDashboard />} />
+              <Route path="/post-job" element={<PostJob />} />
+              <Route path="/company-profile" element={<CompanyProfileEdit />} />
+
+              {/* ==================== ADMIN ROUTES ==================== */}
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/employers" element={<AdminEmployers />} />
+              <Route path="/admin/jobs" element={<AdminJobs />} />
+              <Route path="/admin/candidates" element={<AdminCandidates />} />
+              <Route path="/admin/plans" element={<AdminPlans />} />
+              <Route path="/admin/reports" element={<AdminReports />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
+
+              {/* ==================== REDIRECTS & ALIASES ==================== */}
+              <Route path="/dashboard" element={<Navigate to="/candidate-dashboard" replace />} />
+              <Route path="/employer/:id" element={<EmployerDetail />} />
+
+              {/* ==================== CATCH-ALL ==================== */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </MessageNotificationProvider>
