@@ -1225,6 +1225,8 @@ export type Database = {
       }
       cleanup_old_messages: { Args: never; Returns: undefined }
       get_admin_dashboard_stats: { Args: never; Returns: Json }
+      get_current_user_candidate_id: { Args: never; Returns: string }
+      get_current_user_employer_id: { Args: never; Returns: string }
       get_job_analytics: { Args: { p_job_id: string }; Returns: Json }
       get_nearby_candidates: {
         Args: { radius_km?: number; user_lat: number; user_lng: number }
