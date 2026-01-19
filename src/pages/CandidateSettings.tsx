@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +24,7 @@ import {
   FileText,
   Bell,
   Globe,
+  Navigation,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -33,7 +34,8 @@ import { ResumeUpload } from '@/components/candidate/ResumeUpload';
 import { SecuritySettings } from '@/components/candidate/SecuritySettings';
 import { JobAlertsManager } from '@/components/candidate/JobAlertsManager';
 import { EmailVerificationGuard } from '@/components/auth/EmailVerificationGuard';
-import { motion } from 'framer-motion';
+import { LocationMapPicker } from '@/components/post-job/LocationMapPicker';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Education {
   institution: string;
@@ -109,6 +111,34 @@ const CandidateSettings = () => {
   // Privacy settings
   const [isVisibleOnMap, setIsVisibleOnMap] = useState(true);
   const [resumeVisibility, setResumeVisibility] = useState('approved_employers');
+  
+  // Location settings
+  const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+  const [locationAddress, setLocationAddress] = useState('');
+  
+  // Initial values for change detection
+  const [initialValues, setInitialValues] = useState<any>(null);
+
+  // Check if any values have changed
+  const hasChanges = () => {
+    if (!initialValues) return false;
+    
+    return (
+      fullName !== initialValues.fullName ||
+      avatarUrl !== initialValues.avatarUrl ||
+      jobTitle !== initialValues.jobTitle ||
+      bio !== initialValues.bio ||
+      experienceYears !== initialValues.experienceYears ||
+      expectedSalary !== initialValues.expectedSalary ||
+      JSON.stringify(skills) !== JSON.stringify(initialValues.skills) ||
+      JSON.stringify(education) !== JSON.stringify(initialValues.education) ||
+      JSON.stringify(portfolioUrls) !== JSON.stringify(initialValues.portfolioUrls) ||
+      isVisibleOnMap !== initialValues.isVisibleOnMap ||
+      resumeVisibility !== initialValues.resumeVisibility ||
+      coordinates?.lat !== initialValues.coordinates?.lat ||
+      coordinates?.lng !== initialValues.coordinates?.lng
+    );
+  };
 
   useEffect(() => {
     if (profile) {
@@ -153,6 +183,28 @@ const CandidateSettings = () => {
         setPortfolioUrls(data.portfolio_urls || []);
         setIsVisibleOnMap(profile.is_visible_on_map !== false);
         setResumeVisibility(data.resume_visibility || 'approved_employers');
+        
+        // Set location
+        const coords = profile.latitude && profile.longitude 
+          ? { lat: profile.latitude, lng: profile.longitude }
+          : null;
+        setCoordinates(coords);
+        
+        // Store initial values for change detection
+        setInitialValues({
+          fullName: profile.full_name || '',
+          avatarUrl: profile.avatar_url || '',
+          jobTitle: data.job_title || '',
+          bio: data.bio || '',
+          experienceYears: data.experience_years || 0,
+          expectedSalary: data.expected_salary || '',
+          skills: data.skills || [],
+          education: parsedEducation,
+          portfolioUrls: data.portfolio_urls || [],
+          isVisibleOnMap: profile.is_visible_on_map !== false,
+          resumeVisibility: data.resume_visibility || 'approved_employers',
+          coordinates: coords,
+        });
       } else {
         toast.error('No candidate profile found');
         navigate('/candidate-dashboard');
@@ -235,13 +287,15 @@ const CandidateSettings = () => {
 
     setSaving(true);
     try {
-      // Update profile
+      // Update profile with coordinates
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ 
           full_name: fullName,
           avatar_url: avatarUrl || null,
           is_visible_on_map: isVisibleOnMap,
+          latitude: coordinates?.lat || null,
+          longitude: coordinates?.lng || null,
         })
         .eq('id', profile.id);
 
@@ -263,6 +317,22 @@ const CandidateSettings = () => {
         .eq('id', candidate.id);
 
       if (candidateError) throw candidateError;
+
+      // Update initial values to reset change detection
+      setInitialValues({
+        fullName,
+        avatarUrl,
+        jobTitle,
+        bio,
+        experienceYears,
+        expectedSalary,
+        skills: [...skills],
+        education: [...education],
+        portfolioUrls: [...portfolioUrls],
+        isVisibleOnMap,
+        resumeVisibility,
+        coordinates: coordinates ? { ...coordinates } : null,
+      });
 
       await refreshProfile();
       toast.success('Profile saved successfully');
@@ -566,18 +636,14 @@ const CandidateSettings = () => {
                 </CardContent>
               </Card>
 
-              {/* Save Button */}
-              <div className="flex items-center justify-between">
+              {/* View Profile Button */}
+              <div className="flex items-center justify-start">
                 <Link to={`/candidates/${candidate?.id}`}>
                   <Button variant="outline">
                     <Eye className="w-4 h-4 mr-2" />
                     View as Employer
                   </Button>
                 </Link>
-                <Button onClick={handleSave} disabled={saving}>
-                  {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                  Save Profile
-                </Button>
               </div>
             </TabsContent>
 
@@ -593,6 +659,25 @@ const CandidateSettings = () => {
 
             {/* Privacy Tab */}
             <TabsContent value="privacy" className="space-y-6">
+              {/* Location Picker */}
+              <Card className="shadow-google">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Navigation className="w-5 h-5 text-primary" />
+                    Your Location
+                  </CardTitle>
+                  <CardDescription>Set your location so employers can find you nearby</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <LocationMapPicker
+                    coordinates={coordinates}
+                    setCoordinates={setCoordinates}
+                    address={locationAddress}
+                    setAddress={setLocationAddress}
+                  />
+                </CardContent>
+              </Card>
+
               <Card className="shadow-google">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -657,14 +742,6 @@ const CandidateSettings = () => {
 
               {/* Job Alerts */}
               {candidate && <JobAlertsManager candidateId={candidate.id} />}
-
-              {/* Save Button */}
-              <div className="flex justify-end">
-                <Button onClick={handleSave} disabled={saving}>
-                  {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                  Save Privacy Settings
-                </Button>
-              </div>
             </TabsContent>
 
             {/* Security Tab */}
@@ -673,6 +750,26 @@ const CandidateSettings = () => {
             </TabsContent>
           </Tabs>
         </div>
+
+        {/* Floating Save Button */}
+        <AnimatePresence>
+          {hasChanges() && (
+            <motion.div
+              initial={{ opacity: 0, y: 100 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 100 }}
+              className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50"
+            >
+              <div className="bg-card border shadow-lg rounded-full px-6 py-3 flex items-center gap-4">
+                <span className="text-sm font-medium text-muted-foreground">You have unsaved changes</span>
+                <Button onClick={handleSave} disabled={saving} className="gap-2">
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  Save Changes
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </EmailVerificationGuard>
   );
