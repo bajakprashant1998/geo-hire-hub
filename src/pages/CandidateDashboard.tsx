@@ -295,12 +295,14 @@ const CandidateDashboard = () => {
                   {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                 </Button>
                 <div className="hidden sm:flex items-center gap-3 ml-2 pl-3 border-l border-border">
-                  <Avatar className="w-9 h-9 border-2 border-primary/20">
-                    <AvatarImage src={profile.avatar_url || undefined} />
-                    <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
-                      {profile.full_name?.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
+                  <Link to="/candidate-settings">
+                    <Avatar className="w-9 h-9 border-2 border-primary/20 cursor-pointer hover:border-primary/50 transition-colors">
+                      <AvatarImage src={profile.avatar_url || undefined} />
+                      <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
+                        {profile.full_name?.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Link>
                   <Button variant="ghost" size="sm" onClick={signOut} className="text-muted-foreground hover:text-foreground hover:bg-secondary rounded-xl">
                     <LogOut className="w-4 h-4" />
                   </Button>
