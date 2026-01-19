@@ -438,7 +438,7 @@ const Messages = () => {
         {/* Header */}
         <div className="p-4 border-b border-border bg-google-blue text-white">
           <div className="flex items-center gap-3 mb-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/candidate-dashboard')} className="text-white hover:bg-white/20">
+            <Button variant="ghost" size="icon" onClick={() => navigate(profile?.user_type === 'employer' ? '/employer-dashboard' : '/candidate-dashboard')} className="text-white hover:bg-white/20">
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <h1 className="text-xl font-heading font-semibold">Messages</h1>

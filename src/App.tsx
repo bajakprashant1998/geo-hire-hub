@@ -15,6 +15,7 @@ import VerifyEmail from "./pages/VerifyEmail";
 import ProfileSetup from "./pages/ProfileSetup";
 
 import CandidateDashboard from "./pages/CandidateDashboard";
+import EmployerDashboard from "./pages/EmployerDashboard";
 import AIResumeBuilder from "./pages/AIResumeBuilder";
 import PostJob from "./pages/PostJob";
 import Messages from "./pages/Messages";
@@ -53,6 +54,7 @@ const App = () => (
             <Route path="/profile-setup" element={<ProfileSetup />} />
             <Route path="/dashboard" element={<Navigate to="/candidate-dashboard" replace />} />
             <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
+            <Route path="/employer-dashboard" element={<EmployerDashboard />} />
             <Route path="/ai-resume-builder" element={<AIResumeBuilder />} />
             <Route path="/post-job" element={<PostJob />} />
             <Route path="/messages" element={<Messages />} />

@@ -525,7 +525,7 @@ const PostJob = () => {
         .eq('employer_id', employerId);
 
       toast.success('Job posted successfully!');
-      navigate('/candidate-dashboard');
+      navigate('/employer-dashboard');
     } catch (error: any) {
       toast.error(error.message || 'Failed to post job');
     } finally {
@@ -569,7 +569,7 @@ const PostJob = () => {
             </h2>
             <p className="text-muted-foreground mb-6">{blockReason}</p>
             <div className="flex gap-3 justify-center">
-              <Button variant="outline" onClick={() => navigate('/candidate-dashboard')}>
+              <Button variant="outline" onClick={() => navigate('/employer-dashboard')}>
                 Dashboard
               </Button>
               {showUpgradePrompt ? (
@@ -594,7 +594,7 @@ const PostJob = () => {
         <div className="max-w-6xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={() => navigate('/candidate-dashboard')} className="shrink-0">
+              <Button variant="ghost" size="icon" onClick={() => navigate('/employer-dashboard')} className="shrink-0">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div className="hidden sm:block">

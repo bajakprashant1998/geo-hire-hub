@@ -55,7 +55,7 @@ export const Header = ({ mode, onModeChange, onSearch, onMenuClick }: HeaderProp
         {/* Right - Auth buttons */}
         <div className="flex items-center gap-2 shrink-0">
           {user ? (
-            <Link to="/candidate-dashboard">
+            <Link to={profile?.user_type === 'employer' ? '/employer-dashboard' : '/candidate-dashboard'}>
               <Button size="sm" className="shadow-lg bg-card text-foreground hover:bg-card/90 border border-border/50">
                 <LayoutDashboard className="w-4 h-4 sm:mr-2" />
                 <span className="hidden sm:inline">Dashboard</span>
