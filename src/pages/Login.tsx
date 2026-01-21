@@ -22,15 +22,28 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
 
+      // Fetch user profile to determine redirect
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('user_type')
+        .eq('user_id', data.user.id)
+        .maybeSingle();
+
       toast.success('Welcome back!');
-      navigate('/');
+      
+      // Redirect based on user type
+      if (profileData?.user_type === 'employer') {
+        navigate('/employer-dashboard');
+      } else {
+        navigate('/candidate-dashboard');
+      }
     } catch (error: any) {
       toast.error(error.message || 'Login failed');
     } finally {

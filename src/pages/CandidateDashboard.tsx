@@ -1,20 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import {
-  MapPin, MessageSquare, User, Briefcase, Bell, Shield, 
-  FileText, Sparkles, Edit, Loader2, TrendingUp, Eye, CheckCircle2,
-  Star, LogOut, Menu, X, Home, ChevronRight, Calendar, 
-  Award, Target, Zap, ArrowUpRight, Clock, BookOpen
+  Briefcase, Bell, Shield, FileText, Sparkles, Edit, Loader2, 
+  Eye, CheckCircle2, Star, ChevronRight, Zap, User
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { EmailVerificationGuard } from '@/components/auth/EmailVerificationGuard';
-import { motion, AnimatePresence } from 'framer-motion';
+import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
+import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
+import { StatCard } from '@/components/dashboard/StatCard';
 
 import { ProfileEditModal } from '@/components/candidate/ProfileEditModal';
 import { ResumeUpload } from '@/components/candidate/ResumeUpload';
@@ -24,16 +24,6 @@ import { JobAlertsManager } from '@/components/candidate/JobAlertsManager';
 import { SecuritySettings } from '@/components/candidate/SecuritySettings';
 import { RecommendedJobs } from '@/components/candidate/RecommendedJobs';
 
-const fadeInUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.4 }
-};
-
-const staggerContainer = {
-  animate: { transition: { staggerChildren: 0.08 } }
-};
-
 const CandidateDashboard = () => {
   const navigate = useNavigate();
   const { user, profile, signOut, refreshProfile } = useAuth();
@@ -41,7 +31,7 @@ const CandidateDashboard = () => {
   const [candidate, setCandidate] = useState<any>(null);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [stats, setStats] = useState({
     applications: 0,
     views: 0,
@@ -92,6 +82,15 @@ const CandidateDashboard = () => {
     refreshProfile();
   };
 
+  const handleSectionClick = (value: string) => {
+    if (value === 'home') {
+      setActiveSection(null);
+    } else {
+      setActiveSection(value);
+    }
+    setSidebarOpen(false);
+  };
+
   const calculateCompleteness = () => {
     if (!profile || !candidate) return 0;
     const checks = [
@@ -108,47 +107,46 @@ const CandidateDashboard = () => {
     return Math.round((checks.filter(Boolean).length / checks.length) * 100);
   };
 
+  const sidebarItems = [
+    { icon: Briefcase, label: 'My Applications', value: 'jobs', badge: stats.applications },
+    { icon: Star, label: 'Recommended Jobs', value: 'recommended' },
+    { icon: FileText, label: 'Resume Builder', value: 'resume' },
+    { icon: Bell, label: 'Job Alerts', value: 'alerts' },
+    { icon: Bell, label: 'Notifications', value: 'notifications' },
+    { icon: Shield, label: 'Security', value: 'security' }
+  ];
+
   if (!user || !profile) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary flex items-center justify-center p-4">
-        <motion.div {...fadeInUp}>
-          <Card className="w-full max-w-md border-0 shadow-2xl bg-card/80 backdrop-blur-xl">
-            <CardContent className="p-8 text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-primary to-primary/60 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-primary/25">
-                <User className="w-10 h-10 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold mb-3">Welcome to Hire for Job</h2>
-              <p className="text-muted-foreground mb-8">Sign in to access your personalized dashboard</p>
-              <Button onClick={() => navigate('/login')} className="w-full h-12 rounded-2xl text-base font-semibold" size="lg">
-                Sign In to Continue
-              </Button>
-            </CardContent>
-          </Card>
-        </motion.div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-xl">
+          <CardContent className="p-8 text-center">
+            <div className="w-20 h-20 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <User className="w-10 h-10 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold mb-3 text-gray-900">Welcome to Hire for Job</h2>
+            <p className="text-gray-500 mb-8">Sign in to access your personalized dashboard</p>
+            <Button onClick={() => navigate('/login')} className="w-full h-12 bg-blue-600 hover:bg-blue-700" size="lg">
+              Sign In to Continue
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary flex items-center justify-center">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center"
-        >
-          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          </div>
-          <p className="text-muted-foreground font-medium">Loading your dashboard...</p>
-        </motion.div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-10 h-10 animate-spin text-blue-600 mx-auto mb-4" />
+          <p className="text-gray-500 font-medium">Loading your dashboard...</p>
+        </div>
       </div>
     );
   }
 
   const completeness = calculateCompleteness();
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
   // Render expanded section content
   const renderSectionContent = () => {
@@ -179,357 +177,254 @@ const CandidateDashboard = () => {
 
   return (
     <EmailVerificationGuard fallbackMessage="Please verify your email to access your dashboard.">
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/30">
-        {/* Minimal Header */}
-        <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border/50">
-          <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                <div className="w-9 h-9 bg-gradient-to-br from-primary to-primary/70 rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-                  <MapPin className="w-5 h-5 text-white" />
-                </div>
-                <span className="font-bold text-lg hidden sm:block">Hire for Job</span>
-              </Link>
-            </div>
+      <div className="min-h-screen bg-[#F4F6F9] flex">
+        {/* Sidebar */}
+        <DashboardSidebar
+          type="candidate"
+          items={sidebarItems}
+          activeItem={activeSection}
+          onItemClick={handleSectionClick}
+          userName={profile.full_name}
+          userTitle={candidate?.job_title || 'Job Seeker'}
+          avatarUrl={profile.avatar_url}
+          onSignOut={signOut}
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
 
-            <div className="flex items-center gap-2">
-              <Link to="/messages">
-                <Button variant="ghost" size="icon" className="rounded-xl relative">
-                  <MessageSquare className="w-5 h-5" />
-                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-destructive rounded-full text-[10px] text-white flex items-center justify-center font-bold">3</span>
-                </Button>
-              </Link>
-              <Button variant="ghost" size="icon" className="rounded-xl md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-              </Button>
-              <div className="hidden md:flex items-center gap-2 pl-2 border-l border-border/50 ml-2">
-                <Link to="/candidate-settings">
-                  <Avatar className="w-9 h-9 ring-2 ring-primary/20 hover:ring-primary/40 transition-all cursor-pointer">
-                    <AvatarImage src={profile.avatar_url || undefined} />
-                    <AvatarFallback className="bg-gradient-to-br from-primary to-primary/70 text-white font-semibold">
-                      {profile.full_name?.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
-                </Link>
-                <Button variant="ghost" size="icon" onClick={signOut} className="rounded-xl text-muted-foreground hover:text-destructive">
-                  <LogOut className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-h-screen lg:ml-0">
+          {/* Header */}
+          <DashboardHeader
+            type="candidate"
+            userName={profile.full_name}
+            userTitle={candidate?.job_title}
+            avatarUrl={profile.avatar_url}
+            onMenuClick={() => setSidebarOpen(true)}
+            onSignOut={signOut}
+            messageCount={3}
+            notificationCount={2}
+          />
 
-          {/* Mobile Menu */}
-          <AnimatePresence>
-            {mobileMenuOpen && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className="md:hidden border-t border-border/50 bg-background/95 backdrop-blur-xl"
-              >
-                <div className="container mx-auto px-4 py-4 space-y-2">
-                  <Link to="/candidate-settings" className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary transition-colors">
-                    <Avatar className="w-10 h-10">
-                      <AvatarImage src={profile.avatar_url || undefined} />
-                      <AvatarFallback className="bg-primary text-white">{profile.full_name?.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="font-semibold">{profile.full_name}</p>
-                      <p className="text-sm text-muted-foreground">{candidate?.job_title || 'Job Seeker'}</p>
-                    </div>
-                  </Link>
-                  <Button variant="ghost" onClick={signOut} className="w-full justify-start text-destructive">
-                    <LogOut className="w-4 h-4 mr-2" /> Sign Out
-                  </Button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </header>
-
-        <main className="container mx-auto px-4 py-6 max-w-7xl">
-          <AnimatePresence mode="wait">
+          {/* Main Content */}
+          <main className="flex-1 p-4 lg:p-6 overflow-y-auto">
             {activeSection ? (
-              // Expanded Section View
-              <motion.div
-                key="section"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="space-y-6"
-              >
+              // Section Content View
+              <div className="max-w-6xl mx-auto">
                 <Button 
                   variant="ghost" 
                   onClick={() => setActiveSection(null)}
-                  className="rounded-xl gap-2 mb-4"
+                  className="mb-4 text-gray-600 hover:text-gray-900"
                 >
-                  <ChevronRight className="w-4 h-4 rotate-180" />
+                  <ChevronRight className="w-4 h-4 rotate-180 mr-2" />
                   Back to Dashboard
                 </Button>
-                {renderSectionContent()}
-              </motion.div>
+                <Card className="bg-white shadow-sm border-0">
+                  <CardContent className="p-6">
+                    {renderSectionContent()}
+                  </CardContent>
+                </Card>
+              </div>
             ) : (
-              // Dashboard Grid View
-              <motion.div
-                key="dashboard"
-                variants={staggerContainer}
-                initial="initial"
-                animate="animate"
-                className="space-y-6"
-              >
-                {/* Hero Welcome Section */}
-                <motion.div variants={fadeInUp} className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-primary via-primary/90 to-primary/80 p-6 sm:p-8 text-white">
-                  <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                    <div className="space-y-3">
-                      <p className="text-white/80 font-medium">{greeting}</p>
-                      <h1 className="text-3xl sm:text-4xl font-bold">{profile.full_name?.split(' ')[0]} 👋</h1>
-                      <p className="text-white/80 max-w-md">
-                        {completeness < 100 
-                          ? `Your profile is ${completeness}% complete. Let's make it shine!`
-                          : "Your profile is complete. You're ready to land your dream job!"}
-                      </p>
-                      <div className="flex flex-wrap gap-3 pt-2">
-                        <Button 
-                          onClick={() => setEditModalOpen(true)}
-                          className="bg-white text-primary hover:bg-white/90 rounded-xl shadow-lg"
-                        >
-                          <Edit className="w-4 h-4 mr-2" /> Edit Profile
-                        </Button>
-                        <Link to="/ai-resume-builder">
-                          <Button variant="outline" className="border-white/30 text-white hover:bg-white/10 rounded-xl">
-                            <Sparkles className="w-4 h-4 mr-2" /> AI Resume
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-
-                    {/* Profile Score */}
-                    <div className="flex items-center gap-4 bg-white/10 backdrop-blur-sm rounded-2xl p-5 border border-white/20">
-                      <div className="relative w-20 h-20">
-                        <svg className="w-20 h-20 -rotate-90">
-                          <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="6" />
-                          <circle 
-                            cx="40" cy="40" r="34" fill="none" 
-                            stroke="white" strokeWidth="6"
-                            strokeDasharray={`${completeness * 2.14} 214`}
-                            strokeLinecap="round"
-                            className="transition-all duration-1000"
-                          />
-                        </svg>
-                        <span className="absolute inset-0 flex items-center justify-center text-xl font-bold">{completeness}%</span>
-                      </div>
+              // Dashboard Home View
+              <div className="max-w-6xl mx-auto space-y-6">
+                {/* Welcome Banner */}
+                <Card className="bg-gradient-to-r from-blue-600 via-blue-500 to-blue-700 text-white border-0 shadow-lg overflow-hidden">
+                  <CardContent className="p-6 lg:p-8">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                       <div>
-                        <p className="font-semibold text-lg">Profile Score</p>
-                        <p className="text-white/70 text-sm">
-                          {completeness === 100 ? 'Excellent!' : 'Keep improving'}
+                        <h1 className="text-2xl lg:text-3xl font-bold mb-2">
+                          Welcome back, {profile.full_name?.split(' ')[0]}! 👋
+                        </h1>
+                        <p className="text-blue-100 text-lg">
+                          {completeness < 100 
+                            ? `Your profile is ${completeness}% complete. Complete it to get more visibility!`
+                            : "Your profile is complete. You're ready to land your dream job!"}
                         </p>
+                        <div className="flex flex-wrap gap-3 mt-4">
+                          <Button 
+                            onClick={() => setEditModalOpen(true)}
+                            className="bg-white text-blue-600 hover:bg-blue-50"
+                          >
+                            <Edit className="w-4 h-4 mr-2" /> Edit Profile
+                          </Button>
+                          <Link to="/ai-resume-builder">
+                            <Button variant="outline" className="border-white/30 text-white hover:bg-white/10">
+                              <Sparkles className="w-4 h-4 mr-2" /> AI Resume Builder
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                      
+                      {/* Profile Completeness Circle */}
+                      <div className="flex items-center gap-4 bg-white/10 rounded-2xl p-4 backdrop-blur-sm">
+                        <div className="relative w-20 h-20">
+                          <svg className="w-20 h-20 -rotate-90">
+                            <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="6" />
+                            <circle 
+                              cx="40" cy="40" r="34" fill="none" 
+                              stroke="white" strokeWidth="6"
+                              strokeDasharray={`${completeness * 2.14} 214`}
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                          <span className="absolute inset-0 flex items-center justify-center text-xl font-bold">{completeness}%</span>
+                        </div>
+                        <div>
+                          <p className="font-semibold text-lg">Profile Score</p>
+                          <p className="text-blue-100 text-sm">
+                            {completeness === 100 ? 'Excellent!' : 'Keep improving'}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </CardContent>
+                </Card>
 
-                  {/* Decorative Elements */}
-                  <div className="absolute -right-20 -top-20 w-64 h-64 bg-white/10 rounded-full blur-3xl" />
-                  <div className="absolute -left-10 -bottom-10 w-48 h-48 bg-white/5 rounded-full blur-2xl" />
-                </motion.div>
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <StatCard
+                    icon={Briefcase}
+                    label="Applications"
+                    value={stats.applications}
+                    trend="+12%"
+                    trendUp={true}
+                    iconColor="bg-blue-500"
+                    onClick={() => setActiveSection('jobs')}
+                  />
+                  <StatCard
+                    icon={Eye}
+                    label="Profile Views"
+                    value={stats.views}
+                    trend="+8%"
+                    trendUp={true}
+                    iconColor="bg-rose-500"
+                  />
+                  <StatCard
+                    icon={Star}
+                    label="Saved Jobs"
+                    value={stats.savedJobs}
+                    iconColor="bg-amber-500"
+                    onClick={() => setActiveSection('jobs')}
+                  />
+                  <StatCard
+                    icon={CheckCircle2}
+                    label="Interviews"
+                    value={stats.interviews}
+                    iconColor="bg-emerald-500"
+                  />
+                </div>
 
-                {/* Bento Grid Stats */}
-                <motion.div variants={fadeInUp} className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  {[
-                    { icon: Briefcase, label: 'Applications', value: stats.applications, color: 'from-blue-500 to-blue-600', trend: '+12%' },
-                    { icon: Eye, label: 'Profile Views', value: stats.views, color: 'from-rose-500 to-rose-600', trend: '+8%' },
-                    { icon: Star, label: 'Saved Jobs', value: stats.savedJobs, color: 'from-amber-500 to-amber-600' },
-                    { icon: CheckCircle2, label: 'Interviews', value: stats.interviews, color: 'from-emerald-500 to-emerald-600' }
-                  ].map((stat, i) => (
-                    <Card key={i} className="group relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer bg-card/80 backdrop-blur-sm">
-                      <CardContent className="p-5">
-                        <div className={`absolute -right-4 -top-4 w-20 h-20 bg-gradient-to-br ${stat.color} rounded-full opacity-10 group-hover:opacity-20 transition-opacity`} />
-                        <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center mb-3 shadow-lg`}>
-                          <stat.icon className="w-5 h-5 text-white" />
-                        </div>
-                        <p className="text-3xl font-bold mb-1">{stat.value}</p>
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm text-muted-foreground font-medium">{stat.label}</p>
-                          {stat.trend && (
-                            <span className="text-xs font-semibold text-emerald-600 flex items-center gap-0.5">
-                              <TrendingUp className="w-3 h-3" /> {stat.trend}
-                            </span>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </motion.div>
-
-                {/* Skills Tags */}
+                {/* Skills Section */}
                 {candidate?.skills?.length > 0 && (
-                  <motion.div variants={fadeInUp} className="flex flex-wrap gap-2">
-                    {candidate.skills.slice(0, 6).map((skill: string, i: number) => (
-                      <Badge 
-                        key={i} 
-                        variant="secondary" 
-                        className="px-4 py-1.5 rounded-full text-sm font-medium bg-secondary/80 backdrop-blur-sm"
-                      >
-                        {skill}
-                      </Badge>
-                    ))}
-                    {candidate.skills.length > 6 && (
-                      <Badge variant="outline" className="px-4 py-1.5 rounded-full text-sm">
-                        +{candidate.skills.length - 6} more
-                      </Badge>
-                    )}
-                  </motion.div>
+                  <Card className="bg-white shadow-sm border-0">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-lg text-gray-900">Your Skills</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex flex-wrap gap-2">
+                        {candidate.skills.slice(0, 8).map((skill: string, i: number) => (
+                          <Badge 
+                            key={i} 
+                            variant="secondary" 
+                            className="px-4 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100"
+                          >
+                            {skill}
+                          </Badge>
+                        ))}
+                        {candidate.skills.length > 8 && (
+                          <Badge variant="outline" className="px-4 py-1.5">
+                            +{candidate.skills.length - 8} more
+                          </Badge>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
                 )}
 
-                {/* Bento Action Grid */}
-                <motion.div variants={fadeInUp} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {/* Job Activity */}
+                {/* Quick Actions Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <Card 
-                    className="group cursor-pointer hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-card/80 backdrop-blur-sm lg:col-span-2"
-                    onClick={() => setActiveSection('jobs')}
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg">
-                          <Briefcase className="w-6 h-6 text-white" />
-                        </div>
-                        <ArrowUpRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
-                      </div>
-                      <h3 className="text-xl font-bold mb-2">Job Activity</h3>
-                      <p className="text-muted-foreground mb-4">Track your applications, saved jobs, and interview schedule</p>
-                      <div className="flex items-center gap-4 text-sm">
-                        <span className="flex items-center gap-1.5 text-muted-foreground">
-                          <Clock className="w-4 h-4" /> {stats.applications} pending
-                        </span>
-                        <span className="flex items-center gap-1.5 text-muted-foreground">
-                          <Calendar className="w-4 h-4" /> {stats.interviews} upcoming
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Resume */}
-                  <Card 
-                    className="group cursor-pointer hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-card/80 backdrop-blur-sm"
-                    onClick={() => setActiveSection('resume')}
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg">
-                          <FileText className="w-6 h-6 text-white" />
-                        </div>
-                        <ArrowUpRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
-                      </div>
-                      <h3 className="text-xl font-bold mb-2">My Resume</h3>
-                      <p className="text-muted-foreground text-sm">
-                        {candidate?.resume_url ? 'Resume uploaded' : 'Upload your resume'}
-                      </p>
-                      {candidate?.resume_url && (
-                        <Badge className="mt-3" variant="secondary">
-                          <CheckCircle2 className="w-3 h-3 mr-1" /> Active
-                        </Badge>
-                      )}
-                    </CardContent>
-                  </Card>
-
-                  {/* Recommended Jobs */}
-                  <Card 
-                    className="group cursor-pointer hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white"
+                    className="bg-white shadow-sm border-0 cursor-pointer hover:shadow-md transition-all group"
                     onClick={() => setActiveSection('recommended')}
                   >
                     <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                          <Target className="w-6 h-6 text-white" />
+                      <div className="flex items-start justify-between">
+                        <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
+                          <Zap className="w-6 h-6 text-amber-600" />
                         </div>
-                        <ArrowUpRight className="w-5 h-5 text-white/70 group-hover:text-white group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                        <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-gray-500 transition-colors" />
                       </div>
-                      <h3 className="text-xl font-bold mb-2">Recommended</h3>
-                      <p className="text-white/80 text-sm">Jobs matching your skills and preferences</p>
+                      <h3 className="font-semibold text-gray-900 mt-4">Recommended Jobs</h3>
+                      <p className="text-sm text-gray-500 mt-1">Jobs matching your skills and preferences</p>
                     </CardContent>
                   </Card>
 
-                  {/* Notifications */}
                   <Card 
-                    className="group cursor-pointer hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-card/80 backdrop-blur-sm"
-                    onClick={() => setActiveSection('notifications')}
+                    className="bg-white shadow-sm border-0 cursor-pointer hover:shadow-md transition-all group"
+                    onClick={() => setActiveSection('resume')}
                   >
                     <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg">
-                          <Bell className="w-6 h-6 text-white" />
+                      <div className="flex items-start justify-between">
+                        <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
+                          <FileText className="w-6 h-6 text-purple-600" />
                         </div>
-                        <ArrowUpRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                        <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-gray-500 transition-colors" />
                       </div>
-                      <h3 className="text-xl font-bold mb-2">Notifications</h3>
-                      <p className="text-muted-foreground text-sm">Stay updated with latest activities</p>
+                      <h3 className="font-semibold text-gray-900 mt-4">Manage Resume</h3>
+                      <p className="text-sm text-gray-500 mt-1">Upload and manage your resume documents</p>
                     </CardContent>
                   </Card>
 
-                  {/* Job Alerts */}
                   <Card 
-                    className="group cursor-pointer hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-card/80 backdrop-blur-sm"
+                    className="bg-white shadow-sm border-0 cursor-pointer hover:shadow-md transition-all group"
                     onClick={() => setActiveSection('alerts')}
                   >
                     <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center shadow-lg">
-                          <Zap className="w-6 h-6 text-white" />
+                      <div className="flex items-start justify-between">
+                        <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
+                          <Bell className="w-6 h-6 text-green-600" />
                         </div>
-                        <ArrowUpRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+                        <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-gray-500 transition-colors" />
                       </div>
-                      <h3 className="text-xl font-bold mb-2">Job Alerts</h3>
-                      <p className="text-muted-foreground text-sm">Get notified for matching jobs</p>
+                      <h3 className="font-semibold text-gray-900 mt-4">Job Alerts</h3>
+                      <p className="text-sm text-gray-500 mt-1">Set up alerts for new job postings</p>
                     </CardContent>
                   </Card>
-                </motion.div>
+                </div>
 
-                {/* Bottom Row */}
-                <motion.div variants={fadeInUp} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Security */}
-                  <Card 
-                    className="group cursor-pointer hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-card/80 backdrop-blur-sm"
-                    onClick={() => setActiveSection('security')}
-                  >
-                    <CardContent className="p-6 flex items-center gap-5">
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center shadow-lg flex-shrink-0">
-                        <Shield className="w-7 h-7 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-bold mb-1">Security & Privacy</h3>
-                        <p className="text-muted-foreground text-sm">Manage your account security settings</p>
-                      </div>
-                      <ArrowUpRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
-                    </CardContent>
-                  </Card>
-
-                  {/* Settings Link */}
-                  <Link to="/candidate-settings">
-                    <Card className="group cursor-pointer hover:shadow-xl transition-all duration-300 border-0 shadow-lg bg-card/80 backdrop-blur-sm h-full">
-                      <CardContent className="p-6 flex items-center gap-5 h-full">
-                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg flex-shrink-0">
-                          <User className="w-7 h-7 text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="text-lg font-bold mb-1">Profile Settings</h3>
-                          <p className="text-muted-foreground text-sm">Update your profile, skills, and preferences</p>
-                        </div>
-                        <ArrowUpRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0" />
-                      </CardContent>
-                    </Card>
-                  </Link>
-                </motion.div>
-              </motion.div>
+                {/* Recent Activity (Optional) */}
+                <Card className="bg-white shadow-sm border-0">
+                  <CardHeader>
+                    <CardTitle className="text-lg text-gray-900">Recent Activity</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-8 text-gray-500">
+                      <Briefcase className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                      <p>No recent activity</p>
+                      <Link to="/">
+                        <Button variant="link" className="text-blue-600 mt-2">
+                          Browse Jobs on Map
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             )}
-          </AnimatePresence>
-        </main>
+          </main>
+        </div>
 
-        <ProfileEditModal 
-          open={editModalOpen} 
-          onOpenChange={setEditModalOpen}
-          profile={profile}
-          candidate={candidate}
-          onSave={handleProfileSave}
-        />
+        {/* Profile Edit Modal */}
+        {profile && candidate && (
+          <ProfileEditModal
+            open={editModalOpen}
+            onOpenChange={setEditModalOpen}
+            profile={profile}
+            candidate={candidate}
+            onSave={handleProfileSave}
+          />
+        )}
       </div>
     </EmailVerificationGuard>
   );
