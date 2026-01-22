@@ -1227,6 +1227,10 @@ export type Database = {
       get_admin_dashboard_stats: { Args: never; Returns: Json }
       get_current_user_candidate_id: { Args: never; Returns: string }
       get_current_user_employer_id: { Args: never; Returns: string }
+      get_current_user_type: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["user_type"]
+      }
       get_job_analytics: { Args: { p_job_id: string }; Returns: Json }
       get_nearby_candidates: {
         Args: { radius_km?: number; user_lat: number; user_lng: number }
@@ -1276,6 +1280,10 @@ export type Database = {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_approved_employer_profile: {
+        Args: { _profile_id: string }
         Returns: boolean
       }
       is_candidate: { Args: { _user_id: string }; Returns: boolean }
