@@ -240,6 +240,40 @@ const CandidateDashboard = () => {
             ) : (
               // Dashboard Home View
               <div className="max-w-6xl mx-auto space-y-6">
+                {/* Quick Actions Bar */}
+                {completeness < 100 && (
+                  <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
+                    <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                          <User className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-foreground">Complete your profile</p>
+                          <p className="text-sm text-muted-foreground">
+                            Your profile is {completeness}% complete. Add more details to attract employers.
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setEditModalOpen(true)}
+                        >
+                          Quick Edit
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          onClick={() => navigate('/candidate-settings')}
+                        >
+                          Full Settings
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                   <DashboardStatCard
@@ -256,6 +290,7 @@ const CandidateDashboard = () => {
                     value={stats.views}
                     subtitle="+12% this month"
                     accentColor="green"
+                    onClick={() => setEditModalOpen(true)}
                   />
                   <DashboardStatCard
                     icon={MessageSquare}
