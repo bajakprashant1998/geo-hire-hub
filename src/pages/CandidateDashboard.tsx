@@ -26,8 +26,8 @@ import { RecommendedJobs } from '@/components/candidate/RecommendedJobs';
 
 const CandidateDashboard = () => {
   const navigate = useNavigate();
-  const { user, profile, signOut, refreshProfile } = useAuth();
-  const [loading, setLoading] = useState(true);
+  const { user, profile, loading: authLoading, signOut, refreshProfile } = useAuth();
+  const [dataLoading, setDataLoading] = useState(true);
   const [candidate, setCandidate] = useState<any>(null);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -40,13 +40,21 @@ const CandidateDashboard = () => {
   });
 
   useEffect(() => {
-    if (!user || !profile) return;
+    // Wait for auth to finish loading
+    if (authLoading) return;
+    
+    // If no user after auth loaded, they need to login
+    if (!user) return;
+    
+    // Wait for profile to load
+    if (!profile) return;
+    
     if (profile.user_type !== 'candidate') {
       navigate('/employer-dashboard');
       return;
     }
     fetchCandidate();
-  }, [user, profile]);
+  }, [user, profile, authLoading]);
 
   const fetchCandidate = async () => {
     if (!profile) return;
@@ -74,7 +82,7 @@ const CandidateDashboard = () => {
       });
     }
 
-    setLoading(false);
+    setDataLoading(false);
   };
 
   const handleProfileSave = () => {
@@ -117,6 +125,19 @@ const CandidateDashboard = () => {
     { icon: Shield, label: 'Security', value: 'security' }
   ];
 
+  // Show loading while auth is being checked
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-secondary flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground font-medium">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login prompt only after auth has finished loading
   if (!user || !profile) {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center p-4">
@@ -136,7 +157,7 @@ const CandidateDashboard = () => {
     );
   }
 
-  if (loading) {
+  if (dataLoading) {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center">
         <div className="text-center">
