@@ -88,12 +88,13 @@ const ProfileCompletenessCard = ({ completeness, missingFields }: { completeness
 
 const CandidateSettings = () => {
   const navigate = useNavigate();
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile, loading: authLoading, profileLoading } = useAuth();
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [candidate, setCandidate] = useState<any>(null);
   const [activeTab, setActiveTab] = useState('profile');
+  const [profileRetryCount, setProfileRetryCount] = useState(0);
   
   // Profile fields
   const [fullName, setFullName] = useState('');
@@ -140,13 +141,38 @@ const CandidateSettings = () => {
     );
   };
 
+  // Retry profile fetch if user exists but profile is null
   useEffect(() => {
+    if (user && !profile && !profileLoading && profileRetryCount < 3) {
+      const timer = setTimeout(() => {
+        refreshProfile();
+        setProfileRetryCount(prev => prev + 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [user, profile, profileLoading, profileRetryCount, refreshProfile]);
+
+  useEffect(() => {
+    // Still loading auth
+    if (authLoading) return;
+    
+    // Not logged in
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    
+    // Wait for profile but not forever
+    if (!profile && profileLoading) return;
+    
+    // Profile loaded, fetch candidate data
     if (profile) {
       fetchCandidateProfile();
-    } else if (user === null) {
-      navigate('/login');
+    } else {
+      // Profile failed to load after retries
+      setLoading(false);
     }
-  }, [profile, user]);
+  }, [profile, user, authLoading, profileLoading]);
 
   const fetchCandidateProfile = async () => {
     if (!profile) {
@@ -344,10 +370,62 @@ const CandidateSettings = () => {
     }
   };
 
+  // Show auth loading state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show profile loading state
+  if (user && !profile && profileLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error if profile failed to load
+  if (user && !profile && !profileLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-xl border-0">
+          <CardContent className="p-8 text-center">
+            <div className="w-20 h-20 bg-destructive/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <User className="w-10 h-10 text-destructive" />
+            </div>
+            <h2 className="text-2xl font-bold mb-3 text-foreground">Profile Not Found</h2>
+            <p className="text-muted-foreground mb-8">We couldn't load your profile. Please try again.</p>
+            <div className="flex gap-3">
+              <Button onClick={() => refreshProfile()} variant="outline" className="flex-1">
+                Retry
+              </Button>
+              <Button onClick={() => navigate('/candidate-dashboard')} className="flex-1">
+                Go Back
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading settings...</p>
+        </div>
       </div>
     );
   }

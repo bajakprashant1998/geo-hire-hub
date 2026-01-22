@@ -23,19 +23,31 @@ import { ApplicantTabs } from '@/components/employer/ApplicantTabs';
 
 const EmployerDashboard = () => {
   const navigate = useNavigate();
-  const { user, profile, loading: authLoading, signOut } = useAuth();
+  const { user, profile, loading: authLoading, profileLoading, signOut, refreshProfile } = useAuth();
   const [dataLoading, setDataLoading] = useState(true);
   const [employer, setEmployer] = useState<any>(null);
   const [jobs, setJobs] = useState<any[]>([]);
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [profileRetryCount, setProfileRetryCount] = useState(0);
   const [stats, setStats] = useState({
     activeJobs: 0,
     totalApplications: 0,
     scheduledInterviews: 0,
     profileViews: 0
   });
+
+  // Retry profile fetch if user exists but profile is null
+  useEffect(() => {
+    if (user && !profile && !profileLoading && profileRetryCount < 3) {
+      const timer = setTimeout(() => {
+        refreshProfile();
+        setProfileRetryCount(prev => prev + 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [user, profile, profileLoading, profileRetryCount, refreshProfile]);
 
   useEffect(() => {
     // Wait for auth to finish loading
@@ -44,15 +56,21 @@ const EmployerDashboard = () => {
     // If no user after auth loaded, they need to login
     if (!user) return;
     
-    // Wait for profile to load
-    if (!profile) return;
+    // Wait for profile to load (but don't wait forever)
+    if (!profile && profileLoading) return;
+    
+    // If profile still null after loading, show fallback
+    if (!profile) {
+      setDataLoading(false);
+      return;
+    }
     
     if (profile.user_type !== 'employer') {
       navigate('/candidate-dashboard');
       return;
     }
     fetchEmployerData();
-  }, [user, profile, authLoading]);
+  }, [user, profile, authLoading, profileLoading]);
 
   const fetchEmployerData = async () => {
     if (!profile) return;
@@ -151,8 +169,20 @@ const EmployerDashboard = () => {
     );
   }
 
-  // Show login prompt only after auth has finished loading
-  if (!user || !profile) {
+  // Show loading while profile is being fetched (with timeout protection)
+  if (user && !profile && profileLoading) {
+    return (
+      <div className="min-h-screen bg-secondary flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-10 h-10 animate-spin text-[hsl(142,53%,43%)] mx-auto mb-4" />
+          <p className="text-muted-foreground font-medium">Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login prompt only after auth has finished loading and no user
+  if (!user) {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center p-4">
         <Card className="w-full max-w-md shadow-xl border-0">
@@ -165,6 +195,31 @@ const EmployerDashboard = () => {
             <Button onClick={() => navigate('/login')} className="w-full h-12 bg-[hsl(142,53%,43%)] hover:bg-[hsl(142,53%,38%)]" size="lg">
               Sign In to Continue
             </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show error state if profile failed to load
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-secondary flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-xl border-0">
+          <CardContent className="p-8 text-center">
+            <div className="w-20 h-20 bg-destructive/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Building2 className="w-10 h-10 text-destructive" />
+            </div>
+            <h2 className="text-2xl font-bold mb-3 text-foreground">Profile Not Found</h2>
+            <p className="text-muted-foreground mb-8">We couldn't load your profile. Please try again or contact support.</p>
+            <div className="flex gap-3">
+              <Button onClick={() => refreshProfile()} variant="outline" className="flex-1">
+                Retry
+              </Button>
+              <Button onClick={() => signOut()} variant="destructive" className="flex-1">
+                Sign Out
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
