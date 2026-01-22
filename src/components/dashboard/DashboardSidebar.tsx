@@ -3,9 +3,9 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
-  Home, Briefcase, FileText, Bell, Shield, Users, Star, 
-  Settings, LogOut, MapPin, Building2, Plus, CreditCard,
-  BarChart3, BookOpen, ChevronLeft
+  Home, Briefcase, FileText, Bell, Shield, MessageSquare, 
+  Settings, LogOut, MapPin, Building2, Plus, Calendar,
+  Bookmark, User, ChevronLeft, Users
 } from 'lucide-react';
 
 interface SidebarItem {
@@ -41,7 +41,6 @@ export const DashboardSidebar = ({
   onClose
 }: DashboardSidebarProps) => {
   const location = useLocation();
-  const themeColor = type === 'employer' ? 'emerald' : 'blue';
 
   return (
     <>
@@ -58,58 +57,29 @@ export const DashboardSidebar = ({
         className={cn(
           "fixed top-0 left-0 h-full z-50 w-64 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto",
           isOpen ? "translate-x-0" : "-translate-x-full",
-          type === 'employer' 
-            ? "bg-gradient-to-b from-emerald-900 via-emerald-800 to-emerald-900" 
-            : "bg-gradient-to-b from-blue-900 via-blue-800 to-blue-900"
+          "bg-card border-r border-border"
         )}
       >
         <div className="flex flex-col h-full">
-          {/* Logo & Close Button */}
-          <div className="p-5 flex items-center justify-between border-b border-white/10">
-            <Link to="/" className="flex items-center gap-2">
-              <div className={cn(
-                "w-9 h-9 rounded-xl flex items-center justify-center shadow-lg",
-                type === 'employer' 
-                  ? "bg-white/20" 
-                  : "bg-white/20"
-              )}>
-                {type === 'employer' ? (
-                  <Building2 className="w-5 h-5 text-white" />
-                ) : (
-                  <MapPin className="w-5 h-5 text-white" />
-                )}
+          {/* Logo */}
+          <div className="p-5 flex items-center justify-between border-b">
+            <Link to="/" className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
+                <MapPin className="w-5 h-5 text-primary-foreground" />
               </div>
-              <span className="font-bold text-white text-lg">Hire for Job</span>
+              <div>
+                <span className="font-bold text-foreground text-lg leading-none">Hire for Job</span>
+                <p className="text-xs text-muted-foreground capitalize">{type}</p>
+              </div>
             </Link>
             <Button 
               variant="ghost" 
               size="icon" 
-              className="lg:hidden text-white hover:bg-white/10"
+              className="lg:hidden text-muted-foreground hover:bg-muted"
               onClick={onClose}
             >
               <ChevronLeft className="w-5 h-5" />
             </Button>
-          </div>
-
-          {/* User Profile Mini */}
-          <div className="p-4 border-b border-white/10">
-            <div className="flex items-center gap-3">
-              <Avatar className="w-10 h-10 ring-2 ring-white/20">
-                <AvatarImage src={avatarUrl || undefined} />
-                <AvatarFallback className={cn(
-                  "text-white font-semibold",
-                  type === 'employer' ? "bg-emerald-600" : "bg-blue-600"
-                )}>
-                  {userName?.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="text-white font-semibold truncate text-sm">{userName}</p>
-                {userTitle && (
-                  <p className="text-white/60 text-xs truncate">{userTitle}</p>
-                )}
-              </div>
-            </div>
           </div>
 
           {/* Navigation Items */}
@@ -118,10 +88,10 @@ export const DashboardSidebar = ({
             <button
               onClick={() => onItemClick('home')}
               className={cn(
-                "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200",
+                "w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
                 activeItem === null || activeItem === 'home'
-                  ? "bg-white/20 text-white shadow-lg"
-                  : "text-white/70 hover:bg-white/10 hover:text-white"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
               <Home className="w-5 h-5" />
@@ -134,48 +104,73 @@ export const DashboardSidebar = ({
                 key={item.value}
                 onClick={() => onItemClick(item.value)}
                 className={cn(
-                  "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200",
+                  "w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
                   activeItem === item.value
-                    ? "bg-white/20 text-white shadow-lg"
-                    : "text-white/70 hover:bg-white/10 hover:text-white"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
                 <item.icon className="w-5 h-5" />
                 <span className="flex-1 text-left">{item.label}</span>
                 {item.badge !== undefined && item.badge > 0 && (
-                  <span className="px-2 py-0.5 rounded-full bg-white/20 text-xs font-semibold">
+                  <span className={cn(
+                    "px-2 py-0.5 rounded-full text-xs font-semibold",
+                    activeItem === item.value 
+                      ? "bg-primary-foreground/20 text-primary-foreground"
+                      : "bg-primary/10 text-primary"
+                  )}>
                     {item.badge}
                   </span>
                 )}
               </button>
             ))}
+          </nav>
 
-            {/* Post Job Button for Employers */}
-            {type === 'employer' && (
-              <Link to="/post-job" className="block mt-4">
-                <Button className="w-full bg-white text-emerald-700 hover:bg-white/90 rounded-xl font-semibold shadow-lg">
-                  <Plus className="w-4 h-4 mr-2" />
+          {/* Employer View / Find Jobs Button */}
+          <div className="p-3 border-t">
+            {type === 'candidate' ? (
+              <Link to="/" className="block">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start gap-2 border-primary text-primary hover:bg-primary/10"
+                >
+                  <Building2 className="w-4 h-4" />
+                  Find Jobs on Map
+                </Button>
+              </Link>
+            ) : (
+              <Link to="/post-job" className="block">
+                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
+                  <Plus className="w-4 h-4" />
                   Post New Job
                 </Button>
               </Link>
             )}
-          </nav>
+          </div>
 
           {/* Footer Links */}
-          <div className="p-3 border-t border-white/10 space-y-1">
+          <div className="p-3 border-t space-y-1">
             <Link 
               to={type === 'employer' ? '/company-profile' : '/candidate-settings'}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/70 hover:bg-white/10 hover:text-white transition-all"
+              className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
             >
               <Settings className="w-5 h-5" />
               <span>Settings</span>
             </Link>
             <button
               onClick={onSignOut}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-300 hover:bg-red-500/20 hover:text-red-200 transition-all"
+              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-all"
             >
               <LogOut className="w-5 h-5" />
-              <span>Sign Out</span>
+              <span>Logout</span>
+            </button>
+          </div>
+
+          {/* Collapse Button */}
+          <div className="p-3 border-t hidden lg:block">
+            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground transition-all">
+              <ChevronLeft className="w-5 h-5" />
+              <span>Collapse</span>
             </button>
           </div>
         </div>

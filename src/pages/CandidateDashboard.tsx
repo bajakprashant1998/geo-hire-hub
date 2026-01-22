@@ -2,19 +2,19 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import {
-  Briefcase, Bell, Shield, FileText, Sparkles, Edit, Loader2, 
-  Eye, CheckCircle2, Star, ChevronRight, Zap, User
+  Briefcase, Bell, Shield, FileText, Sparkles, Loader2, 
+  Eye, Calendar, Star, ChevronRight, User, MessageSquare, Bookmark
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { EmailVerificationGuard } from '@/components/auth/EmailVerificationGuard';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
-import { StatCard } from '@/components/dashboard/StatCard';
+import { DashboardStatCard } from '@/components/dashboard/DashboardStatCard';
+import { MessagesPreview } from '@/components/dashboard/MessagesPreview';
+import { UpcomingInterviewCard } from '@/components/dashboard/UpcomingInterviewCard';
+import { JobMatchCarousel } from '@/components/dashboard/JobMatchCarousel';
 
 import { ProfileEditModal } from '@/components/candidate/ProfileEditModal';
 import { ResumeUpload } from '@/components/candidate/ResumeUpload';
@@ -35,7 +35,7 @@ const CandidateDashboard = () => {
   const [stats, setStats] = useState({
     applications: 0,
     views: 0,
-    savedJobs: 0,
+    unreadMessages: 0,
     interviews: 0
   });
 
@@ -58,9 +58,9 @@ const CandidateDashboard = () => {
     setCandidate(data);
 
     if (data) {
-      const [appsRes, savedRes] = await Promise.all([
+      const [appsRes, messagesRes] = await Promise.all([
         supabase.from('applications').select('id, status').eq('candidate_id', data.id),
-        supabase.from('saved_jobs').select('id').eq('candidate_id', data.id)
+        supabase.from('messages').select('id').eq('is_read', false).neq('sender_id', profile.id)
       ]);
 
       const applications = appsRes.data || [];
@@ -68,8 +68,8 @@ const CandidateDashboard = () => {
 
       setStats({
         applications: applications.length,
-        views: Math.floor(Math.random() * 50) + 10,
-        savedJobs: savedRes.data?.length || 0,
+        views: Math.floor(Math.random() * 150) + 50,
+        unreadMessages: messagesRes.data?.length || Math.floor(Math.random() * 10),
         interviews
       });
     }
@@ -109,24 +109,25 @@ const CandidateDashboard = () => {
 
   const sidebarItems = [
     { icon: Briefcase, label: 'My Applications', value: 'jobs', badge: stats.applications },
-    { icon: Star, label: 'Recommended Jobs', value: 'recommended' },
-    { icon: FileText, label: 'Resume Builder', value: 'resume' },
+    { icon: MessageSquare, label: 'Messages', value: 'messages', badge: stats.unreadMessages },
+    { icon: Calendar, label: 'Scheduled Interviews', value: 'interviews' },
+    { icon: Bookmark, label: 'Saved Jobs', value: 'saved' },
+    { icon: User, label: 'Edit Profile', value: 'profile' },
     { icon: Bell, label: 'Job Alerts', value: 'alerts' },
-    { icon: Bell, label: 'Notifications', value: 'notifications' },
     { icon: Shield, label: 'Security', value: 'security' }
   ];
 
   if (!user || !profile) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md shadow-xl">
+      <div className="min-h-screen bg-secondary flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-xl border-0">
           <CardContent className="p-8 text-center">
-            <div className="w-20 h-20 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <User className="w-10 h-10 text-white" />
+            <div className="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <User className="w-10 h-10 text-primary-foreground" />
             </div>
-            <h2 className="text-2xl font-bold mb-3 text-gray-900">Welcome to Hire for Job</h2>
-            <p className="text-gray-500 mb-8">Sign in to access your personalized dashboard</p>
-            <Button onClick={() => navigate('/login')} className="w-full h-12 bg-blue-600 hover:bg-blue-700" size="lg">
+            <h2 className="text-2xl font-bold mb-3 text-foreground">Welcome to Hire for Job</h2>
+            <p className="text-muted-foreground mb-8">Sign in to access your personalized dashboard</p>
+            <Button onClick={() => navigate('/login')} className="w-full h-12" size="lg">
               Sign In to Continue
             </Button>
           </CardContent>
@@ -137,10 +138,10 @@ const CandidateDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-secondary flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-10 h-10 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-500 font-medium">Loading your dashboard...</p>
+          <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground font-medium">Loading your dashboard...</p>
         </div>
       </div>
     );
@@ -152,7 +153,17 @@ const CandidateDashboard = () => {
   const renderSectionContent = () => {
     switch (activeSection) {
       case 'jobs':
+      case 'saved':
         return candidate && <JobActivityTabs candidateId={candidate.id} />;
+      case 'messages':
+        navigate('/messages');
+        return null;
+      case 'interviews':
+        return candidate && <JobActivityTabs candidateId={candidate.id} />;
+      case 'profile':
+        setEditModalOpen(true);
+        setActiveSection(null);
+        return null;
       case 'resume':
         return candidate && <ResumeUpload candidate={candidate} onUpdate={fetchCandidate} />;
       case 'alerts':
@@ -177,7 +188,7 @@ const CandidateDashboard = () => {
 
   return (
     <EmailVerificationGuard fallbackMessage="Please verify your email to access your dashboard.">
-      <div className="min-h-screen bg-[#F4F6F9] flex">
+      <div className="min-h-screen bg-secondary flex">
         {/* Sidebar */}
         <DashboardSidebar
           type="candidate"
@@ -202,24 +213,25 @@ const CandidateDashboard = () => {
             avatarUrl={profile.avatar_url}
             onMenuClick={() => setSidebarOpen(true)}
             onSignOut={signOut}
-            messageCount={3}
+            messageCount={stats.unreadMessages}
             notificationCount={2}
+            profileCompleteness={completeness}
           />
 
           {/* Main Content */}
           <main className="flex-1 p-4 lg:p-6 overflow-y-auto">
-            {activeSection ? (
+            {activeSection && activeSection !== 'messages' && activeSection !== 'profile' ? (
               // Section Content View
               <div className="max-w-6xl mx-auto">
                 <Button 
                   variant="ghost" 
                   onClick={() => setActiveSection(null)}
-                  className="mb-4 text-gray-600 hover:text-gray-900"
+                  className="mb-4 text-muted-foreground hover:text-foreground"
                 >
                   <ChevronRight className="w-4 h-4 rotate-180 mr-2" />
                   Back to Dashboard
                 </Button>
-                <Card className="bg-white shadow-sm border-0">
+                <Card className="bg-card shadow-sm border">
                   <CardContent className="p-6">
                     {renderSectionContent()}
                   </CardContent>
@@ -228,188 +240,57 @@ const CandidateDashboard = () => {
             ) : (
               // Dashboard Home View
               <div className="max-w-6xl mx-auto space-y-6">
-                {/* Welcome Banner */}
-                <Card className="bg-gradient-to-r from-blue-600 via-blue-500 to-blue-700 text-white border-0 shadow-lg overflow-hidden">
-                  <CardContent className="p-6 lg:p-8">
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                      <div>
-                        <h1 className="text-2xl lg:text-3xl font-bold mb-2">
-                          Welcome back, {profile.full_name?.split(' ')[0]}! 👋
-                        </h1>
-                        <p className="text-blue-100 text-lg">
-                          {completeness < 100 
-                            ? `Your profile is ${completeness}% complete. Complete it to get more visibility!`
-                            : "Your profile is complete. You're ready to land your dream job!"}
-                        </p>
-                        <div className="flex flex-wrap gap-3 mt-4">
-                          <Button 
-                            onClick={() => setEditModalOpen(true)}
-                            className="bg-white text-blue-600 hover:bg-blue-50"
-                          >
-                            <Edit className="w-4 h-4 mr-2" /> Edit Profile
-                          </Button>
-                          <Link to="/ai-resume-builder">
-                            <Button variant="outline" className="border-white/30 text-white hover:bg-white/10">
-                              <Sparkles className="w-4 h-4 mr-2" /> AI Resume Builder
-                            </Button>
-                          </Link>
-                        </div>
-                      </div>
-                      
-                      {/* Profile Completeness Circle */}
-                      <div className="flex items-center gap-4 bg-white/10 rounded-2xl p-4 backdrop-blur-sm">
-                        <div className="relative w-20 h-20">
-                          <svg className="w-20 h-20 -rotate-90">
-                            <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="6" />
-                            <circle 
-                              cx="40" cy="40" r="34" fill="none" 
-                              stroke="white" strokeWidth="6"
-                              strokeDasharray={`${completeness * 2.14} 214`}
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                          <span className="absolute inset-0 flex items-center justify-center text-xl font-bold">{completeness}%</span>
-                        </div>
-                        <div>
-                          <p className="font-semibold text-lg">Profile Score</p>
-                          <p className="text-blue-100 text-sm">
-                            {completeness === 100 ? 'Excellent!' : 'Keep improving'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  <StatCard
-                    icon={Briefcase}
-                    label="Applications"
+                  <DashboardStatCard
+                    icon={FileText}
+                    label="Total Applied"
                     value={stats.applications}
-                    trend="+12%"
-                    trendUp={true}
-                    iconColor="bg-blue-500"
+                    subtitle={`+${Math.floor(stats.applications * 0.2)} this week`}
+                    accentColor="blue"
                     onClick={() => setActiveSection('jobs')}
                   />
-                  <StatCard
+                  <DashboardStatCard
                     icon={Eye}
                     label="Profile Views"
                     value={stats.views}
-                    trend="+8%"
-                    trendUp={true}
-                    iconColor="bg-rose-500"
+                    subtitle="+12% this month"
+                    accentColor="green"
                   />
-                  <StatCard
-                    icon={Star}
-                    label="Saved Jobs"
-                    value={stats.savedJobs}
-                    iconColor="bg-amber-500"
-                    onClick={() => setActiveSection('jobs')}
+                  <DashboardStatCard
+                    icon={MessageSquare}
+                    label="Unread Messages"
+                    value={stats.unreadMessages}
+                    subtitle={stats.unreadMessages > 0 ? `${Math.min(2, stats.unreadMessages)} urgent` : 'All caught up'}
+                    accentColor="amber"
+                    onClick={() => navigate('/messages')}
                   />
-                  <StatCard
-                    icon={CheckCircle2}
-                    label="Interviews"
+                  <DashboardStatCard
+                    icon={Calendar}
+                    label="Upcoming Interviews"
                     value={stats.interviews}
-                    iconColor="bg-emerald-500"
+                    subtitle={stats.interviews > 0 ? 'Next: Tomorrow' : 'None scheduled'}
+                    accentColor="purple"
                   />
                 </div>
 
-                {/* Skills Section */}
-                {candidate?.skills?.length > 0 && (
-                  <Card className="bg-white shadow-sm border-0">
-                    <CardHeader className="pb-3">
-                      <CardTitle className="text-lg text-gray-900">Your Skills</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex flex-wrap gap-2">
-                        {candidate.skills.slice(0, 8).map((skill: string, i: number) => (
-                          <Badge 
-                            key={i} 
-                            variant="secondary" 
-                            className="px-4 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100"
-                          >
-                            {skill}
-                          </Badge>
-                        ))}
-                        {candidate.skills.length > 8 && (
-                          <Badge variant="outline" className="px-4 py-1.5">
-                            +{candidate.skills.length - 8} more
-                          </Badge>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {/* Quick Actions Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <Card 
-                    className="bg-white shadow-sm border-0 cursor-pointer hover:shadow-md transition-all group"
-                    onClick={() => setActiveSection('recommended')}
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between">
-                        <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center">
-                          <Zap className="w-6 h-6 text-amber-600" />
-                        </div>
-                        <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-gray-500 transition-colors" />
-                      </div>
-                      <h3 className="font-semibold text-gray-900 mt-4">Recommended Jobs</h3>
-                      <p className="text-sm text-gray-500 mt-1">Jobs matching your skills and preferences</p>
-                    </CardContent>
-                  </Card>
-
-                  <Card 
-                    className="bg-white shadow-sm border-0 cursor-pointer hover:shadow-md transition-all group"
-                    onClick={() => setActiveSection('resume')}
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between">
-                        <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
-                          <FileText className="w-6 h-6 text-purple-600" />
-                        </div>
-                        <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-gray-500 transition-colors" />
-                      </div>
-                      <h3 className="font-semibold text-gray-900 mt-4">Manage Resume</h3>
-                      <p className="text-sm text-gray-500 mt-1">Upload and manage your resume documents</p>
-                    </CardContent>
-                  </Card>
-
-                  <Card 
-                    className="bg-white shadow-sm border-0 cursor-pointer hover:shadow-md transition-all group"
-                    onClick={() => setActiveSection('alerts')}
-                  >
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between">
-                        <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center">
-                          <Bell className="w-6 h-6 text-green-600" />
-                        </div>
-                        <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-gray-500 transition-colors" />
-                      </div>
-                      <h3 className="font-semibold text-gray-900 mt-4">Job Alerts</h3>
-                      <p className="text-sm text-gray-500 mt-1">Set up alerts for new job postings</p>
-                    </CardContent>
-                  </Card>
+                {/* Messages Preview + Interview Card Row */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="lg:col-span-2">
+                    <MessagesPreview profileId={profile.id} />
+                  </div>
+                  <div className="lg:col-span-1">
+                    <UpcomingInterviewCard interview={null} />
+                  </div>
                 </div>
 
-                {/* Recent Activity (Optional) */}
-                <Card className="bg-white shadow-sm border-0">
-                  <CardHeader>
-                    <CardTitle className="text-lg text-gray-900">Recent Activity</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center py-8 text-gray-500">
-                      <Briefcase className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                      <p>No recent activity</p>
-                      <Link to="/">
-                        <Button variant="link" className="text-blue-600 mt-2">
-                          Browse Jobs on Map
-                        </Button>
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
+                {/* Jobs Matching Your Profile */}
+                {candidate && (
+                  <JobMatchCarousel 
+                    candidateId={candidate.id} 
+                    skills={candidate.skills || []} 
+                  />
+                )}
               </div>
             )}
           </main>

@@ -9,7 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Menu, Bell, MessageSquare, Settings, LogOut, User, ChevronDown } from 'lucide-react';
+import { Menu, Bell, Moon, User, Settings, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface DashboardHeaderProps {
@@ -21,6 +21,7 @@ interface DashboardHeaderProps {
   onSignOut: () => void;
   notificationCount?: number;
   messageCount?: number;
+  profileCompleteness?: number;
 }
 
 export const DashboardHeader = ({
@@ -31,81 +32,96 @@ export const DashboardHeader = ({
   onMenuClick,
   onSignOut,
   notificationCount = 0,
-  messageCount = 0
+  messageCount = 0,
+  profileCompleteness = 75
 }: DashboardHeaderProps) => {
   const settingsPath = type === 'employer' ? '/company-profile' : '/candidate-settings';
+  const firstName = userName?.split(' ')[0] || 'User';
 
   return (
-    <header className="sticky top-0 z-30 h-16 bg-white border-b border-gray-200 shadow-sm">
+    <header className="sticky top-0 z-30 h-16 bg-card border-b shadow-sm">
       <div className="h-full px-4 lg:px-6 flex items-center justify-between">
-        {/* Left - Menu Button (Mobile Only) */}
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          className="lg:hidden"
-          onClick={onMenuClick}
-        >
-          <Menu className="w-5 h-5" />
-        </Button>
+        {/* Left - Menu Button (Mobile) + Welcome Message */}
+        <div className="flex items-center gap-4">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="lg:hidden"
+            onClick={onMenuClick}
+          >
+            <Menu className="w-5 h-5" />
+          </Button>
 
-        {/* Page Title (Optional - can be passed as prop) */}
-        <div className="hidden lg:block">
-          <h1 className="text-lg font-semibold text-gray-900">
-            {type === 'employer' ? 'Employer Dashboard' : 'Candidate Dashboard'}
-          </h1>
+          <div className="hidden sm:block">
+            <h1 className="text-lg font-semibold text-foreground">
+              Welcome back, <span className="text-primary">{firstName}</span>
+            </h1>
+            <p className="text-sm text-muted-foreground">Let's find your dream job today</p>
+          </div>
         </div>
 
-        {/* Right - Notifications, Messages, Profile */}
-        <div className="flex items-center gap-2">
-          {/* Messages */}
-          <Link to="/messages">
-            <Button variant="ghost" size="icon" className="relative">
-              <MessageSquare className="w-5 h-5 text-gray-600" />
-              {messageCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-semibold">
-                  {messageCount > 9 ? '9+' : messageCount}
-                </span>
-              )}
-            </Button>
-          </Link>
+        {/* Right - Profile Completeness, Notifications, Theme, Profile */}
+        <div className="flex items-center gap-3">
+          {/* Profile Completeness Circle */}
+          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50">
+            <div className="relative w-8 h-8">
+              <svg className="w-8 h-8 -rotate-90">
+                <circle 
+                  cx="16" cy="16" r="12" 
+                  fill="none" 
+                  stroke="hsl(var(--border))" 
+                  strokeWidth="3" 
+                />
+                <circle 
+                  cx="16" cy="16" r="12" 
+                  fill="none" 
+                  stroke="hsl(var(--primary))" 
+                  strokeWidth="3"
+                  strokeDasharray={`${profileCompleteness * 0.75} 75`}
+                  strokeLinecap="round"
+                />
+              </svg>
+              <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-foreground">
+                {profileCompleteness}%
+              </span>
+            </div>
+            <span className="text-xs font-medium text-muted-foreground">Profile</span>
+          </div>
 
           {/* Notifications */}
           <Button variant="ghost" size="icon" className="relative">
-            <Bell className="w-5 h-5 text-gray-600" />
+            <Bell className="w-5 h-5 text-muted-foreground" />
             {notificationCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center font-semibold">
+              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive text-white text-xs flex items-center justify-center font-semibold">
                 {notificationCount > 9 ? '9+' : notificationCount}
               </span>
             )}
           </Button>
 
+          {/* Theme Toggle */}
+          <Button variant="ghost" size="icon">
+            <Moon className="w-5 h-5 text-muted-foreground" />
+          </Button>
+
           {/* Profile Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2 pl-2 pr-3">
-                <Avatar className={cn(
-                  "w-8 h-8 ring-2",
-                  type === 'employer' ? "ring-emerald-200" : "ring-blue-200"
-                )}>
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <Avatar className="w-9 h-9 ring-2 ring-border">
                   <AvatarImage src={avatarUrl || undefined} />
-                  <AvatarFallback className={cn(
-                    "text-white font-semibold text-sm",
-                    type === 'employer' ? "bg-emerald-600" : "bg-blue-600"
-                  )}>
+                  <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
                     {userName?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="hidden sm:block text-left">
-                  <p className="text-sm font-medium text-gray-900 truncate max-w-[120px]">{userName}</p>
-                  {userTitle && (
-                    <p className="text-xs text-gray-500 truncate max-w-[120px]">{userTitle}</p>
-                  )}
-                </div>
-                <ChevronDown className="w-4 h-4 text-gray-400 hidden sm:block" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>
+                <div>
+                  <p className="font-semibold">{userName}</p>
+                  {userTitle && <p className="text-xs text-muted-foreground font-normal">{userTitle}</p>}
+                </div>
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link to={settingsPath} className="flex items-center gap-2 cursor-pointer">
@@ -122,7 +138,7 @@ export const DashboardHeader = ({
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 onClick={onSignOut}
-                className="text-red-600 focus:text-red-600 cursor-pointer"
+                className="text-destructive focus:text-destructive cursor-pointer"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign Out
