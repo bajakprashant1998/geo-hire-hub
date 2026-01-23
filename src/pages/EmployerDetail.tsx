@@ -42,6 +42,8 @@ import {
 import { toast } from 'sonner';
 import { VerificationBadge } from '@/components/employer/VerificationBadge';
 import { useAuth } from '@/hooks/useAuth';
+import { WhatsAppButton } from '@/components/WhatsAppButton';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 interface EmployerProfile {
   id: string;
@@ -57,6 +59,7 @@ interface EmployerProfile {
   verification_status: 'pending' | 'approved' | 'rejected';
   office_photo_url: string | null;
   business_card_url: string | null;
+  whatsapp_number: string | null;
 }
 
 interface Job {
@@ -112,7 +115,8 @@ const EmployerDetail = () => {
             avatar_url,
             latitude,
             longitude,
-            created_at
+            created_at,
+            whatsapp_number
           )
         `)
         .eq('id', id)
@@ -127,6 +131,7 @@ const EmployerDetail = () => {
         longitude: data.profiles.longitude,
         created_at: data.profiles.created_at,
         verification_status: (data.verification_status as 'pending' | 'approved' | 'rejected') || 'pending',
+        whatsapp_number: data.profiles.whatsapp_number,
       });
     } catch (error: any) {
       console.error('Error fetching employer:', error);
@@ -240,6 +245,7 @@ const EmployerDetail = () => {
     : new Date().getFullYear();
 
   return (
+    <TooltipProvider>
     <div className="min-h-screen bg-gradient-to-b from-secondary/50 to-background">
       {/* Hero Banner */}
       <div
@@ -656,6 +662,16 @@ const EmployerDetail = () => {
                         </Button>
                       </form>
 
+                      {employer.whatsapp_number && (
+                        <>
+                          <Separator className="my-5" />
+                          <WhatsAppButton 
+                            phoneNumber={employer.whatsapp_number}
+                            className="w-full h-11"
+                          />
+                        </>
+                      )}
+
                       <Separator className="my-5" />
 
                       <div className="space-y-3">
@@ -802,6 +818,13 @@ const EmployerDetail = () => {
             >
               <Share2 className="w-5 h-5" />
             </Button>
+            {employer.whatsapp_number && (
+              <WhatsAppButton 
+                phoneNumber={employer.whatsapp_number}
+                variant="icon"
+                className="flex-shrink-0"
+              />
+            )}
             <Button 
               onClick={() => document.getElementById('message')?.focus()} 
               className="flex-1 h-12 rounded-xl text-base font-semibold"
@@ -839,6 +862,7 @@ const EmployerDetail = () => {
         )}
       </div>
     </div>
+    </TooltipProvider>
   );
 };
 

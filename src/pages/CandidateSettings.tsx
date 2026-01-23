@@ -108,6 +108,7 @@ const CandidateSettings = () => {
   const [education, setEducation] = useState<Education[]>([]);
   const [portfolioUrls, setPortfolioUrls] = useState<string[]>([]);
   const [portfolioInput, setPortfolioInput] = useState('');
+  const [whatsappNumber, setWhatsappNumber] = useState('');
   
   // Privacy settings
   const [isVisibleOnMap, setIsVisibleOnMap] = useState(true);
@@ -137,7 +138,8 @@ const CandidateSettings = () => {
       isVisibleOnMap !== initialValues.isVisibleOnMap ||
       resumeVisibility !== initialValues.resumeVisibility ||
       coordinates?.lat !== initialValues.coordinates?.lat ||
-      coordinates?.lng !== initialValues.coordinates?.lng
+      coordinates?.lng !== initialValues.coordinates?.lng ||
+      whatsappNumber !== initialValues.whatsappNumber
     );
   };
 
@@ -209,6 +211,7 @@ const CandidateSettings = () => {
         setPortfolioUrls(data.portfolio_urls || []);
         setIsVisibleOnMap(profile.is_visible_on_map !== false);
         setResumeVisibility(data.resume_visibility || 'approved_employers');
+        setWhatsappNumber((profile as any).whatsapp_number || '');
         
         // Set location
         const coords = profile.latitude && profile.longitude 
@@ -230,6 +233,7 @@ const CandidateSettings = () => {
           isVisibleOnMap: profile.is_visible_on_map !== false,
           resumeVisibility: data.resume_visibility || 'approved_employers',
           coordinates: coords,
+          whatsappNumber: (profile as any).whatsapp_number || '',
         });
       } else {
         toast.error('No candidate profile found');
@@ -313,7 +317,7 @@ const CandidateSettings = () => {
 
     setSaving(true);
     try {
-      // Update profile with coordinates
+      // Update profile with coordinates and whatsapp
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ 
@@ -322,6 +326,7 @@ const CandidateSettings = () => {
           is_visible_on_map: isVisibleOnMap,
           latitude: coordinates?.lat || null,
           longitude: coordinates?.lng || null,
+          whatsapp_number: whatsappNumber || null,
         })
         .eq('id', profile.id);
 
@@ -358,6 +363,7 @@ const CandidateSettings = () => {
         isVisibleOnMap,
         resumeVisibility,
         coordinates: coordinates ? { ...coordinates } : null,
+        whatsappNumber,
       });
 
       await refreshProfile();
@@ -566,6 +572,19 @@ const CandidateSettings = () => {
                     />
                     <p className="text-xs text-muted-foreground">
                       {bio.length}/20 characters minimum
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="whatsapp">WhatsApp Number</Label>
+                    <Input
+                      id="whatsapp"
+                      value={whatsappNumber}
+                      onChange={(e) => setWhatsappNumber(e.target.value)}
+                      placeholder="e.g., 919876543210 (include country code)"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Include country code without + or spaces. Employers can contact you via WhatsApp.
                     </p>
                   </div>
                 </CardContent>
