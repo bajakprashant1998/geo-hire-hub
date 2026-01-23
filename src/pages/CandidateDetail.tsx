@@ -36,6 +36,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useStartConversation } from '@/hooks/useStartConversation';
+import { WhatsAppButton } from '@/components/WhatsAppButton';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 interface Education {
   institution: string;
@@ -61,6 +63,7 @@ interface CandidateProfile {
   longitude: number | null;
   created_at: string | null;
   resume_url: string | null;
+  whatsapp_number: string | null;
 }
 
 const CandidateDetail = () => {
@@ -108,7 +111,8 @@ const CandidateDetail = () => {
             latitude,
             longitude,
             created_at,
-            user_id
+            user_id,
+            whatsapp_number
           )
         `)
         .eq('id', id)
@@ -147,6 +151,7 @@ const CandidateDetail = () => {
         latitude: data.profiles.latitude,
         longitude: data.profiles.longitude,
         created_at: data.profiles.created_at,
+        whatsapp_number: data.profiles.whatsapp_number,
       });
     } catch (error: any) {
       console.error('Error fetching candidate:', error);
@@ -249,6 +254,7 @@ const CandidateDetail = () => {
   const initials = candidate.full_name.split(' ').map(n => n[0]).join('').slice(0, 2);
 
   return (
+    <TooltipProvider>
     <div className="min-h-screen bg-background pb-24 lg:pb-12">
       {/* Hero Banner with Google Blue */}
       <div className="relative h-48 md:h-56 bg-gradient-to-r from-google-blue via-google-blue to-google-blue/90">
@@ -654,6 +660,11 @@ const CandidateDetail = () => {
                       {contacting ? 'Starting Chat...' : 'Contact Candidate'}
                     </Button>
 
+                    <WhatsAppButton 
+                      phoneNumber={candidate.whatsapp_number}
+                      className="w-full h-11"
+                    />
+
                     <Separator />
 
                     <div className="space-y-3">
@@ -764,7 +775,6 @@ const CandidateDetail = () => {
         </div>
       </div>
 
-      {/* Mobile Fixed Bottom Bar */}
       <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-background/95 backdrop-blur-lg border-t shadow-google-hover p-4 z-50">
         <div className="flex items-center gap-3">
           <Button
@@ -783,6 +793,11 @@ const CandidateDetail = () => {
           >
             <Share2 className="w-5 h-5" />
           </Button>
+          <WhatsAppButton 
+            phoneNumber={candidate.whatsapp_number}
+            variant="icon"
+            className="flex-shrink-0"
+          />
           <Button 
             onClick={handleContact}
             disabled={contacting}
@@ -798,6 +813,7 @@ const CandidateDetail = () => {
         </div>
       </div>
     </div>
+    </TooltipProvider>
   );
 };
 

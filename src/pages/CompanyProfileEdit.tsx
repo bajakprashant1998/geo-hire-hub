@@ -94,6 +94,7 @@ const CompanyProfileEdit = () => {
   const [verificationStatus, setVerificationStatus] = useState<'pending' | 'approved' | 'rejected'>('pending');
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [completeness, setCompleteness] = useState(0);
+  const [whatsappNumber, setWhatsappNumber] = useState('');
 
   useEffect(() => {
     if (profile) {
@@ -115,7 +116,7 @@ const CompanyProfileEdit = () => {
         .from('employers')
         .select(`
           *,
-          profiles!inner(avatar_url)
+          profiles!inner(avatar_url, whatsapp_number)
         `)
         .eq('profile_id', profile.id)
         .maybeSingle();
@@ -136,6 +137,7 @@ const CompanyProfileEdit = () => {
         setVerificationStatus((data.verification_status as 'pending' | 'approved' | 'rejected') || 'pending');
         setTermsAccepted(!!data.terms_accepted_at);
         setCompleteness(data.profile_completeness || 0);
+        setWhatsappNumber(data.profiles?.whatsapp_number || '');
 
         // Recalculate completeness
         const { data: calcData } = await supabase
@@ -193,11 +195,14 @@ const CompanyProfileEdit = () => {
 
       if (error) throw error;
 
-      // Update profile avatar_url for company logo
-      if (logoUrl !== profile.avatar_url) {
+      // Update profile avatar_url and whatsapp_number for company logo
+      if (logoUrl !== profile.avatar_url || whatsappNumber) {
         await supabase
           .from('profiles')
-          .update({ avatar_url: logoUrl || null })
+          .update({ 
+            avatar_url: logoUrl || null,
+            whatsapp_number: whatsappNumber || null,
+          })
           .eq('id', profile.id);
       }
 
@@ -372,6 +377,19 @@ const CompanyProfileEdit = () => {
                 onChange={(e) => setWebsiteUrl(e.target.value)}
                 placeholder="https://yourcompany.com"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="whatsapp">WhatsApp Number</Label>
+              <Input
+                id="whatsapp"
+                value={whatsappNumber}
+                onChange={(e) => setWhatsappNumber(e.target.value)}
+                placeholder="e.g., 919876543210 (include country code)"
+              />
+              <p className="text-xs text-muted-foreground">
+                Candidates will use this to contact you directly via WhatsApp
+              </p>
             </div>
           </CardContent>
         </Card>

@@ -62,6 +62,8 @@ import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { MailWarning } from 'lucide-react';
 import { useStartConversation } from '@/hooks/useStartConversation';
+import { WhatsAppButton } from '@/components/WhatsAppButton';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 interface JobDetails {
   id: string;
@@ -111,6 +113,7 @@ interface JobDetails {
     avatar_url: string | null;
     description: string | null;
     user_id: string | null;
+    whatsapp_number: string | null;
   };
 }
 
@@ -153,7 +156,8 @@ const JobDetail = () => {
             description,
             profiles!inner (
               avatar_url,
-              user_id
+              user_id,
+              whatsapp_number
             )
           )
         `)
@@ -177,6 +181,7 @@ const JobDetail = () => {
           avatar_url: data.employers.profiles?.avatar_url,
           description: data.employers.description,
           user_id: data.employers.profiles?.user_id,
+          whatsapp_number: data.employers.profiles?.whatsapp_number,
         },
       });
 
@@ -392,6 +397,7 @@ const JobDetail = () => {
   }
 
   return (
+    <TooltipProvider>
     <div className="min-h-screen bg-gradient-to-b from-secondary/50 to-background pb-24 lg:pb-12">
       {/* Hero Banner with Overlay */}
       <div
@@ -1166,10 +1172,27 @@ const JobDetail = () => {
                   <p className="text-sm text-muted-foreground mb-4">
                     Contact the employer directly if you have any questions about this position.
                   </p>
-                  <Button variant="outline" className="w-full">
-                    <MessageSquare className="w-4 h-4 mr-2" />
-                    Send Message
-                  </Button>
+                  <div className="space-y-3">
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={handleContactEmployer}
+                      disabled={contacting}
+                    >
+                      {contacting ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <MessageSquare className="w-4 h-4 mr-2" />
+                      )}
+                      Send Message
+                    </Button>
+                    {job.employer.whatsapp_number && (
+                      <WhatsAppButton 
+                        phoneNumber={job.employer.whatsapp_number}
+                        className="w-full"
+                      />
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -1196,6 +1219,13 @@ const JobDetail = () => {
           >
             <Share2 className="w-5 h-5" />
           </Button>
+          {job.employer.whatsapp_number && (
+            <WhatsAppButton 
+              phoneNumber={job.employer.whatsapp_number}
+              variant="icon"
+              className="flex-shrink-0"
+            />
+          )}
           {hasApplied ? (
             <Button disabled className="flex-1 h-12 rounded-xl">
               <CheckCircle className="w-5 h-5 mr-2" />
@@ -1213,6 +1243,7 @@ const JobDetail = () => {
         </div>
       </div>
     </div>
+    </TooltipProvider>
   );
 };
 
