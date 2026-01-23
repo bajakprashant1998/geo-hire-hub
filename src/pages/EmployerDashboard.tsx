@@ -15,6 +15,7 @@ import { EmployerHeader } from '@/components/dashboard/EmployerHeader';
 import { DashboardStatCard } from '@/components/dashboard/DashboardStatCard';
 import { ActiveJobsTable } from '@/components/dashboard/ActiveJobsTable';
 import { EmployerInterviewsCard } from '@/components/dashboard/EmployerInterviewsCard';
+import { ChatModal } from '@/components/messaging/ChatModal';
 
 import { PlanUsagePanel } from '@/components/employer/PlanUsagePanel';
 import { JobDraftsSection } from '@/components/employer/JobDraftsSection';
@@ -30,6 +31,7 @@ const EmployerDashboard = () => {
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [chatModalOpen, setChatModalOpen] = useState(false);
   const [profileRetryCount, setProfileRetryCount] = useState(0);
   const [stats, setStats] = useState({
     activeJobs: 0,
@@ -135,7 +137,7 @@ const EmployerDashboard = () => {
     if (value === 'home') {
       setActiveSection(null);
     } else if (value === 'chat') {
-      navigate('/messages');
+      setChatModalOpen(true);
     } else if (value === 'company') {
       navigate('/company-profile');
     } else if (value === 'settings') {
@@ -457,6 +459,12 @@ const EmployerDashboard = () => {
             )}
           </main>
         </div>
+
+        {/* Chat Modal */}
+        <ChatModal 
+          isOpen={chatModalOpen} 
+          onClose={() => setChatModalOpen(false)} 
+        />
       </div>
     </EmailVerificationGuard>
   );

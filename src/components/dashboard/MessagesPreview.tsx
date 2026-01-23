@@ -25,9 +25,10 @@ interface Conversation {
 
 interface MessagesPreviewProps {
   profileId: string;
+  onOpenChat?: () => void;
 }
 
-export const MessagesPreview = ({ profileId }: MessagesPreviewProps) => {
+export const MessagesPreview = ({ profileId, onOpenChat }: MessagesPreviewProps) => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -199,11 +200,13 @@ export const MessagesPreview = ({ profileId }: MessagesPreviewProps) => {
           <Button variant="ghost" size="icon" className="text-muted-foreground">
             <Mic className="w-5 h-5" />
           </Button>
-          <Link to="/messages">
-            <Button size="icon" className="rounded-full bg-primary hover:bg-primary/90">
-              <Send className="w-4 h-4" />
-            </Button>
-          </Link>
+          <Button 
+            size="icon" 
+            className="rounded-full bg-primary hover:bg-primary/90"
+            onClick={onOpenChat}
+          >
+            <Send className="w-4 h-4" />
+          </Button>
         </div>
       </div>
     </div>
