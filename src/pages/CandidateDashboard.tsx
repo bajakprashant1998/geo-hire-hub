@@ -15,6 +15,7 @@ import { DashboardStatCard } from '@/components/dashboard/DashboardStatCard';
 import { MessagesPreview } from '@/components/dashboard/MessagesPreview';
 import { UpcomingInterviewCard } from '@/components/dashboard/UpcomingInterviewCard';
 import { JobMatchCarousel } from '@/components/dashboard/JobMatchCarousel';
+import { ChatModal } from '@/components/messaging/ChatModal';
 
 import { ProfileEditModal } from '@/components/candidate/ProfileEditModal';
 import { ResumeUpload } from '@/components/candidate/ResumeUpload';
@@ -31,6 +32,7 @@ const CandidateDashboard = () => {
   const [candidate, setCandidate] = useState<any>(null);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [chatModalOpen, setChatModalOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileRetryCount, setProfileRetryCount] = useState(0);
   const [stats, setStats] = useState({
@@ -111,6 +113,8 @@ const CandidateDashboard = () => {
   const handleSectionClick = (value: string) => {
     if (value === 'home') {
       setActiveSection(null);
+    } else if (value === 'messages') {
+      setChatModalOpen(true);
     } else {
       setActiveSection(value);
     }
@@ -231,9 +235,6 @@ const CandidateDashboard = () => {
       case 'jobs':
       case 'saved':
         return candidate && <JobActivityTabs candidateId={candidate.id} />;
-      case 'messages':
-        navigate('/messages');
-        return null;
       case 'interviews':
         return candidate && <JobActivityTabs candidateId={candidate.id} />;
       case 'profile':
@@ -374,7 +375,7 @@ const CandidateDashboard = () => {
                     value={stats.unreadMessages}
                     subtitle={stats.unreadMessages > 0 ? `${Math.min(2, stats.unreadMessages)} urgent` : 'All caught up'}
                     accentColor="amber"
-                    onClick={() => navigate('/messages')}
+                    onClick={() => setChatModalOpen(true)}
                   />
                   <DashboardStatCard
                     icon={Calendar}
@@ -388,7 +389,7 @@ const CandidateDashboard = () => {
                 {/* Messages Preview + Interview Card Row */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   <div className="lg:col-span-2">
-                    <MessagesPreview profileId={profile.id} />
+                    <MessagesPreview profileId={profile.id} onOpenChat={() => setChatModalOpen(true)} />
                   </div>
                   <div className="lg:col-span-1">
                     <UpcomingInterviewCard interview={null} />
@@ -417,6 +418,12 @@ const CandidateDashboard = () => {
             onSave={handleProfileSave}
           />
         )}
+
+        {/* Chat Modal */}
+        <ChatModal 
+          isOpen={chatModalOpen} 
+          onClose={() => setChatModalOpen(false)} 
+        />
       </div>
     </EmailVerificationGuard>
   );
