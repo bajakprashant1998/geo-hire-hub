@@ -1,11 +1,28 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Eye, Users, Clock, TrendingUp } from 'lucide-react';
+import { Eye, Users, Clock, TrendingUp, Pencil, Trash2, Loader2, MoreHorizontal } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface Job {
   id: string;
@@ -24,8 +41,11 @@ interface ActiveJobsTableProps {
 }
 
 export const ActiveJobsTable = ({ employerId, onManageJobs }: ActiveJobsTableProps) => {
+  const navigate = useNavigate();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const [jobToDelete, setJobToDelete] = useState<Job | null>(null);
+  const [deletingJob, setDeletingJob] = useState(false);
 
   useEffect(() => {
     fetchActiveJobs();
@@ -78,6 +98,28 @@ export const ActiveJobsTable = ({ employerId, onManageJobs }: ActiveJobsTablePro
     return categoryMap[category?.toLowerCase() || ''] || category || 'General';
   };
 
+  const handleDeleteJob = async () => {
+    if (!jobToDelete) return;
+    
+    setDeletingJob(true);
+    try {
+      const { error } = await supabase
+        .from('jobs')
+        .delete()
+        .eq('id', jobToDelete.id);
+      
+      if (error) throw error;
+      
+      setJobs(jobs.filter(j => j.id !== jobToDelete.id));
+      toast.success('Job deleted successfully');
+    } catch (error: any) {
+      toast.error('Failed to delete job: ' + error.message);
+    } finally {
+      setDeletingJob(false);
+      setJobToDelete(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="bg-card rounded-xl shadow-sm border p-6">
@@ -123,18 +165,19 @@ export const ActiveJobsTable = ({ employerId, onManageJobs }: ActiveJobsTablePro
                 <th className="text-left p-4 text-sm font-medium text-muted-foreground">Applications</th>
                 <th className="text-left p-4 text-sm font-medium text-muted-foreground">Views</th>
                 <th className="text-left p-4 text-sm font-medium text-muted-foreground">Posted</th>
+                <th className="text-right p-4 text-sm font-medium text-muted-foreground">Actions</th>
               </tr>
             </thead>
             <tbody>
               {jobs.map((job) => (
                 <tr 
                   key={job.id} 
-                  className="border-b last:border-0 hover:bg-muted/20 transition-colors cursor-pointer"
+                  className="border-b last:border-0 hover:bg-muted/20 transition-colors"
                 >
                   <td className="p-4">
                     <div className="flex items-center gap-2">
                       <Link 
-                        to={`/job/${job.id}`}
+                        to={`/jobs/${job.id}`}
                         className="font-medium text-foreground hover:text-primary transition-colors"
                       >
                         {job.title}
@@ -169,12 +212,77 @@ export const ActiveJobsTable = ({ employerId, onManageJobs }: ActiveJobsTablePro
                       {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
                     </div>
                   </td>
+                  <td className="p-4">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate(`/edit-job/${job.id}`)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => navigate(`/jobs/${job.id}`)}>
+                            <Eye className="w-4 h-4 mr-2" />
+                            View Job
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => navigate(`/edit-job/${job.id}`)}>
+                            <Pencil className="w-4 h-4 mr-2" />
+                            Edit Job
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => setJobToDelete(job)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete Job
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
       )}
+
+      {/* Delete Job Confirmation Dialog */}
+      <AlertDialog open={!!jobToDelete} onOpenChange={() => setJobToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Job Posting</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{jobToDelete?.title}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingJob}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteJob}
+              disabled={deletingJob}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deletingJob ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete Job'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

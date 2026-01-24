@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -56,6 +56,9 @@ const stepVariants = {
 
 const PostJob = () => {
   const navigate = useNavigate();
+  const { jobId } = useParams<{ jobId?: string }>();
+  const [searchParams] = useSearchParams();
+  const isEditMode = !!jobId;
   const { user, profile } = useAuth();
   
   // Track animation direction
@@ -70,6 +73,7 @@ const PostJob = () => {
   const [generatingDescription, setGeneratingDescription] = useState(false);
   const [lastAutoSave, setLastAutoSave] = useState<Date | null>(null);
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [initialLoading, setInitialLoading] = useState(isEditMode);
 
   // Employer data
   const [employerId, setEmployerId] = useState<string | null>(null);
@@ -227,6 +231,90 @@ const PostJob = () => {
 
     fetchEmployerAndDraft();
   }, [profile, user]);
+
+  // Load existing job data when editing
+  useEffect(() => {
+    const loadExistingJob = async () => {
+      if (!jobId || !employerId) return;
+      
+      setInitialLoading(true);
+      try {
+        const { data: jobData, error } = await supabase
+          .from('jobs')
+          .select('*')
+          .eq('id', jobId)
+          .eq('employer_id', employerId)
+          .single();
+
+        if (error) throw error;
+        if (!jobData) {
+          toast.error('Job not found');
+          navigate('/employer-dashboard');
+          return;
+        }
+
+        // Populate form with existing job data
+        setTitle(jobData.title || '');
+        setJobType(jobData.job_type === 'Part-time' ? 'Part Time' : 'Full Time');
+        if (jobData.latitude && jobData.longitude) {
+          setCoordinates({ lat: jobData.latitude, lng: jobData.longitude });
+        }
+        setAddress(jobData.job_address || '');
+        setJobAddress(jobData.job_address || '');
+        setOpenings(String(jobData.openings || 1));
+        setExperienceType((jobData.experience_type as 'Any' | 'Fresher Only' | 'Experienced Only') || 'Any');
+        setMinExperience(jobData.min_experience ? String(jobData.min_experience) : '');
+        setMaxExperience(jobData.max_experience ? String(jobData.max_experience) : '');
+        
+        // Parse salary range
+        if (jobData.salary_range) {
+          const salaryMatch = jobData.salary_range.match(/₹(\d+)\s*-\s*₹(\d+)/);
+          if (salaryMatch) {
+            setSalaryMin(salaryMatch[1]);
+            setSalaryMax(salaryMatch[2]);
+          }
+        }
+        
+        setHasBonus(jobData.has_bonus || false);
+        setDescription(jobData.description || '');
+        setSkills(jobData.skills || []);
+        setGender((jobData.gender_preference as 'Any' | 'Male' | 'Female') || 'Any');
+        setAgeMin(jobData.min_age ? String(jobData.min_age) : '');
+        setAgeMax(jobData.max_age ? String(jobData.max_age) : '');
+        setEducation(jobData.education || '');
+        setLanguages(jobData.languages || []);
+        setCertifications(jobData.certifications || '');
+        setAdditionalNotes(jobData.additional_notes || '');
+        setShiftType((jobData.shift_type as 'Day Shift' | 'Night Shift' | 'Rotational') || 'Day Shift');
+        setStartTime(jobData.start_time || '');
+        setEndTime(jobData.end_time || '');
+        setWorkDays(jobData.work_days || []);
+        setInterviewTime(jobData.interview_time || '');
+        setInterviewDays(jobData.interview_days || []);
+        setContactPerson(jobData.contact_person || '');
+        setPhoneNumber(jobData.contact_phone || '');
+        setEmail(jobData.contact_email || '');
+        setContactRole(jobData.contact_role || '');
+        setOrganizationSize(jobData.organization_size || '');
+        setHiringUrgency((jobData.hiring_urgency as 'Immediately' | 'Can Wait') || 'Immediately');
+        setHiringFrequency(jobData.hiring_frequency || '');
+
+        // In edit mode, skip job limit check since we're editing existing job
+        setCanPost(true);
+        setBlockReason(null);
+        setShowUpgradePrompt(false);
+        
+      } catch (error: any) {
+        console.error('Error loading job:', error);
+        toast.error('Failed to load job data');
+        navigate('/employer-dashboard');
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+
+    loadExistingJob();
+  }, [jobId, employerId, navigate]);
 
   const generateDescription = async () => {
     if (!title.trim()) {
@@ -476,7 +564,7 @@ const PostJob = () => {
       const latitude = coordinates!.lat;
       const longitude = coordinates!.lng;
 
-      const { error } = await supabase.from('jobs').insert({
+      const jobData = {
         employer_id: employerId,
         title,
         description,
@@ -484,9 +572,6 @@ const PostJob = () => {
         job_type: jobType === 'Full Time' ? 'Full-time' : 'Part-time',
         latitude,
         longitude,
-        status: 'open',
-        is_active: true,
-        // New fields
         openings: parseInt(openings) || 1,
         experience_type: experienceType,
         min_experience: minExperience ? parseInt(minExperience) : null,
@@ -514,17 +599,37 @@ const PostJob = () => {
         hiring_urgency: hiringUrgency,
         hiring_frequency: hiringFrequency,
         job_address: jobAddress || address,
-      });
+      };
 
-      if (error) throw error;
+      if (isEditMode && jobId) {
+        // Update existing job
+        const { error } = await supabase
+          .from('jobs')
+          .update(jobData)
+          .eq('id', jobId)
+          .eq('employer_id', employerId);
 
-      // Delete draft after successful posting
-      await supabase
-        .from('job_drafts')
-        .delete()
-        .eq('employer_id', employerId);
+        if (error) throw error;
+        toast.success('Job updated successfully!');
+      } else {
+        // Create new job
+        const { error } = await supabase.from('jobs').insert({
+          ...jobData,
+          status: 'open',
+          is_active: true,
+        });
 
-      toast.success('Job posted successfully!');
+        if (error) throw error;
+
+        // Delete draft after successful posting
+        await supabase
+          .from('job_drafts')
+          .delete()
+          .eq('employer_id', employerId);
+
+        toast.success('Job posted successfully!');
+      }
+      
       navigate('/employer-dashboard');
     } catch (error: any) {
       toast.error(error.message || 'Failed to post job');
@@ -532,6 +637,18 @@ const PostJob = () => {
       setLoading(false);
     }
   };
+
+  // Loading existing job data
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/50 to-background flex items-center justify-center p-4">
+        <div className="text-center">
+          <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading job details...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Non-employer view
   if (profile?.user_type !== 'employer') {
@@ -598,8 +715,8 @@ const PostJob = () => {
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div className="hidden sm:block">
-                <h1 className="text-lg font-semibold">Create Job Posting</h1>
-                {lastAutoSave && (
+                <h1 className="text-lg font-semibold">{isEditMode ? 'Edit Job Posting' : 'Create Job Posting'}</h1>
+                {lastAutoSave && !isEditMode && (
                   <p className="text-xs text-muted-foreground">
                     Auto-saved at {lastAutoSave.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
@@ -879,7 +996,7 @@ const PostJob = () => {
                       ) : (
                         <Send className="w-4 h-4" />
                       )}
-                      Post Job
+                      {isEditMode ? 'Update Job' : 'Post Job'}
                     </Button>
                   )}
                 </div>

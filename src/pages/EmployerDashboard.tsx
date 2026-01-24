@@ -3,9 +3,20 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { toast } from 'sonner';
+import {
   MapPin, Briefcase, Building2, Plus, Loader2, Eye, Users, 
   CheckCircle2, ChevronRight, FileEdit, CreditCard, UserCheck,
-  MessageSquare, Calendar, BarChart3, User, Settings
+  MessageSquare, Calendar, BarChart3, User, Settings, Pencil, Trash2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -39,6 +50,8 @@ const EmployerDashboard = () => {
     scheduledInterviews: 0,
     profileViews: 0
   });
+  const [jobToDelete, setJobToDelete] = useState<any>(null);
+  const [deletingJob, setDeletingJob] = useState(false);
 
   // Retry profile fetch if user exists but profile is null
   useEffect(() => {
@@ -146,6 +159,33 @@ const EmployerDashboard = () => {
       setActiveSection(value);
     }
     setSidebarOpen(false);
+  };
+
+  const handleDeleteJob = async () => {
+    if (!jobToDelete) return;
+    
+    setDeletingJob(true);
+    try {
+      const { error } = await supabase
+        .from('jobs')
+        .delete()
+        .eq('id', jobToDelete.id);
+      
+      if (error) throw error;
+      
+      // Update local state
+      setJobs(jobs.filter(j => j.id !== jobToDelete.id));
+      if (selectedJob?.id === jobToDelete.id) {
+        setSelectedJob(jobs.find(j => j.id !== jobToDelete.id) || null);
+      }
+      
+      toast.success('Job deleted successfully');
+    } catch (error: any) {
+      toast.error('Failed to delete job: ' + error.message);
+    } finally {
+      setDeletingJob(false);
+      setJobToDelete(null);
+    }
   };
 
   const sidebarItems = [
@@ -305,9 +345,27 @@ const EmployerDashboard = () => {
                         <span className={`text-xs px-2 py-0.5 rounded-full ${selectedJob.is_active ? 'bg-[hsl(142,53%,43%)]/10 text-[hsl(142,53%,43%)]' : 'bg-muted text-muted-foreground'}`}>
                           {selectedJob.is_active ? 'Active' : 'Inactive'}
                         </span>
-                        <Link to={`/job/${selectedJob.id}`}>
-                          <Button variant="outline" size="sm">View</Button>
+                        <Link to={`/jobs/${selectedJob.id}`}>
+                          <Button variant="outline" size="sm">
+                            <Eye className="w-4 h-4 mr-1" />
+                            View
+                          </Button>
                         </Link>
+                        <Link to={`/edit-job/${selectedJob.id}`}>
+                          <Button variant="outline" size="sm">
+                            <Pencil className="w-4 h-4 mr-1" />
+                            Edit
+                          </Button>
+                        </Link>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => setJobToDelete(selectedJob)}
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          Delete
+                        </Button>
                       </div>
                     </div>
                   </CardHeader>
@@ -465,6 +523,36 @@ const EmployerDashboard = () => {
           isOpen={chatModalOpen} 
           onClose={() => setChatModalOpen(false)} 
         />
+
+        {/* Delete Job Confirmation Dialog */}
+        <AlertDialog open={!!jobToDelete} onOpenChange={() => setJobToDelete(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Job Posting</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete "{jobToDelete?.title}"? This action cannot be undone. 
+                All associated applications will also be removed.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deletingJob}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteJob}
+                disabled={deletingJob}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {deletingJob ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  'Delete Job'
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </EmailVerificationGuard>
   );
