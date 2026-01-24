@@ -209,7 +209,7 @@ export const JobMatchCarousel = ({ candidateId, skills }: JobMatchCarouselProps)
             </div>
 
             {/* Job Info */}
-            <Link to={`/job/${job.id}`}>
+            <Link to={`/jobs/${job.id}`}>
               <h4 className="font-semibold text-foreground hover:text-primary transition-colors line-clamp-1">
                 {job.title}
               </h4>
