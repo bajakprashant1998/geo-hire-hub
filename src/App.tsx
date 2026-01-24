@@ -73,6 +73,7 @@ const App = () => (
               {/* ==================== EMPLOYER ROUTES ==================== */}
               <Route path="/employer-dashboard" element={<EmployerDashboard />} />
               <Route path="/post-job" element={<PostJob />} />
+              <Route path="/edit-job/:jobId" element={<PostJob />} />
               <Route path="/company-profile" element={<CompanyProfileEdit />} />
 
               {/* ==================== ADMIN ROUTES ==================== */}
