@@ -8,6 +8,7 @@ import { MapLoadingSkeleton } from '@/components/map/MapLoadingSkeleton';
 import { FloatingControls } from '@/components/map/FloatingControls';
 import { Sidebar } from '@/components/map/Sidebar';
 import { MarkerPreviewSheet } from '@/components/map/MarkerPreviewSheet';
+import BottomNavBar from '@/components/map/BottomNavBar';
 import { toast } from 'sonner';
 
 const Index = () => {
@@ -124,6 +125,9 @@ const Index = () => {
         mode={mode}
         item={selectedItem}
       />
+
+      {/* Bottom Navigation - Mobile only */}
+      <BottomNavBar />
     </div>
   );
 };
