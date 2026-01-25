@@ -2,9 +2,18 @@ import { ViewMode } from '@/types';
 import { ViewToggle } from './ViewToggle';
 import { SearchBar } from './SearchBar';
 import { Button } from '@/components/ui/button';
-import { Menu, LogIn, UserPlus, LayoutDashboard, MapPin } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Menu, LogIn, UserPlus, LayoutDashboard, MapPin, LogOut, Settings, ChevronDown } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { toast } from 'sonner';
 
 interface HeaderProps {
   mode: ViewMode;
@@ -14,7 +23,19 @@ interface HeaderProps {
 }
 
 export const Header = ({ mode, onModeChange, onSearch, onMenuClick }: HeaderProps) => {
-  const { user, profile } = useAuth();
+  const { user, profile, signOut } = useAuth();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success('Signed out successfully');
+    navigate('/');
+  };
+
+  const dashboardPath = profile?.user_type === 'employer' ? '/employer-dashboard' : '/candidate-dashboard';
+  const settingsPath = profile?.user_type === 'employer' ? '/company-profile' : '/candidate-settings';
+  const userName = profile?.full_name || user?.email?.split('@')[0] || 'User';
+  const initials = userName.charAt(0).toUpperCase();
 
   return (
     <header className="absolute top-0 left-0 right-0 z-[100] p-3 sm:p-4">
@@ -55,12 +76,53 @@ export const Header = ({ mode, onModeChange, onSearch, onMenuClick }: HeaderProp
         {/* Right - Auth buttons */}
         <div className="flex items-center gap-2 shrink-0">
           {user ? (
-            <Link to={profile?.user_type === 'employer' ? '/employer-dashboard' : '/candidate-dashboard'}>
-              <Button size="sm" className="shadow-lg bg-card text-foreground hover:bg-card/90 border border-border/50">
-                <LayoutDashboard className="w-4 h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Dashboard</span>
-              </Button>
-            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="secondary" 
+                  size="sm" 
+                  className="shadow-lg bg-card hover:bg-card/90 border border-border/50 gap-2 pr-2"
+                >
+                  <Avatar className="w-6 h-6">
+                    <AvatarImage src={profile?.avatar_url || undefined} alt={userName} />
+                    <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="hidden sm:inline max-w-[100px] truncate">{userName}</span>
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <div className="px-2 py-1.5 text-sm font-medium truncate">
+                  {userName}
+                </div>
+                <div className="px-2 pb-2 text-xs text-muted-foreground truncate">
+                  {user.email}
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to={dashboardPath} className="cursor-pointer">
+                    <LayoutDashboard className="w-4 h-4 mr-2" />
+                    Dashboard
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to={settingsPath} className="cursor-pointer">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Settings
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={handleSignOut}
+                  className="text-destructive focus:text-destructive cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <>
               <Link to="/login" className="hidden sm:block">
@@ -74,6 +136,12 @@ export const Header = ({ mode, onModeChange, onSearch, onMenuClick }: HeaderProp
                   <UserPlus className="w-4 h-4 sm:mr-2" />
                   <span className="hidden sm:inline">Get Started</span>
                   <span className="sm:hidden">Join</span>
+                </Button>
+              </Link>
+              {/* Mobile sign in link */}
+              <Link to="/login" className="sm:hidden">
+                <Button variant="ghost" size="icon" className="bg-card/80 hover:bg-card border border-border/50">
+                  <LogIn className="w-4 h-4" />
                 </Button>
               </Link>
             </>
