@@ -1,10 +1,9 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MailWarning, RefreshCw, ArrowLeft, Loader2 } from 'lucide-react';
-import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -21,9 +20,38 @@ export const EmailVerificationGuard = ({
   const navigate = useNavigate();
   const [resending, setResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  const [customEmailVerified, setCustomEmailVerified] = useState<boolean | null>(null);
+  const [checkingVerification, setCheckingVerification] = useState(true);
 
-  // Check if email is verified
-  const isEmailVerified = user?.email_confirmed_at != null;
+  // Check custom email verification status
+  useEffect(() => {
+    const checkVerificationStatus = async () => {
+      if (!user) {
+        setCheckingVerification(false);
+        return;
+      }
+
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('custom_email_verified')
+          .eq('user_id', user.id)
+          .single();
+
+        setCustomEmailVerified(profile?.custom_email_verified ?? false);
+      } catch (error) {
+        console.error('Error checking verification status:', error);
+        setCustomEmailVerified(false);
+      } finally {
+        setCheckingVerification(false);
+      }
+    };
+
+    checkVerificationStatus();
+  }, [user]);
+
+  // Check if email is verified (either Supabase native or custom)
+  const isEmailVerified = user?.email_confirmed_at != null || customEmailVerified === true;
 
   // Start cooldown timer
   const startCooldown = () => {
@@ -69,7 +97,7 @@ export const EmailVerificationGuard = ({
     navigate('/login');
   };
 
-  if (loading) {
+  if (loading || checkingVerification) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />

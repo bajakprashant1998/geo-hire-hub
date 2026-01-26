@@ -189,6 +189,25 @@ const Signup = () => {
         }
       }
 
+      // Send custom verification email via Resend
+      if (data.user) {
+        try {
+          const response = await supabase.functions.invoke('send-verification-email', {
+            body: {
+              email: email,
+              name: fullName,
+              userId: data.user.id,
+            },
+          });
+          
+          if (response.error) {
+            console.error('Failed to send verification email:', response.error);
+          }
+        } catch (emailError) {
+          console.error('Error sending verification email:', emailError);
+        }
+      }
+
       // Store email for verification page
       sessionStorage.setItem('pendingVerificationEmail', email);
       

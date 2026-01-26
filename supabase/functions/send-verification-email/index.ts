@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -12,7 +13,13 @@ const corsHeaders = {
 interface VerificationEmailRequest {
   email: string;
   name: string;
-  verificationLink: string;
+  userId: string;
+}
+
+function generateToken(): string {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -21,12 +28,45 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { email, name, verificationLink }: VerificationEmailRequest = await req.json();
+    const { email, name, userId }: VerificationEmailRequest = await req.json();
+
+    if (!email || !userId) {
+      throw new Error("Missing required fields: email and userId");
+    }
+
+    // Generate verification token
+    const token = generateToken();
+    
+    // Get Supabase URL from environment
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    
+    // Create Supabase admin client to insert token
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+    
+    // Store token in database
+    const { error: insertError } = await supabaseAdmin
+      .from('email_verification_tokens')
+      .insert({
+        user_id: userId,
+        token: token,
+        email: email,
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
+      });
+
+    if (insertError) {
+      console.error("Error inserting token:", insertError);
+      throw new Error("Failed to create verification token");
+    }
+
+    // Create verification link
+    const appUrl = Deno.env.get("APP_URL") || "https://hireforjob1.lovable.app";
+    const verificationLink = `${appUrl}/verify-email?token=${token}`;
 
     const emailResponse = await resend.emails.send({
-      from: "GeoHire <onboarding@resend.dev>",
+      from: "Hire for Job <onboarding@resend.dev>",
       to: [email],
-      subject: "Verify Your Email - GeoHire",
+      subject: "Verify Your Email - Hire for Job",
       html: `
         <!DOCTYPE html>
         <html>
@@ -44,10 +84,10 @@ const handler = async (req: Request): Promise<Response> => {
                   <tr>
                     <td style="padding: 40px 40px 20px 40px; text-align: center;">
                       <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 16px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
-                        <span style="color: white; font-size: 28px; font-weight: bold;">G</span>
+                        <span style="color: white; font-size: 28px; font-weight: bold;">H</span>
                       </div>
                       <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: #1e293b;">
-                        Welcome to GeoHire!
+                        Welcome to Hire for Job!
                       </h1>
                     </td>
                   </tr>
@@ -100,7 +140,7 @@ const handler = async (req: Request): Promise<Response> => {
                   <tr>
                     <td style="padding: 0 40px; text-align: center;">
                       <p style="margin: 0; font-size: 12px; color: #94a3b8;">
-                        © 2024 GeoHire. All rights reserved.
+                        © ${new Date().getFullYear()} Hire for Job. All rights reserved.
                       </p>
                     </td>
                   </tr>
@@ -115,7 +155,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Verification email sent successfully:", emailResponse);
 
-    return new Response(JSON.stringify(emailResponse), {
+    return new Response(JSON.stringify({ success: true, ...emailResponse }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
