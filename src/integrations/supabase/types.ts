@@ -318,6 +318,36 @@ export type Database = {
           },
         ]
       }
+      email_verification_tokens: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          token: string
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at?: string
+          id?: string
+          token: string
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          token?: string
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       employer_plans: {
         Row: {
           created_at: string
@@ -1032,6 +1062,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string | null
+          custom_email_verified: boolean | null
           full_name: string
           id: string
           is_visible_on_map: boolean | null
@@ -1048,6 +1079,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string | null
+          custom_email_verified?: boolean | null
           full_name: string
           id?: string
           is_visible_on_map?: boolean | null
@@ -1064,6 +1096,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string | null
+          custom_email_verified?: boolean | null
           full_name?: string
           id?: string
           is_visible_on_map?: boolean | null
@@ -1304,6 +1337,7 @@ export type Database = {
         Args: { p_category_name: string; p_is_selection?: boolean }
         Returns: undefined
       }
+      verify_email_token: { Args: { p_token: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
