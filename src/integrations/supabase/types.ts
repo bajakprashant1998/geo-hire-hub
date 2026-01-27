@@ -1331,6 +1331,7 @@ export type Database = {
           distance_km: number
           employer_id: string
           id: string
+          job_category: string
           job_type: string
           latitude: number
           longitude: number

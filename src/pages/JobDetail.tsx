@@ -64,6 +64,7 @@ import { MailWarning } from 'lucide-react';
 import { useStartConversation } from '@/hooks/useStartConversation';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { GovernmentJobBadge, GovernmentEmployerBadge } from '@/components/government';
 
 interface JobDetails {
   id: string;
@@ -105,6 +106,7 @@ interface JobDetails {
   hiring_urgency: string | null;
   hiring_frequency: string | null;
   job_address: string | null;
+  job_category: string | null;
   employer: {
     id: string;
     company_name: string;
@@ -114,6 +116,7 @@ interface JobDetails {
     description: string | null;
     user_id: string | null;
     whatsapp_number: string | null;
+    is_government: boolean | null;
   };
 }
 
@@ -154,6 +157,7 @@ const JobDetail = () => {
             industry,
             website_url,
             description,
+            is_government,
             profiles!inner (
               avatar_url,
               user_id,
@@ -182,6 +186,7 @@ const JobDetail = () => {
           description: data.employers.description,
           user_id: data.employers.profiles?.user_id,
           whatsapp_number: data.employers.profiles?.whatsapp_number,
+          is_government: data.employers.is_government,
         },
       });
 
@@ -396,25 +401,31 @@ const JobDetail = () => {
     );
   }
 
-  return (
+    const isGovernmentJob = job.job_category === 'government';
+    const heroGradient = isGovernmentJob 
+      ? 'bg-gradient-to-r from-emerald-700/90 via-emerald-600/75 to-teal-600/60'
+      : 'bg-gradient-to-r from-destructive/85 via-destructive/70 to-destructive/50';
+
+    return (
     <TooltipProvider>
     <div className="min-h-screen bg-gradient-to-b from-secondary/50 to-background pb-24 lg:pb-12">
       {/* Hero Banner with Overlay */}
       <div
         className="relative h-64 md:h-80 bg-cover bg-center"
         style={{
-          backgroundImage:
-            'url("https://images.unsplash.com/photo-1497366216548-37526070297c?w=1920&h=600&fit=crop")',
+          backgroundImage: isGovernmentJob 
+            ? 'url("https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=1920&h=600&fit=crop")'
+            : 'url("https://images.unsplash.com/photo-1497366216548-37526070297c?w=1920&h=600&fit=crop")',
         }}
       >
-        <div className="absolute inset-0 bg-gradient-to-r from-destructive/85 via-destructive/70 to-destructive/50" />
+        <div className={`absolute inset-0 ${heroGradient}`} />
         <div className="absolute inset-0 opacity-10" style={{
           backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
           backgroundSize: '24px 24px'
         }} />
         
         <div className="absolute top-0 left-0 right-0 z-10">
-          <div className="container mx-auto px-4 pt-4 md:pt-6">
+          <div className="container mx-auto px-4 pt-4 md:pt-6 flex items-center justify-between">
             <Button
               variant="ghost"
               onClick={() => navigate(-1)}
@@ -423,6 +434,9 @@ const JobDetail = () => {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back
             </Button>
+            {isGovernmentJob && (
+              <GovernmentJobBadge variant="large" className="hidden md:flex" />
+            )}
           </div>
         </div>
       </div>
@@ -441,7 +455,11 @@ const JobDetail = () => {
                         Active
                       </Badge>
                     )}
-                    <div className="w-24 h-24 md:w-28 md:h-28 rounded-2xl bg-gradient-to-br from-destructive to-destructive/80 flex items-center justify-center shadow-xl border-4 border-background">
+                    <div className={`w-24 h-24 md:w-28 md:h-28 rounded-2xl flex items-center justify-center shadow-xl border-4 border-background ${
+                      isGovernmentJob 
+                        ? 'bg-gradient-to-br from-emerald-600 to-teal-600' 
+                        : 'bg-gradient-to-br from-destructive to-destructive/80'
+                    }`}>
                       {job.employer.avatar_url ? (
                         <Avatar className="w-full h-full rounded-xl">
                           <AvatarImage src={job.employer.avatar_url} alt={job.employer.company_name} className="object-cover" />
@@ -463,17 +481,25 @@ const JobDetail = () => {
                       <h1 className="text-2xl md:text-3xl font-bold text-foreground leading-tight">
                         {job.title}
                       </h1>
-                      <Link
-                        to={`/employer/${job.employer.id}`}
-                        className="inline-flex items-center gap-2 text-lg text-primary hover:text-primary/80 font-medium transition-colors"
-                      >
-                        <Building2 className="w-5 h-5" />
-                        {job.employer.company_name}
-                        <ExternalLink className="w-4 h-4 opacity-60" />
-                      </Link>
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <Link
+                          to={`/employer/${job.employer.id}`}
+                          className="inline-flex items-center gap-2 text-lg text-primary hover:text-primary/80 font-medium transition-colors"
+                        >
+                          <Building2 className="w-5 h-5" />
+                          {job.employer.company_name}
+                          <ExternalLink className="w-4 h-4 opacity-60" />
+                        </Link>
+                        {job.employer.is_government && (
+                          <GovernmentEmployerBadge variant="compact" />
+                        )}
+                      </div>
 
                       {/* Info Pills */}
                       <div className="flex flex-wrap items-center gap-3 pt-2">
+                        {isGovernmentJob && (
+                          <GovernmentJobBadge className="md:hidden" />
+                        )}
                         {job.job_address && (
                           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-foreground text-sm font-medium">
                             <MapPin className="w-4 h-4 text-muted-foreground" />
