@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
   SelectContent,
@@ -32,6 +33,8 @@ import {
   FileText,
   Loader2,
   AlertTriangle,
+  Heart,
+  Gift,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -41,6 +44,12 @@ import { VerificationBadge } from '@/components/employer/VerificationBadge';
 import { DocumentUpload } from '@/components/employer/DocumentUpload';
 import { LogoUpload } from '@/components/employer/LogoUpload';
 import { EmailVerificationGuard } from '@/components/auth/EmailVerificationGuard';
+import {
+  SocialLinksSection,
+  CompanyBenefitsSection,
+  CompanyCultureSection,
+  type SocialLinks,
+} from '@/components/profile';
 
 const countries = [
   { code: 'US', name: 'United States', taxLabel: 'EIN / Tax ID' },
@@ -95,6 +104,16 @@ const CompanyProfileEdit = () => {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [completeness, setCompleteness] = useState(0);
   const [whatsappNumber, setWhatsappNumber] = useState('');
+  const [activeTab, setActiveTab] = useState('basics');
+  
+  // Enhanced employer fields
+  const [teamSize, setTeamSize] = useState('');
+  const [foundingYear, setFoundingYear] = useState<number | null>(null);
+  const [benefits, setBenefits] = useState<string[]>([]);
+  const [socialLinks, setSocialLinks] = useState<SocialLinks>({});
+  const [cultureDescription, setCultureDescription] = useState('');
+  const [hiringProcess, setHiringProcess] = useState('');
+  const [specializations, setSpecializations] = useState<string[]>([]);
 
   useEffect(() => {
     if (profile) {
@@ -138,6 +157,15 @@ const CompanyProfileEdit = () => {
         setTermsAccepted(!!data.terms_accepted_at);
         setCompleteness(data.profile_completeness || 0);
         setWhatsappNumber(data.profiles?.whatsapp_number || '');
+        
+        // Enhanced fields
+        setTeamSize((data as any).team_size || '');
+        setFoundingYear((data as any).founding_year || null);
+        setBenefits((data as any).benefits || []);
+        setSocialLinks((data as any).social_links || {});
+        setCultureDescription((data as any).culture_description || '');
+        setHiringProcess((data as any).hiring_process || '');
+        setSpecializations((data as any).specializations || []);
 
         // Recalculate completeness
         const { data: calcData } = await supabase
@@ -186,6 +214,14 @@ const CompanyProfileEdit = () => {
         office_photo_url: officePhotoUrl || null,
         business_card_url: businessCardUrl || null,
         terms_accepted_at: termsAccepted ? new Date().toISOString() : null,
+        // Enhanced fields
+        team_size: teamSize || null,
+        founding_year: foundingYear,
+        benefits,
+        social_links: socialLinks as unknown as any,
+        culture_description: cultureDescription || null,
+        hiring_process: hiringProcess || null,
+        specializations,
       };
 
       const { error } = await supabase
@@ -298,201 +334,251 @@ const CompanyProfileEdit = () => {
           </Card>
         )}
 
-        {/* Company Logo & Basic Info */}
-        <Card className="shadow-google">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-primary" />
-              Company Branding
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Logo Upload */}
-            <div className="flex flex-col md:flex-row items-center gap-6 p-4 bg-secondary/50 rounded-lg">
-              {user && (
-                <LogoUpload
-                  userId={user.id}
-                  currentLogoUrl={logoUrl}
-                  onLogoUploaded={setLogoUrl}
-                  size="lg"
-                />
-              )}
-              <div className="text-center md:text-left">
-                <h3 className="font-semibold">Company Logo</h3>
-                <p className="text-sm text-muted-foreground">
-                  Upload your company logo. Recommended: Square image (1:1 ratio), at least 200x200px.
-                  Supports JPEG, PNG, WebP, or SVG.
-                </p>
-              </div>
-            </div>
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid grid-cols-3 w-full">
+            <TabsTrigger value="basics" className="gap-2">
+              <Building2 className="w-4 h-4" />
+              <span className="hidden sm:inline">Basics</span>
+            </TabsTrigger>
+            <TabsTrigger value="culture" className="gap-2">
+              <Heart className="w-4 h-4" />
+              <span className="hidden sm:inline">Culture</span>
+            </TabsTrigger>
+            <TabsTrigger value="documents" className="gap-2">
+              <FileText className="w-4 h-4" />
+              <span className="hidden sm:inline">Documents</span>
+            </TabsTrigger>
+          </TabsList>
 
-            <Separator />
+          {/* Basics Tab */}
+          <TabsContent value="basics" className="space-y-6">
+            {/* Company Logo & Basic Info */}
+            <Card className="shadow-google">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-primary" />
+                  Company Branding
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Logo Upload */}
+                <div className="flex flex-col md:flex-row items-center gap-6 p-4 bg-secondary/50 rounded-lg">
+                  {user && (
+                    <LogoUpload
+                      userId={user.id}
+                      currentLogoUrl={logoUrl}
+                      onLogoUploaded={setLogoUrl}
+                      size="lg"
+                    />
+                  )}
+                  <div className="text-center md:text-left">
+                    <h3 className="font-semibold">Company Logo</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Upload your company logo. Recommended: Square image (1:1 ratio), at least 200x200px.
+                    </p>
+                  </div>
+                </div>
 
-            {/* Basic Info Fields */}
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="companyName">Company Name *</Label>
-                <Input
-                  id="companyName"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  placeholder="Your Company Name"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="industry">Industry *</Label>
-                <Select value={industry} onValueChange={setIndustry}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select industry" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {industries.map((ind) => (
-                      <SelectItem key={ind} value={ind}>{ind}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+                <Separator />
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Company Description *</Label>
-              <Textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Tell candidates about your company (min 20 characters)"
-                rows={4}
-              />
-              <p className="text-xs text-muted-foreground">
-                {description.length}/20 characters minimum
-              </p>
-            </div>
+                {/* Basic Info Fields */}
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="companyName">Company Name *</Label>
+                    <Input
+                      id="companyName"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      placeholder="Your Company Name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="industry">Industry *</Label>
+                    <Select value={industry} onValueChange={setIndustry}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select industry" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {industries.map((ind) => (
+                          <SelectItem key={ind} value={ind}>{ind}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="website">Website URL</Label>
-              <Input
-                id="website"
-                type="url"
-                value={websiteUrl}
-                onChange={(e) => setWebsiteUrl(e.target.value)}
-                placeholder="https://yourcompany.com"
-              />
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Company Description *</Label>
+                  <Textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Tell candidates about your company (min 20 characters)"
+                    rows={4}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {description.length}/20 characters minimum
+                  </p>
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="whatsapp">WhatsApp Number</Label>
-              <Input
-                id="whatsapp"
-                value={whatsappNumber}
-                onChange={(e) => setWhatsappNumber(e.target.value)}
-                placeholder="e.g., 919876543210 (include country code)"
-              />
-              <p className="text-xs text-muted-foreground">
-                Candidates will use this to contact you directly via WhatsApp
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+                <div className="space-y-2">
+                  <Label htmlFor="website">Website URL</Label>
+                  <Input
+                    id="website"
+                    type="url"
+                    value={websiteUrl}
+                    onChange={(e) => setWebsiteUrl(e.target.value)}
+                    placeholder="https://yourcompany.com"
+                  />
+                </div>
 
-        {/* Legal Information */}
-        <Card className="shadow-google">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-primary" />
-              Legal Information
-            </CardTitle>
-            <CardDescription>
-              Required for verification and compliance
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="country">Country *</Label>
-                <Select value={countryCode} onValueChange={setCountryCode}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select country" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {countries.map((country) => (
-                      <SelectItem key={country.code} value={country.code}>
-                        {country.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="taxId">{getTaxLabel()} *</Label>
-                <Input
-                  id="taxId"
-                  value={taxId}
-                  onChange={(e) => setTaxId(e.target.value)}
-                  placeholder={`Enter your ${getTaxLabel()}`}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+                <div className="space-y-2">
+                  <Label htmlFor="whatsapp">WhatsApp Number</Label>
+                  <Input
+                    id="whatsapp"
+                    value={whatsappNumber}
+                    onChange={(e) => setWhatsappNumber(e.target.value)}
+                    placeholder="e.g., 919876543210 (include country code)"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Candidates will use this to contact you directly via WhatsApp
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Documents */}
-        <Card className="shadow-google">
-          <CardHeader>
-            <CardTitle>Trust Documents</CardTitle>
-            <CardDescription>
-              Upload photos to build trust with candidates
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {user && (
-              <>
-                <DocumentUpload
-                  userId={user.id}
-                  type="office"
-                  currentUrl={officePhotoUrl}
-                  onUploaded={setOfficePhotoUrl}
-                  label="Office Photo"
-                  description="Upload a photo of your office or workspace"
-                />
-                <DocumentUpload
-                  userId={user.id}
-                  type="business-card"
-                  currentUrl={businessCardUrl}
-                  onUploaded={setBusinessCardUrl}
-                  label="Business Card"
-                  description="Upload your business or visiting card"
-                />
-              </>
-            )}
-          </CardContent>
-        </Card>
+            {/* Legal Information */}
+            <Card className="shadow-google">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-primary" />
+                  Legal Information
+                </CardTitle>
+                <CardDescription>
+                  Required for verification and compliance
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="country">Country *</Label>
+                    <Select value={countryCode} onValueChange={setCountryCode}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select country" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {countries.map((country) => (
+                          <SelectItem key={country.code} value={country.code}>
+                            {country.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="taxId">{getTaxLabel()} *</Label>
+                    <Input
+                      id="taxId"
+                      value={taxId}
+                      onChange={(e) => setTaxId(e.target.value)}
+                      placeholder={`Enter your ${getTaxLabel()}`}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        {/* Terms Acceptance */}
-        <Card className="shadow-google">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-3">
-              <Checkbox
-                id="terms"
-                checked={termsAccepted}
-                onCheckedChange={(checked) => {
-                  if (checked && !termsAccepted) {
-                    setShowTermsDialog(true);
-                  } else {
-                    setTermsAccepted(false);
-                  }
-                }}
-              />
-              <div>
-                <Label htmlFor="terms" className="cursor-pointer">
-                  I agree to the Platform Rules & Terms
-                </Label>
-                <p className="text-sm text-muted-foreground mt-1">
-                  By checking this box, you agree to follow our posting guidelines and fair hiring practices.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          {/* Culture Tab */}
+          <TabsContent value="culture" className="space-y-6">
+            {/* Company Culture Section */}
+            <CompanyCultureSection
+              culture={cultureDescription}
+              hiringProcess={hiringProcess}
+              teamSize={teamSize}
+              foundingYear={foundingYear}
+              onCultureChange={setCultureDescription}
+              onHiringProcessChange={setHiringProcess}
+              onTeamSizeChange={setTeamSize}
+              onFoundingYearChange={setFoundingYear}
+            />
+
+            {/* Benefits */}
+            <CompanyBenefitsSection
+              benefits={benefits}
+              onChange={setBenefits}
+            />
+
+            {/* Social Links */}
+            <SocialLinksSection
+              links={socialLinks}
+              onChange={setSocialLinks}
+              showGithub={false}
+            />
+          </TabsContent>
+
+          {/* Documents Tab */}
+          <TabsContent value="documents" className="space-y-6">
+            <Card className="shadow-google">
+              <CardHeader>
+                <CardTitle>Trust Documents</CardTitle>
+                <CardDescription>
+                  Upload photos to build trust with candidates
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {user && (
+                  <>
+                    <DocumentUpload
+                      userId={user.id}
+                      type="office"
+                      currentUrl={officePhotoUrl}
+                      onUploaded={setOfficePhotoUrl}
+                      label="Office Photo"
+                      description="Upload a photo of your office or workspace"
+                    />
+                    <DocumentUpload
+                      userId={user.id}
+                      type="business-card"
+                      currentUrl={businessCardUrl}
+                      onUploaded={setBusinessCardUrl}
+                      label="Business Card"
+                      description="Upload your business or visiting card"
+                    />
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Terms Acceptance */}
+            <Card className="shadow-google">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-3">
+                  <Checkbox
+                    id="terms"
+                    checked={termsAccepted}
+                    onCheckedChange={(checked) => {
+                      if (checked && !termsAccepted) {
+                        setShowTermsDialog(true);
+                      } else {
+                        setTermsAccepted(false);
+                      }
+                    }}
+                  />
+                  <div>
+                    <Label htmlFor="terms" className="cursor-pointer">
+                      I agree to the Platform Rules & Terms
+                    </Label>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      By checking this box, you agree to follow our posting guidelines and fair hiring practices.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         {/* Actions */}
         <div className="flex items-center justify-between">

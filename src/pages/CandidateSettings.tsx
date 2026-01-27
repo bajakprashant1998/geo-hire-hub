@@ -25,6 +25,7 @@ import {
   Bell,
   Globe,
   Navigation,
+  Target,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -36,6 +37,16 @@ import { JobAlertsManager } from '@/components/candidate/JobAlertsManager';
 import { EmailVerificationGuard } from '@/components/auth/EmailVerificationGuard';
 import { LocationMapPicker } from '@/components/post-job/LocationMapPicker';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+  WorkExperienceSection,
+  SocialLinksSection,
+  LanguagesSection,
+  CertificationsSection,
+  AvailabilitySection,
+  type WorkExperience,
+  type SocialLinks,
+  type Language,
+} from '@/components/profile';
 
 interface Education {
   institution: string;
@@ -110,6 +121,15 @@ const CandidateSettings = () => {
   const [portfolioInput, setPortfolioInput] = useState('');
   const [whatsappNumber, setWhatsappNumber] = useState('');
   
+  // Enhanced profile fields
+  const [headline, setHeadline] = useState('');
+  const [workExperience, setWorkExperience] = useState<WorkExperience[]>([]);
+  const [certifications, setCertifications] = useState<string[]>([]);
+  const [languages, setLanguages] = useState<Language[]>([]);
+  const [socialLinks, setSocialLinks] = useState<SocialLinks>({});
+  const [availabilityStatus, setAvailabilityStatus] = useState('available');
+  const [preferredJobTypes, setPreferredJobTypes] = useState<string[]>([]);
+  
   // Privacy settings
   const [isVisibleOnMap, setIsVisibleOnMap] = useState(true);
   const [resumeVisibility, setResumeVisibility] = useState('approved_employers');
@@ -139,7 +159,13 @@ const CandidateSettings = () => {
       resumeVisibility !== initialValues.resumeVisibility ||
       coordinates?.lat !== initialValues.coordinates?.lat ||
       coordinates?.lng !== initialValues.coordinates?.lng ||
-      whatsappNumber !== initialValues.whatsappNumber
+      whatsappNumber !== initialValues.whatsappNumber ||
+      headline !== initialValues.headline ||
+      JSON.stringify(workExperience) !== JSON.stringify(initialValues.workExperience) ||
+      JSON.stringify(certifications) !== JSON.stringify(initialValues.certifications) ||
+      JSON.stringify(languages) !== JSON.stringify(initialValues.languages) ||
+      JSON.stringify(socialLinks) !== JSON.stringify(initialValues.socialLinks) ||
+      availabilityStatus !== initialValues.availabilityStatus
     );
   };
 
@@ -213,6 +239,23 @@ const CandidateSettings = () => {
         setResumeVisibility(data.resume_visibility || 'approved_employers');
         setWhatsappNumber((profile as any).whatsapp_number || '');
         
+        // Enhanced profile fields
+        setHeadline((data as any).headline || '');
+        let parsedWorkExp: WorkExperience[] = [];
+        if ((data as any).work_experience && Array.isArray((data as any).work_experience)) {
+          parsedWorkExp = (data as any).work_experience;
+        }
+        setWorkExperience(parsedWorkExp);
+        setCertifications((data as any).certifications || []);
+        let parsedLanguages: Language[] = [];
+        if ((data as any).languages && Array.isArray((data as any).languages)) {
+          parsedLanguages = (data as any).languages;
+        }
+        setLanguages(parsedLanguages);
+        setSocialLinks((data as any).social_links || {});
+        setAvailabilityStatus((data as any).availability_status || 'available');
+        setPreferredJobTypes((data as any).preferred_job_types || []);
+        
         // Set location
         const coords = profile.latitude && profile.longitude 
           ? { lat: profile.latitude, lng: profile.longitude }
@@ -234,6 +277,12 @@ const CandidateSettings = () => {
           resumeVisibility: data.resume_visibility || 'approved_employers',
           coordinates: coords,
           whatsappNumber: (profile as any).whatsapp_number || '',
+          headline: (data as any).headline || '',
+          workExperience: parsedWorkExp,
+          certifications: (data as any).certifications || [],
+          languages: parsedLanguages,
+          socialLinks: (data as any).social_links || {},
+          availabilityStatus: (data as any).availability_status || 'available',
         });
       } else {
         toast.error('No candidate profile found');
@@ -332,7 +381,7 @@ const CandidateSettings = () => {
 
       if (profileError) throw profileError;
 
-      // Update candidate
+      // Update candidate including enhanced fields
       const { error: candidateError } = await supabase
         .from('candidates')
         .update({
@@ -344,6 +393,13 @@ const CandidateSettings = () => {
           education: education as unknown as any,
           portfolio_urls: portfolioUrls,
           resume_visibility: resumeVisibility,
+          headline: headline || null,
+          work_experience: workExperience as unknown as any,
+          certifications,
+          languages: languages as unknown as any,
+          social_links: socialLinks as unknown as any,
+          availability_status: availabilityStatus,
+          preferred_job_types: preferredJobTypes,
         })
         .eq('id', candidate.id);
 
@@ -364,6 +420,12 @@ const CandidateSettings = () => {
         resumeVisibility,
         coordinates: coordinates ? { ...coordinates } : null,
         whatsappNumber,
+        headline,
+        workExperience: [...workExperience],
+        certifications: [...certifications],
+        languages: [...languages],
+        socialLinks: { ...socialLinks },
+        availabilityStatus,
       });
 
       await refreshProfile();
@@ -467,10 +529,14 @@ const CandidateSettings = () => {
 
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid grid-cols-4 w-full">
+            <TabsList className="grid grid-cols-5 w-full">
               <TabsTrigger value="profile" className="gap-2">
                 <User className="w-4 h-4" />
                 <span className="hidden sm:inline">Profile</span>
+              </TabsTrigger>
+              <TabsTrigger value="career" className="gap-2">
+                <Target className="w-4 h-4" />
+                <span className="hidden sm:inline">Career</span>
               </TabsTrigger>
               <TabsTrigger value="resume" className="gap-2">
                 <FileText className="w-4 h-4" />
@@ -742,6 +808,61 @@ const CandidateSettings = () => {
                   </Button>
                 </Link>
               </div>
+            </TabsContent>
+
+            {/* Career Tab - Enhanced Profile Sections */}
+            <TabsContent value="career" className="space-y-6">
+              {/* Availability Status */}
+              <AvailabilitySection
+                status={availabilityStatus}
+                onChange={setAvailabilityStatus}
+              />
+
+              {/* Professional Headline */}
+              <Card className="shadow-google border-border">
+                <CardHeader className="pb-4">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Briefcase className="w-5 h-5 text-primary" />
+                    Professional Headline
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Input
+                    value={headline}
+                    onChange={(e) => setHeadline(e.target.value)}
+                    placeholder="e.g., Senior Software Engineer | React & Node.js Expert | 5+ Years Experience"
+                    maxLength={120}
+                  />
+                  <p className="text-xs text-muted-foreground mt-2">
+                    A short, impactful summary that appears below your name ({headline.length}/120)
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Work Experience */}
+              <WorkExperienceSection
+                experiences={workExperience}
+                onChange={setWorkExperience}
+              />
+
+              {/* Languages */}
+              <LanguagesSection
+                languages={languages}
+                onChange={setLanguages}
+              />
+
+              {/* Certifications */}
+              <CertificationsSection
+                certifications={certifications}
+                onChange={setCertifications}
+              />
+
+              {/* Social Links */}
+              <SocialLinksSection
+                links={socialLinks}
+                onChange={setSocialLinks}
+                showGithub={true}
+              />
             </TabsContent>
 
             {/* Resume Tab */}
