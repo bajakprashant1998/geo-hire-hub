@@ -204,67 +204,91 @@ export type Database = {
       }
       candidates: {
         Row: {
+          availability_status: string | null
           bio: string | null
           blocked_at: string | null
           blocked_by: string | null
           blocked_reason: string | null
+          certifications: string[] | null
           created_at: string | null
           education: Json | null
           expected_salary: string | null
           experience_years: number | null
+          headline: string | null
           id: string
           is_blocked: boolean | null
           job_title: string
+          languages: Json | null
           portfolio_urls: string[] | null
+          preferred_job_types: string[] | null
+          preferred_locations: string[] | null
           profile_id: string
           resume_filename: string | null
           resume_uploaded_at: string | null
           resume_url: string | null
           resume_visibility: string | null
           skills: string[] | null
+          social_links: Json | null
           updated_at: string | null
+          work_experience: Json | null
         }
         Insert: {
+          availability_status?: string | null
           bio?: string | null
           blocked_at?: string | null
           blocked_by?: string | null
           blocked_reason?: string | null
+          certifications?: string[] | null
           created_at?: string | null
           education?: Json | null
           expected_salary?: string | null
           experience_years?: number | null
+          headline?: string | null
           id?: string
           is_blocked?: boolean | null
           job_title: string
+          languages?: Json | null
           portfolio_urls?: string[] | null
+          preferred_job_types?: string[] | null
+          preferred_locations?: string[] | null
           profile_id: string
           resume_filename?: string | null
           resume_uploaded_at?: string | null
           resume_url?: string | null
           resume_visibility?: string | null
           skills?: string[] | null
+          social_links?: Json | null
           updated_at?: string | null
+          work_experience?: Json | null
         }
         Update: {
+          availability_status?: string | null
           bio?: string | null
           blocked_at?: string | null
           blocked_by?: string | null
           blocked_reason?: string | null
+          certifications?: string[] | null
           created_at?: string | null
           education?: Json | null
           expected_salary?: string | null
           experience_years?: number | null
+          headline?: string | null
           id?: string
           is_blocked?: boolean | null
           job_title?: string
+          languages?: Json | null
           portfolio_urls?: string[] | null
+          preferred_job_types?: string[] | null
+          preferred_locations?: string[] | null
           profile_id?: string
           resume_filename?: string | null
           resume_uploaded_at?: string | null
           resume_url?: string | null
           resume_visibility?: string | null
           skills?: string[] | null
+          social_links?: Json | null
           updated_at?: string | null
+          work_experience?: Json | null
         }
         Relationships: [
           {
@@ -488,13 +512,17 @@ export type Database = {
       }
       employers: {
         Row: {
+          benefits: string[] | null
           business_card_url: string | null
           company_name: string
           country_code: string | null
           created_at: string | null
+          culture_description: string | null
           description: string | null
+          founding_year: number | null
           government_domain_verified: boolean | null
           government_email_domain: string | null
+          hiring_process: string | null
           id: string
           industry: string | null
           is_government: boolean | null
@@ -502,11 +530,14 @@ export type Database = {
           office_photo_url: string | null
           profile_completeness: number | null
           profile_id: string
+          social_links: Json | null
+          specializations: string[] | null
           suspended_at: string | null
           suspended_by: string | null
           suspended_reason: string | null
           tax_id: string | null
           tax_type: string | null
+          team_size: string | null
           terms_accepted_at: string | null
           updated_at: string | null
           verification_notes: string | null
@@ -515,13 +546,17 @@ export type Database = {
           website_url: string | null
         }
         Insert: {
+          benefits?: string[] | null
           business_card_url?: string | null
           company_name: string
           country_code?: string | null
           created_at?: string | null
+          culture_description?: string | null
           description?: string | null
+          founding_year?: number | null
           government_domain_verified?: boolean | null
           government_email_domain?: string | null
+          hiring_process?: string | null
           id?: string
           industry?: string | null
           is_government?: boolean | null
@@ -529,11 +564,14 @@ export type Database = {
           office_photo_url?: string | null
           profile_completeness?: number | null
           profile_id: string
+          social_links?: Json | null
+          specializations?: string[] | null
           suspended_at?: string | null
           suspended_by?: string | null
           suspended_reason?: string | null
           tax_id?: string | null
           tax_type?: string | null
+          team_size?: string | null
           terms_accepted_at?: string | null
           updated_at?: string | null
           verification_notes?: string | null
@@ -542,13 +580,17 @@ export type Database = {
           website_url?: string | null
         }
         Update: {
+          benefits?: string[] | null
           business_card_url?: string | null
           company_name?: string
           country_code?: string | null
           created_at?: string | null
+          culture_description?: string | null
           description?: string | null
+          founding_year?: number | null
           government_domain_verified?: boolean | null
           government_email_domain?: string | null
+          hiring_process?: string | null
           id?: string
           industry?: string | null
           is_government?: boolean | null
@@ -556,11 +598,14 @@ export type Database = {
           office_photo_url?: string | null
           profile_completeness?: number | null
           profile_id?: string
+          social_links?: Json | null
+          specializations?: string[] | null
           suspended_at?: string | null
           suspended_by?: string | null
           suspended_reason?: string | null
           tax_id?: string | null
           tax_type?: string | null
+          team_size?: string | null
           terms_accepted_at?: string | null
           updated_at?: string | null
           verification_notes?: string | null
