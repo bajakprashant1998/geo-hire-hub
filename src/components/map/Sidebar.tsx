@@ -12,6 +12,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { GovernmentJobBadge } from '@/components/government';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -221,7 +222,11 @@ export const Sidebar = ({
                   <button
                     key={job.id}
                     onClick={() => onSelectJob(job)}
-                    className="w-full card-google p-3 text-left hover:border-destructive/50 transition-colors"
+                    className={`w-full card-google p-3 text-left transition-colors ${
+                      job.job_category === 'government' 
+                        ? 'hover:border-emerald-500/50 border-l-4 border-l-emerald-500' 
+                        : 'hover:border-destructive/50'
+                    }`}
                   >
                     <div className="space-y-2">
                       <div className="flex items-start justify-between gap-2">
@@ -231,9 +236,15 @@ export const Sidebar = ({
                             {job.company_name}
                           </p>
                         </div>
-                        <Badge variant="secondary" className="badge-job text-xs flex-shrink-0">
-                          {job.job_type}
-                        </Badge>
+                        <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                          {job.job_category === 'government' ? (
+                            <GovernmentJobBadge variant="compact" />
+                          ) : (
+                            <Badge variant="secondary" className="badge-job text-xs">
+                              {job.job_type}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                       <div className="flex items-center gap-3 text-xs text-muted-foreground">
                         {job.salary_range && (

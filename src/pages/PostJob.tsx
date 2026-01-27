@@ -82,6 +82,10 @@ const PostJob = () => {
   const [showUpgradePrompt, setShowUpgradePrompt] = useState(false);
   const [companyName, setCompanyName] = useState('');
   const [isVerified, setIsVerified] = useState(false);
+  const [isGovernmentEmployer, setIsGovernmentEmployer] = useState(false);
+
+  // Job category for government jobs
+  const [jobCategory, setJobCategory] = useState<'private' | 'government'>('private');
 
   // Section 1: Job Basics
   const [jobType, setJobType] = useState<'Full Time' | 'Part Time'>('Full Time');
@@ -134,7 +138,7 @@ const PostJob = () => {
 
       const { data, error } = await supabase
         .from('employers')
-        .select('id, company_name, verification_status, profile_completeness, terms_accepted_at')
+        .select('id, company_name, verification_status, profile_completeness, terms_accepted_at, is_government, government_domain_verified')
         .eq('profile_id', profile.id)
         .maybeSingle();
 
@@ -142,6 +146,7 @@ const PostJob = () => {
         setEmployerId(data.id);
         setCompanyName(data.company_name);
         setIsVerified(data.verification_status === 'approved');
+        setIsGovernmentEmployer(data.is_government === true && data.government_domain_verified === true);
 
         // Check posting eligibility
         if (data.profile_completeness < 100) {
@@ -599,6 +604,7 @@ const PostJob = () => {
         hiring_urgency: hiringUrgency,
         hiring_frequency: hiringFrequency,
         job_address: jobAddress || address,
+        job_category: jobCategory,
       };
 
       if (isEditMode && jobId) {
@@ -847,6 +853,9 @@ const PostJob = () => {
                           setAddress={setAddress}
                           openings={openings}
                           setOpenings={setOpenings}
+                          jobCategory={jobCategory}
+                          setJobCategory={setJobCategory}
+                          isGovernmentEmployer={isGovernmentEmployer}
                         />
                       )}
 

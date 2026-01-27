@@ -14,6 +14,7 @@ import {
   Building2,
   Star
 } from 'lucide-react';
+import { GovernmentJobBadge, GovernmentEmployerBadge } from '@/components/government';
 
 interface MarkerPreviewSheetProps {
   isOpen: boolean;
@@ -110,65 +111,81 @@ export const MarkerPreviewSheet = ({
     </div>
   );
 
-  const renderJobPreview = (job: Job) => (
-    <div className="space-y-4 animate-fade-in">
-      {/* Header */}
-      <div className="flex items-start gap-4">
-        <div className="w-14 h-14 rounded-xl bg-destructive/10 flex items-center justify-center flex-shrink-0">
-          <Briefcase className="w-7 h-7 text-destructive" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-semibold truncate">{job.title}</h3>
-          <div className="flex items-center gap-1 text-muted-foreground">
-            <Building2 className="w-3.5 h-3.5" />
-            <span className="truncate">{job.company_name}</span>
+  const renderJobPreview = (job: Job) => {
+    const isGovernmentJob = job.job_category === 'government';
+    
+    return (
+      <div className="space-y-4 animate-fade-in">
+        {/* Government Job Banner */}
+        {isGovernmentJob && (
+          <div className="flex justify-center">
+            <GovernmentJobBadge variant="large" />
           </div>
-          {job.distance_km && (
-            <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground">
-              <MapPin className="w-3.5 h-3.5" />
-              <span>{job.distance_km.toFixed(1)} km away</span>
+        )}
+
+        {/* Header */}
+        <div className="flex items-start gap-4">
+          <div className={`w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 ${
+            isGovernmentJob ? 'bg-emerald-100 dark:bg-emerald-950' : 'bg-destructive/10'
+          }`}>
+            <Briefcase className={`w-7 h-7 ${isGovernmentJob ? 'text-emerald-600' : 'text-destructive'}`} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h3 className="text-lg font-semibold truncate">{job.title}</h3>
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <Building2 className="w-3.5 h-3.5" />
+              <span className="truncate">{job.company_name}</span>
             </div>
+            {job.distance_km && (
+              <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground">
+                <MapPin className="w-3.5 h-3.5" />
+                <span>{job.distance_km.toFixed(1)} km away</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Details */}
+        <div className="flex flex-wrap gap-2">
+          {job.job_type && (
+            <Badge variant="secondary" className="gap-1">
+              <Briefcase className="w-3 h-3" />
+              {job.job_type}
+            </Badge>
+          )}
+          {job.salary_range && (
+            <Badge variant="outline" className="gap-1 bg-success/5 text-success border-success/20">
+              <DollarSign className="w-3 h-3" />
+              {job.salary_range}
+            </Badge>
+          )}
+          {isGovernmentJob && job.is_government_employer && (
+            <GovernmentEmployerBadge variant="compact" />
           )}
         </div>
-      </div>
 
-      {/* Details */}
-      <div className="flex flex-wrap gap-2">
-        {job.job_type && (
-          <Badge variant="secondary" className="gap-1">
-            <Briefcase className="w-3 h-3" />
-            {job.job_type}
-          </Badge>
+        {/* Description Preview */}
+        {job.description && (
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">About this role</p>
+            <p className="text-sm text-muted-foreground line-clamp-3">
+              {job.description}
+            </p>
+          </div>
         )}
-        {job.salary_range && (
-          <Badge variant="outline" className="gap-1 bg-success/5 text-success border-success/20">
-            <DollarSign className="w-3 h-3" />
-            {job.salary_range}
-          </Badge>
-        )}
+
+        {/* Action */}
+        <Button 
+          onClick={handleViewDetails} 
+          className={`w-full gap-2 mt-2 ${isGovernmentJob ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}
+          size="lg"
+        >
+          View Job Details
+          <ArrowRight className="w-4 h-4" />
+        </Button>
       </div>
-
-      {/* Description Preview */}
-      {job.description && (
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">About this role</p>
-          <p className="text-sm text-muted-foreground line-clamp-3">
-            {job.description}
-          </p>
-        </div>
-      )}
-
-      {/* Action */}
-      <Button 
-        onClick={handleViewDetails} 
-        className="w-full gap-2 mt-2"
-        size="lg"
-      >
-        View Job Details
-        <ArrowRight className="w-4 h-4" />
-      </Button>
-    </div>
-  );
+    );
+  };
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>

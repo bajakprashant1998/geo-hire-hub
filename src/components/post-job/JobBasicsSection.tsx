@@ -2,6 +2,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { JobCategorySearch } from '@/components/JobCategorySearch';
 import { LocationMapPicker } from './LocationMapPicker';
+import { JobCategorySelector } from '@/components/government/JobCategorySelector';
 
 interface JobBasicsSectionProps {
   jobType: 'Full Time' | 'Part Time';
@@ -14,6 +15,9 @@ interface JobBasicsSectionProps {
   setAddress: (address: string) => void;
   openings: string;
   setOpenings: (openings: string) => void;
+  jobCategory: 'private' | 'government';
+  setJobCategory: (category: 'private' | 'government') => void;
+  isGovernmentEmployer: boolean;
 }
 
 export const JobBasicsSection = ({
@@ -27,6 +31,9 @@ export const JobBasicsSection = ({
   setAddress,
   openings,
   setOpenings,
+  jobCategory,
+  setJobCategory,
+  isGovernmentEmployer,
 }: JobBasicsSectionProps) => {
   return (
     <div className="space-y-6">
@@ -34,6 +41,13 @@ export const JobBasicsSection = ({
         <h2 className="text-xl font-semibold">Job Basics</h2>
         <p className="text-sm text-muted-foreground">Start with the essential details about the position</p>
       </div>
+
+      {/* Job Category Selector */}
+      <JobCategorySelector
+        value={jobCategory}
+        onChange={setJobCategory}
+        isGovernmentEmployer={isGovernmentEmployer}
+      />
 
       {/* Job Type Toggle */}
       <div className="space-y-2">

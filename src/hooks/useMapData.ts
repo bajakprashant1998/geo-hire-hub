@@ -135,6 +135,7 @@ export const useMapData = ({ userLocation, radius, searchQuery }: UseMapDataProp
             created_at: j.created_at,
             company_name: j.company_name,
             distance_km: j.distance_km,
+            job_category: j.job_category || 'private',
           }));
         }
       }
@@ -153,8 +154,10 @@ export const useMapData = ({ userLocation, radius, searchQuery }: UseMapDataProp
           longitude,
           status,
           created_at,
+          job_category,
           employers!inner (
-            company_name
+            company_name,
+            is_government
           )
         `)
         .eq('status', 'open')
@@ -176,6 +179,8 @@ export const useMapData = ({ userLocation, radius, searchQuery }: UseMapDataProp
           created_at: j.created_at,
           company_name: j.employers.company_name,
           distance_km: calculateDistance(j.latitude, j.longitude),
+          job_category: j.job_category || 'private',
+          is_government_employer: j.employers.is_government,
         }))
         .filter((j: Job) => !j.distance_km || j.distance_km <= radius);
     } catch (err: any) {

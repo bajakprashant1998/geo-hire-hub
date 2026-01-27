@@ -9,6 +9,7 @@ import { FloatingControls } from '@/components/map/FloatingControls';
 import { Sidebar } from '@/components/map/Sidebar';
 import { MarkerPreviewSheet } from '@/components/map/MarkerPreviewSheet';
 import BottomNavBar from '@/components/map/BottomNavBar';
+import { JobCategoryFilter, JobCategoryFilterValue, MapLegend } from '@/components/government';
 import { toast } from 'sonner';
 
 const Index = () => {
@@ -18,6 +19,7 @@ const Index = () => {
   const [selectedItem, setSelectedItem] = useState<Candidate | Job | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [jobCategoryFilter, setJobCategoryFilter] = useState<JobCategoryFilterValue>('all');
 
   const geolocation = useGeolocation();
   const userLocation = useMemo(() => {
@@ -33,6 +35,18 @@ const Index = () => {
     radius,
     searchQuery,
   });
+
+  // Filter jobs by category
+  const filteredJobs = useMemo(() => {
+    if (jobCategoryFilter === 'all') return jobs;
+    return jobs.filter(job => job.job_category === jobCategoryFilter);
+  }, [jobs, jobCategoryFilter]);
+
+  // Count jobs by category
+  const jobCounts = useMemo(() => ({
+    private: jobs.filter(j => j.job_category !== 'government').length,
+    government: jobs.filter(j => j.job_category === 'government').length,
+  }), [jobs]);
 
   const handleModeChange = (newMode: ViewMode) => {
     setMode(newMode);
@@ -74,7 +88,7 @@ const Index = () => {
         <MapContainer
           mode={mode}
           candidates={candidates}
-          jobs={jobs}
+          jobs={filteredJobs}
           userLocation={userLocation}
           radius={radius}
           onMarkerClick={handleMarkerClick}
@@ -94,6 +108,24 @@ const Index = () => {
           />
         </div>
 
+        {/* Job Category Filter - only show in seeking mode */}
+        {mode === 'seeking' && (
+          <div className="pointer-events-auto absolute top-20 left-4 z-20">
+            <JobCategoryFilter
+              value={jobCategoryFilter}
+              onChange={setJobCategoryFilter}
+              showCounts
+              privateCnt={jobCounts.private}
+              governmentCnt={jobCounts.government}
+            />
+          </div>
+        )}
+
+        {/* Map Legend */}
+        <div className="pointer-events-auto absolute bottom-32 left-4 z-20 hidden md:block">
+          <MapLegend mode={mode} />
+        </div>
+
         {/* Floating Controls */}
         <div className="pointer-events-auto">
           <FloatingControls
@@ -103,7 +135,7 @@ const Index = () => {
             onToggleSidebar={() => setSidebarOpen(true)}
             onCenterOnUser={handleCenterOnUser}
             candidateCount={candidates.length}
-            jobCount={jobs.length}
+            jobCount={filteredJobs.length}
           />
         </div>
       </div>
@@ -114,7 +146,7 @@ const Index = () => {
         onClose={() => setSidebarOpen(false)}
         mode={mode}
         candidates={candidates}
-        jobs={jobs}
+        jobs={filteredJobs}
         onSelectCandidate={handleSelectFromSidebar}
         onSelectJob={handleSelectFromSidebar}
       />

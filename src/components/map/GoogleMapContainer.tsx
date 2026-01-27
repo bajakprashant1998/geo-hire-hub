@@ -103,7 +103,19 @@ const GoogleMapInner = ({
   }, [map, mode, candidates, jobs, userLocation]);
 
   const items = mode === 'hiring' ? candidates : jobs;
-  const markerColor = mode === 'hiring' ? '#4285F4' : '#EA4335';
+  
+  // Helper to get marker color based on job category
+  const getMarkerColor = (item: Candidate | Job) => {
+    if (mode === 'hiring') {
+      return '#4285F4'; // Blue for candidates
+    }
+    // For jobs, check if it's a government job
+    const job = item as Job;
+    if (job.job_category === 'government') {
+      return '#10B981'; // Emerald/green for government jobs
+    }
+    return '#EA4335'; // Red for private jobs
+  };
 
   if (loadError) {
     return (
@@ -152,9 +164,9 @@ const GoogleMapInner = ({
             center={userLocation}
             radius={radius * 1000}
             options={{
-              fillColor: markerColor,
+              fillColor: mode === 'hiring' ? '#4285F4' : '#EA4335',
               fillOpacity: 0.1,
-              strokeColor: markerColor,
+              strokeColor: mode === 'hiring' ? '#4285F4' : '#EA4335',
               strokeOpacity: 0.4,
               strokeWeight: 2,
             }}
@@ -172,23 +184,26 @@ const GoogleMapInner = ({
       >
         {(clusterer) => (
           <>
-            {items.map((item) => (
-              <Marker
-                key={item.id}
-                position={{ lat: item.latitude, lng: item.longitude }}
-                onClick={() => onMarkerClick(item)}
-                clusterer={clusterer}
-                icon={{
-                  path: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
-                  fillColor: markerColor,
-                  fillOpacity: 1,
-                  strokeColor: '#ffffff',
-                  strokeWeight: 2,
-                  scale: 1.5,
-                  anchor: new google.maps.Point(12, 24),
-                }}
-              />
-            ))}
+            {items.map((item) => {
+              const color = getMarkerColor(item);
+              return (
+                <Marker
+                  key={item.id}
+                  position={{ lat: item.latitude, lng: item.longitude }}
+                  onClick={() => onMarkerClick(item)}
+                  clusterer={clusterer}
+                  icon={{
+                    path: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
+                    fillColor: color,
+                    fillOpacity: 1,
+                    strokeColor: '#ffffff',
+                    strokeWeight: 2,
+                    scale: 1.5,
+                    anchor: new google.maps.Point(12, 24),
+                  }}
+                />
+              );
+            })}
           </>
         )}
       </MarkerClusterer>

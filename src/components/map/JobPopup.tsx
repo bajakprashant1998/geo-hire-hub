@@ -2,6 +2,7 @@ import { Job } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Building2, IndianRupee, Clock, MapPin, Send } from 'lucide-react';
+import { GovernmentJobBadge } from '@/components/government';
 
 interface JobPopupProps {
   job: Job;
@@ -21,14 +22,20 @@ export const JobPopup = ({ job, onApply }: JobPopupProps) => {
     return date.toLocaleDateString();
   };
 
+  const isGovernmentJob = job.job_category === 'government';
+  const headerBg = isGovernmentJob ? 'bg-emerald-600' : 'bg-destructive';
+
   return (
     <div className="marker-popup">
       {/* Header */}
-      <div className="bg-destructive p-4">
-        <h3 className="font-semibold text-destructive-foreground text-lg">{job.title}</h3>
+      <div className={`${headerBg} p-4`}>
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-semibold text-white text-lg">{job.title}</h3>
+          {isGovernmentJob && <GovernmentJobBadge variant="compact" className="bg-white/20 border-white/30 text-white" />}
+        </div>
         <div className="flex items-center gap-2 mt-1">
-          <Building2 className="w-4 h-4 text-destructive-foreground/80" />
-          <span className="text-sm text-destructive-foreground/90">{job.company_name}</span>
+          <Building2 className="w-4 h-4 text-white/80" />
+          <span className="text-sm text-white/90">{job.company_name}</span>
         </div>
       </div>
 
@@ -69,7 +76,7 @@ export const JobPopup = ({ job, onApply }: JobPopupProps) => {
         </div>
 
         {/* Action */}
-        <Button onClick={onApply} className="w-full bg-destructive hover:bg-destructive/90" size="sm">
+        <Button onClick={onApply} className={`w-full ${isGovernmentJob ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-destructive hover:bg-destructive/90'}`} size="sm">
           <Send className="w-4 h-4 mr-2" />
           Apply Now
         </Button>

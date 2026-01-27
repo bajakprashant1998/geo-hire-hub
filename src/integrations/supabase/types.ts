@@ -493,8 +493,11 @@ export type Database = {
           country_code: string | null
           created_at: string | null
           description: string | null
+          government_domain_verified: boolean | null
+          government_email_domain: string | null
           id: string
           industry: string | null
+          is_government: boolean | null
           is_suspended: boolean | null
           office_photo_url: string | null
           profile_completeness: number | null
@@ -517,8 +520,11 @@ export type Database = {
           country_code?: string | null
           created_at?: string | null
           description?: string | null
+          government_domain_verified?: boolean | null
+          government_email_domain?: string | null
           id?: string
           industry?: string | null
+          is_government?: boolean | null
           is_suspended?: boolean | null
           office_photo_url?: string | null
           profile_completeness?: number | null
@@ -541,8 +547,11 @@ export type Database = {
           country_code?: string | null
           created_at?: string | null
           description?: string | null
+          government_domain_verified?: boolean | null
+          government_email_domain?: string | null
           id?: string
           industry?: string | null
+          is_government?: boolean | null
           is_suspended?: boolean | null
           office_photo_url?: string | null
           profile_completeness?: number | null
@@ -575,6 +584,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      government_domains: {
+        Row: {
+          country: string | null
+          created_at: string
+          description: string | null
+          domain: string
+          id: string
+          is_active: boolean | null
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          description?: string | null
+          domain: string
+          id?: string
+          is_active?: boolean | null
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          description?: string | null
+          domain?: string
+          id?: string
+          is_active?: boolean | null
+        }
+        Relationships: []
       }
       job_alerts: {
         Row: {
@@ -788,6 +824,7 @@ export type Database = {
           interview_time: string | null
           is_active: boolean | null
           job_address: string | null
+          job_category: string | null
           job_type: string | null
           languages: string[] | null
           latitude: number
@@ -836,6 +873,7 @@ export type Database = {
           interview_time?: string | null
           is_active?: boolean | null
           job_address?: string | null
+          job_category?: string | null
           job_type?: string | null
           languages?: string[] | null
           latitude: number
@@ -884,6 +922,7 @@ export type Database = {
           interview_time?: string | null
           is_active?: boolean | null
           job_address?: string | null
+          job_category?: string | null
           job_type?: string | null
           languages?: string[] | null
           latitude?: number
@@ -1324,6 +1363,7 @@ export type Database = {
       }
       is_candidate: { Args: { _user_id: string }; Returns: boolean }
       is_employer: { Args: { _user_id: string }; Returns: boolean }
+      is_government_email: { Args: { email: string }; Returns: boolean }
       log_admin_action: {
         Args: {
           p_action_type: string
