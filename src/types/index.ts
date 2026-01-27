@@ -26,6 +26,8 @@ export interface Job {
   created_at: string;
   distance_km?: number;
   company_name: string;
+  job_category?: 'private' | 'government';
+  is_government_employer?: boolean;
 }
 
 export interface MapMarker {
