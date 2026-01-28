@@ -33,6 +33,14 @@ import {
   Link as LinkIcon,
   ExternalLink,
   Loader2,
+  Languages,
+  BadgeCheck,
+  Building2,
+  Github,
+  Linkedin,
+  Twitter,
+  Instagram,
+  Youtube,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useStartConversation } from '@/hooks/useStartConversation';
@@ -45,6 +53,29 @@ interface Education {
   field: string;
   startYear: string;
   endYear: string;
+}
+
+interface WorkExperience {
+  company: string;
+  title: string;
+  startDate: string;
+  endDate: string;
+  isCurrent: boolean;
+  description: string;
+}
+
+interface Language {
+  language: string;
+  proficiency: string;
+}
+
+interface SocialLinks {
+  linkedin?: string;
+  github?: string;
+  twitter?: string;
+  instagram?: string;
+  youtube?: string;
+  website?: string;
 }
 
 interface CandidateProfile {
@@ -64,6 +95,13 @@ interface CandidateProfile {
   created_at: string | null;
   resume_url: string | null;
   whatsapp_number: string | null;
+  // Enhanced fields
+  headline: string | null;
+  work_experience: WorkExperience[] | null;
+  certifications: string[] | null;
+  languages: Language[] | null;
+  social_links: SocialLinks | null;
+  availability_status: string | null;
 }
 
 const CandidateDetail = () => {
@@ -105,6 +143,12 @@ const CandidateDetail = () => {
           portfolio_urls,
           education,
           resume_url,
+          headline,
+          work_experience,
+          certifications,
+          languages,
+          social_links,
+          availability_status,
           profiles!inner (
             full_name,
             avatar_url,
@@ -134,6 +178,48 @@ const CandidateDetail = () => {
         }
       }
 
+      // Parse work_experience
+      let parsedWorkExperience: WorkExperience[] | null = null;
+      if (data.work_experience) {
+        if (typeof data.work_experience === 'string') {
+          try {
+            parsedWorkExperience = JSON.parse(data.work_experience);
+          } catch {
+            parsedWorkExperience = null;
+          }
+        } else if (Array.isArray(data.work_experience)) {
+          parsedWorkExperience = data.work_experience as unknown as WorkExperience[];
+        }
+      }
+
+      // Parse languages
+      let parsedLanguages: Language[] | null = null;
+      if (data.languages) {
+        if (typeof data.languages === 'string') {
+          try {
+            parsedLanguages = JSON.parse(data.languages);
+          } catch {
+            parsedLanguages = null;
+          }
+        } else if (Array.isArray(data.languages)) {
+          parsedLanguages = data.languages as unknown as Language[];
+        }
+      }
+
+      // Parse social_links
+      let parsedSocialLinks: SocialLinks | null = null;
+      if (data.social_links) {
+        if (typeof data.social_links === 'string') {
+          try {
+            parsedSocialLinks = JSON.parse(data.social_links);
+          } catch {
+            parsedSocialLinks = null;
+          }
+        } else if (typeof data.social_links === 'object') {
+          parsedSocialLinks = data.social_links as unknown as SocialLinks;
+        }
+      }
+
       setCandidateUserId(data.profiles.user_id);
       setCandidate({
         id: data.id,
@@ -152,6 +238,12 @@ const CandidateDetail = () => {
         longitude: data.profiles.longitude,
         created_at: data.profiles.created_at,
         whatsapp_number: data.profiles.whatsapp_number,
+        headline: data.headline,
+        work_experience: parsedWorkExperience,
+        certifications: data.certifications,
+        languages: parsedLanguages,
+        social_links: parsedSocialLinks,
+        availability_status: data.availability_status,
       });
     } catch (error: any) {
       console.error('Error fetching candidate:', error);
@@ -253,6 +345,40 @@ const CandidateDetail = () => {
 
   const initials = candidate.full_name.split(' ').map(n => n[0]).join('').slice(0, 2);
 
+  const getAvailabilityLabel = (status: string | null) => {
+    switch (status) {
+      case 'available': return 'Available Now';
+      case 'open': return 'Open to Work';
+      case 'notice': return 'On Notice';
+      case 'employed': return 'Employed';
+      case 'not_looking': return 'Not Looking';
+      default: return 'Available';
+    }
+  };
+
+  const getAvailabilityColor = (status: string | null) => {
+    switch (status) {
+      case 'available': return 'bg-google-green text-white';
+      case 'open': return 'bg-google-blue text-white';
+      case 'notice': return 'bg-google-yellow text-black';
+      case 'employed': return 'bg-muted text-foreground';
+      case 'not_looking': return 'bg-muted text-muted-foreground';
+      default: return 'bg-google-green text-white';
+    }
+  };
+
+  const getSocialIcon = (platform: string) => {
+    switch (platform) {
+      case 'linkedin': return <Linkedin className="w-5 h-5" />;
+      case 'github': return <Github className="w-5 h-5" />;
+      case 'twitter': return <Twitter className="w-5 h-5" />;
+      case 'instagram': return <Instagram className="w-5 h-5" />;
+      case 'youtube': return <Youtube className="w-5 h-5" />;
+      case 'website': return <Globe className="w-5 h-5" />;
+      default: return <LinkIcon className="w-5 h-5" />;
+    }
+  };
+
   return (
     <TooltipProvider>
     <div className="min-h-screen bg-background pb-24 lg:pb-12">
@@ -293,8 +419,8 @@ const CandidateDetail = () => {
                   {/* Avatar with Status */}
                   <div className="relative flex-shrink-0 mx-auto md:mx-0">
                     <div className="relative">
-                      <Badge className="absolute -top-2 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:-right-2 bg-google-green text-white z-10 shadow-lg px-3 py-1 text-xs font-semibold">
-                        Available
+                      <Badge className={`absolute -top-2 left-1/2 -translate-x-1/2 md:left-auto md:translate-x-0 md:-right-2 z-10 shadow-lg px-3 py-1 text-xs font-semibold ${getAvailabilityColor(candidate.availability_status)}`}>
+                        {getAvailabilityLabel(candidate.availability_status)}
                       </Badge>
                       <Avatar className="w-28 h-28 md:w-32 md:h-32 border-4 border-background shadow-google-hover">
                         <AvatarImage src={candidate.avatar_url || ''} alt={candidate.full_name} className="object-cover" />
@@ -328,6 +454,13 @@ const CandidateDetail = () => {
                           <Briefcase className="w-5 h-5" />
                           {candidate.job_title}
                         </p>
+
+                        {/* Professional Headline */}
+                        {candidate.headline && (
+                          <p className="text-muted-foreground italic text-sm">
+                            "{candidate.headline}"
+                          </p>
+                        )}
 
                         {/* Info Pills with Google Colors */}
                         <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 pt-2">
@@ -527,7 +660,167 @@ const CandidateDetail = () => {
               </Card>
             </motion.div>
 
-            {/* Portfolio Section */}
+            {/* Work Experience Section */}
+            {candidate.work_experience && candidate.work_experience.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.35 }}
+              >
+                <Card className="shadow-google-card border-0 overflow-hidden">
+                  <CardHeader className="border-b bg-purple-500/5">
+                    <CardTitle className="flex items-center gap-3 text-xl font-heading">
+                      <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                        <Building2 className="w-5 h-5 text-purple-500" />
+                      </div>
+                      Work Experience
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 md:p-8">
+                    <div className="relative pl-8 space-y-6">
+                      <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-gradient-to-b from-purple-500 via-purple-500/50 to-transparent" />
+                      {candidate.work_experience.map((exp, index) => (
+                        <div key={index} className="relative">
+                          <div className="absolute -left-[33px] w-4 h-4 bg-purple-500 rounded-full border-4 border-background shadow" />
+                          <div className="p-4 rounded-xl bg-muted/50 border">
+                            <div className="flex flex-wrap items-center gap-2 mb-2">
+                              <Badge variant="secondary" className="bg-purple-500/10 text-purple-600">
+                                {exp.title}
+                              </Badge>
+                              {exp.isCurrent && (
+                                <Badge className="bg-google-green text-white text-xs">
+                                  Current
+                                </Badge>
+                              )}
+                            </div>
+                            <h4 className="font-bold text-lg">{exp.company}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              {exp.startDate} - {exp.isCurrent ? 'Present' : exp.endDate}
+                            </p>
+                            {exp.description && (
+                              <p className="text-muted-foreground text-sm mt-2">
+                                {exp.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
+            {/* Certifications Section */}
+            {candidate.certifications && candidate.certifications.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.38 }}
+              >
+                <Card className="shadow-google-card border-0 overflow-hidden">
+                  <CardHeader className="border-b bg-amber-500/5">
+                    <CardTitle className="flex items-center gap-3 text-xl font-heading">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center">
+                        <BadgeCheck className="w-5 h-5 text-amber-500" />
+                      </div>
+                      Certifications
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 md:p-8">
+                    <div className="flex flex-wrap gap-3">
+                      {candidate.certifications.map((cert, index) => (
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="px-4 py-2 text-sm bg-amber-500/10 text-amber-600 border border-amber-500/20"
+                        >
+                          <Award className="w-3.5 h-3.5 mr-2" />
+                          {cert}
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
+            {/* Languages Section */}
+            {candidate.languages && candidate.languages.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.4 }}
+              >
+                <Card className="shadow-google-card border-0 overflow-hidden">
+                  <CardHeader className="border-b bg-cyan-500/5">
+                    <CardTitle className="flex items-center gap-3 text-xl font-heading">
+                      <div className="w-10 h-10 rounded-xl bg-cyan-500/10 flex items-center justify-center">
+                        <Languages className="w-5 h-5 text-cyan-500" />
+                      </div>
+                      Languages
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 md:p-8">
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      {candidate.languages.map((lang, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border"
+                        >
+                          <span className="font-medium">{lang.language}</span>
+                          <Badge variant="outline" className="text-xs">
+                            {lang.proficiency}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
+            {/* Social Links Section */}
+            {candidate.social_links && Object.values(candidate.social_links).some(v => v) && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.42 }}
+              >
+                <Card className="shadow-google-card border-0 overflow-hidden">
+                  <CardHeader className="border-b bg-pink-500/5">
+                    <CardTitle className="flex items-center gap-3 text-xl font-heading">
+                      <div className="w-10 h-10 rounded-xl bg-pink-500/10 flex items-center justify-center">
+                        <LinkIcon className="w-5 h-5 text-pink-500" />
+                      </div>
+                      Social Links
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-6 md:p-8">
+                    <div className="flex flex-wrap gap-3">
+                      {Object.entries(candidate.social_links).map(([platform, url]) => 
+                        url ? (
+                          <a
+                            key={platform}
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border bg-card hover:bg-muted transition-colors group"
+                          >
+                            <span className="text-muted-foreground group-hover:text-foreground transition-colors">
+                              {getSocialIcon(platform)}
+                            </span>
+                            <span className="capitalize font-medium">{platform}</span>
+                            <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
+                          </a>
+                        ) : null
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+
             {candidate.portfolio_urls && candidate.portfolio_urls.length > 0 && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -714,8 +1007,13 @@ const CandidateDetail = () => {
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground text-sm">Availability</span>
-                        <Badge variant="secondary" className="bg-google-green/10 text-google-green border-0">
-                          Open to work
+                        <Badge variant="secondary" className={`border-0 ${
+                          candidate.availability_status === 'available' ? 'bg-google-green/10 text-google-green' :
+                          candidate.availability_status === 'open' ? 'bg-google-blue/10 text-google-blue' :
+                          candidate.availability_status === 'notice' ? 'bg-google-yellow/10 text-google-yellow' :
+                          'bg-google-green/10 text-google-green'
+                        }`}>
+                          {getAvailabilityLabel(candidate.availability_status)}
                         </Badge>
                       </div>
                       <div className="flex items-center justify-between">
