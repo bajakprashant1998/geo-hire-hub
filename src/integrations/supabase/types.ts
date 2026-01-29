@@ -769,6 +769,66 @@ export type Database = {
           },
         ]
       }
+      job_matches: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          experience_match: boolean | null
+          id: string
+          job_id: string
+          location_match: boolean | null
+          match_reasons: Json | null
+          match_score: number
+          missing_skills: string[] | null
+          salary_match: boolean | null
+          skill_overlap: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          experience_match?: boolean | null
+          id?: string
+          job_id: string
+          location_match?: boolean | null
+          match_reasons?: Json | null
+          match_score: number
+          missing_skills?: string[] | null
+          salary_match?: boolean | null
+          skill_overlap?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          experience_match?: boolean | null
+          id?: string
+          job_id?: string
+          location_match?: boolean | null
+          match_reasons?: Json | null
+          match_score?: number
+          missing_skills?: string[] | null
+          salary_match?: boolean | null
+          skill_overlap?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_matches_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_matches_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_reports: {
         Row: {
           admin_notes: string | null
