@@ -32,6 +32,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { PhotoUpload } from '@/components/PhotoUpload';
 import { ResumeUpload } from '@/components/candidate/ResumeUpload';
+import { AudioResumeCard } from '@/components/candidate/AudioResumeCard';
 import { SecuritySettings } from '@/components/candidate/SecuritySettings';
 import { JobAlertsManager } from '@/components/candidate/JobAlertsManager';
 import { EmailVerificationGuard } from '@/components/auth/EmailVerificationGuard';
@@ -868,10 +869,16 @@ const CandidateSettings = () => {
             {/* Resume Tab */}
             <TabsContent value="resume" className="space-y-6">
               {candidate && (
-                <ResumeUpload 
-                  candidate={candidate}
-                  onUpdate={() => fetchCandidateProfile()}
-                />
+                <>
+                  <ResumeUpload 
+                    candidate={candidate}
+                    onUpdate={() => fetchCandidateProfile()}
+                  />
+                  <AudioResumeCard
+                    candidate={candidate}
+                    onUpdate={() => fetchCandidateProfile()}
+                  />
+                </>
               )}
             </TabsContent>
 

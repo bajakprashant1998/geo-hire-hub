@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.get-google-maps-key]
 verify_jwt = false
+
+[functions.calculate-job-match]
+verify_jwt = false
+
+[functions.generate-audio-resume]
+verify_jwt = false
