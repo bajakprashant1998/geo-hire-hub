@@ -24,6 +24,7 @@ import { NotificationCenter } from '@/components/candidate/NotificationCenter';
 import { JobAlertsManager } from '@/components/candidate/JobAlertsManager';
 import { SecuritySettings } from '@/components/candidate/SecuritySettings';
 import { RecommendedJobs } from '@/components/candidate/RecommendedJobs';
+import { AIJobMatches } from '@/components/candidate/AIJobMatches';
 
 const CandidateDashboard = () => {
   const navigate = useNavigate();
@@ -396,7 +397,12 @@ const CandidateDashboard = () => {
                   </div>
                 </div>
 
-                {/* Jobs Matching Your Profile */}
+                {/* AI-Powered Job Matches */}
+                {candidate && (
+                  <AIJobMatches candidateId={candidate.id} />
+                )}
+
+                {/* Jobs Matching Your Profile (Quick Carousel) */}
                 {candidate && (
                   <JobMatchCarousel 
                     candidateId={candidate.id} 
