@@ -204,6 +204,10 @@ export type Database = {
       }
       candidates: {
         Row: {
+          audio_resume_created_at: string | null
+          audio_resume_text: string | null
+          audio_resume_tone: string | null
+          audio_resume_url: string | null
           availability_status: string | null
           bio: string | null
           blocked_at: string | null
@@ -233,6 +237,10 @@ export type Database = {
           work_experience: Json | null
         }
         Insert: {
+          audio_resume_created_at?: string | null
+          audio_resume_text?: string | null
+          audio_resume_tone?: string | null
+          audio_resume_url?: string | null
           availability_status?: string | null
           bio?: string | null
           blocked_at?: string | null
@@ -262,6 +270,10 @@ export type Database = {
           work_experience?: Json | null
         }
         Update: {
+          audio_resume_created_at?: string | null
+          audio_resume_text?: string | null
+          audio_resume_tone?: string | null
+          audio_resume_url?: string | null
           availability_status?: string | null
           bio?: string | null
           blocked_at?: string | null
