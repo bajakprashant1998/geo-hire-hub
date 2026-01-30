@@ -548,3 +548,192 @@
 .bg-google-red p, .bg-google-red span, .bg-google-red div {
   color: inherit;
 }
+
+/* ================================================
+   PHASE 1: MOBILE-FIRST RESPONSIVE UTILITIES
+   ================================================ */
+
+/* Safe Area Insets for notched devices */
+.safe-area-pt {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.safe-area-pl {
+  padding-left: env(safe-area-inset-left, 0);
+}
+
+.safe-area-pr {
+  padding-right: env(safe-area-inset-right, 0);
+}
+
+.safe-area-inset {
+  padding-top: env(safe-area-inset-top, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  padding-left: env(safe-area-inset-left, 0);
+  padding-right: env(safe-area-inset-right, 0);
+}
+
+/* Minimum touch target sizing - ensures 44x44 minimum */
+.touch-target {
+  @apply min-h-[44px] min-w-[44px];
+}
+
+.touch-target-sm {
+  @apply min-h-[36px] min-w-[36px];
+}
+
+/* Touch feedback animations */
+.touch-scale {
+  @apply transition-transform active:scale-95;
+}
+
+.touch-press {
+  @apply transition-all active:scale-[0.98] active:opacity-80;
+}
+
+/* Skeleton shimmer animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 0%,
+    hsl(var(--muted-foreground) / 0.1) 50%,
+    hsl(var(--muted)) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Mobile-optimized button groups */
+.btn-group-mobile {
+  @apply flex flex-col gap-2 sm:flex-row;
+}
+
+.btn-group-mobile > button,
+.btn-group-mobile > a {
+  @apply w-full sm:w-auto;
+}
+
+/* Hide on mobile */
+@media (max-width: 639px) {
+  .hide-mobile {
+    display: none !important;
+  }
+}
+
+/* Show only on mobile */
+@media (min-width: 640px) {
+  .show-mobile-only {
+    display: none !important;
+  }
+}
+
+/* Stacked action buttons for small screens */
+@media (max-width: 639px) {
+  .action-buttons-stack {
+    @apply flex-col items-stretch;
+  }
+  
+  .action-buttons-stack > * {
+    @apply w-full justify-center;
+  }
+}
+
+/* Mobile card layout utility */
+.mobile-card-layout {
+  @apply block sm:hidden;
+}
+
+.desktop-table-layout {
+  @apply hidden sm:block;
+}
+
+/* Floating action button positioning */
+.fab-position {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 5rem);
+  right: 1rem;
+  z-index: 50;
+}
+
+@media (min-width: 768px) {
+  .fab-position {
+    bottom: 1.5rem;
+    right: 1.5rem;
+  }
+}
+
+/* Improved popup touch handling */
+.leaflet-popup-content-wrapper {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Ensure popups don't close accidentally on mobile */
+@media (max-width: 767px) {
+  .leaflet-popup {
+    touch-action: none;
+  }
+  
+  .leaflet-popup-content {
+    touch-action: pan-y;
+  }
+}
+
+/* Enhanced card hover/tap states */
+.interactive-card {
+  @apply transition-all duration-200;
+}
+
+.interactive-card:hover {
+  @apply shadow-md;
+}
+
+.interactive-card:active {
+  @apply scale-[0.99] shadow-sm;
+}
+
+/* Bottom navigation adjustments */
+.bottom-nav-height {
+  height: calc(4rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Content padding to account for bottom nav on mobile */
+@media (max-width: 767px) {
+  .content-with-bottom-nav {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Responsive stat card grid */
+.stat-grid-responsive {
+  @apply grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4;
+}
+
+/* Mobile-optimized messages preview */
+@media (max-width: 639px) {
+  .messages-header-mobile {
+    @apply flex-col gap-2;
+  }
+  
+  .messages-actions-mobile {
+    @apply flex-col gap-2 w-full;
+  }
+  
+  .messages-actions-mobile > button {
+    @apply w-full justify-center text-xs px-3 py-2;
+  }
+}

@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { ViewMode, Candidate, Job } from '@/types';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useMapData } from '@/hooks/useMapData';
+import { useAuth } from '@/hooks/useAuth';
 import { Header } from '@/components/map/Header';
 import { MapContainer } from '@/components/map/MapContainer';
 import { MapLoadingSkeleton } from '@/components/map/MapLoadingSkeleton';
@@ -9,10 +10,13 @@ import { FloatingControls } from '@/components/map/FloatingControls';
 import { Sidebar } from '@/components/map/Sidebar';
 import { MarkerPreviewSheet } from '@/components/map/MarkerPreviewSheet';
 import BottomNavBar from '@/components/map/BottomNavBar';
+import { WelcomeOverlay } from '@/components/map/WelcomeOverlay';
+import { MobileFAB } from '@/components/map/MobileFAB';
 import { JobCategoryFilter, JobCategoryFilterValue, MapLegend } from '@/components/government';
 import { toast } from 'sonner';
 
 const Index = () => {
+  const { user } = useAuth();
   const [mode, setMode] = useState<ViewMode>('seeking');
   const [radius, setRadius] = useState(50);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -20,6 +24,7 @@ const Index = () => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [jobCategoryFilter, setJobCategoryFilter] = useState<JobCategoryFilterValue>('all');
+  const [showWelcome, setShowWelcome] = useState(!user);
 
   const geolocation = useGeolocation();
   const userLocation = useMemo(() => {
@@ -157,6 +162,18 @@ const Index = () => {
         mode={mode}
         item={selectedItem}
       />
+
+      {/* Welcome Overlay - Only for guests */}
+      {!user && showWelcome && (
+        <WelcomeOverlay
+          onDismiss={() => setShowWelcome(false)}
+          onFindJobs={() => setMode('seeking')}
+          onFindTalent={() => setMode('hiring')}
+        />
+      )}
+
+      {/* Mobile FAB */}
+      <MobileFAB mode={mode} />
 
       {/* Bottom Navigation - Mobile only */}
       <BottomNavBar />

@@ -83,18 +83,18 @@ export const DashboardSidebar = ({
           </div>
 
           {/* Navigation Items */}
-          <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+          <nav className="flex-1 p-2 sm:p-3 space-y-0.5 sm:space-y-1 overflow-y-auto">
             {/* Dashboard Home */}
             <button
               onClick={() => onItemClick('home')}
               className={cn(
-                "w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                "w-full flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-sm font-medium transition-all duration-200 touch-target-sm touch-scale",
                 activeItem === null || activeItem === 'home'
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  : "text-muted-foreground hover:bg-muted active:bg-muted hover:text-foreground"
               )}
             >
-              <Home className="w-5 h-5" />
+              <Home className="w-5 h-5 shrink-0" />
               <span>Dashboard</span>
             </button>
 
@@ -104,17 +104,17 @@ export const DashboardSidebar = ({
                 key={item.value}
                 onClick={() => onItemClick(item.value)}
                 className={cn(
-                  "w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                  "w-full flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-sm font-medium transition-all duration-200 touch-target-sm touch-scale",
                   activeItem === item.value
                     ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    : "text-muted-foreground hover:bg-muted active:bg-muted hover:text-foreground"
                 )}
               >
-                <item.icon className="w-5 h-5" />
-                <span className="flex-1 text-left">{item.label}</span>
+                <item.icon className="w-5 h-5 shrink-0" />
+                <span className="flex-1 text-left truncate">{item.label}</span>
                 {item.badge !== undefined && item.badge > 0 && (
                   <span className={cn(
-                    "px-2 py-0.5 rounded-full text-xs font-semibold",
+                    "px-2 py-0.5 rounded-full text-xs font-semibold shrink-0",
                     activeItem === item.value 
                       ? "bg-primary-foreground/20 text-primary-foreground"
                       : "bg-primary/10 text-primary"
@@ -127,49 +127,49 @@ export const DashboardSidebar = ({
           </nav>
 
           {/* Employer View / Find Jobs Button */}
-          <div className="p-3 border-t">
+          <div className="p-2 sm:p-3 border-t">
             {type === 'candidate' ? (
               <Link to="/" className="block">
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start gap-2 border-primary text-primary hover:bg-primary/10"
+                  className="w-full justify-start gap-2 border-primary text-primary hover:bg-primary/10 touch-target-sm touch-scale h-10 sm:h-11"
                 >
-                  <Building2 className="w-4 h-4" />
-                  Find Jobs on Map
+                  <Building2 className="w-4 h-4 shrink-0" />
+                  <span className="truncate">Find Jobs on Map</span>
                 </Button>
               </Link>
             ) : (
               <Link to="/post-job" className="block">
-                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 gap-2">
-                  <Plus className="w-4 h-4" />
-                  Post New Job
+                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 gap-2 touch-target-sm touch-scale h-10 sm:h-11">
+                  <Plus className="w-4 h-4 shrink-0" />
+                  <span className="truncate">Post New Job</span>
                 </Button>
               </Link>
             )}
           </div>
 
           {/* Footer Links */}
-          <div className="p-3 border-t space-y-1">
+          <div className="p-2 sm:p-3 border-t space-y-0.5 sm:space-y-1">
             <Link 
               to={type === 'employer' ? '/company-profile' : '/candidate-settings'}
-              className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
+              className="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted active:bg-muted hover:text-foreground transition-all touch-target-sm touch-scale"
             >
-              <Settings className="w-5 h-5" />
+              <Settings className="w-5 h-5 shrink-0" />
               <span>Settings</span>
             </Link>
             <button
               onClick={onSignOut}
-              className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 transition-all"
+              className="w-full flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 active:bg-destructive/15 transition-all touch-target-sm touch-scale"
             >
-              <LogOut className="w-5 h-5" />
+              <LogOut className="w-5 h-5 shrink-0" />
               <span>Logout</span>
             </button>
           </div>
 
-          {/* Collapse Button */}
-          <div className="p-3 border-t hidden lg:block">
-            <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground transition-all">
-              <ChevronLeft className="w-5 h-5" />
+          {/* Collapse Button - Desktop only */}
+          <div className="p-2 sm:p-3 border-t hidden lg:block">
+            <button className="w-full flex items-center gap-3 px-3 sm:px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-all">
+              <ChevronLeft className="w-5 h-5 shrink-0" />
               <span>Collapse</span>
             </button>
           </div>

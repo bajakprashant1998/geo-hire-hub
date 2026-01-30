@@ -47,21 +47,22 @@ export const DashboardStatCard = ({
     <div
       onClick={onClick}
       className={cn(
-        "bg-card rounded-xl border-t-4 shadow-sm hover:shadow-md transition-all duration-200 p-5",
+        "bg-card rounded-xl border-t-4 shadow-sm transition-all duration-200 p-4 sm:p-5",
+        "hover:shadow-md active:scale-[0.98] active:shadow-sm",
         colors.border,
-        onClick && "cursor-pointer"
+        onClick && "cursor-pointer touch-press"
       )}
     >
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm text-muted-foreground font-medium">{label}</p>
-          <p className="text-3xl font-bold text-foreground mt-1">{value}</p>
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <p className="text-xs sm:text-sm text-muted-foreground font-medium truncate">{label}</p>
+          <p className="text-2xl sm:text-3xl font-bold text-foreground mt-0.5 sm:mt-1">{value}</p>
           {subtitle && (
-            <p className={cn("text-xs mt-1 font-medium", colors.icon)}>{subtitle}</p>
+            <p className={cn("text-[10px] sm:text-xs mt-0.5 sm:mt-1 font-medium truncate", colors.icon)}>{subtitle}</p>
           )}
         </div>
-        <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", colors.bg)}>
-          <Icon className={cn("w-5 h-5", colors.icon)} />
+        <div className={cn("w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shrink-0", colors.bg)}>
+          <Icon className={cn("w-4 h-4 sm:w-5 sm:h-5", colors.icon)} />
         </div>
       </div>
     </div>
