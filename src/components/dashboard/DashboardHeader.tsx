@@ -39,77 +39,77 @@ export const DashboardHeader = ({
   const firstName = userName?.split(' ')[0] || 'User';
 
   return (
-    <header className="sticky top-0 z-30 h-16 bg-card border-b shadow-sm">
-      <div className="h-full px-4 lg:px-6 flex items-center justify-between">
+    <header className="sticky top-0 z-30 h-14 sm:h-16 bg-card border-b shadow-sm safe-area-pt">
+      <div className="h-full px-3 sm:px-4 lg:px-6 flex items-center justify-between">
         {/* Left - Menu Button (Mobile) + Welcome Message */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           <Button 
             variant="ghost" 
             size="icon" 
-            className="lg:hidden"
+            className="lg:hidden touch-target touch-scale shrink-0"
             onClick={onMenuClick}
           >
             <Menu className="w-5 h-5" />
           </Button>
 
-          <div className="hidden sm:block">
-            <h1 className="text-lg font-semibold text-foreground">
+          <div className="hidden sm:block min-w-0">
+            <h1 className="text-base sm:text-lg font-semibold text-foreground truncate">
               Welcome back, <span className="text-primary">{firstName}</span>
             </h1>
-            <p className="text-sm text-muted-foreground">Let's find your dream job today</p>
+            <p className="text-xs sm:text-sm text-muted-foreground truncate">Let's find your dream job today</p>
           </div>
         </div>
 
         {/* Right - Profile Completeness, Notifications, Theme, Profile */}
-        <div className="flex items-center gap-3">
-          {/* Profile Completeness Circle */}
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50">
-            <div className="relative w-8 h-8">
-              <svg className="w-8 h-8 -rotate-90">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Profile Completeness Circle - Hidden on small mobile */}
+          <div className="hidden sm:flex items-center gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-muted/50">
+            <div className="relative w-7 h-7 sm:w-8 sm:h-8">
+              <svg className="w-7 h-7 sm:w-8 sm:h-8 -rotate-90">
                 <circle 
-                  cx="16" cy="16" r="12" 
+                  cx="50%" cy="50%" r="10" 
                   fill="none" 
                   stroke="hsl(var(--border))" 
                   strokeWidth="3" 
                 />
                 <circle 
-                  cx="16" cy="16" r="12" 
+                  cx="50%" cy="50%" r="10" 
                   fill="none" 
                   stroke="hsl(var(--primary))" 
                   strokeWidth="3"
-                  strokeDasharray={`${profileCompleteness * 0.75} 75`}
+                  strokeDasharray={`${profileCompleteness * 0.63} 63`}
                   strokeLinecap="round"
                 />
               </svg>
-              <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-foreground">
+              <span className="absolute inset-0 flex items-center justify-center text-[8px] sm:text-[10px] font-bold text-foreground">
                 {profileCompleteness}%
               </span>
             </div>
-            <span className="text-xs font-medium text-muted-foreground">Profile</span>
+            <span className="text-xs font-medium text-muted-foreground hidden md:inline">Profile</span>
           </div>
 
           {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative">
+          <Button variant="ghost" size="icon" className="relative touch-target touch-scale">
             <Bell className="w-5 h-5 text-muted-foreground" />
             {notificationCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive text-white text-xs flex items-center justify-center font-semibold">
+              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-destructive text-white text-[10px] sm:text-xs flex items-center justify-center font-semibold">
                 {notificationCount > 9 ? '9+' : notificationCount}
               </span>
             )}
           </Button>
 
           {/* Theme Toggle */}
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" className="touch-target touch-scale hidden sm:flex">
             <Moon className="w-5 h-5 text-muted-foreground" />
           </Button>
 
           {/* Profile Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <Avatar className="w-9 h-9 ring-2 ring-border">
+              <Button variant="ghost" size="icon" className="rounded-full touch-target touch-scale">
+                <Avatar className="w-8 h-8 sm:w-9 sm:h-9 ring-2 ring-border">
                   <AvatarImage src={avatarUrl || undefined} />
-                  <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
+                  <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-sm">
                     {userName?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
@@ -123,13 +123,13 @@ export const DashboardHeader = ({
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
+              <DropdownMenuItem asChild className="touch-target-sm">
                 <Link to={settingsPath} className="flex items-center gap-2 cursor-pointer">
                   <User className="w-4 h-4" />
                   Profile
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
+              <DropdownMenuItem asChild className="touch-target-sm">
                 <Link to={settingsPath} className="flex items-center gap-2 cursor-pointer">
                   <Settings className="w-4 h-4" />
                   Settings
@@ -138,7 +138,7 @@ export const DashboardHeader = ({
               <DropdownMenuSeparator />
               <DropdownMenuItem 
                 onClick={onSignOut}
-                className="text-destructive focus:text-destructive cursor-pointer"
+                className="text-destructive focus:text-destructive cursor-pointer touch-target-sm"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Sign Out

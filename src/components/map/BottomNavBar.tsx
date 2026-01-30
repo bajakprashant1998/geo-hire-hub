@@ -44,8 +44,8 @@ const BottomNavBar = () => {
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border md:hidden safe-area-pb">
-      <div className="flex items-center justify-around h-16 px-2">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-t border-border md:hidden bottom-nav-height">
+      <div className="flex items-center justify-around h-16 px-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -53,10 +53,10 @@ const BottomNavBar = () => {
               key={item.label}
               onClick={() => navigate(item.path)}
               className={cn(
-                "flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors",
+                "relative flex flex-col items-center justify-center flex-1 h-full gap-0.5 transition-all touch-target touch-scale",
                 item.isActive 
                   ? "text-primary" 
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground active:text-foreground"
               )}
             >
               <Icon className={cn(
@@ -64,13 +64,13 @@ const BottomNavBar = () => {
                 item.isActive && "scale-110"
               )} />
               <span className={cn(
-                "text-xs font-medium",
+                "text-[10px] font-medium",
                 item.isActive && "font-semibold"
               )}>
                 {item.label}
               </span>
               {item.isActive && (
-                <div className="absolute bottom-1 w-8 h-1 bg-primary rounded-full" />
+                <div className="absolute bottom-0.5 w-8 h-1 bg-primary rounded-full" />
               )}
             </button>
           );

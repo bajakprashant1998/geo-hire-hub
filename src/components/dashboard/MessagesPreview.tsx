@@ -137,27 +137,38 @@ export const MessagesPreview = ({ profileId, onOpenChat }: MessagesPreviewProps)
     <div className="bg-card rounded-xl shadow-sm border overflow-hidden">
       {/* Conversation Header */}
       {selectedConversation && (
-        <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border-b gap-3">
           <div className="flex items-center gap-3">
-            <Avatar className="w-10 h-10">
+            <Avatar className="w-10 h-10 shrink-0">
               <AvatarImage src={selectedConversation.participant_avatar || undefined} />
               <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                 {selectedConversation.participant_name.slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            <div>
-              <p className="font-semibold text-foreground">{selectedConversation.participant_name}</p>
-              <p className="text-xs text-muted-foreground">{selectedConversation.participant_title}</p>
+            <div className="min-w-0">
+              <p className="font-semibold text-foreground truncate">{selectedConversation.participant_name}</p>
+              <p className="text-xs text-muted-foreground truncate">{selectedConversation.participant_title}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-2 text-[hsl(142,53%,43%)] border-[hsl(142,53%,43%)] hover:bg-[hsl(142,53%,43%)]/10">
-              <Phone className="w-4 h-4" />
-              Connect on WhatsApp
+          {/* Mobile-optimized action buttons */}
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1 sm:flex-none gap-1.5 text-success border-success hover:bg-success/10 touch-target-sm touch-scale text-xs sm:text-sm px-2 sm:px-3"
+            >
+              <Phone className="w-4 h-4 shrink-0" />
+              <span className="hidden sm:inline">Connect on WhatsApp</span>
+              <span className="sm:hidden">WhatsApp</span>
             </Button>
-            <Button variant="outline" size="sm" className="gap-2 text-primary border-primary hover:bg-primary/10">
-              <Video className="w-4 h-4" />
-              Start Video Interview
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex-1 sm:flex-none gap-1.5 text-primary border-primary hover:bg-primary/10 touch-target-sm touch-scale text-xs sm:text-sm px-2 sm:px-3"
+            >
+              <Video className="w-4 h-4 shrink-0" />
+              <span className="hidden sm:inline">Start Video Interview</span>
+              <span className="sm:hidden">Video</span>
             </Button>
           </div>
         </div>
