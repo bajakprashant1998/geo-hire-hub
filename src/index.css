@@ -550,6 +550,66 @@
 }
 
 /* ================================================
+   GLASSMORPHISM & MODERN UI UTILITIES
+   ================================================ */
+
+/* Primary glassmorphism effect */
+.glass-morphism {
+  background: hsl(var(--card) / 0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid hsl(var(--border) / 0.3);
+}
+
+.glass-morphism-heavy {
+  background: hsl(var(--card) / 0.95);
+  backdrop-filter: blur(30px) saturate(200%);
+  -webkit-backdrop-filter: blur(30px) saturate(200%);
+  border: 1px solid hsl(var(--border) / 0.5);
+}
+
+.glass-morphism-light {
+  background: hsl(var(--card) / 0.6);
+  backdrop-filter: blur(12px) saturate(150%);
+  -webkit-backdrop-filter: blur(12px) saturate(150%);
+  border: 1px solid hsl(var(--border) / 0.2);
+}
+
+/* Dark mode glass adjustment */
+.dark .glass-morphism {
+  background: hsl(var(--card) / 0.75);
+  border: 1px solid hsl(var(--border) / 0.4);
+}
+
+/* Animated gradient border */
+.gradient-border {
+  position: relative;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--destructive)), hsl(var(--success)));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+/* Scrollbar hide utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ================================================
    PHASE 1: MOBILE-FIRST RESPONSIVE UTILITIES
    ================================================ */
 
@@ -586,6 +646,11 @@
   @apply min-h-[36px] min-w-[36px];
 }
 
+/* Large touch targets for primary actions */
+.touch-target-lg {
+  @apply min-h-[48px] min-w-[48px];
+}
+
 /* Touch feedback animations */
 .touch-scale {
   @apply transition-transform active:scale-95;
@@ -614,6 +679,22 @@
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
+}
+
+/* Pulse animation for live indicators */
+@keyframes pulse-live {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+}
+
+.pulse-live {
+  animation: pulse-live 2s ease-in-out infinite;
 }
 
 /* Mobile-optimized button groups */
@@ -663,9 +744,9 @@
 /* Floating action button positioning */
 .fab-position {
   position: fixed;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 5rem);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 6.5rem);
   right: 1rem;
-  z-index: 50;
+  z-index: 60;
 }
 
 @media (min-width: 768px) {
@@ -735,5 +816,78 @@
   
   .messages-actions-mobile > button {
     @apply w-full justify-center text-xs px-3 py-2;
+  }
+}
+
+/* ================================================
+   BOTTOM SHEET ANIMATIONS
+   ================================================ */
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-down {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(100%);
+  }
+}
+
+.bottom-sheet-enter {
+  animation: slide-up 0.3s ease-out;
+}
+
+.bottom-sheet-exit {
+  animation: slide-down 0.3s ease-in;
+}
+
+/* ================================================
+   ANIMATED COUNTERS
+   ================================================ */
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ================================================
+   ACCESSIBILITY ENHANCEMENTS
+   ================================================ */
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .skeleton-shimmer {
+    animation: none;
+    background: hsl(var(--muted));
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .glass-morphism {
+    background: hsl(var(--card));
+    border: 2px solid hsl(var(--border));
+  }
+  
+  .touch-target,
+  .touch-target-sm,
+  .touch-target-lg {
+    border: 2px solid currentColor;
   }
 }

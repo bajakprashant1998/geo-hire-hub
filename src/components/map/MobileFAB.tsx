@@ -1,10 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { ViewMode } from '@/types';
-import { Briefcase, Users, Plus } from 'lucide-react';
+import { Briefcase, Users, Plus, Search, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useState, useEffect } from 'react';
 
 interface MobileFABProps {
   mode: ViewMode;
@@ -13,47 +14,81 @@ interface MobileFABProps {
 
 export const MobileFAB = ({ mode, className }: MobileFABProps) => {
   const { user, profile } = useAuth();
+  const [showTooltip, setShowTooltip] = useState(false);
 
-  // Don't show FAB if not logged in
-  if (!user) return null;
+  // Show tooltip on first visit
+  useEffect(() => {
+    const hasSeenTooltip = localStorage.getItem('hfj_fab_tooltip_seen');
+    if (!hasSeenTooltip) {
+      const timer = setTimeout(() => {
+        setShowTooltip(true);
+        setTimeout(() => {
+          setShowTooltip(false);
+          localStorage.setItem('hfj_fab_tooltip_seen', 'true');
+        }, 3000);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   const isEmployer = profile?.user_type === 'employer';
   const isSeeking = mode === 'seeking';
 
   // Configure FAB based on mode and user type
   const fabConfig = {
-    // Employer viewing candidates (hiring mode)
-    employer_hiring: {
+    // Guest users
+    guest_seeking: {
+      icon: Briefcase,
+      label: 'Find Jobs',
+      href: '/signup',
+      color: 'bg-gradient-to-r from-destructive to-destructive/80',
+      shadowColor: 'shadow-destructive/30',
+    },
+    guest_hiring: {
       icon: Users,
+      label: 'Find Talent',
+      href: '/signup',
+      color: 'bg-gradient-to-r from-primary to-primary/80',
+      shadowColor: 'shadow-primary/30',
+    },
+    // Employer users
+    employer_hiring: {
+      icon: Search,
       label: 'Browse Candidates',
       href: '/employer-dashboard?section=candidates',
-      color: 'bg-primary hover:bg-primary/90',
+      color: 'bg-gradient-to-r from-primary to-primary/80',
+      shadowColor: 'shadow-primary/30',
     },
-    // Employer viewing jobs (seeking mode) - show post job
     employer_seeking: {
       icon: Plus,
       label: 'Post Job',
       href: '/post-job',
-      color: 'bg-success hover:bg-success/90',
+      color: 'bg-gradient-to-r from-success to-success/80',
+      shadowColor: 'shadow-success/30',
     },
-    // Candidate viewing jobs (seeking mode)
+    // Candidate users
     candidate_seeking: {
-      icon: Briefcase,
+      icon: Sparkles,
       label: 'Quick Apply',
       href: '/candidate-dashboard?section=jobs',
-      color: 'bg-destructive hover:bg-destructive/90',
+      color: 'bg-gradient-to-r from-destructive to-destructive/80',
+      shadowColor: 'shadow-destructive/30',
     },
-    // Candidate viewing candidates (hiring mode) - hide or show profile
     candidate_hiring: {
       icon: Users,
       label: 'My Profile',
       href: '/candidate-settings',
-      color: 'bg-primary hover:bg-primary/90',
+      color: 'bg-gradient-to-r from-primary to-primary/80',
+      shadowColor: 'shadow-primary/30',
     },
   };
 
-  const key = `${isEmployer ? 'employer' : 'candidate'}_${isSeeking ? 'seeking' : 'hiring'}`;
-  const config = fabConfig[key as keyof typeof fabConfig];
+  const getConfigKey = () => {
+    if (!user) return `guest_${isSeeking ? 'seeking' : 'hiring'}`;
+    return `${isEmployer ? 'employer' : 'candidate'}_${isSeeking ? 'seeking' : 'hiring'}`;
+  };
+
+  const config = fabConfig[getConfigKey() as keyof typeof fabConfig];
 
   return (
     <AnimatePresence>
@@ -64,18 +99,42 @@ export const MobileFAB = ({ mode, className }: MobileFABProps) => {
         transition={{ type: 'spring', damping: 20, stiffness: 300, delay: 0.5 }}
         className={cn("fab-position md:hidden", className)}
       >
+        {/* Tooltip */}
+        <AnimatePresence>
+          {showTooltip && (
+            <motion.div
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              className="absolute right-full mr-3 top-1/2 -translate-y-1/2 whitespace-nowrap"
+            >
+              <div className="bg-foreground text-background text-xs font-medium px-3 py-2 rounded-lg shadow-lg">
+                {config.label}
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full">
+                  <div className="border-8 border-transparent border-l-foreground" />
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         <Link to={config.href}>
-          <Button
-            size="lg"
+          <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             className={cn(
-              "h-14 w-14 rounded-full shadow-xl touch-scale",
+              "relative h-14 w-14 rounded-full shadow-2xl",
               config.color,
-              "flex items-center justify-center"
+              config.shadowColor,
+              "flex items-center justify-center",
+              "touch-scale"
             )}
           >
-            <config.icon className="w-6 h-6" />
-            <span className="sr-only">{config.label}</span>
-          </Button>
+            {/* Pulse ring */}
+            <div className="absolute inset-0 rounded-full animate-ping opacity-20 bg-current" />
+            
+            <config.icon className="w-6 h-6 text-white relative z-10" />
+          </motion.div>
         </Link>
       </motion.div>
     </AnimatePresence>
