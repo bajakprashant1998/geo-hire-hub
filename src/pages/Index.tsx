@@ -12,7 +12,8 @@ import { MarkerPreviewSheet } from '@/components/map/MarkerPreviewSheet';
 import BottomNavBar from '@/components/map/BottomNavBar';
 import { WelcomeOverlay } from '@/components/map/WelcomeOverlay';
 import { MobileFAB } from '@/components/map/MobileFAB';
-import { JobCategoryFilter, JobCategoryFilterValue, MapLegend } from '@/components/government';
+import { StatsBottomSheet } from '@/components/map/StatsBottomSheet';
+import { MapLegend } from '@/components/government';
 import { toast } from 'sonner';
 
 const Index = () => {
@@ -23,7 +24,6 @@ const Index = () => {
   const [selectedItem, setSelectedItem] = useState<Candidate | Job | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [jobCategoryFilter, setJobCategoryFilter] = useState<JobCategoryFilterValue>('all');
   const [showWelcome, setShowWelcome] = useState(!user);
 
   const geolocation = useGeolocation();
@@ -41,13 +41,7 @@ const Index = () => {
     searchQuery,
   });
 
-  // Filter jobs by category
-  const filteredJobs = useMemo(() => {
-    if (jobCategoryFilter === 'all') return jobs;
-    return jobs.filter(job => job.job_category === jobCategoryFilter);
-  }, [jobs, jobCategoryFilter]);
-
-  // Count jobs by category
+  // Job category counts
   const jobCounts = useMemo(() => ({
     private: jobs.filter(j => j.job_category !== 'government').length,
     government: jobs.filter(j => j.job_category === 'government').length,
@@ -60,7 +54,8 @@ const Index = () => {
     toast.info(
       newMode === 'hiring'
         ? 'Now showing candidates near you'
-        : 'Now showing jobs near you'
+        : 'Now showing jobs near you',
+      { duration: 2000 }
     );
   };
 
@@ -77,7 +72,7 @@ const Index = () => {
 
   const handleCenterOnUser = () => {
     if (!userLocation) {
-      toast.error('Unable to get your location');
+      toast.error('Unable to get your location. Please enable location services.');
       return;
     }
     toast.success('Centered on your location');
@@ -88,12 +83,12 @@ const Index = () => {
       {/* Loading Skeleton */}
       {loading && <MapLoadingSkeleton />}
       
-      {/* Map Layer - Lowest z-index */}
+      {/* Map Layer */}
       <div className="absolute inset-0 z-0">
         <MapContainer
           mode={mode}
           candidates={candidates}
-          jobs={filteredJobs}
+          jobs={jobs}
           userLocation={userLocation}
           radius={radius}
           onMarkerClick={handleMarkerClick}
@@ -101,7 +96,7 @@ const Index = () => {
         />
       </div>
 
-      {/* UI Layer - Higher z-index */}
+      {/* UI Layer */}
       <div className="absolute inset-0 z-10 pointer-events-none">
         {/* Header */}
         <div className="pointer-events-auto">
@@ -110,28 +105,16 @@ const Index = () => {
             onModeChange={handleModeChange}
             onSearch={setSearchQuery}
             onMenuClick={() => setSidebarOpen(true)}
+            userLocation={userLocation}
           />
         </div>
 
-        {/* Job Category Filter - only show in seeking mode */}
-        {mode === 'seeking' && (
-          <div className="pointer-events-auto absolute top-20 left-4 z-20">
-            <JobCategoryFilter
-              value={jobCategoryFilter}
-              onChange={setJobCategoryFilter}
-              showCounts
-              privateCnt={jobCounts.private}
-              governmentCnt={jobCounts.government}
-            />
-          </div>
-        )}
-
-        {/* Map Legend */}
+        {/* Map Legend - Desktop only */}
         <div className="pointer-events-auto absolute bottom-32 left-4 z-20 hidden md:block">
           <MapLegend mode={mode} />
         </div>
 
-        {/* Floating Controls */}
+        {/* Floating Controls - Desktop */}
         <div className="pointer-events-auto">
           <FloatingControls
             mode={mode}
@@ -140,18 +123,35 @@ const Index = () => {
             onToggleSidebar={() => setSidebarOpen(true)}
             onCenterOnUser={handleCenterOnUser}
             candidateCount={candidates.length}
-            jobCount={filteredJobs.length}
+            jobCount={jobs.length}
+            governmentJobCount={jobCounts.government}
+            privateJobCount={jobCounts.private}
+          />
+        </div>
+
+        {/* Stats Bottom Sheet - Mobile only */}
+        <div className="pointer-events-auto md:hidden">
+          <StatsBottomSheet
+            mode={mode}
+            candidateCount={candidates.length}
+            jobCount={jobs.length}
+            governmentJobCount={jobCounts.government}
+            privateJobCount={jobCounts.private}
+            radius={radius}
+            onRadiusChange={setRadius}
+            onToggleSidebar={() => setSidebarOpen(true)}
+            onCenterOnUser={handleCenterOnUser}
           />
         </div>
       </div>
 
-      {/* Overlay Layer - Highest z-index */}
+      {/* Overlay Layer */}
       <Sidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         mode={mode}
         candidates={candidates}
-        jobs={filteredJobs}
+        jobs={jobs}
         onSelectCandidate={handleSelectFromSidebar}
         onSelectJob={handleSelectFromSidebar}
       />
