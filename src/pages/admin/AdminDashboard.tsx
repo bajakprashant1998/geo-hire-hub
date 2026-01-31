@@ -4,7 +4,10 @@ import { AdminLayout } from '@/components/admin/AdminLayout';
 import { StatsCard } from '@/components/admin/StatsCard';
 import { ActionLogTable } from '@/components/admin/ActionLogTable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { RegistrationTrendChart, RevenueChart } from '@/components/admin/AnalyticsCharts';
+import { Link } from 'react-router-dom';
 import {
   Building2,
   Briefcase,
@@ -14,7 +17,11 @@ import {
   Flag,
   UserPlus,
   AlertTriangle,
+  CheckCircle,
+  Eye,
+  ArrowRight,
 } from 'lucide-react';
+import { format, subDays, eachDayOfInterval, subMonths, eachMonthOfInterval, startOfMonth } from 'date-fns';
 
 export default function AdminDashboard() {
   const { data: stats, isLoading } = useQuery({
@@ -38,6 +45,86 @@ export default function AdminDashboard() {
         new_registrations_today: number;
         new_registrations_week: number;
       };
+    },
+  });
+
+  // Registration trend data
+  const { data: registrationData } = useQuery({
+    queryKey: ['admin-dashboard-registration-trend'],
+    queryFn: async () => {
+      const days = eachDayOfInterval({
+        start: subDays(new Date(), 14),
+        end: new Date()
+      });
+
+      const results = await Promise.all(
+        days.map(async (day) => {
+          const startOfDay = new Date(day);
+          startOfDay.setHours(0, 0, 0, 0);
+          const endOfDay = new Date(day);
+          endOfDay.setHours(23, 59, 59, 999);
+
+          const { count: candidates } = await supabase
+            .from('profiles')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_type', 'candidate')
+            .gte('created_at', startOfDay.toISOString())
+            .lte('created_at', endOfDay.toISOString());
+
+          const { count: employers } = await supabase
+            .from('profiles')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_type', 'employer')
+            .gte('created_at', startOfDay.toISOString())
+            .lte('created_at', endOfDay.toISOString());
+
+          return {
+            name: format(day, 'MMM d'),
+            candidates: candidates || 0,
+            employers: employers || 0,
+            value: (candidates || 0) + (employers || 0)
+          };
+        })
+      );
+
+      return results;
+    },
+  });
+
+  // Revenue data
+  const { data: revenueData } = useQuery({
+    queryKey: ['admin-dashboard-revenue-trend'],
+    queryFn: async () => {
+      const months = eachMonthOfInterval({
+        start: subMonths(new Date(), 5),
+        end: new Date()
+      });
+
+      const results = await Promise.all(
+        months.map(async (month) => {
+          const startDate = startOfMonth(month);
+          const endDate = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+
+          const { data } = await supabase
+            .from('employer_subscriptions')
+            .select('plan:employer_plans!employer_subscriptions_plan_id_fkey(price_monthly)')
+            .eq('status', 'active')
+            .gte('current_period_start', startDate.toISOString())
+            .lte('current_period_start', endDate.toISOString());
+
+          const revenue = data?.reduce((sum, sub) => {
+            const plan = sub.plan as { price_monthly: number } | null;
+            return sum + (plan?.price_monthly || 0);
+          }, 0) || 0;
+
+          return {
+            name: format(month, 'MMM'),
+            value: revenue
+          };
+        })
+      );
+
+      return results;
     },
   });
 
@@ -102,6 +189,53 @@ export default function AdminDashboard() {
             />
           </>
         )}
+      </div>
+
+      {/* Quick Actions */}
+      <Card className="mb-8">
+        <CardHeader>
+          <CardTitle className="text-lg">Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-3">
+            {stats?.pending_employers && stats.pending_employers > 0 && (
+              <Button asChild variant="outline">
+                <Link to="/admin/employers?status=pending">
+                  <CheckCircle className="h-4 w-4 mr-2" />
+                  Approve Employers ({stats.pending_employers})
+                </Link>
+              </Button>
+            )}
+            {stats?.pending_moderation && stats.pending_moderation > 0 && (
+              <Button asChild variant="outline">
+                <Link to="/admin/jobs?moderation=pending">
+                  <Eye className="h-4 w-4 mr-2" />
+                  Moderate Jobs ({stats.pending_moderation})
+                </Link>
+              </Button>
+            )}
+            {stats?.pending_reports && stats.pending_reports > 0 && (
+              <Button asChild variant="outline" className="border-destructive text-destructive">
+                <Link to="/admin/reports">
+                  <Flag className="h-4 w-4 mr-2" />
+                  Review Reports ({stats.pending_reports})
+                </Link>
+              </Button>
+            )}
+            <Button asChild variant="ghost">
+              <Link to="/admin/analytics">
+                View Analytics
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {registrationData && <RegistrationTrendChart data={registrationData} />}
+        {revenueData && <RevenueChart data={revenueData} />}
       </div>
 
       {/* Quick Stats Summary */}
