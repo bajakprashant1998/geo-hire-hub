@@ -1,306 +1,298 @@
 
-# Home Page Redesign - Perfect UI/UX Plan
+
+# Admin Panel Feature Enhancement Plan
+
+## Overview
+
+This plan enhances the admin panel to provide comprehensive management capabilities across all website features, including advanced analytics, user management, content moderation, and platform configuration.
+
+---
 
 ## Current State Analysis
 
-The home page is a full-screen map-based experience with:
-- Header with mode toggle (Hiring/Seeking), search bar, and user menu
-- Leaflet map with marker clustering
-- Floating controls (radius filter, stats, navigation button)
-- Sidebar panel for listing items
-- Welcome overlay for guests
-- Mobile FAB and bottom navigation
-- Job category filter (Government/Private)
+### Existing Admin Pages
+1. **Dashboard** - Basic stats and activity logs
+2. **Employers** - Approve/reject/suspend employers
+3. **Jobs** - Moderate job listings
+4. **Candidates** - Block/unblock candidates
+5. **Plans** - Manage subscription plans
+6. **Reports** - Handle employer/job reports
+7. **Settings** - Basic configuration toggles
 
-### Identified Issues
-1. **Visual Hierarchy**: Header elements compete for attention; no clear focal point
-2. **Search Experience**: Basic search bar lacks context-aware suggestions and quick filters
-3. **Mobile Usability**: Some touch targets are too small; controls overlap on smaller screens
-4. **Welcome Experience**: Current overlay is good but lacks onboarding guidance
-5. **Mode Toggle**: Not immediately intuitive; could be more visually distinct
-6. **Empty States**: Generic messaging when no results found
-7. **Loading State**: Good but could be more engaging
-8. **Stats Display**: Buried in floating controls; not prominent enough
-9. **Quick Actions**: Mobile FAB only shows when logged in
-
----
-
-## Redesign Approach
-
-### Design Philosophy
-- **Mobile-First**: Design for smallest screens first, enhance for larger
-- **Clarity Over Density**: Reduce cognitive load, prioritize key actions
-- **Delightful Micro-interactions**: Add subtle animations for engagement
-- **Accessibility**: Ensure all elements meet WCAG 2.1 AA standards
-- **Performance**: Lazy load non-critical elements
+### Missing Features Identified
+- No user/profile management
+- No messaging moderation
+- No application analytics
+- No government domain management
+- No notification management
+- No bulk actions
+- No advanced analytics/charts
+- No export capabilities
+- Limited search and filtering
+- No mobile responsiveness improvements
 
 ---
 
-## 1. Enhanced Header Component
+## Phase 1: Dashboard Enhancements
 
-### 1.1 Glassmorphism Header Background
-Replace solid background with a subtle frosted glass effect that adapts to map content beneath.
+### 1.1 Advanced Analytics Cards
+Add visual charts and trends to the dashboard using Recharts (already installed):
+- **Registration Trend Chart** - Line chart showing daily/weekly registrations
+- **Revenue Chart** - Bar chart showing monthly revenue breakdown
+- **Job Category Distribution** - Pie chart of job categories
+- **Geographic Distribution** - Top cities/regions for jobs
+
+### 1.2 Quick Actions Panel
+Add quick action buttons for common admin tasks:
+- Approve pending employers (batch)
+- Moderate flagged jobs
+- Review reports
+- Send system announcements
+
+### 1.3 System Health Indicators
+- Active user sessions
+- API usage metrics
+- Storage usage
+- Email delivery status
+
+---
+
+## Phase 2: User Management
+
+### 2.1 New Admin Users Page (`/admin/users`)
+Complete user account management:
+
+| Feature | Description |
+|---------|-------------|
+| User List | All users with role, status, last login |
+| Profile View | Full profile details with linked entities |
+| Role Assignment | Assign admin/moderator roles |
+| Account Actions | Disable, delete, force password reset |
+| Email Verification | Manual verify/unverify |
+| Login History | View login attempts and sessions |
+
+### 2.2 Admin Role Management
+- View all users with admin/moderator roles
+- Add/remove roles with audit logging
+- Permissions matrix display
+
+---
+
+## Phase 3: Enhanced Content Management
+
+### 3.1 Government Domains Page (`/admin/government`)
+Manage government email domains for verified employers:
+- Add/remove trusted government domains
+- View employers using each domain
+- Domain verification status
+- Country association
+
+### 3.2 Job Categories Management
+- View category usage statistics
+- Add/edit/delete job categories
+- Category popularity trends
+- Suggested categories from AI
+
+### 3.3 Skills Management
+- Popular skills across candidates
+- Skills taxonomy management
+- Skill synonyms/aliases
+
+---
+
+## Phase 4: Messaging & Notifications
+
+### 4.1 Message Moderation Page (`/admin/messages`)
+- View flagged/reported conversations
+- Search messages by keyword
+- User message history
+- Block messaging for specific users
+- Bulk delete old messages
+
+### 4.2 System Notifications
+- Send broadcast notifications
+- Scheduled announcements
+- Push notification management
+- Email template management
+
+---
+
+## Phase 5: Analytics & Reporting
+
+### 5.1 Analytics Dashboard (`/admin/analytics`)
+Comprehensive platform analytics:
 
 ```text
-+------------------------------------------------------------------+
-|  [Menu]  [Logo]           [Toggle Switch]           [User Menu]  |
-|                                                                   |
-|                    [  Search Bar with Pills  ]                    |
-+------------------------------------------------------------------+
++------------------+------------------+------------------+
+|  User Growth     |  Job Metrics     |  Revenue         |
+|  - Daily signups |  - Posted/day    |  - MRR/ARR       |
+|  - Retention     |  - Applications  |  - Churn rate    |
+|  - Active users  |  - Success rate  |  - ARPU          |
++------------------+------------------+------------------+
+|                                                        |
+|  Geographic Heat Map (using stored lat/lng)            |
+|                                                        |
++--------------------------------------------------------+
+|  Conversion Funnels                                    |
+|  Signup → Profile → Application → Hired                |
++--------------------------------------------------------+
 ```
 
-### 1.2 Redesigned Mode Toggle
-- Larger, more prominent pill-style toggle
-- Animated background slide on mode change
-- Icon + text always visible (not hidden on mobile)
-- Haptic-style visual feedback on tap
+### 5.2 Export Capabilities
+- Export users to CSV
+- Export jobs to CSV
+- Export applications to CSV
+- Custom date range filtering
+- Scheduled report generation
 
-### 1.3 Smart Search Bar
-- **Contextual Placeholder**: "Find remote jobs near Delhi..." or "Search frontend developers..."
-- **Quick Filter Pills**: Scrollable chips below search (Within 10km, Remote, Full-time, Part-time)
-- **Recent Searches**: Dropdown with last 5 searches stored in localStorage
-- **Voice Search Button**: Microphone icon with speech recognition (progressive enhancement)
-
-### 1.4 Location Badge
-- Show current city name when geolocation is available
-- Compact pill showing "📍 Mumbai" with pulse animation
+### 5.3 AI Match Analytics
+- Match score distribution
+- Top matched job categories
+- Candidate skill gap analysis
+- Matching algorithm performance
 
 ---
 
-## 2. Mobile-Optimized Layout
+## Phase 6: Enhanced Existing Pages
 
-### 2.1 Bottom Sheet Approach for Mobile
-On screens < 640px, transform floating controls into a swipeable bottom sheet:
+### 6.1 Employers Page Improvements
+- **Advanced Filters**: Industry, country, team size, revenue range
+- **Bulk Actions**: Approve multiple, export list
+- **Detail View Enhancement**: Show all employer fields (benefits, culture, hiring process)
+- **Job History**: View all jobs posted by employer
+- **Subscription Status**: Current plan, payment history
 
-```text
-+------------------+
-|      Map         |
-|                  |
-|                  |
-+==================+
-| ^ Drag Handle ^  |
-| [24 Jobs Nearby] |
-| [Radius: 50km]   |
-| [Filters]        |
-+------------------+
-```
+### 6.2 Jobs Page Improvements
+- **Content Preview**: Full job description modal
+- **Duplicate Detection**: Flag similar listings
+- **Employer Quick View**: See employer status inline
+- **Application Stats**: View count, apply rate
+- **Featured Job Toggle**: Mark as featured/promoted
 
-### 2.2 Touch Target Optimization
-- All buttons minimum 48x48px (larger than current 44px)
-- Increased padding on interactive elements
-- Visual press states with scale animations
+### 6.3 Candidates Page Improvements
+- **Advanced Filters**: Skills, experience, location, education
+- **Resume Preview**: View uploaded resumes
+- **Audio Resume Player**: Listen to audio introductions
+- **Application History**: All applications and statuses
+- **AI Match Scores**: View match compatibility with jobs
 
-### 2.3 Gesture Support
-- Swipe up on bottom sheet to expand listing
-- Swipe down to collapse
-- Long-press on markers for quick actions
-
----
-
-## 3. Stats & Discovery Panel
-
-### 3.1 Floating Stats Card (Desktop)
-Replace current bottom-center control with an elevated stats card:
-
-```text
-+----------------------------------------+
-|  📍 24 Jobs within 50km of you        |
-|  [🔴 12 Private] [🟢 8 Govt] [🔵 4 Remote] |
-|                                        |
-|  [View List]  [Expand Radius]          |
-+----------------------------------------+
-```
-
-### 3.2 Animated Counters
-- Numbers animate when data changes
-- Subtle pulse effect on new items appearing
-
-### 3.3 Quick Category Chips
-- Replace current dropdown filter with horizontal scrollable chips
-- Active state with filled background
-- Badge counts on each chip
+### 6.4 Reports Page Improvements
+- **Reporter Information**: Who reported and their history
+- **Context View**: Show reported entity details
+- **Action Templates**: Pre-defined warning messages
+- **Auto-moderation Rules**: Flag patterns automatically
 
 ---
 
-## 4. Welcome & Onboarding Experience
+## Phase 7: UI/UX Improvements
 
-### 4.1 Enhanced Welcome Overlay
-- Full-screen hero with gradient background
-- Animated illustration/Lottie showing map discovery
-- Two large CTAs: "Find Jobs" and "Hire Talent"
-- Skip link at bottom
+### 7.1 Mobile Responsiveness
+Apply same mobile-first patterns used in main site:
+- Responsive tables with card view on mobile
+- Touch-friendly action buttons (min 48px)
+- Collapsible sidebar on mobile
+- Bottom sheet dialogs for mobile
 
-### 4.2 First-Time User Tooltips
-Progressive disclosure tooltips pointing to:
-1. Mode toggle explanation
-2. Search functionality
-3. Radius control
-4. List view option
+### 7.2 Improved Navigation
+- Breadcrumb navigation
+- Quick search (Cmd+K) across all admin sections
+- Recent items shortcuts
+- Pinned/favorite sections
 
-### 4.3 Empty State Improvements
-Custom illustrated empty states:
-- "No jobs in this area" → Suggest expanding radius
-- "No candidates found" → Prompt to adjust filters
+### 7.3 Enhanced Filters & Search
+- Global search across all entities
+- Advanced filter builder
+- Saved filter presets
+- Real-time search results
 
----
-
-## 5. Component Enhancements
-
-### 5.1 SearchBar Redesign (`SearchBar.tsx`)
-- Add `QuickFilterChips` component below input
-- Implement recent searches dropdown
-- Add microphone button for voice search
-- Animate expansion on focus
-
-### 5.2 ViewToggle Redesign (`ViewToggle.tsx`)
-- Larger pill with slide animation
-- Always show icon + label
-- Add Framer Motion spring animation
-- Change background color based on mode (blue for hiring, red for seeking)
-
-### 5.3 FloatingControls Upgrade (`FloatingControls.tsx`)
-- Convert to bottom sheet on mobile
-- Add animated stat counters
-- Include quick category filter chips
-- Better visual separation between sections
-
-### 5.4 Header Polish (`Header.tsx`)
-- Glassmorphism background
-- Location badge component
-- Improved spacing and touch targets
-- Micro-interactions on user menu
-
-### 5.5 MobileFAB Enhancement (`MobileFAB.tsx`)
-- Show for all users (different CTAs for guests)
-- Add tooltip label on first view
-- Improved positioning above bottom nav
-- Pulse animation for attention
-
-### 5.6 WelcomeOverlay Upgrade (`WelcomeOverlay.tsx`)
-- Full viewport gradient hero
-- Animated icons using Framer Motion
-- Improved typography hierarchy
-- Social proof element ("Join 10,000+ users")
-
-### 5.7 New: QuickFilterChips Component
-Horizontal scrollable filter pills:
-- Within 5km, 10km, 25km, 50km
-- Remote Only
-- Full-time, Part-time
-- Government Jobs
-
-### 5.8 New: LocationBadge Component
-Shows current detected city with pulse animation
-
-### 5.9 New: StatsBottomSheet Component
-Mobile-only collapsible bottom sheet with:
-- Results count
-- Category breakdown
-- Quick filters
-- Expand to list view
+### 7.4 Dark Mode Support
+- Consistent dark theme for admin panel
+- Theme toggle in settings
 
 ---
 
-## 6. CSS & Animation Additions
+## Technical Implementation Details
 
-### 6.1 New CSS Utilities (`index.css`)
-```css
-/* Glassmorphism header */
-.glass-header { ... }
+### New Files to Create
 
-/* Bottom sheet transitions */
-.bottom-sheet { ... }
-.bottom-sheet-expanded { ... }
-
-/* Animated counters */
-.animate-count { ... }
-
-/* Quick filter chips */
-.filter-chip { ... }
-.filter-chip-active { ... }
-
-/* Pulse attention animation */
-.pulse-attention { ... }
-```
-
-### 6.2 Framer Motion Animations
-- Mode toggle slide animation
-- Stats counter number animation
-- Bottom sheet swipe gestures
-- Welcome overlay stagger animations
-
----
-
-## 7. Responsive Breakpoints
-
-| Breakpoint | Layout Changes |
-|------------|----------------|
-| < 375px    | Extra compact mode, icon-only buttons |
-| 375-639px  | Standard mobile, bottom sheet controls |
-| 640-767px  | Tablet portrait, side panel option |
-| 768-1023px | Tablet landscape, expanded controls |
-| 1024+      | Desktop, full floating controls |
-
----
-
-## 8. Accessibility Improvements
-
-- All interactive elements have visible focus states
-- Screen reader announcements for mode changes
-- Reduced motion preference support
-- High contrast mode support
-- Keyboard navigation for all controls
-
----
-
-## Technical Implementation
-
-### Files to Create
-1. `src/components/map/QuickFilterChips.tsx` - Horizontal filter pills
-2. `src/components/map/LocationBadge.tsx` - City name display
-3. `src/components/map/StatsBottomSheet.tsx` - Mobile stats panel
-4. `src/components/map/SearchSuggestions.tsx` - Recent searches dropdown
+| File | Purpose |
+|------|---------|
+| `src/pages/admin/AdminUsers.tsx` | User account management |
+| `src/pages/admin/AdminGovernment.tsx` | Government domain management |
+| `src/pages/admin/AdminMessages.tsx` | Message moderation |
+| `src/pages/admin/AdminAnalytics.tsx` | Advanced analytics dashboard |
+| `src/pages/admin/AdminNotifications.tsx` | System notifications |
+| `src/components/admin/AnalyticsCharts.tsx` | Recharts-based visualizations |
+| `src/components/admin/UserDetailModal.tsx` | Full user details view |
+| `src/components/admin/BulkActionsBar.tsx` | Multi-select action toolbar |
+| `src/components/admin/ExportDialog.tsx` | Export configuration modal |
+| `src/components/admin/QuickSearch.tsx` | Cmd+K search overlay |
+| `src/components/admin/AdminMobileNav.tsx` | Mobile navigation |
+| `src/components/admin/StatsTrendCard.tsx` | Card with sparkline chart |
+| `src/components/admin/DataTable.tsx` | Reusable sortable/filterable table |
+| `src/components/admin/FilterBuilder.tsx` | Advanced filter UI |
 
 ### Files to Modify
-1. `src/pages/Index.tsx` - Layout restructure, state management
-2. `src/components/map/Header.tsx` - Glassmorphism, location badge
-3. `src/components/map/SearchBar.tsx` - Quick filters, suggestions
-4. `src/components/map/ViewToggle.tsx` - Larger, animated toggle
-5. `src/components/map/FloatingControls.tsx` - Stats card, mobile bottom sheet
-6. `src/components/map/MobileFAB.tsx` - Guest CTAs, tooltip
-7. `src/components/map/WelcomeOverlay.tsx` - Full-screen hero redesign
-8. `src/components/map/BottomNavBar.tsx` - Improved active states
-9. `src/components/map/RadiusFilter.tsx` - Better mobile sizing
-10. `src/components/map/MapLoadingSkeleton.tsx` - Enhanced loading animation
-11. `src/index.css` - New utility classes, animations
 
-### Dependencies
-No new dependencies required - uses existing:
-- Framer Motion
-- Tailwind CSS
-- Radix UI components
-- Lucide Icons
+| File | Changes |
+|------|---------|
+| `src/components/admin/AdminLayout.tsx` | Add new nav items, mobile support |
+| `src/pages/admin/AdminDashboard.tsx` | Add charts, quick actions |
+| `src/pages/admin/AdminEmployers.tsx` | Add bulk actions, enhanced filters |
+| `src/pages/admin/AdminJobs.tsx` | Add preview modal, bulk actions |
+| `src/pages/admin/AdminCandidates.tsx` | Add resume view, audio player |
+| `src/pages/admin/AdminPlans.tsx` | Add payment history view |
+| `src/pages/admin/AdminReports.tsx` | Add context view, templates |
+| `src/pages/admin/AdminSettings.tsx` | Add more configuration options |
+| `src/App.tsx` | Add new admin routes |
 
----
+### Database Requirements
+New RPC function needed:
+- `get_admin_analytics` - Return comprehensive analytics data
+- `get_user_activity` - Return user login/action history
+- `bulk_approve_employers` - Batch approval
+- `send_system_notification` - Broadcast notifications
 
-## Implementation Order
-
-1. **Header & Search** - Glassmorphism header, enhanced search with quick filters
-2. **Mode Toggle** - Larger, animated, always-visible labels
-3. **Mobile Controls** - Bottom sheet for floating controls
-4. **Stats Display** - Animated counters, category chips
-5. **Welcome Experience** - Full-screen hero, onboarding tooltips
-6. **FAB & Navigation** - Guest CTAs, improved bottom nav
-7. **Polish & Accessibility** - Focus states, reduced motion, testing
+### Routes to Add
+```
+/admin/users - User management
+/admin/government - Government domains
+/admin/messages - Message moderation
+/admin/analytics - Analytics dashboard
+/admin/notifications - System notifications
+```
 
 ---
 
-## Success Criteria
+## Implementation Priority
 
-- All touch targets ≥ 48px
-- Time to first meaningful interaction < 2s
-- Mode toggle immediately understandable
-- Search suggestions appear within 100ms
-- Smooth 60fps animations
-- Works on iOS Safari, Chrome, Firefox
-- Passes Lighthouse accessibility audit
+### Immediate (Phase 1-2)
+1. Dashboard charts and trends
+2. User management page
+3. Mobile responsive improvements
+
+### Short-term (Phase 3-4)
+4. Government domains management
+5. Message moderation
+6. Bulk actions across all pages
+
+### Medium-term (Phase 5-6)
+7. Advanced analytics
+8. Export capabilities
+9. Enhanced filters and search
+
+### Long-term (Phase 7)
+10. Quick search overlay
+11. Dark mode
+12. Auto-moderation rules
+
+---
+
+## Success Metrics
+
+- All admin pages responsive on mobile
+- 50% reduction in time to approve employers (bulk actions)
+- Complete visibility into platform metrics
+- Audit trail for all admin actions
+- Export capabilities for compliance
+
