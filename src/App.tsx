@@ -96,6 +96,7 @@ const App = () => (
               {/* ==================== REDIRECTS & ALIASES ==================== */}
               <Route path="/dashboard" element={<Navigate to="/candidate-dashboard" replace />} />
               <Route path="/employer/:id" element={<EmployerDetail />} />
+              <Route path="/job/:id" element={<Navigate to="/jobs/:id" replace />} />
 
               {/* ==================== CATCH-ALL ==================== */}
               <Route path="*" element={<NotFound />} />
