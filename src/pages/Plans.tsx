@@ -234,9 +234,9 @@ const Plans = () => {
         <div className="mt-12 text-center">
           <p className="text-muted-foreground">
             Need a custom plan for your enterprise?{' '}
-            <Link to="/contact" className="text-primary hover:underline">
+            <a href="mailto:support@hireforjob.com" className="text-primary hover:underline">
               Contact our sales team
-            </Link>
+            </a>
           </p>
         </div>
       </div>
