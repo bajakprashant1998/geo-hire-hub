@@ -1,6 +1,6 @@
-import { Search, MapPin, X, Mic } from 'lucide-react';
+import { Search, Navigation, X } from 'lucide-react';
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { SearchSuggestions, saveRecentSearch } from './SearchSuggestions';
 
@@ -8,9 +8,10 @@ interface SearchBarProps {
   onSearch: (query: string) => void;
   placeholder?: string;
   className?: string;
+  onLocationClick?: () => void;
 }
 
-export const SearchBar = ({ onSearch, placeholder = 'Search...', className }: SearchBarProps) => {
+export const SearchBar = ({ onSearch, placeholder = 'Search...', className, onLocationClick }: SearchBarProps) => {
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -80,47 +81,21 @@ export const SearchBar = ({ onSearch, placeholder = 'Search...', className }: Se
     setShowSuggestions(false);
   };
 
-  const handleVoiceSearch = () => {
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
-      const recognition = new SpeechRecognition();
-      
-      recognition.lang = 'en-US';
-      recognition.interimResults = false;
-      
-      recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setQuery(transcript);
-        saveRecentSearch(transcript);
-        onSearch(transcript);
-      };
-      
-      recognition.start();
-    }
-  };
-
-  const supportsVoice = typeof window !== 'undefined' && 
-    ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window);
-
   return (
     <div className={cn("relative w-full", className)}>
-      <motion.form 
+      <form 
         onSubmit={handleSubmit}
-        animate={{ 
-          scale: isFocused ? 1.02 : 1,
-        }}
-        transition={{ duration: 0.2 }}
         className={cn(
-          "w-full glass-morphism rounded-2xl",
-          "px-4 py-3 flex items-center gap-3",
-          "transition-all duration-300",
+          "w-full bg-background rounded-xl border",
+          "px-4 py-2.5 flex items-center gap-3",
+          "transition-all duration-200",
           isFocused 
-            ? 'ring-2 ring-primary/30 shadow-xl' 
-            : 'shadow-lg hover:shadow-xl'
+            ? 'border-primary ring-2 ring-primary/20 shadow-md' 
+            : 'border-border hover:border-muted-foreground/30 shadow-sm'
         )}
       >
         <Search className={cn(
-          "w-5 h-5 flex-shrink-0 transition-colors",
+          "w-4 h-4 flex-shrink-0 transition-colors",
           isFocused ? "text-primary" : "text-muted-foreground"
         )} />
         
@@ -143,34 +118,24 @@ export const SearchBar = ({ onSearch, placeholder = 'Search...', className }: Se
               exit={{ opacity: 0, scale: 0.8 }}
               type="button"
               onClick={handleClear}
-              className="p-1.5 hover:bg-muted rounded-full transition-colors flex-shrink-0 touch-target-sm touch-scale"
+              className="p-1 hover:bg-muted rounded-md transition-colors flex-shrink-0"
             >
               <X className="w-4 h-4 text-muted-foreground" />
             </motion.button>
           )}
         </AnimatePresence>
 
-        <div className="w-px h-5 bg-border/50 flex-shrink-0" />
-
-        {supportsVoice && (
+        {onLocationClick && (
           <button
             type="button"
-            onClick={handleVoiceSearch}
-            className="p-1.5 hover:bg-primary/10 rounded-full transition-colors flex-shrink-0 touch-target-sm touch-scale"
-            title="Voice search"
+            onClick={onLocationClick}
+            className="p-1.5 hover:bg-primary/10 rounded-lg transition-colors flex-shrink-0"
+            title="Use current location"
           >
-            <Mic className="w-5 h-5 text-primary" />
+            <Navigation className="w-4 h-4 text-primary" />
           </button>
         )}
-
-        <button
-          type="button"
-          className="p-1.5 hover:bg-success/10 rounded-full transition-colors flex-shrink-0 touch-target-sm touch-scale"
-          title="Use current location"
-        >
-          <MapPin className="w-5 h-5 text-success" />
-        </button>
-      </motion.form>
+      </form>
 
       <SearchSuggestions
         isVisible={showSuggestions && isFocused}

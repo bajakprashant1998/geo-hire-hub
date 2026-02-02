@@ -1,67 +1,47 @@
 import { ViewMode } from '@/types';
 import { Users, Briefcase } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 interface ViewToggleProps {
   mode: ViewMode;
   onModeChange: (mode: ViewMode) => void;
+  className?: string;
 }
 
-export const ViewToggle = ({ mode, onModeChange }: ViewToggleProps) => {
+export const ViewToggle = ({ mode, onModeChange, className }: ViewToggleProps) => {
   return (
-    <div className="glass-morphism rounded-2xl p-1.5 inline-flex items-center gap-1 shadow-xl">
-      <motion.button
-        whileTap={{ scale: 0.95 }}
+    <div className={cn("flex gap-2 bg-background/80 backdrop-blur-sm rounded-xl p-1 border border-border/50", className)}>
+      <Button
+        variant={mode === 'hiring' ? 'outline' : 'ghost'}
+        size="sm"
         className={cn(
-          "relative flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold",
-          "transition-all duration-300 touch-target touch-scale",
+          "h-9 px-4 rounded-lg gap-2 font-semibold transition-all",
           mode === 'hiring' 
-            ? 'text-primary-foreground' 
+            ? 'border-2 border-primary text-primary bg-primary/5' 
             : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
         )}
         onClick={() => onModeChange('hiring')}
       >
-        {mode === 'hiring' && (
-          <motion.div
-            layoutId="toggle-bg"
-            className="absolute inset-0 bg-primary rounded-xl shadow-lg"
-            initial={false}
-            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-          />
-        )}
-        <span className="relative z-10 flex items-center gap-2">
-          <Users className="w-4 h-4" />
-          <span className="hidden sm:inline">I am Hiring</span>
-          <span className="sm:hidden">Hiring</span>
-        </span>
-      </motion.button>
-      
-      <motion.button
-        whileTap={{ scale: 0.95 }}
+        <Users className="w-4 h-4" />
+        <span className="hidden sm:inline">I am Hiring</span>
+        <span className="sm:hidden">Hiring</span>
+      </Button>
+      <Button
+        variant={mode === 'seeking' ? 'default' : 'ghost'}
+        size="sm"
         className={cn(
-          "relative flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold",
-          "transition-all duration-300 touch-target touch-scale",
+          "h-9 px-4 rounded-lg gap-2 font-semibold transition-all",
           mode === 'seeking' 
-            ? 'text-destructive-foreground' 
+            ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm' 
             : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
         )}
         onClick={() => onModeChange('seeking')}
       >
-        {mode === 'seeking' && (
-          <motion.div
-            layoutId="toggle-bg"
-            className="absolute inset-0 bg-destructive rounded-xl shadow-lg"
-            initial={false}
-            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-          />
-        )}
-        <span className="relative z-10 flex items-center gap-2">
-          <Briefcase className="w-4 h-4" />
-          <span className="hidden sm:inline">I need a Job</span>
-          <span className="sm:hidden">Jobs</span>
-        </span>
-      </motion.button>
+        <Briefcase className="w-4 h-4" />
+        <span className="hidden sm:inline">I need a Job</span>
+        <span className="sm:hidden">Jobs</span>
+      </Button>
     </div>
   );
 };
