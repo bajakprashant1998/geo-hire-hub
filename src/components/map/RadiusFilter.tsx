@@ -1,28 +1,24 @@
 import { Slider } from '@/components/ui/slider';
 import { Target } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface RadiusFilterProps {
   radius: number;
   onRadiusChange: (radius: number) => void;
   maxRadius?: number;
+  className?: string;
 }
 
-export const RadiusFilter = ({ radius, onRadiusChange, maxRadius = 100 }: RadiusFilterProps) => {
+export const RadiusFilter = ({ radius, onRadiusChange, maxRadius = 100, className }: RadiusFilterProps) => {
   const presets = [5, 10, 25, 50, 100];
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      className="glass-morphism rounded-2xl p-4 w-64 shadow-2xl"
-    >
+    <div className={cn("bg-background rounded-xl p-4 shadow-lg border border-border/50", className)}>
       <div className="flex items-center gap-2 mb-4">
-        <div className="p-2 bg-primary/10 rounded-xl">
+        <div className="p-2 bg-primary/10 rounded-lg">
           <Target className="w-4 h-4 text-primary" />
         </div>
-        <span className="text-sm font-semibold">Search Radius</span>
+        <span className="text-sm font-semibold text-foreground">Search Radius</span>
       </div>
 
       {/* Quick Presets */}
@@ -32,10 +28,10 @@ export const RadiusFilter = ({ radius, onRadiusChange, maxRadius = 100 }: Radius
             key={preset}
             onClick={() => onRadiusChange(preset)}
             className={cn(
-              "flex-1 py-2 rounded-lg text-xs font-medium transition-all touch-scale",
+              "flex-1 py-2 rounded-lg text-xs font-medium transition-all",
               radius === preset
-                ? "bg-primary text-primary-foreground shadow-md"
-                : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
             )}
           >
             {preset}
@@ -44,7 +40,7 @@ export const RadiusFilter = ({ radius, onRadiusChange, maxRadius = 100 }: Radius
       </div>
 
       {/* Slider */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         <Slider
           value={[radius]}
           onValueChange={(value) => onRadiusChange(value[0])}
@@ -55,17 +51,12 @@ export const RadiusFilter = ({ radius, onRadiusChange, maxRadius = 100 }: Radius
         />
         <div className="flex justify-between items-center text-xs">
           <span className="text-muted-foreground">5 km</span>
-          <motion.span 
-            key={radius}
-            initial={{ scale: 1.2, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-full"
-          >
+          <span className="font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">
             {radius} km
-          </motion.span>
+          </span>
           <span className="text-muted-foreground">{maxRadius} km</span>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };

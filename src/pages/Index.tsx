@@ -6,14 +6,15 @@ import { useAuth } from '@/hooks/useAuth';
 import { Header } from '@/components/map/Header';
 import { MapContainer } from '@/components/map/MapContainer';
 import { MapLoadingSkeleton } from '@/components/map/MapLoadingSkeleton';
-import { FloatingControls } from '@/components/map/FloatingControls';
 import { Sidebar } from '@/components/map/Sidebar';
 import { MarkerPreviewSheet } from '@/components/map/MarkerPreviewSheet';
 import BottomNavBar from '@/components/map/BottomNavBar';
 import { WelcomeOverlay } from '@/components/map/WelcomeOverlay';
 import { MobileFAB } from '@/components/map/MobileFAB';
 import { StatsBottomSheet } from '@/components/map/StatsBottomSheet';
-import { MapLegend } from '@/components/government';
+import { LeftSidebarPanel } from '@/components/map/LeftSidebarPanel';
+import { Button } from '@/components/ui/button';
+import { Navigation } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Index = () => {
@@ -82,70 +83,105 @@ const Index = () => {
     <div className="relative w-full h-screen overflow-hidden bg-background">
       {/* Loading Skeleton */}
       {loading && <MapLoadingSkeleton />}
-      
-      {/* Map Layer */}
-      <div className="absolute inset-0 z-0">
-        <MapContainer
-          mode={mode}
-          candidates={candidates}
-          jobs={jobs}
-          userLocation={userLocation}
-          radius={radius}
-          onMarkerClick={handleMarkerClick}
-          selectedItem={selectedItem}
-        />
-      </div>
 
-      {/* UI Layer */}
-      <div className="absolute inset-0 z-10 pointer-events-none">
-        {/* Header */}
-        <div className="pointer-events-auto">
-          <Header
+      {/* Desktop Layout: Sidebar + Map */}
+      <div className="hidden md:flex h-full">
+        {/* Left Sidebar Panel */}
+        <div className="w-[300px] h-full border-r border-border bg-background z-20 flex-shrink-0">
+          <LeftSidebarPanel
             mode={mode}
             onModeChange={handleModeChange}
-            onSearch={setSearchQuery}
-            onMenuClick={() => setSidebarOpen(true)}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            radius={radius}
+            onRadiusChange={setRadius}
+            candidateCount={candidates.length}
+            jobCount={jobs.length}
+            governmentJobCount={jobCounts.government}
+            privateJobCount={jobCounts.private}
+            onViewList={() => setSidebarOpen(true)}
+            onCenterOnUser={handleCenterOnUser}
             userLocation={userLocation}
           />
         </div>
 
-        {/* Map Legend - Desktop only */}
-        <div className="pointer-events-auto absolute bottom-32 left-4 z-20 hidden md:block">
-          <MapLegend mode={mode} />
-        </div>
-
-        {/* Floating Controls - Desktop */}
-        <div className="pointer-events-auto">
-          <FloatingControls
+        {/* Map Container */}
+        <div className="flex-1 relative">
+          <MapContainer
             mode={mode}
+            candidates={candidates}
+            jobs={jobs}
+            userLocation={userLocation}
             radius={radius}
-            onRadiusChange={setRadius}
-            onToggleSidebar={() => setSidebarOpen(true)}
-            onCenterOnUser={handleCenterOnUser}
-            candidateCount={candidates.length}
-            jobCount={jobs.length}
-            governmentJobCount={jobCounts.government}
-            privateJobCount={jobCounts.private}
+            onMarkerClick={handleMarkerClick}
+            selectedItem={selectedItem}
           />
-        </div>
 
-        {/* Stats Bottom Sheet - Mobile only */}
-        <div className="pointer-events-auto md:hidden">
-          <StatsBottomSheet
-            mode={mode}
-            candidateCount={candidates.length}
-            jobCount={jobs.length}
-            governmentJobCount={jobCounts.government}
-            privateJobCount={jobCounts.private}
-            radius={radius}
-            onRadiusChange={setRadius}
-            onToggleSidebar={() => setSidebarOpen(true)}
-            onCenterOnUser={handleCenterOnUser}
-          />
+          {/* Navigation Button - Desktop */}
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={handleCenterOnUser}
+            className="absolute bottom-6 right-6 z-10 rounded-full w-12 h-12 shadow-xl hover:shadow-2xl bg-background border border-border/50"
+            title="Center on my location"
+          >
+            <Navigation className="w-5 h-5 text-primary" />
+          </Button>
         </div>
       </div>
 
-      {/* Overlay Layer */}
+      {/* Mobile Layout: Full screen map with overlays */}
+      <div className="md:hidden h-full">
+        {/* Map Layer */}
+        <div className="absolute inset-0 z-0">
+          <MapContainer
+            mode={mode}
+            candidates={candidates}
+            jobs={jobs}
+            userLocation={userLocation}
+            radius={radius}
+            onMarkerClick={handleMarkerClick}
+            selectedItem={selectedItem}
+          />
+        </div>
+
+        {/* UI Layer */}
+        <div className="absolute inset-0 z-10 pointer-events-none">
+          {/* Header */}
+          <div className="pointer-events-auto">
+            <Header
+              mode={mode}
+              onModeChange={handleModeChange}
+              onSearch={setSearchQuery}
+              onMenuClick={() => setSidebarOpen(true)}
+              userLocation={userLocation}
+            />
+          </div>
+
+          {/* Stats Bottom Sheet - Mobile only */}
+          <div className="pointer-events-auto">
+            <StatsBottomSheet
+              mode={mode}
+              candidateCount={candidates.length}
+              jobCount={jobs.length}
+              governmentJobCount={jobCounts.government}
+              privateJobCount={jobCounts.private}
+              radius={radius}
+              onRadiusChange={setRadius}
+              onToggleSidebar={() => setSidebarOpen(true)}
+              onCenterOnUser={handleCenterOnUser}
+            />
+          </div>
+        </div>
+
+        {/* Mobile FAB */}
+        <MobileFAB mode={mode} />
+
+        {/* Bottom Navigation - Mobile only */}
+        <BottomNavBar />
+      </div>
+
+      {/* Overlay Layer - Shared between Desktop and Mobile */}
       <Sidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
@@ -171,12 +207,6 @@ const Index = () => {
           onFindTalent={() => setMode('hiring')}
         />
       )}
-
-      {/* Mobile FAB */}
-      <MobileFAB mode={mode} />
-
-      {/* Bottom Navigation - Mobile only */}
-      <BottomNavBar />
     </div>
   );
 };
