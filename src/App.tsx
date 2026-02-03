@@ -37,6 +37,7 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminGovernment from "./pages/admin/AdminGovernment";
 import AdminMessages from "./pages/admin/AdminMessages";
+import AdminJobCategories from "./pages/admin/AdminJobCategories";
 
 const queryClient = new QueryClient();
 
@@ -87,6 +88,7 @@ const App = () => (
               <Route path="/admin/employers" element={<AdminEmployers />} />
               <Route path="/admin/jobs" element={<AdminJobs />} />
               <Route path="/admin/candidates" element={<AdminCandidates />} />
+              <Route path="/admin/categories" element={<AdminJobCategories />} />
               <Route path="/admin/government" element={<AdminGovernment />} />
               <Route path="/admin/messages" element={<AdminMessages />} />
               <Route path="/admin/plans" element={<AdminPlans />} />

@@ -150,9 +150,11 @@ export const LeftSidebarPanel = ({
           </Button>
           
           <Link to="/" className="flex items-center gap-2.5 group flex-1">
-            <div className="w-10 h-10 bg-gradient-to-br from-primary via-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all group-hover:scale-105">
-              <MapPin className="w-5 h-5 text-primary-foreground" />
-            </div>
+            <img 
+              src="/logo.png" 
+              alt="Hire for Job" 
+              className="w-10 h-10 rounded-xl object-contain shadow-lg group-hover:shadow-xl transition-all group-hover:scale-105"
+            />
             <div>
               <span className="font-bold text-lg text-foreground tracking-tight block leading-tight">
                 Hire for Job
