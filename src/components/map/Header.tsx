@@ -64,9 +64,11 @@ export const Header = ({ mode, onModeChange, onSearch, onMenuClick, userLocation
             </Button>
             
             <Link to="/" className="hidden sm:flex items-center gap-2.5 group">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary via-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all group-hover:scale-105">
-                <MapPin className="w-5 h-5 text-primary-foreground" />
-              </div>
+              <img 
+                src="/logo.png" 
+                alt="Hire for Job" 
+                className="w-10 h-10 rounded-xl object-contain shadow-lg group-hover:shadow-xl transition-all group-hover:scale-105"
+              />
               <div>
                 <span className="font-bold text-lg text-foreground tracking-tight block leading-tight">
                   Hire for Job
@@ -83,9 +85,11 @@ export const Header = ({ mode, onModeChange, onSearch, onMenuClick, userLocation
 
             {/* Mobile Logo */}
             <Link to="/" className="sm:hidden flex items-center gap-2">
-              <div className="w-9 h-9 bg-gradient-to-br from-primary to-primary/80 rounded-xl flex items-center justify-center shadow-lg">
-                <MapPin className="w-4.5 h-4.5 text-primary-foreground" />
-              </div>
+              <img 
+                src="/logo.png" 
+                alt="Hire for Job" 
+                className="w-9 h-9 rounded-xl object-contain shadow-lg"
+              />
             </Link>
           </div>
 
