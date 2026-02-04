@@ -379,14 +379,18 @@ export const LeftSidebarPanel = ({
 
           {/* View All Button */}
           {count > 0 && (
-            <Button 
-              variant="outline" 
+            <button
               onClick={onViewList}
-              className="w-full h-10 gap-2"
+              className="group w-full flex items-center justify-center gap-3 py-3.5 px-4 rounded-xl bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 hover:border-primary/40 hover:from-primary/15 hover:via-primary/10 transition-all duration-300"
             >
-              <List className="w-4 h-4" />
-              View List
-            </Button>
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                <List className="w-4 h-4 text-primary" />
+              </div>
+              <span className="font-medium text-sm text-foreground">
+                View All {mode === 'seeking' ? 'Jobs' : 'Candidates'}
+              </span>
+              <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all ml-auto" />
+            </button>
           )}
         </div>
       </ScrollArea>
