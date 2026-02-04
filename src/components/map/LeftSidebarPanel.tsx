@@ -1,6 +1,5 @@
 import { ViewMode } from '@/types';
 import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
 import { 
   MapPin, 
   LogIn, 
@@ -16,24 +15,42 @@ import {
   LayoutDashboard,
   Settings,
   LogOut,
-  ChevronDown,
-  Menu
+  X,
+  MessageSquare,
+  Heart,
+  Bell,
+  ChevronRight
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { LocationBadge } from './LocationBadge';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { SearchSuggestions, saveRecentSearch } from './SearchSuggestions';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
+
+interface Job {
+  id: string;
+  title: string;
+  company_name: string;
+  salary_range: string;
+  job_type: string;
+  distance_km: number;
+}
+
+interface Candidate {
+  id: string;
+  full_name: string;
+  job_title: string;
+  experience_years: number;
+  distance_km: number;
+}
 
 interface LeftSidebarPanelProps {
   mode: ViewMode;
@@ -49,6 +66,7 @@ interface LeftSidebarPanelProps {
   onViewList: () => void;
   onCenterOnUser: () => void;
   userLocation: { lat: number; lng: number } | null;
+  onClose?: () => void;
 }
 
 export const LeftSidebarPanel = ({
@@ -65,26 +83,44 @@ export const LeftSidebarPanel = ({
   onViewList,
   onCenterOnUser,
   userLocation,
+  onClose,
 }: LeftSidebarPanelProps) => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
-  const [query, setQuery] = useState(searchQuery);
-  const [isFocused, setIsFocused] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  const radiusPresets = [5, 10, 25, 50, 100];
   const count = mode === 'hiring' ? candidateCount : jobCount;
 
-  // Cleanup debounce on unmount
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-    };
-  }, []);
+  // Fetch nearby jobs
+  const { data: nearbyJobs } = useQuery({
+    queryKey: ['nearby-jobs-sidebar', userLocation?.lat, userLocation?.lng, radius],
+    queryFn: async () => {
+      if (!userLocation) return [];
+      const { data, error } = await supabase.rpc('get_nearby_jobs', {
+        user_lat: userLocation.lat,
+        user_lng: userLocation.lng,
+        radius_km: radius
+      });
+      if (error) return [];
+      return (data || []).slice(0, 10) as Job[];
+    },
+    enabled: !!userLocation && mode === 'seeking',
+  });
+
+  // Fetch nearby candidates
+  const { data: nearbyCandidates } = useQuery({
+    queryKey: ['nearby-candidates-sidebar', userLocation?.lat, userLocation?.lng, radius],
+    queryFn: async () => {
+      if (!userLocation) return [];
+      const { data, error } = await supabase.rpc('get_nearby_candidates', {
+        user_lat: userLocation.lat,
+        user_lng: userLocation.lng,
+        radius_km: radius
+      });
+      if (error) return [];
+      return (data || []).slice(0, 10) as Candidate[];
+    },
+    enabled: !!userLocation && mode === 'hiring',
+  });
 
   const handleSignOut = async () => {
     await signOut();
@@ -96,339 +132,278 @@ export const LeftSidebarPanel = ({
   const settingsPath = profile?.user_type === 'employer' ? '/company-profile' : '/candidate-settings';
   const userName = profile?.full_name || user?.email?.split('@')[0] || 'User';
   const initials = userName.charAt(0).toUpperCase();
+  const userRole = profile?.user_type === 'employer' ? 'Employer' : 'Candidate';
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-    if (query.trim()) {
-      saveRecentSearch(query.trim());
-    }
-    onSearchChange(query);
-    setShowSuggestions(false);
-    inputRef.current?.blur();
-  };
-
-  const handleSearchInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setQuery(value);
-    setShowSuggestions(true);
-    
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
-    
-    debounceRef.current = setTimeout(() => {
-      onSearchChange(value);
-    }, 300);
-  }, [onSearchChange]);
-
-  const handleSuggestionSelect = (suggestion: string) => {
-    setQuery(suggestion);
-    saveRecentSearch(suggestion);
-    onSearchChange(suggestion);
-    setShowSuggestions(false);
-  };
-
-  const handleUseLocation = () => {
-    onCenterOnUser();
-  };
+  const quickAccessItems = [
+    { icon: LayoutDashboard, label: 'Dashboard', href: dashboardPath },
+    { icon: MessageSquare, label: 'Messages', href: '/messages' },
+    { icon: Heart, label: profile?.user_type === 'employer' ? 'Saved Candidates' : 'Saved Jobs', href: dashboardPath },
+    { icon: Bell, label: 'Notifications', href: dashboardPath },
+    { icon: Settings, label: 'Settings', href: settingsPath },
+  ];
 
   return (
-    <div className="h-full flex flex-col bg-background overflow-y-auto">
-      {/* Logo + Location Section */}
-      <div className="p-4 border-b border-border">
-        <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onViewList}
-            className="h-10 w-10 rounded-xl bg-muted/50 hover:bg-muted border border-border/30"
-          >
-            <Menu className="w-5 h-5" />
-          </Button>
-          
-          <Link to="/" className="flex items-center gap-2.5 group flex-1">
-            <img 
-              src="/logo.png" 
-              alt="Hire for Job" 
-              className="w-10 h-10 rounded-xl object-contain shadow-lg group-hover:shadow-xl transition-all group-hover:scale-105"
-            />
-            <div>
-              <span className="font-bold text-lg text-foreground tracking-tight block leading-tight">
-                Hire for Job
-              </span>
-              {userLocation && (
-                <LocationBadge 
-                  latitude={userLocation.lat} 
-                  longitude={userLocation.lng}
-                  className="mt-0.5"
-                />
-              )}
-            </div>
-          </Link>
-        </div>
-      </div>
-
-      {/* Mode Toggle Section */}
-      <div className="p-4 border-b border-border">
-        <div className="flex gap-2">
-          <Button
-            variant={mode === 'hiring' ? 'outline' : 'ghost'}
-            className={cn(
-              "flex-1 h-11 rounded-xl gap-2 font-semibold transition-all",
-              mode === 'hiring' 
-                ? 'border-2 border-primary text-primary bg-primary/5' 
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-            )}
-            onClick={() => onModeChange('hiring')}
-          >
-            <Users className="w-4 h-4" />
-            I am Hiring
-          </Button>
-          <Button
-            variant={mode === 'seeking' ? 'default' : 'ghost'}
-            className={cn(
-              "flex-1 h-11 rounded-xl gap-2 font-semibold transition-all",
-              mode === 'seeking' 
-                ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md' 
-                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-            )}
-            onClick={() => onModeChange('seeking')}
-          >
-            <Briefcase className="w-4 h-4" />
-            I need a Job
-          </Button>
-        </div>
-      </div>
-
-      {/* Auth Buttons Section */}
-      {!user && (
-        <div className="p-4 border-b border-border">
-          <div className="flex gap-2">
-            <Link to="/login" className="flex-1">
-              <Button 
-                variant="outline" 
-                className="w-full h-11 rounded-xl gap-2 font-medium border-border"
-              >
-                <LogIn className="w-4 h-4" />
-                Sign In
-              </Button>
-            </Link>
-            <Link to="/signup" className="flex-1">
-              <Button 
-                className="w-full h-11 rounded-xl gap-2 font-medium shadow-md bg-primary hover:bg-primary/90"
-              >
-                <UserPlus className="w-4 h-4" />
-                Get Started
-              </Button>
-            </Link>
-          </div>
-        </div>
-      )}
-
-      {/* User Profile Section (when logged in) */}
-      {user && (
-        <div className="p-4 border-b border-border">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                className="w-full h-auto p-3 rounded-xl bg-muted/30 hover:bg-muted/50 border border-border/30 justify-start gap-3"
-              >
-                <Avatar className="w-10 h-10">
-                  <AvatarImage src={profile?.avatar_url || undefined} alt={userName} />
-                  <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 text-left">
-                  <p className="font-semibold text-sm truncate">{userName}</p>
-                  <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                </div>
-                <ChevronDown className="w-4 h-4 text-muted-foreground" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-[calc(300px-2rem)] rounded-xl">
-              <DropdownMenuItem asChild className="rounded-lg mx-1">
-                <Link to={dashboardPath} className="cursor-pointer gap-2">
-                  <LayoutDashboard className="w-4 h-4" />
-                  Dashboard
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="rounded-lg mx-1">
-                <Link to={settingsPath} className="cursor-pointer gap-2">
-                  <Settings className="w-4 h-4" />
-                  Settings
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={handleSignOut}
-                className="text-destructive focus:text-destructive cursor-pointer rounded-lg mx-1 gap-2"
-              >
-                <LogOut className="w-4 h-4" />
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )}
-
-      {/* Search Bar Section */}
-      <div className="p-4 border-b border-border">
-        <div className="relative">
-          <form onSubmit={handleSearchSubmit}>
-            <div className="relative flex items-center">
-              <Search className="absolute left-3 w-4 h-4 text-muted-foreground" />
-              <input
-                ref={inputRef}
-                type="text"
-                value={query}
-                onChange={handleSearchInputChange}
-                onFocus={() => { setIsFocused(true); setShowSuggestions(true); }}
-                onBlur={() => { setIsFocused(false); setTimeout(() => setShowSuggestions(false), 200); }}
-                placeholder={
-                  mode === 'hiring'
-                    ? 'Search candidates...'
-                    : 'Search jobs...'
-                }
-                className={cn(
-                  "w-full h-11 pl-10 pr-10 rounded-xl border bg-background text-sm",
-                  "placeholder:text-muted-foreground outline-none",
-                  "transition-all duration-200",
-                  isFocused 
-                    ? 'border-primary ring-2 ring-primary/20' 
-                    : 'border-border hover:border-muted-foreground/30'
-                )}
-              />
-              <button
-                type="button"
-                onClick={handleUseLocation}
-                className="absolute right-2 p-1.5 hover:bg-muted rounded-lg transition-colors"
-                title="Use current location"
-              >
-                <Navigation className="w-4 h-4 text-primary" />
-              </button>
-            </div>
-          </form>
-          
-          <SearchSuggestions
-            isVisible={showSuggestions && isFocused}
-            onSelect={handleSuggestionSelect}
-            onClose={() => setShowSuggestions(false)}
-            currentQuery={query}
+    <div className="h-full flex flex-col bg-background">
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-border">
+        <Link to="/" className="flex items-center gap-2.5">
+          <img 
+            src="/logo.png" 
+            alt="Hire for Job" 
+            className="w-8 h-8 rounded-lg object-contain"
           />
-        </div>
+          <span className="font-semibold text-foreground">
+            Hire for Job
+          </span>
+        </Link>
+        {onClose && (
+          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
+            <X className="w-4 h-4" />
+          </Button>
+        )}
       </div>
 
-      {/* Search Radius Section */}
-      <div className="p-4 border-b border-border">
-        <div className="flex items-center gap-2 mb-3">
-          <div className="p-2 bg-primary/10 rounded-lg">
-            <Target className="w-4 h-4 text-primary" />
-          </div>
-          <span className="text-sm font-semibold text-foreground">Search Radius</span>
-        </div>
-
-        {/* Quick Presets */}
-        <div className="flex gap-1.5 mb-4">
-          {radiusPresets.map((preset) => (
-            <button
-              key={preset}
-              onClick={() => onRadiusChange(preset)}
-              className={cn(
-                "flex-1 py-2 rounded-lg text-xs font-medium transition-all",
-                radius === preset
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground"
-              )}
-            >
-              {preset}
-            </button>
-          ))}
-        </div>
-
-        {/* Slider */}
-        <div className="space-y-2">
-          <Slider
-            value={[radius]}
-            onValueChange={(value) => onRadiusChange(value[0])}
-            max={100}
-            min={5}
-            step={5}
-            className="w-full"
-          />
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-muted-foreground">5 km</span>
-            <span className="font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">
-              {radius} km
-            </span>
-            <span className="text-muted-foreground">100 km</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats Card Section */}
-      <div className="p-4 flex-1">
-        <div className="bg-muted/30 rounded-xl p-4 border border-border/50">
-          <div className="flex items-center gap-3 mb-3">
-            <div className={cn(
-              "p-3 rounded-xl",
-              mode === 'hiring' ? 'bg-primary/10' : 'bg-destructive/10'
-            )}>
-              {mode === 'hiring' ? (
-                <Users className={cn("w-6 h-6 text-primary")} />
-              ) : (
-                <Briefcase className={cn("w-6 h-6 text-destructive")} />
-              )}
+      <ScrollArea className="flex-1">
+        <div className="p-4 space-y-4">
+          {/* User Profile Card */}
+          {user ? (
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30">
+              <Avatar className="w-12 h-12 border-2 border-background shadow-sm">
+                <AvatarImage src={profile?.avatar_url || undefined} alt={userName} />
+                <AvatarFallback className="bg-primary/10 text-primary font-semibold text-lg">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm text-foreground truncate">{userName}</p>
+                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                <Badge variant="secondary" className="mt-1 text-[10px] h-5 px-2">
+                  {userRole}
+                </Badge>
+              </div>
             </div>
-            <div>
-              <div className="flex items-baseline gap-1.5">
-                <span className={cn(
-                  "text-2xl font-bold tabular-nums",
-                  mode === 'hiring' ? 'text-primary' : 'text-destructive'
-                )}>
-                  {count}
-                </span>
-                <span className="text-sm text-muted-foreground">
-                  {mode === 'hiring' ? 'candidates' : 'jobs'} nearby
-                </span>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                within {radius}km of your location
-              </p>
-            </div>
-          </div>
-
-          {/* Category Breakdown - Jobs only */}
-          {mode === 'seeking' && (
-            <div className="flex gap-2 mb-4">
-              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-primary/10">
-                <Building2 className="w-3.5 h-3.5 text-primary" />
-                <span className="text-xs font-semibold text-primary">{privateJobCount}</span>
-                <span className="text-xs text-muted-foreground">Private</span>
-              </div>
-              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-success/10">
-                <Landmark className="w-3.5 h-3.5 text-success" />
-                <span className="text-xs font-semibold text-success">{governmentJobCount}</span>
-                <span className="text-xs text-muted-foreground">Govt</span>
-              </div>
+          ) : (
+            <div className="space-y-2">
+              <Link to="/login" className="block">
+                <Button variant="outline" className="w-full justify-start gap-2 h-10">
+                  <LogIn className="w-4 h-4" />
+                  Sign In
+                </Button>
+              </Link>
+              <Link to="/signup" className="block">
+                <Button className="w-full justify-start gap-2 h-10">
+                  <UserPlus className="w-4 h-4" />
+                  Get Started
+                </Button>
+              </Link>
             </div>
           )}
 
-          {/* View List Button */}
+          {/* Quick Access Menu */}
+          {user && (
+            <>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                  Quick Access
+                </p>
+                <div className="grid grid-cols-2 gap-1">
+                  {quickAccessItems.slice(0, 4).map((item) => (
+                    <Link
+                      key={item.label}
+                      to={item.href}
+                      className="flex items-center gap-2 p-2.5 rounded-lg hover:bg-muted/50 transition-colors text-sm text-muted-foreground hover:text-foreground"
+                    >
+                      <item.icon className="w-4 h-4" />
+                      <span className="truncate">{item.label}</span>
+                    </Link>
+                  ))}
+                </div>
+                <Link
+                  to={settingsPath}
+                  className="flex items-center gap-2 p-2.5 rounded-lg hover:bg-muted/50 transition-colors text-sm text-muted-foreground hover:text-foreground mt-1"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span>Settings</span>
+                </Link>
+              </div>
+              <Separator />
+            </>
+          )}
+
+          {/* Mode Toggle */}
+          <div className="flex gap-2">
+            <Button
+              variant={mode === 'hiring' ? 'outline' : 'ghost'}
+              size="sm"
+              className={cn(
+                "flex-1 h-9 gap-1.5 text-xs font-medium",
+                mode === 'hiring' && 'border-primary/50 text-primary'
+              )}
+              onClick={() => onModeChange('hiring')}
+            >
+              <Users className="w-3.5 h-3.5" />
+              I am Hiring
+            </Button>
+            <Button
+              variant={mode === 'seeking' ? 'default' : 'ghost'}
+              size="sm"
+              className={cn(
+                "flex-1 h-9 gap-1.5 text-xs font-medium",
+                mode === 'seeking' && 'bg-destructive hover:bg-destructive/90'
+              )}
+              onClick={() => onModeChange('seeking')}
+            >
+              <Briefcase className="w-3.5 h-3.5" />
+              I need a Job
+            </Button>
+          </div>
+
+          {/* Jobs/Candidates Header */}
+          <div className="flex items-start gap-3 pt-2">
+            <div className={cn(
+              "p-2 rounded-lg",
+              mode === 'seeking' ? 'bg-destructive/10' : 'bg-primary/10'
+            )}>
+              {mode === 'seeking' ? (
+                <Briefcase className="w-5 h-5 text-destructive" />
+              ) : (
+                <Users className="w-5 h-5 text-primary" />
+              )}
+            </div>
+            <div className="flex-1">
+              <div className="flex items-baseline justify-between">
+                <h2 className="text-2xl font-bold text-foreground leading-tight">
+                  {mode === 'seeking' ? 'Jobs' : 'Candidates'}
+                  <br />
+                  <span className="text-muted-foreground font-normal text-lg">Nearby</span>
+                </h2>
+                <span className="text-xl font-semibold text-muted-foreground">{count}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Category Badges - Jobs only */}
+          {mode === 'seeking' && (
+            <div className="flex gap-2">
+              <Badge variant="secondary" className="gap-1.5 px-2.5 py-1">
+                <Building2 className="w-3 h-3" />
+                {privateJobCount} Private
+              </Badge>
+              <Badge variant="secondary" className="gap-1.5 px-2.5 py-1">
+                <Landmark className="w-3 h-3" />
+                {governmentJobCount} Govt
+              </Badge>
+            </div>
+          )}
+
+          <Separator />
+
+          {/* List of Jobs/Candidates */}
+          <div className="space-y-1">
+            {mode === 'seeking' ? (
+              nearbyJobs && nearbyJobs.length > 0 ? (
+                nearbyJobs.map((job) => (
+                  <Link
+                    key={job.id}
+                    to={`/job/${job.id}`}
+                    className="block p-3 rounded-lg hover:bg-muted/50 transition-colors border-b border-border/50 last:border-0"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm text-foreground truncate">
+                          {job.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {job.company_name}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <span className="text-xs text-muted-foreground">
+                            {job.salary_range || 'Salary not specified'}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground/70">•</span>
+                          <span className="text-xs text-muted-foreground flex items-center gap-0.5">
+                            <MapPin className="w-3 h-3" />
+                            {job.distance_km?.toFixed(1)} km
+                          </span>
+                        </div>
+                      </div>
+                      <Badge variant="outline" className="text-[10px] shrink-0">
+                        {job.job_type || 'Full-time'}
+                      </Badge>
+                    </div>
+                  </Link>
+                ))
+              ) : (
+                <div className="text-center py-8 text-muted-foreground text-sm">
+                  No jobs found nearby
+                </div>
+              )
+            ) : (
+              nearbyCandidates && nearbyCandidates.length > 0 ? (
+                nearbyCandidates.map((candidate) => (
+                  <Link
+                    key={candidate.id}
+                    to={`/candidate/${candidate.id}`}
+                    className="block p-3 rounded-lg hover:bg-muted/50 transition-colors border-b border-border/50 last:border-0"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-sm text-foreground truncate">
+                          {candidate.full_name}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {candidate.job_title}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1.5">
+                          <span className="text-xs text-muted-foreground">
+                            {candidate.experience_years || 0} years exp
+                          </span>
+                          <span className="text-[10px] text-muted-foreground/70">•</span>
+                          <span className="text-xs text-muted-foreground flex items-center gap-0.5">
+                            <MapPin className="w-3 h-3" />
+                            {candidate.distance_km?.toFixed(1)} km
+                          </span>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
+                    </div>
+                  </Link>
+                ))
+              ) : (
+                <div className="text-center py-8 text-muted-foreground text-sm">
+                  No candidates found nearby
+                </div>
+              )
+            )}
+          </div>
+
+          {/* View All Button */}
+          {count > 0 && (
+            <Button 
+              variant="outline" 
+              onClick={onViewList}
+              className="w-full h-10 gap-2"
+            >
+              <List className="w-4 h-4" />
+              View List
+            </Button>
+          )}
+        </div>
+      </ScrollArea>
+
+      {/* Sign Out Footer */}
+      {user && (
+        <div className="p-4 border-t border-border">
           <Button 
-            variant="outline" 
-            onClick={onViewList}
-            className="w-full h-10 rounded-xl gap-2 font-medium"
+            variant="ghost" 
+            onClick={handleSignOut}
+            className="w-full justify-start gap-2 h-10 text-destructive hover:text-destructive hover:bg-destructive/10"
           >
-            <List className="w-4 h-4" />
-            View List
+            <LogOut className="w-4 h-4" />
+            Sign Out
           </Button>
         </div>
-      </div>
+      )}
     </div>
   );
 };
