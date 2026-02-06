@@ -1,241 +1,305 @@
 
-# Home Page UI/UX Redesign Plan
+# Comprehensive Implementation Plan
 
-## Reference Analysis
-
-Based on the provided reference image, the new design features a **clean, consolidated left sidebar** layout instead of the current scattered floating controls approach. Key design elements include:
-
-### Reference Design Elements
-1. **Logo + Location Badge**: "Hire for Job" with green pulsing location indicator showing city name
-2. **Mode Toggle**: Two buttons "I am Hiring" (outline) and "I need a Job" (filled red/coral) in a horizontal row
-3. **Auth Buttons Row**: "Sign In" (with arrow icon) and "Get Started" (filled blue) side by side
-4. **Search Bar**: Simple search with placeholder text and location/GPS icon on right
-5. **Search Radius Section**: 
-   - Header with target icon "Search Radius"
-   - Quick preset buttons (5, 10, 25, 50, 100) in a row
-   - Slider below with "5 km", current value badge, "100 km" labels
-6. **Stats Card**: 
-   - Red briefcase icon with "2 jobs nearby" 
-   - "within 50km of your location" subtitle
-   - Category breakdown badges (Private, Govt)
-   - "View List" button at bottom
-7. **Full-screen satellite map**: Takes up the entire right side
-8. **Navigation button**: Bottom-right corner for centering on user location
-9. **Map markers**: Red circular markers with briefcase icon, green user location dot, red radius circle
+## Overview
+This plan addresses four major enhancements to the Hire for Job platform:
+1. Switching to built-in Supabase email verification (replacing custom Resend flow)
+2. Redesigning the chat popup box with a modern UI
+3. Completing pending tasks for candidates, employers, and admin
+4. Creating admin features aligned with website functionality
 
 ---
 
-## Implementation Plan
+## 1. Switch to Supabase Built-in Email Verification
 
-### Phase 1: Create New Left Sidebar Panel Component
+### Current State
+- Uses a custom Resend-based email verification flow
+- `send-verification-email` edge function sends emails via Resend
+- Custom `email_verification_tokens` table tracks verification
+- `custom_email_verified` field in profiles table
+- Issue: Resend test domain only delivers to account owner
 
-**New File: `src/components/map/LeftSidebarPanel.tsx`**
+### Implementation Approach
 
-A consolidated sidebar panel that contains all controls in a vertical layout:
+**Phase 1: Configure Supabase Auth Settings**
+- Enable Supabase's built-in email verification
+- Disable auto-confirm for new signups (require verification)
+- Configure email templates in Supabase dashboard
 
+**Phase 2: Update Signup Flow**
+- Modify `src/pages/Signup.tsx`:
+  - Remove call to `send-verification-email` edge function
+  - Rely on Supabase's native email confirmation flow
+  - Use `email_confirmed_at` from auth.users for verification status
+
+**Phase 3: Simplify Auth Components**
+- Update `src/hooks/useAuth.tsx`:
+  - Remove `customEmailVerified` state tracking
+  - Use only `user.email_confirmed_at` for verification status
+
+- Update `src/components/auth/EmailVerificationGuard.tsx`:
+  - Remove custom verification token checking
+  - Use native Supabase `email_confirmed_at` field
+
+- Update `src/components/auth/EmailVerificationBanner.tsx`:
+  - Remove custom verification checks
+  - Use native Supabase resend functionality
+
+**Phase 4: Simplify Verify Email Page**
+- Update `src/pages/VerifyEmail.tsx`:
+  - Remove custom token verification logic
+  - Use Supabase's built-in confirmation flow
+  - Detect verification from auth state changes
+
+**Phase 5: Cleanup**
+- Optionally remove `send-verification-email` edge function
+- Database tables (`email_verification_tokens`) can remain for backward compatibility
+
+---
+
+## 2. Redesign Chat Popup Box
+
+### Current State
+- Dialog-based modal with split-view (conversation list + chat)
+- Functional but basic styling
+- 804 lines of code with all features inline
+
+### Design Improvements
+
+**Visual Enhancements:**
+- Modern glassmorphism effect for the modal
+- Gradient header with app branding
+- Rounded avatar with status indicators
+- Message bubbles with subtle shadows
+- Smooth animations using framer-motion
+- Floating action buttons for quick actions
+
+**Layout Improvements:**
+- Sidebar with user profile card at top
+- Search with floating label design
+- Conversation cards with hover effects
+- Chat area with date separators
+- Modern input with emoji picker integration
+
+**Files to Update:**
+- `src/components/messaging/ChatModal.tsx` - Complete UI redesign
+- Add new sub-components for cleaner organization:
+  - `ChatHeader.tsx` - Gradient header with user info
+  - `ConversationList.tsx` - Redesigned sidebar
+  - `MessageBubble.tsx` - Enhanced message display
+  - `ChatInput.tsx` - Modern input with attachments
+
+**Key UI Changes:**
+```text
+┌─────────────────────────────────────────────────────────┐
+│  ┌─────────────────┐  ┌───────────────────────────────┐ │
+│  │ Gradient Header │  │ Chat Header with Avatar       │ │
+│  │ with Logo       │  │ Name, Status, Actions         │ │
+│  ├─────────────────┤  ├───────────────────────────────┤ │
+│  │ My Profile Card │  │                               │ │
+│  ├─────────────────┤  │  Message Bubbles              │ │
+│  │ Search Bar      │  │  - Date Separators            │ │
+│  ├─────────────────┤  │  - Read Receipts              │ │
+│  │                 │  │  - Reactions                  │ │
+│  │ Conversation    │  │  - Attachments                │ │
+│  │ List with       │  │                               │ │
+│  │ Avatars &       │  │                               │ │
+│  │ Badges          │  │                               │ │
+│  │                 │  ├───────────────────────────────┤ │
+│  │                 │  │ Modern Input Bar              │ │
+│  │                 │  │ [Attach] [Message...] [Send]  │ │
+│  └─────────────────┘  └───────────────────────────────┘ │
+└─────────────────────────────────────────────────────────┘
 ```
-+----------------------------------+
-| [≡] [Logo] Hire for Job          |
-|     ● Ahmedabad                  |
-+----------------------------------+
-| [I am Hiring] [I need a Job]     |
-+----------------------------------+
-| [→ Sign In]  [✦ Get Started]     |
-+----------------------------------+
-| 🔍 Search jobs by title, company |
-|                           [📍]   |
-+----------------------------------+
-| ⊕ Search Radius                  |
-| [5] [10] [25] [50] [100]         |
-| ○────────●──────────○            |
-| 5 km      [50 km]      100 km    |
-+----------------------------------+
-| 📦 2 jobs nearby                 |
-|    within 50km of your location  |
-|    [👤 2 Private] [🏛 0 Govt]    |
-|    [≡ View List]                 |
-+----------------------------------+
+
+---
+
+## 3. Complete Pending Tasks Across User Roles
+
+### Candidate Dashboard Pending Features
+
+**a) Resume Management**
+- File: `src/components/candidate/ResumeUpload.tsx`
+- Add: Resume preview, version history, download button
+- Status indicator for resume completeness
+
+**b) Interview Scheduling**
+- Currently shows "None scheduled"
+- Add: Calendar integration component
+- Display upcoming interviews with time, company, position
+- Add "Add to Calendar" functionality
+
+**c) Job Alerts Enhancement**
+- File: `src/components/candidate/JobAlertsManager.tsx`
+- Add: Email frequency settings
+- Location-based alert configuration
+- Skill-matching preferences
+
+**d) Profile Completeness Actions**
+- Add guided steps to complete profile
+- Quick-edit modals for each section
+- Progress tracking with rewards/badges
+
+### Employer Dashboard Pending Features
+
+**a) Interview Management**
+- Currently shows "Interview scheduling coming soon"
+- Create: `src/components/employer/InterviewScheduler.tsx`
+- Calendar view of all scheduled interviews
+- Candidate availability checker
+- Video call integration links
+
+**b) Analytics Dashboard**
+- File: `src/components/employer/PlanUsagePanel.tsx`
+- Add: Job performance metrics
+- Application funnel visualization
+- Candidate quality scores
+- Time-to-hire tracking
+
+**c) Candidate Comparison**
+- Add side-by-side candidate comparison
+- Scoring matrix for skills
+- Interview notes per candidate
+
+**d) Job Templates**
+- Save frequently used job descriptions
+- Quick duplicate existing jobs
+- Template library for common roles
+
+### Admin Dashboard Pending Features
+
+**a) Reports Module**
+- File: `src/pages/admin/AdminReports.tsx`
+- User reports handling (spam, inappropriate content)
+- Employer/job report reviews
+- Bulk moderation actions
+
+**b) Settings Enhancement**
+- File: `src/pages/admin/AdminSettings.tsx`
+- Platform-wide settings configuration
+- Email template customization
+- Feature flags management
+
+**c) User Management**
+- File: `src/pages/admin/AdminUsers.tsx`
+- User account actions (suspend, delete, verify)
+- Password reset triggers
+- Activity logs per user
+
+---
+
+## 4. Create Admin Features According to Website
+
+### Gap Analysis: Website Features vs Admin Panel
+
+**Missing Admin Modules:**
+
+**a) Application Management (`AdminApplications.tsx`)**
+- View all job applications
+- Filter by status, date, job, employer
+- Bulk status updates
+- Application analytics
+
+**b) Notification Center (`AdminNotifications.tsx`)**
+- System notification management
+- Push notification configuration
+- Email broadcast tools
+- Announcement system
+
+**c) Content Moderation (`AdminModeration.tsx`)**
+- Automated content filtering settings
+- Flagged content review queue
+- Moderation rules configuration
+- AI-assisted content scanning
+
+**d) Platform Analytics Enhancement**
+- File: `src/pages/admin/AdminAnalytics.tsx`
+- Add: User engagement metrics
+- Conversion funnels (signup → profile → application)
+- Geographic distribution maps
+- Peak usage times
+
+**e) Revenue & Billing**
+- Subscription management interface
+- Invoice generation
+- Payment history
+- Revenue forecasting
+
+**f) Email Management**
+- Email template editor
+- Delivery statistics
+- Bounce handling
+- Unsubscribe management
+
+### Database Additions Required
+
+```sql
+-- Admin notifications table
+CREATE TABLE admin_notifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  type TEXT DEFAULT 'info',
+  target_audience TEXT DEFAULT 'all',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  expires_at TIMESTAMPTZ,
+  is_active BOOLEAN DEFAULT true
+);
+
+-- Content moderation queue
+CREATE TABLE moderation_queue (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  content_type TEXT NOT NULL, -- 'job', 'profile', 'message'
+  content_id UUID NOT NULL,
+  reason TEXT NOT NULL,
+  status TEXT DEFAULT 'pending',
+  reviewed_by UUID REFERENCES auth.users(id),
+  reviewed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
 ```
 
-**Features:**
-- White background with subtle shadow
-- Fixed width (~280px) on desktop
-- Stacked card sections with consistent spacing
-- Rounded corners on each section card
-
 ---
 
-### Phase 2: Update Index.tsx Layout
+## Implementation Priority
 
-**File: `src/pages/Index.tsx`**
+### Phase 1 - Critical (Days 1-2)
+1. Switch to Supabase email verification
+2. Fix chat modal responsiveness
 
-Change from floating overlay architecture to a side-by-side layout:
+### Phase 2 - High Priority (Days 3-5)
+3. Chat popup redesign
+4. Candidate interview calendar
+5. Employer analytics dashboard
 
-**Current Layout:**
-- Full-screen map with floating header and controls
+### Phase 3 - Medium Priority (Days 6-8)
+6. Admin reports module
+7. Admin moderation queue
+8. Notification management
 
-**New Layout:**
-- Left sidebar (fixed width, 280-300px) containing all controls
-- Right side: Full-screen map (remaining width)
-- Mobile: Bottom sheet approach (keep existing StatsBottomSheet)
-
-```
-+---------------------------+----------------------------------------+
-|                           |                                        |
-|   Left Sidebar Panel      |           Map Container                |
-|   (All controls)          |         (Full width/height)            |
-|                           |                                        |
-|   - Logo + Location       |       [Markers + Radius Circle]        |
-|   - Mode Toggle           |                                        |
-|   - Auth Buttons          |                                        |
-|   - Search Bar            |                                        |
-|   - Radius Filter         |                                        |
-|   - Stats Card            |                                        |
-|                           |                             [⇢ Nav]    |
-+---------------------------+----------------------------------------+
-```
-
----
-
-### Phase 3: Component Style Updates
-
-#### 3.1 Mode Toggle Redesign
-Update `src/components/map/ViewToggle.tsx`:
-- Remove glass-morphism background
-- White background with border
-- "I am Hiring" = outline style with gray text
-- "I need a Job" = filled coral/red background with white text
-- Both have icons (Users, Briefcase)
-
-#### 3.2 Auth Buttons Row
-In new LeftSidebarPanel:
-- "Sign In" button: outline style with arrow icon, gray text
-- "Get Started" button: filled primary blue with sparkle/plus icon
-
-#### 3.3 Search Bar Simplification
-Update `src/components/map/SearchBar.tsx`:
-- Simple white background with subtle border
-- Search icon on left
-- GPS/location icon on right
-- Remove voice search button for cleaner look
-
-#### 3.4 Radius Filter Card
-Update `src/components/map/RadiusFilter.tsx`:
-- White card background (no glass-morphism)
-- Target icon with "Search Radius" header
-- 5 preset buttons in a horizontal row
-- Slider below with min/current/max labels
-- Current value shown in blue highlighted badge
-
-#### 3.5 Stats Card
-New component in LeftSidebarPanel:
-- Briefcase icon (red for jobs mode, blue for hiring mode)
-- Large count number with "jobs nearby" text
-- Subtitle "within Xkm of your location"
-- Category breakdown badges (Private count, Govt count)
-- "View List" button with list icon
-
----
-
-### Phase 4: Map Container Updates
-
-**File: `src/components/map/MapContainer.tsx`**
-
-- Ensure map takes full height and remaining width
-- Keep navigation/center button in bottom-right corner
-- Keep marker styling (red circles with briefcase, green user dot)
-- Keep radius circle visualization
-
----
-
-### Phase 5: Mobile Responsiveness
-
-**On mobile (< 768px):**
-- Hide left sidebar completely
-- Show simplified header with logo + mode toggle
-- Use existing StatsBottomSheet for stats and radius controls
-- Keep MobileFAB for quick actions
-- Keep BottomNavBar for navigation
-
----
-
-### Phase 6: Hide Unused Components on Desktop
-
-- Remove floating FloatingControls on desktop (integrated into sidebar)
-- Remove floating Header on desktop (integrated into sidebar)
-- Keep MapLegend removed from desktop (not in reference)
-
----
-
-## Files to Modify
-
-| File | Changes |
-|------|---------|
-| `src/components/map/LeftSidebarPanel.tsx` | **NEW** - Consolidated sidebar with all controls |
-| `src/pages/Index.tsx` | Switch to sidebar + map layout, conditional mobile/desktop rendering |
-| `src/components/map/ViewToggle.tsx` | Update styling to match reference (outline vs filled) |
-| `src/components/map/SearchBar.tsx` | Simplify design, remove voice search, cleaner look |
-| `src/components/map/RadiusFilter.tsx` | Update to white card style with preset buttons |
-| `src/components/map/Header.tsx` | Make mobile-only or update for mobile header |
+### Phase 4 - Enhancement (Days 9-10)
+9. Remaining pending features
+10. Polish and testing
 
 ---
 
 ## Technical Details
 
-### LeftSidebarPanel Props
-```typescript
-interface LeftSidebarPanelProps {
-  mode: ViewMode;
-  onModeChange: (mode: ViewMode) => void;
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
-  radius: number;
-  onRadiusChange: (radius: number) => void;
-  candidateCount: number;
-  jobCount: number;
-  governmentJobCount: number;
-  privateJobCount: number;
-  onViewList: () => void;
-  userLocation: { lat: number; lng: number } | null;
-}
-```
+### Files to Create
+- `src/components/employer/InterviewScheduler.tsx`
+- `src/components/employer/InterviewCalendar.tsx`
+- `src/pages/admin/AdminModeration.tsx`
+- `src/pages/admin/AdminNotifications.tsx`
+- `src/components/messaging/ChatHeader.tsx`
+- `src/components/messaging/ConversationCard.tsx`
 
-### Layout Structure
-```tsx
-// Desktop layout
-<div className="flex h-screen">
-  <div className="hidden md:block w-[300px] bg-white border-r">
-    <LeftSidebarPanel {...props} />
-  </div>
-  <div className="flex-1 relative">
-    <MapContainer {...props} />
-    {/* Nav button stays here */}
-  </div>
-</div>
-
-// Mobile layout uses existing components
-<div className="md:hidden">
-  <Header />
-  <MapContainer />
-  <StatsBottomSheet />
-  <BottomNavBar />
-</div>
-```
-
----
-
-## Visual Style Guide
-
-| Element | Style |
-|---------|-------|
-| Sidebar Background | White (#FFFFFF) |
-| Section Cards | White with subtle gray border, rounded-xl |
-| Mode Toggle Active | Coral/Red fill (#EA4335) with white text |
-| Mode Toggle Inactive | White/outline with gray text |
-| Primary Button | Blue (#4285F4) with white text |
-| Search Bar | White with gray border, rounded-lg |
-| Radius Presets | Gray pills, blue fill when active |
-| Stats Count | Large red/blue number |
-| Map Markers | Red circles with white briefcase icon |
-| User Location | Small green pulsing dot |
-| Radius Circle | Red stroke with light red fill |
+### Files to Modify
+- `src/pages/Signup.tsx` - Remove custom email verification
+- `src/pages/VerifyEmail.tsx` - Use native Supabase flow
+- `src/hooks/useAuth.tsx` - Simplify verification check
+- `src/components/auth/EmailVerificationGuard.tsx` - Use native check
+- `src/components/auth/EmailVerificationBanner.tsx` - Use native resend
+- `src/components/messaging/ChatModal.tsx` - Complete redesign
+- `src/pages/admin/AdminReports.tsx` - Add functionality
+- `src/pages/admin/AdminSettings.tsx` - Enhance configuration
+- `src/App.tsx` - Add new admin routes
