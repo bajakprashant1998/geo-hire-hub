@@ -12,82 +12,42 @@ const VerifyEmail = () => {
   const [email, setEmail] = useState('');
   const [resending, setResending] = useState(false);
   const [countdown, setCountdown] = useState(0);
-  const [verifying, setVerifying] = useState(false);
   const [verificationSuccess, setVerificationSuccess] = useState(false);
-  const [verificationError, setVerificationError] = useState('');
+  const [checkingStatus, setCheckingStatus] = useState(true);
 
   useEffect(() => {
-    // Get token from URL if present
-    const token = searchParams.get('token');
-    
-    if (token) {
-      verifyToken(token);
-    } else {
-      // Get email from session storage (set during signup)
-      const storedEmail = sessionStorage.getItem('pendingVerificationEmail');
-      if (storedEmail) {
-        setEmail(storedEmail);
-      }
+    // Get email from session storage (set during signup)
+    const storedEmail = sessionStorage.getItem('pendingVerificationEmail');
+    if (storedEmail) {
+      setEmail(storedEmail);
     }
 
-    // Listen for auth changes
+    // Check if user is already verified
+    const checkCurrentUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.email_confirmed_at) {
+        setVerificationSuccess(true);
+        sessionStorage.removeItem('pendingVerificationEmail');
+        toast.success('Email already verified!');
+        setTimeout(() => navigate('/profile-setup'), 2000);
+      }
+      setCheckingStatus(false);
+    };
+
+    checkCurrentUser();
+
+    // Listen for auth changes (user clicks verification link in email)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        // Check if custom_email_verified
-        checkVerificationStatus(session.user.id);
+      if (event === 'SIGNED_IN' && session?.user?.email_confirmed_at) {
+        setVerificationSuccess(true);
+        sessionStorage.removeItem('pendingVerificationEmail');
+        toast.success('Email verified successfully!');
+        setTimeout(() => navigate('/profile-setup'), 2000);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [searchParams]);
-
-  const checkVerificationStatus = async (userId: string) => {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('custom_email_verified')
-      .eq('user_id', userId)
-      .single();
-    
-    if (profile?.custom_email_verified) {
-      sessionStorage.removeItem('pendingVerificationEmail');
-      toast.success('Email verified successfully!');
-      navigate('/profile-setup');
-    }
-  };
-
-  const verifyToken = async (token: string) => {
-    setVerifying(true);
-    setVerificationError('');
-    
-    try {
-      const { data, error } = await supabase.rpc('verify_email_token', {
-        p_token: token
-      });
-      
-      if (error) throw error;
-      
-      const result = data as { success: boolean; error?: string; email?: string };
-      
-      if (result.success) {
-        setVerificationSuccess(true);
-        setEmail(result.email || '');
-        toast.success('Email verified successfully!');
-        
-        // Check if user is logged in
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          setTimeout(() => navigate('/profile-setup'), 2000);
-        }
-      } else {
-        setVerificationError(result.error || 'Verification failed');
-      }
-    } catch (error: any) {
-      console.error('Verification error:', error);
-      setVerificationError(error.message || 'Failed to verify email');
-    } finally {
-      setVerifying(false);
-    }
-  };
+  }, [navigate]);
 
   useEffect(() => {
     // Countdown timer for resend button
@@ -103,43 +63,35 @@ const VerifyEmail = () => {
     setResending(true);
 
     try {
-      // Get current user
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session?.user) {
-        // Call our custom edge function
-        const response = await supabase.functions.invoke('send-verification-email', {
-          body: {
-            email: email,
-            name: session.user.user_metadata?.full_name || '',
-            userId: session.user.id,
-          },
-        });
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+        },
+      });
 
-        if (response.error) throw response.error;
-        
-        toast.success('Verification email sent!');
-        setCountdown(60);
-      } else {
-        // Fallback to Supabase resend if not logged in
-        const { error } = await supabase.auth.resend({
-          type: 'signup',
-          email: email,
-          options: {
-            emailRedirectTo: `${window.location.origin}/verify-email`,
-          },
-        });
-
-        if (error) throw error;
-        toast.success('Verification email sent!');
-        setCountdown(60);
-      }
+      if (error) throw error;
+      toast.success('Verification email sent!');
+      setCountdown(60);
     } catch (error: any) {
       toast.error(error.message || 'Failed to resend email');
     } finally {
       setResending(false);
     }
   };
+
+  // Loading state
+  if (checkingStatus) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+        <div className="text-center space-y-6">
+          <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto" />
+          <p className="text-muted-foreground">Checking verification status...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Verification success state
   if (verificationSuccess) {
@@ -165,45 +117,6 @@ const VerifyEmail = () => {
           <Button onClick={() => navigate('/profile-setup')} className="w-full">
             Continue to Profile Setup
           </Button>
-        </motion.div>
-      </div>
-    );
-  }
-
-  // Verifying state
-  if (verifying) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-6">
-        <div className="text-center space-y-6">
-          <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto" />
-          <p className="text-muted-foreground">Verifying your email...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Verification error state
-  if (verificationError) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-6">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center space-y-6 max-w-md"
-        >
-          <div className="w-24 h-24 bg-destructive/10 rounded-full flex items-center justify-center mx-auto">
-            <AlertCircle className="w-12 h-12 text-destructive" />
-          </div>
-          <h1 className="text-2xl font-bold text-foreground">Verification Failed</h1>
-          <p className="text-muted-foreground">{verificationError}</p>
-          <div className="space-y-3">
-            <Button onClick={() => navigate('/signup')} variant="outline" className="w-full">
-              Sign Up Again
-            </Button>
-            <Button onClick={() => navigate('/login')} className="w-full">
-              Go to Login
-            </Button>
-          </div>
         </motion.div>
       </div>
     );

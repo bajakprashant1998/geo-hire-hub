@@ -32,6 +32,7 @@ import { PlanUsagePanel } from '@/components/employer/PlanUsagePanel';
 import { JobDraftsSection } from '@/components/employer/JobDraftsSection';
 import { SavedCandidatesSection } from '@/components/employer/SavedCandidatesSection';
 import { ApplicantTabs } from '@/components/employer/ApplicantTabs';
+import { InterviewScheduler } from '@/components/employer/InterviewScheduler';
 
 const EmployerDashboard = () => {
   const navigate = useNavigate();
@@ -395,12 +396,7 @@ const EmployerDashboard = () => {
       case 'analytics':
         return employer && <PlanUsagePanel employerId={employer.id} />;
       case 'interviews':
-        return (
-          <div className="text-center py-12">
-            <Calendar className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" />
-            <p className="text-muted-foreground">Interview scheduling coming soon</p>
-          </div>
-        );
+        return employer && <InterviewScheduler employerId={employer.id} />;
       default:
         return null;
     }
