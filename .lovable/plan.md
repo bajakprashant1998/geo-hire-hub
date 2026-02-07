@@ -1,246 +1,134 @@
 
-# Comprehensive Implementation Plan
+# Comprehensive Dashboard and Admin Enhancement Plan
 
-## Overview
-This plan addresses four major enhancements to the Hire for Job platform:
-1. Switching to built-in Supabase email verification (replacing custom Resend flow)
-2. Redesigning the chat popup box with a modern UI
-3. Completing pending tasks for candidates, employers, and admin
-4. Creating admin features aligned with website functionality
+## Audit Summary
+
+After scanning the entire codebase across all three dashboards (Candidate, Employer, Admin), here is what exists, what's incomplete, and what needs to be built.
 
 ---
 
-## 1. Switch to Supabase Built-in Email Verification
+## Current State Assessment
 
-### Current State
-- Uses a custom Resend-based email verification flow
-- `send-verification-email` edge function sends emails via Resend
-- Custom `email_verification_tokens` table tracks verification
-- `custom_email_verified` field in profiles table
-- Issue: Resend test domain only delivers to account owner
+### Candidate Dashboard - Gaps Found
+- **Profile Views stat uses random number** (`Math.random()`) instead of real data
+- **Interviews section** reuses `JobActivityTabs` instead of showing the dedicated `InterviewCalendar` component that was already created
+- **No saved jobs section** - sidebar has "Saved Jobs" but `renderSectionContent` just redirects to `JobActivityTabs`
+- **Resume section** not accessible from sidebar (no 'resume' in sidebar items)
+- **Notification Center** exists but not linked in sidebar navigation
 
-### Implementation Approach
+### Employer Dashboard - Gaps Found
+- **Profile Views stat uses random fallback** (`Math.random()`)
+- **Analytics section** just shows `PlanUsagePanel` instead of job performance metrics
+- **No job templates feature** for saving/reusing job descriptions
+- **No candidate comparison tool**
+- **Interview section** uses `InterviewScheduler` (good) but no calendar view
 
-**Phase 1: Configure Supabase Auth Settings**
-- Enable Supabase's built-in email verification
-- Disable auto-confirm for new signups (require verification)
-- Configure email templates in Supabase dashboard
-
-**Phase 2: Update Signup Flow**
-- Modify `src/pages/Signup.tsx`:
-  - Remove call to `send-verification-email` edge function
-  - Rely on Supabase's native email confirmation flow
-  - Use `email_confirmed_at` from auth.users for verification status
-
-**Phase 3: Simplify Auth Components**
-- Update `src/hooks/useAuth.tsx`:
-  - Remove `customEmailVerified` state tracking
-  - Use only `user.email_confirmed_at` for verification status
-
-- Update `src/components/auth/EmailVerificationGuard.tsx`:
-  - Remove custom verification token checking
-  - Use native Supabase `email_confirmed_at` field
-
-- Update `src/components/auth/EmailVerificationBanner.tsx`:
-  - Remove custom verification checks
-  - Use native Supabase resend functionality
-
-**Phase 4: Simplify Verify Email Page**
-- Update `src/pages/VerifyEmail.tsx`:
-  - Remove custom token verification logic
-  - Use Supabase's built-in confirmation flow
-  - Detect verification from auth state changes
-
-**Phase 5: Cleanup**
-- Optionally remove `send-verification-email` edge function
-- Database tables (`email_verification_tokens`) can remain for backward compatibility
+### Admin Panel - Gaps Found
+- **No Application Management page** - can't view/manage all applications across the platform
+- **No Platform Notifications/Announcements system** - no way to broadcast messages to users
+- **No Content Moderation queue** - relies only on job moderation status, no unified queue
+- **AdminSettings** is functional but missing: feature flags, email template config, platform branding
+- **AdminUsers** shows `custom_email_verified` which is now outdated (switched to native Supabase auth)
+- **No pagination** on any admin table - will break with scale
+- **AdminDashboard** has hardcoded "quick stats" trend data for some cards
 
 ---
 
-## 2. Redesign Chat Popup Box
+## Implementation Plan
 
-### Current State
-- Dialog-based modal with split-view (conversation list + chat)
-- Functional but basic styling
-- 804 lines of code with all features inline
+### Phase 1: Fix Existing Bugs and Data Gaps
 
-### Design Improvements
+**1.1 Candidate Dashboard Fixes**
+- Replace `Math.random()` profile views with actual view count from candidates table or a computed metric
+- Wire "Scheduled Interviews" sidebar item to render `InterviewCalendar` component (already built) instead of `JobActivityTabs`
+- Add "Resume" to sidebar items and connect it properly
+- Add "Notifications" to sidebar items
 
-**Visual Enhancements:**
-- Modern glassmorphism effect for the modal
-- Gradient header with app branding
-- Rounded avatar with status indicators
-- Message bubbles with subtle shadows
-- Smooth animations using framer-motion
-- Floating action buttons for quick actions
+**1.2 Employer Dashboard Fixes**
+- Replace `Math.random()` profile views fallback with real view_count aggregation
+- Create a proper analytics sub-section with job performance charts (views, applications per job, time-to-fill)
+- Wire the InterviewScheduler to show actual interview data
 
-**Layout Improvements:**
-- Sidebar with user profile card at top
-- Search with floating label design
-- Conversation cards with hover effects
-- Chat area with date separators
-- Modern input with emoji picker integration
+**1.3 Admin User Management Fix**
+- Update `AdminUsers.tsx` to check `email_confirmed_at` via auth metadata instead of the deprecated `custom_email_verified` field
 
-**Files to Update:**
-- `src/components/messaging/ChatModal.tsx` - Complete UI redesign
-- Add new sub-components for cleaner organization:
-  - `ChatHeader.tsx` - Gradient header with user info
-  - `ConversationList.tsx` - Redesigned sidebar
-  - `MessageBubble.tsx` - Enhanced message display
-  - `ChatInput.tsx` - Modern input with attachments
+### Phase 2: New Admin Features
 
-**Key UI Changes:**
-```text
-┌─────────────────────────────────────────────────────────┐
-│  ┌─────────────────┐  ┌───────────────────────────────┐ │
-│  │ Gradient Header │  │ Chat Header with Avatar       │ │
-│  │ with Logo       │  │ Name, Status, Actions         │ │
-│  ├─────────────────┤  ├───────────────────────────────┤ │
-│  │ My Profile Card │  │                               │ │
-│  ├─────────────────┤  │  Message Bubbles              │ │
-│  │ Search Bar      │  │  - Date Separators            │ │
-│  ├─────────────────┤  │  - Read Receipts              │ │
-│  │                 │  │  - Reactions                  │ │
-│  │ Conversation    │  │  - Attachments                │ │
-│  │ List with       │  │                               │ │
-│  │ Avatars &       │  │                               │ │
-│  │ Badges          │  │                               │ │
-│  │                 │  ├───────────────────────────────┤ │
-│  │                 │  │ Modern Input Bar              │ │
-│  │                 │  │ [Attach] [Message...] [Send]  │ │
-│  └─────────────────┘  └───────────────────────────────┘ │
-└─────────────────────────────────────────────────────────┘
-```
-
----
-
-## 3. Complete Pending Tasks Across User Roles
-
-### Candidate Dashboard Pending Features
-
-**a) Resume Management**
-- File: `src/components/candidate/ResumeUpload.tsx`
-- Add: Resume preview, version history, download button
-- Status indicator for resume completeness
-
-**b) Interview Scheduling**
-- Currently shows "None scheduled"
-- Add: Calendar integration component
-- Display upcoming interviews with time, company, position
-- Add "Add to Calendar" functionality
-
-**c) Job Alerts Enhancement**
-- File: `src/components/candidate/JobAlertsManager.tsx`
-- Add: Email frequency settings
-- Location-based alert configuration
-- Skill-matching preferences
-
-**d) Profile Completeness Actions**
-- Add guided steps to complete profile
-- Quick-edit modals for each section
-- Progress tracking with rewards/badges
-
-### Employer Dashboard Pending Features
-
-**a) Interview Management**
-- Currently shows "Interview scheduling coming soon"
-- Create: `src/components/employer/InterviewScheduler.tsx`
-- Calendar view of all scheduled interviews
-- Candidate availability checker
-- Video call integration links
-
-**b) Analytics Dashboard**
-- File: `src/components/employer/PlanUsagePanel.tsx`
-- Add: Job performance metrics
-- Application funnel visualization
-- Candidate quality scores
-- Time-to-hire tracking
-
-**c) Candidate Comparison**
-- Add side-by-side candidate comparison
-- Scoring matrix for skills
-- Interview notes per candidate
-
-**d) Job Templates**
-- Save frequently used job descriptions
-- Quick duplicate existing jobs
-- Template library for common roles
-
-### Admin Dashboard Pending Features
-
-**a) Reports Module**
-- File: `src/pages/admin/AdminReports.tsx`
-- User reports handling (spam, inappropriate content)
-- Employer/job report reviews
-- Bulk moderation actions
-
-**b) Settings Enhancement**
-- File: `src/pages/admin/AdminSettings.tsx`
-- Platform-wide settings configuration
-- Email template customization
-- Feature flags management
-
-**c) User Management**
-- File: `src/pages/admin/AdminUsers.tsx`
-- User account actions (suspend, delete, verify)
-- Password reset triggers
-- Activity logs per user
-
----
-
-## 4. Create Admin Features According to Website
-
-### Gap Analysis: Website Features vs Admin Panel
-
-**Missing Admin Modules:**
-
-**a) Application Management (`AdminApplications.tsx`)**
-- View all job applications
-- Filter by status, date, job, employer
+**2.1 Application Management Page (`/admin/applications`)**
+- New file: `src/pages/admin/AdminApplications.tsx`
+- View all applications across the platform
+- Filter by status (applied, shortlisted, interviewed, hired, rejected)
+- Filter by date range, job, employer
 - Bulk status updates
-- Application analytics
+- Application analytics (conversion rates, average time in each stage)
 
-**b) Notification Center (`AdminNotifications.tsx`)**
-- System notification management
-- Push notification configuration
-- Email broadcast tools
-- Announcement system
+**2.2 Platform Notifications System (`/admin/notifications`)**
+- New file: `src/pages/admin/AdminNotifications.tsx`
+- Database table: `platform_notifications` (title, message, type, target_audience, active, expires_at)
+- Create/edit/delete platform-wide announcements
+- Target specific audiences (all users, candidates only, employers only)
+- Set expiry dates for time-limited notices
+- Display notifications in user dashboards via a new `PlatformNotificationBanner` component
 
-**c) Content Moderation (`AdminModeration.tsx`)**
-- Automated content filtering settings
-- Flagged content review queue
-- Moderation rules configuration
-- AI-assisted content scanning
+**2.3 Content Moderation Queue (`/admin/moderation`)**
+- New file: `src/pages/admin/AdminModeration.tsx`
+- Database table: `moderation_queue` (content_type, content_id, reason, status, reviewed_by, reviewed_at)
+- Unified view of flagged jobs, profiles, and messages
+- Quick-action buttons: approve, reject, escalate
+- Auto-flag rules configuration (keyword filtering)
 
-**d) Platform Analytics Enhancement**
-- File: `src/pages/admin/AdminAnalytics.tsx`
-- Add: User engagement metrics
-- Conversion funnels (signup → profile → application)
-- Geographic distribution maps
-- Peak usage times
+**2.4 Admin Settings Enhancement**
+- Add feature flags section (toggle platform features on/off)
+- Add platform info section (site name, support email, social links)
+- Add maintenance mode toggle
 
-**e) Revenue & Billing**
-- Subscription management interface
-- Invoice generation
-- Payment history
-- Revenue forecasting
+### Phase 3: Dashboard UI/UX Polish
 
-**f) Email Management**
-- Email template editor
-- Delivery statistics
-- Bounce handling
-- Unsubscribe management
+**3.1 Candidate Dashboard Enhancements**
+- Add a "Saved Jobs" section that queries saved/bookmarked jobs from the database
+- Add profile completeness guided steps (step-by-step checklist with quick-edit modals)
+- Integrate `InterviewCalendar` component into the dashboard home as a compact widget
 
-### Database Additions Required
+**3.2 Employer Dashboard Enhancements**
+- Create a job analytics card showing views/applications trends per job using Recharts
+- Add "Job Templates" feature: save job descriptions as templates, quick-duplicate existing jobs
+- Add candidate comparison view for side-by-side skill scoring
+
+**3.3 Admin Dashboard Enhancement**
+- Add real trend data for all stat cards (replace hardcoded arrays)
+- Add "Platform Health" section showing active users in last 24h, error rates
+- Add recent signups list with quick-approve actions
+
+### Phase 4: Cross-Dashboard Connectivity
+
+**4.1 Admin-to-User Dashboard Links**
+- From Admin Users page, add "View as" links to open candidate/employer detail pages
+- From Admin Jobs page, add direct links to employer dashboards
+- From Admin Applications page, link to both job detail and candidate detail
+
+**4.2 Notification Integration**
+- Show platform notifications from admin in both candidate and employer dashboards
+- Add a `PlatformNotificationBanner` component that fetches active notifications
+- Display at the top of dashboard pages
+
+**4.3 Pagination for All Admin Tables**
+- Add cursor-based pagination to AdminUsers, AdminEmployers, AdminJobs, AdminCandidates, AdminMessages
+- Show page count and navigation controls
+- Maintain filter state across pages
+
+---
+
+## Database Changes Required
 
 ```sql
--- Admin notifications table
-CREATE TABLE admin_notifications (
+-- Platform notifications table
+CREATE TABLE platform_notifications (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
   message TEXT NOT NULL,
-  type TEXT DEFAULT 'info',
-  target_audience TEXT DEFAULT 'all',
+  type TEXT DEFAULT 'info' CHECK (type IN ('info', 'warning', 'success', 'error')),
+  target_audience TEXT DEFAULT 'all' CHECK (target_audience IN ('all', 'candidates', 'employers')),
+  created_by UUID REFERENCES auth.users(id),
   created_at TIMESTAMPTZ DEFAULT now(),
   expires_at TIMESTAMPTZ,
   is_active BOOLEAN DEFAULT true
@@ -249,57 +137,49 @@ CREATE TABLE admin_notifications (
 -- Content moderation queue
 CREATE TABLE moderation_queue (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  content_type TEXT NOT NULL, -- 'job', 'profile', 'message'
+  content_type TEXT NOT NULL CHECK (content_type IN ('job', 'profile', 'message')),
   content_id UUID NOT NULL,
+  reported_by UUID REFERENCES auth.users(id),
   reason TEXT NOT NULL,
-  status TEXT DEFAULT 'pending',
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'escalated')),
   reviewed_by UUID REFERENCES auth.users(id),
   reviewed_at TIMESTAMPTZ,
+  admin_notes TEXT,
   created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Feature flags table
+CREATE TABLE feature_flags (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  key TEXT UNIQUE NOT NULL,
+  enabled BOOLEAN DEFAULT false,
+  description TEXT,
+  updated_at TIMESTAMPTZ DEFAULT now()
 );
 ```
 
----
-
-## Implementation Priority
-
-### Phase 1 - Critical (Days 1-2)
-1. Switch to Supabase email verification
-2. Fix chat modal responsiveness
-
-### Phase 2 - High Priority (Days 3-5)
-3. Chat popup redesign
-4. Candidate interview calendar
-5. Employer analytics dashboard
-
-### Phase 3 - Medium Priority (Days 6-8)
-6. Admin reports module
-7. Admin moderation queue
-8. Notification management
-
-### Phase 4 - Enhancement (Days 9-10)
-9. Remaining pending features
-10. Polish and testing
+RLS policies will be added for admin-only access on all new tables.
 
 ---
 
-## Technical Details
+## Files to Create
+- `src/pages/admin/AdminApplications.tsx` - Application management
+- `src/pages/admin/AdminNotifications.tsx` - Notification center
+- `src/pages/admin/AdminModeration.tsx` - Content moderation queue
+- `src/components/admin/PaginationControls.tsx` - Reusable pagination
+- `src/components/dashboard/PlatformNotificationBanner.tsx` - User-facing notification display
+- `src/components/employer/JobAnalyticsDashboard.tsx` - Per-job analytics charts
 
-### Files to Create
-- `src/components/employer/InterviewScheduler.tsx`
-- `src/components/employer/InterviewCalendar.tsx`
-- `src/pages/admin/AdminModeration.tsx`
-- `src/pages/admin/AdminNotifications.tsx`
-- `src/components/messaging/ChatHeader.tsx`
-- `src/components/messaging/ConversationCard.tsx`
+## Files to Modify
+- `src/pages/CandidateDashboard.tsx` - Fix random stats, add InterviewCalendar, add sidebar items
+- `src/pages/EmployerDashboard.tsx` - Fix random stats, add analytics section
+- `src/pages/admin/AdminUsers.tsx` - Fix email verification status check
+- `src/pages/admin/AdminSettings.tsx` - Add feature flags and platform config
+- `src/pages/admin/AdminDashboard.tsx` - Add real trend data, platform health
+- `src/components/admin/AdminLayout.tsx` - Add new nav items for Applications, Notifications, Moderation
+- `src/App.tsx` - Add routes for new admin pages
 
-### Files to Modify
-- `src/pages/Signup.tsx` - Remove custom email verification
-- `src/pages/VerifyEmail.tsx` - Use native Supabase flow
-- `src/hooks/useAuth.tsx` - Simplify verification check
-- `src/components/auth/EmailVerificationGuard.tsx` - Use native check
-- `src/components/auth/EmailVerificationBanner.tsx` - Use native resend
-- `src/components/messaging/ChatModal.tsx` - Complete redesign
-- `src/pages/admin/AdminReports.tsx` - Add functionality
-- `src/pages/admin/AdminSettings.tsx` - Enhance configuration
-- `src/App.tsx` - Add new admin routes
+## Route Additions
+- `/admin/applications` - AdminApplications
+- `/admin/notifications` - AdminNotifications
+- `/admin/moderation` - AdminModeration
