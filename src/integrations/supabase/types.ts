@@ -642,6 +642,30 @@ export type Database = {
           },
         ]
       }
+      feature_flags: {
+        Row: {
+          description: string | null
+          enabled: boolean | null
+          id: string
+          key: string
+          updated_at: string | null
+        }
+        Insert: {
+          description?: string | null
+          enabled?: boolean | null
+          id?: string
+          key: string
+          updated_at?: string | null
+        }
+        Update: {
+          description?: string | null
+          enabled?: boolean | null
+          id?: string
+          key?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       government_domains: {
         Row: {
           country: string | null
@@ -1214,6 +1238,45 @@ export type Database = {
           },
         ]
       }
+      moderation_queue: {
+        Row: {
+          admin_notes: string | null
+          content_id: string
+          content_type: string
+          created_at: string | null
+          id: string
+          reason: string
+          reported_by: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          content_id: string
+          content_type: string
+          created_at?: string | null
+          id?: string
+          reason: string
+          reported_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          content_id?: string
+          content_type?: string
+          created_at?: string | null
+          id?: string
+          reason?: string
+          reported_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -1244,6 +1307,42 @@ export type Database = {
           title?: string
           type?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      platform_notifications: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          message: string
+          target_audience: string | null
+          title: string
+          type: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          message: string
+          target_audience?: string | null
+          title: string
+          type?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          message?: string
+          target_audience?: string | null
+          title?: string
+          type?: string | null
         }
         Relationships: []
       }

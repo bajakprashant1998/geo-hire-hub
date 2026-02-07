@@ -13,7 +13,8 @@ import {
   Save,
   Shield,
   Eye,
-  Briefcase
+  Briefcase,
+  ToggleLeft
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -21,6 +22,13 @@ interface Setting {
   id: string;
   key: string;
   value: Record<string, unknown>;
+  description: string | null;
+}
+
+interface FeatureFlag {
+  id: string;
+  key: string;
+  enabled: boolean;
   description: string | null;
 }
 
@@ -45,6 +53,18 @@ export default function AdminSettings() {
     },
   });
 
+  const { data: featureFlags, isLoading: flagsLoading } = useQuery({
+    queryKey: ['admin-feature-flags'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('feature_flags')
+        .select('*')
+        .order('key');
+      if (error) throw error;
+      return data as FeatureFlag[];
+    },
+  });
+
   const updateSettingMutation = useMutation({
     mutationFn: async ({ key, value }: { key: string; value: Record<string, unknown> }) => {
       const { error } = await supabase
@@ -66,6 +86,23 @@ export default function AdminSettings() {
     },
     onError: (error) => {
       toast.error('Failed to save settings: ' + error.message);
+    },
+  });
+
+  const toggleFlagMutation = useMutation({
+    mutationFn: async ({ id, enabled }: { id: string; enabled: boolean }) => {
+      const { error } = await supabase
+        .from('feature_flags')
+        .update({ enabled })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-feature-flags'] });
+      toast.success('Feature flag updated');
+    },
+    onError: (error) => {
+      toast.error('Failed to update flag: ' + error.message);
     },
   });
 
@@ -108,6 +145,38 @@ export default function AdminSettings() {
   return (
     <AdminLayout title="Settings">
       <div className="space-y-6">
+        {/* Feature Flags */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ToggleLeft className="h-5 w-5" />
+              Feature Flags
+            </CardTitle>
+            <CardDescription>
+              Toggle platform features on or off
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {flagsLoading ? (
+              <Skeleton className="h-32 w-full" />
+            ) : featureFlags?.map((flag) => (
+              <div key={flag.id} className="flex items-center justify-between py-2">
+                <div>
+                  <Label className="font-medium">{flag.key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</Label>
+                  {flag.description && (
+                    <p className="text-sm text-muted-foreground">{flag.description}</p>
+                  )}
+                </div>
+                <Switch
+                  checked={flag.enabled}
+                  onCheckedChange={(checked) => toggleFlagMutation.mutate({ id: flag.id, enabled: checked })}
+                  disabled={toggleFlagMutation.isPending}
+                />
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
         {/* Resume Visibility Settings */}
         <Card>
           <CardHeader>
