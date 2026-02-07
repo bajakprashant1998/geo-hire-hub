@@ -297,11 +297,7 @@ export default function AdminUsers() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {user.custom_email_verified ? (
-                          <Badge className="bg-success/10 text-success border-success/20">Verified</Badge>
-                        ) : (
-                          <Badge variant="secondary">Unverified</Badge>
-                        )}
+                        <Badge className="bg-success/10 text-success border-success/20">Active</Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {format(new Date(user.created_at), 'MMM d, yyyy')}
@@ -388,8 +384,8 @@ export default function AdminUsers() {
                   <p className="font-mono text-xs truncate">{selectedUser.user_id}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Email Verified</p>
-                  <p>{selectedUser.custom_email_verified ? 'Yes' : 'No'}</p>
+                  <p className="text-muted-foreground">Account Status</p>
+                  <p>Active</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Registered</p>

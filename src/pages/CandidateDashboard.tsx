@@ -24,6 +24,9 @@ import { NotificationCenter } from '@/components/candidate/NotificationCenter';
 import { JobAlertsManager } from '@/components/candidate/JobAlertsManager';
 import { SecuritySettings } from '@/components/candidate/SecuritySettings';
 import { RecommendedJobs } from '@/components/candidate/RecommendedJobs';
+import { InterviewCalendar } from '@/components/candidate/InterviewCalendar';
+import { PlatformNotificationBanner } from '@/components/dashboard/PlatformNotificationBanner';
+import { SavedJobsSection } from '@/components/candidate/SavedJobsSection';
 import { AIJobMatches } from '@/components/candidate/AIJobMatches';
 
 const CandidateDashboard = () => {
@@ -88,17 +91,23 @@ const CandidateDashboard = () => {
 
     if (data) {
       const [appsRes, messagesRes] = await Promise.all([
-        supabase.from('applications').select('id, status').eq('candidate_id', data.id),
+        supabase.from('applications').select('id, status, job_id').eq('candidate_id', data.id),
         supabase.from('messages').select('id').eq('is_read', false).neq('sender_id', profile.id)
       ]);
 
       const applications = appsRes.data || [];
       const interviews = applications.filter(a => a.status === 'shortlisted').length;
 
+      // Get real profile view count from job_views for jobs the candidate applied to
+      const { count: viewCount } = await supabase
+        .from('job_views')
+        .select('*', { count: 'exact', head: true })
+        .in('job_id', applications.map(a => a.job_id || '').filter(Boolean));
+
       setStats({
         applications: applications.length,
-        views: Math.floor(Math.random() * 150) + 50,
-        unreadMessages: messagesRes.data?.length || Math.floor(Math.random() * 10),
+        views: viewCount || 0,
+        unreadMessages: messagesRes.data?.length || 0,
         interviews
       });
     }
@@ -143,8 +152,10 @@ const CandidateDashboard = () => {
     { icon: MessageSquare, label: 'Messages', value: 'messages', badge: stats.unreadMessages },
     { icon: Calendar, label: 'Scheduled Interviews', value: 'interviews' },
     { icon: Bookmark, label: 'Saved Jobs', value: 'saved' },
+    { icon: FileText, label: 'Resume', value: 'resume' },
+    { icon: Bell, label: 'Notifications', value: 'notifications' },
     { icon: User, label: 'Edit Profile', value: 'profile' },
-    { icon: Bell, label: 'Job Alerts', value: 'alerts' },
+    { icon: Sparkles, label: 'Job Alerts', value: 'alerts' },
     { icon: Shield, label: 'Security', value: 'security' }
   ];
 
@@ -234,10 +245,11 @@ const CandidateDashboard = () => {
   const renderSectionContent = () => {
     switch (activeSection) {
       case 'jobs':
+        return candidate && <JobActivityTabs candidateId={candidate.id} />;
       case 'saved':
-        return candidate && <JobActivityTabs candidateId={candidate.id} />;
+        return candidate && <SavedJobsSection candidateId={candidate.id} />;
       case 'interviews':
-        return candidate && <JobActivityTabs candidateId={candidate.id} />;
+        return candidate && <InterviewCalendar candidateId={candidate.id} />;
       case 'profile':
         setEditModalOpen(true);
         setActiveSection(null);
@@ -318,6 +330,7 @@ const CandidateDashboard = () => {
             ) : (
               // Dashboard Home View
               <div className="max-w-6xl mx-auto space-y-6">
+                <PlatformNotificationBanner userType="candidate" />
                 {/* Quick Actions Bar */}
                 {completeness < 100 && (
                   <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">

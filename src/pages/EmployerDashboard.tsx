@@ -137,7 +137,7 @@ const EmployerDashboard = () => {
           activeJobs,
           totalApplications,
           scheduledInterviews: interviewCount || 0,
-          profileViews: totalViews || Math.floor(Math.random() * 1000) + 500
+          profileViews: totalViews
         });
       }
     } catch (error) {
