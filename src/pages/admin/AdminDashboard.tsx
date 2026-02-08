@@ -207,12 +207,20 @@ export default function AdminDashboard() {
               </Button>
             )}
             {stats?.pending_moderation && stats.pending_moderation > 0 && (
-              <Button asChild variant="outline">
-                <Link to="/admin/jobs?moderation=pending">
-                  <Eye className="h-4 w-4 mr-2" />
-                  Moderate Jobs ({stats.pending_moderation})
-                </Link>
-              </Button>
+              <>
+                <Button asChild variant="outline">
+                  <Link to="/admin/moderation">
+                    <Eye className="h-4 w-4 mr-2" />
+                    Moderation Queue ({stats.pending_moderation})
+                  </Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link to="/admin/jobs?moderation=pending">
+                    <Eye className="h-4 w-4 mr-2" />
+                    Moderate Jobs ({stats.pending_moderation})
+                  </Link>
+                </Button>
+              </>
             )}
             {stats?.pending_reports && stats.pending_reports > 0 && (
               <Button asChild variant="outline" className="border-destructive text-destructive">

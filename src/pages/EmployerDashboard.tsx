@@ -33,6 +33,8 @@ import { JobDraftsSection } from '@/components/employer/JobDraftsSection';
 import { SavedCandidatesSection } from '@/components/employer/SavedCandidatesSection';
 import { ApplicantTabs } from '@/components/employer/ApplicantTabs';
 import { InterviewScheduler } from '@/components/employer/InterviewScheduler';
+import { JobAnalyticsDashboard } from '@/components/employer/JobAnalyticsDashboard';
+import { PlatformNotificationBanner } from '@/components/dashboard/PlatformNotificationBanner';
 
 const EmployerDashboard = () => {
   const navigate = useNavigate();
@@ -393,8 +395,14 @@ const EmployerDashboard = () => {
       case 'drafts':
         return employer && <JobDraftsSection employerId={employer.id} />;
       case 'plan':
-      case 'analytics':
         return employer && <PlanUsagePanel employerId={employer.id} />;
+      case 'analytics':
+        return employer && (
+          <div className="space-y-6">
+            <JobAnalyticsDashboard employerId={employer.id} />
+            <PlanUsagePanel employerId={employer.id} />
+          </div>
+        );
       case 'interviews':
         return employer && <InterviewScheduler employerId={employer.id} />;
       default:
@@ -453,6 +461,9 @@ const EmployerDashboard = () => {
             ) : (
               // Dashboard Home View
               <div className="max-w-6xl mx-auto space-y-6">
+                {/* Platform Notifications */}
+                <PlatformNotificationBanner userType="employer" />
+
                 {/* Welcome Message */}
                 <div>
                   <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
