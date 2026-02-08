@@ -45,6 +45,9 @@ import {
 import { toast } from 'sonner';
 import { format, formatDistanceToNow } from 'date-fns';
 import { StatsCard } from '@/components/admin/StatsCard';
+import { PaginationControls } from '@/components/admin/PaginationControls';
+
+const PAGE_SIZE = 20;
 
 interface Conversation {
   id: string;
@@ -66,21 +69,28 @@ interface Message {
 export default function AdminMessages() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [deleteDialog, setDeleteDialog] = useState<{ type: 'conversation' | 'old'; id?: string } | null>(null);
 
-  const { data: conversations, isLoading } = useQuery({
-    queryKey: ['admin-conversations'],
+  const { data: convData, isLoading } = useQuery({
+    queryKey: ['admin-conversations', page],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const from = (page - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
+      const { data, error, count } = await supabase
         .from('conversations')
-        .select('*')
+        .select('*', { count: 'exact' })
         .order('last_message_at', { ascending: false })
-        .limit(100);
+        .range(from, to);
       if (error) throw error;
-      return data as Conversation[];
+      return { conversations: data as Conversation[], total: count || 0 };
     },
   });
+
+  const conversations = convData?.conversations;
+  const totalPages = Math.ceil((convData?.total || 0) / PAGE_SIZE);
 
   const { data: messages } = useQuery({
     queryKey: ['admin-conversation-messages', selectedConversation?.id],
@@ -276,6 +286,7 @@ export default function AdminMessages() {
               </ScrollArea>
             )}
           </CardContent>
+          <PaginationControls page={page} totalPages={totalPages} onPageChange={setPage} />
         </Card>
 
         {/* Message Preview */}

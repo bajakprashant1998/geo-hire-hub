@@ -38,11 +38,15 @@ import {
   Eye, 
   Search,
   Building2,
-  ExternalLink
+  ExternalLink,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { Link } from 'react-router-dom';
 import { VerificationBadge } from '@/components/employer/VerificationBadge';
+import { PaginationControls } from '@/components/admin/PaginationControls';
+
+const PAGE_SIZE = 20;
 
 interface Employer {
   id: string;
@@ -66,6 +70,7 @@ export default function AdminEmployers() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [page, setPage] = useState(1);
   const [selectedEmployer, setSelectedEmployer] = useState<Employer | null>(null);
   const [actionDialog, setActionDialog] = useState<{
     type: 'approve' | 'reject' | 'suspend' | null;
@@ -73,16 +78,20 @@ export default function AdminEmployers() {
   }>({ type: null, employer: null });
   const [actionReason, setActionReason] = useState('');
 
-  const { data: employers, isLoading } = useQuery({
-    queryKey: ['admin-employers', statusFilter],
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin-employers', statusFilter, page],
     queryFn: async () => {
+      const from = (page - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
       let query = supabase
         .from('employers')
         .select(`
           *,
           profile:profiles!employers_profile_id_fkey(full_name, user_id)
-        `)
-        .order('created_at', { ascending: false });
+        `, { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (statusFilter !== 'all') {
         if (statusFilter === 'suspended') {
@@ -92,11 +101,14 @@ export default function AdminEmployers() {
         }
       }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
       if (error) throw error;
-      return data as unknown as Employer[];
+      return { employers: data as unknown as Employer[], total: count || 0 };
     },
   });
+
+  const employers = data?.employers;
+  const totalPages = Math.ceil((data?.total || 0) / PAGE_SIZE);
 
   const updateEmployerMutation = useMutation({
     mutationFn: async ({ 
@@ -262,6 +274,11 @@ export default function AdminEmployers() {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
+                        <Button variant="ghost" size="icon" asChild>
+                          <Link to={`/employers/${employer.id}`}>
+                            <ExternalLink className="h-4 w-4" />
+                          </Link>
+                        </Button>
                         {employer.verification_status === 'pending' && (
                           <>
                             <Button
@@ -301,6 +318,9 @@ export default function AdminEmployers() {
           )}
         </CardContent>
       </Card>
+
+      {/* Pagination */}
+      <PaginationControls page={page} totalPages={totalPages} onPageChange={setPage} />
 
       {/* Detail Dialog */}
       <Dialog open={!!selectedEmployer} onOpenChange={() => setSelectedEmployer(null)}>
