@@ -1,185 +1,83 @@
 
-# Comprehensive Dashboard and Admin Enhancement Plan
+# Pending Tasks Completion Plan
 
-## Audit Summary
+## Audit Results - What's Done vs What's Still Needed
 
-After scanning the entire codebase across all three dashboards (Candidate, Employer, Admin), here is what exists, what's incomplete, and what needs to be built.
+### Already Completed
+- Candidate Dashboard: Real stats (no more Math.random), InterviewCalendar wired, sidebar items (Resume, Notifications, Saved Jobs) added
+- Employer Dashboard: Real profile views from job view_count aggregation
+- Admin: Routes for Applications, Moderation, Notifications all created and wired
+- Admin: Feature flags in Settings page working
+- Admin: PaginationControls component created and used in AdminApplications and AdminModeration
+- PlatformNotificationBanner on Candidate Dashboard
+- SavedJobsSection component created
 
----
+### Still Pending
 
-## Current State Assessment
+#### 1. Employer Dashboard - Missing PlatformNotificationBanner
+The employer dashboard does not show platform notifications. The candidate dashboard has it but employer dashboard was missed.
 
-### Candidate Dashboard - Gaps Found
-- **Profile Views stat uses random number** (`Math.random()`) instead of real data
-- **Interviews section** reuses `JobActivityTabs` instead of showing the dedicated `InterviewCalendar` component that was already created
-- **No saved jobs section** - sidebar has "Saved Jobs" but `renderSectionContent` just redirects to `JobActivityTabs`
-- **Resume section** not accessible from sidebar (no 'resume' in sidebar items)
-- **Notification Center** exists but not linked in sidebar navigation
+#### 2. Pagination Missing on Most Admin Tables
+Only AdminApplications and AdminModeration use PaginationControls. These admin pages still load ALL records without pagination:
+- AdminUsers (loads all profiles)
+- AdminEmployers (loads all employers)
+- AdminJobs (loads all jobs)
+- AdminCandidates (loads all candidates)
+- AdminMessages (loads 100 conversations, but no pagination UI)
 
-### Employer Dashboard - Gaps Found
-- **Profile Views stat uses random fallback** (`Math.random()`)
-- **Analytics section** just shows `PlanUsagePanel` instead of job performance metrics
-- **No job templates feature** for saving/reusing job descriptions
-- **No candidate comparison tool**
-- **Interview section** uses `InterviewScheduler` (good) but no calendar view
+#### 3. Employer Dashboard - Analytics Section Still Just Shows PlanUsagePanel
+The "Analytics" sidebar item in the employer dashboard renders only `PlanUsagePanel`. It needs a proper job analytics view with charts showing views/applications trends per job.
 
-### Admin Panel - Gaps Found
-- **No Application Management page** - can't view/manage all applications across the platform
-- **No Platform Notifications/Announcements system** - no way to broadcast messages to users
-- **No Content Moderation queue** - relies only on job moderation status, no unified queue
-- **AdminSettings** is functional but missing: feature flags, email template config, platform branding
-- **AdminUsers** shows `custom_email_verified` which is now outdated (switched to native Supabase auth)
-- **No pagination** on any admin table - will break with scale
-- **AdminDashboard** has hardcoded "quick stats" trend data for some cards
+#### 4. Admin Dashboard - Quick Actions Link to Moderation Queue
+The AdminDashboard "Moderate Jobs" quick action links to `/admin/jobs?moderation=pending` but there is now a dedicated `/admin/moderation` page that should also be linked.
 
----
-
-## Implementation Plan
-
-### Phase 1: Fix Existing Bugs and Data Gaps
-
-**1.1 Candidate Dashboard Fixes**
-- Replace `Math.random()` profile views with actual view count from candidates table or a computed metric
-- Wire "Scheduled Interviews" sidebar item to render `InterviewCalendar` component (already built) instead of `JobActivityTabs`
-- Add "Resume" to sidebar items and connect it properly
-- Add "Notifications" to sidebar items
-
-**1.2 Employer Dashboard Fixes**
-- Replace `Math.random()` profile views fallback with real view_count aggregation
-- Create a proper analytics sub-section with job performance charts (views, applications per job, time-to-fill)
-- Wire the InterviewScheduler to show actual interview data
-
-**1.3 Admin User Management Fix**
-- Update `AdminUsers.tsx` to check `email_confirmed_at` via auth metadata instead of the deprecated `custom_email_verified` field
-
-### Phase 2: New Admin Features
-
-**2.1 Application Management Page (`/admin/applications`)**
-- New file: `src/pages/admin/AdminApplications.tsx`
-- View all applications across the platform
-- Filter by status (applied, shortlisted, interviewed, hired, rejected)
-- Filter by date range, job, employer
-- Bulk status updates
-- Application analytics (conversion rates, average time in each stage)
-
-**2.2 Platform Notifications System (`/admin/notifications`)**
-- New file: `src/pages/admin/AdminNotifications.tsx`
-- Database table: `platform_notifications` (title, message, type, target_audience, active, expires_at)
-- Create/edit/delete platform-wide announcements
-- Target specific audiences (all users, candidates only, employers only)
-- Set expiry dates for time-limited notices
-- Display notifications in user dashboards via a new `PlatformNotificationBanner` component
-
-**2.3 Content Moderation Queue (`/admin/moderation`)**
-- New file: `src/pages/admin/AdminModeration.tsx`
-- Database table: `moderation_queue` (content_type, content_id, reason, status, reviewed_by, reviewed_at)
-- Unified view of flagged jobs, profiles, and messages
-- Quick-action buttons: approve, reject, escalate
-- Auto-flag rules configuration (keyword filtering)
-
-**2.4 Admin Settings Enhancement**
-- Add feature flags section (toggle platform features on/off)
-- Add platform info section (site name, support email, social links)
-- Add maintenance mode toggle
-
-### Phase 3: Dashboard UI/UX Polish
-
-**3.1 Candidate Dashboard Enhancements**
-- Add a "Saved Jobs" section that queries saved/bookmarked jobs from the database
-- Add profile completeness guided steps (step-by-step checklist with quick-edit modals)
-- Integrate `InterviewCalendar` component into the dashboard home as a compact widget
-
-**3.2 Employer Dashboard Enhancements**
-- Create a job analytics card showing views/applications trends per job using Recharts
-- Add "Job Templates" feature: save job descriptions as templates, quick-duplicate existing jobs
-- Add candidate comparison view for side-by-side skill scoring
-
-**3.3 Admin Dashboard Enhancement**
-- Add real trend data for all stat cards (replace hardcoded arrays)
-- Add "Platform Health" section showing active users in last 24h, error rates
-- Add recent signups list with quick-approve actions
-
-### Phase 4: Cross-Dashboard Connectivity
-
-**4.1 Admin-to-User Dashboard Links**
-- From Admin Users page, add "View as" links to open candidate/employer detail pages
-- From Admin Jobs page, add direct links to employer dashboards
-- From Admin Applications page, link to both job detail and candidate detail
-
-**4.2 Notification Integration**
-- Show platform notifications from admin in both candidate and employer dashboards
-- Add a `PlatformNotificationBanner` component that fetches active notifications
-- Display at the top of dashboard pages
-
-**4.3 Pagination for All Admin Tables**
-- Add cursor-based pagination to AdminUsers, AdminEmployers, AdminJobs, AdminCandidates, AdminMessages
-- Show page count and navigation controls
-- Maintain filter state across pages
+#### 5. Admin-to-User Dashboard Links Missing
+No "View as" or "View Profile" links from admin tables to the candidate/employer detail pages.
 
 ---
 
-## Database Changes Required
+## Implementation Steps
 
-```sql
--- Platform notifications table
-CREATE TABLE platform_notifications (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  title TEXT NOT NULL,
-  message TEXT NOT NULL,
-  type TEXT DEFAULT 'info' CHECK (type IN ('info', 'warning', 'success', 'error')),
-  target_audience TEXT DEFAULT 'all' CHECK (target_audience IN ('all', 'candidates', 'employers')),
-  created_by UUID REFERENCES auth.users(id),
-  created_at TIMESTAMPTZ DEFAULT now(),
-  expires_at TIMESTAMPTZ,
-  is_active BOOLEAN DEFAULT true
-);
+### Step 1: Add PlatformNotificationBanner to Employer Dashboard
+- Import and add `<PlatformNotificationBanner userType="employer" />` at the top of the employer dashboard home view
 
--- Content moderation queue
-CREATE TABLE moderation_queue (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  content_type TEXT NOT NULL CHECK (content_type IN ('job', 'profile', 'message')),
-  content_id UUID NOT NULL,
-  reported_by UUID REFERENCES auth.users(id),
-  reason TEXT NOT NULL,
-  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'escalated')),
-  reviewed_by UUID REFERENCES auth.users(id),
-  reviewed_at TIMESTAMPTZ,
-  admin_notes TEXT,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
+### Step 2: Add Pagination to Admin Tables
+Add server-side pagination with `PaginationControls` to:
+- **AdminUsers**: Add page state, use `.range()` with `count: 'exact'`, render PaginationControls
+- **AdminEmployers**: Same pattern
+- **AdminJobs**: Same pattern
+- **AdminCandidates**: Same pattern
+- **AdminMessages**: Same pattern
 
--- Feature flags table
-CREATE TABLE feature_flags (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  key TEXT UNIQUE NOT NULL,
-  enabled BOOLEAN DEFAULT false,
-  description TEXT,
-  updated_at TIMESTAMPTZ DEFAULT now()
-);
-```
+Each table will use PAGE_SIZE of 20, with range-based queries and total count.
 
-RLS policies will be added for admin-only access on all new tables.
+### Step 3: Create Employer Job Analytics Section
+- Create `src/components/employer/JobAnalyticsDashboard.tsx`
+- Show per-job performance: views, application counts, status breakdown
+- Use Recharts (already installed) for a bar chart of views and applications per job
+- Wire it into the employer dashboard `renderSectionContent` under `case 'analytics'` alongside the existing PlanUsagePanel
+
+### Step 4: Add Admin-to-User Links
+- In AdminUsers: Add a "View Profile" dropdown item that links to `/candidates/:id` or `/employers/:id` based on user_type
+- In AdminEmployers: Add "View Detail" link to `/employers/:id`
+- In AdminCandidates: Add "View Detail" link to `/candidates/:id`
+- In AdminJobs: Add "View Job" link to `/jobs/:id`
+
+### Step 5: Update Admin Dashboard Quick Actions
+- Add a link to the moderation queue (`/admin/moderation`) in the quick actions section
 
 ---
 
-## Files to Create
-- `src/pages/admin/AdminApplications.tsx` - Application management
-- `src/pages/admin/AdminNotifications.tsx` - Notification center
-- `src/pages/admin/AdminModeration.tsx` - Content moderation queue
-- `src/components/admin/PaginationControls.tsx` - Reusable pagination
-- `src/components/dashboard/PlatformNotificationBanner.tsx` - User-facing notification display
-- `src/components/employer/JobAnalyticsDashboard.tsx` - Per-job analytics charts
+## Technical Details
 
-## Files to Modify
-- `src/pages/CandidateDashboard.tsx` - Fix random stats, add InterviewCalendar, add sidebar items
-- `src/pages/EmployerDashboard.tsx` - Fix random stats, add analytics section
-- `src/pages/admin/AdminUsers.tsx` - Fix email verification status check
-- `src/pages/admin/AdminSettings.tsx` - Add feature flags and platform config
-- `src/pages/admin/AdminDashboard.tsx` - Add real trend data, platform health
-- `src/components/admin/AdminLayout.tsx` - Add new nav items for Applications, Notifications, Moderation
-- `src/App.tsx` - Add routes for new admin pages
+### Files to Create
+- `src/components/employer/JobAnalyticsDashboard.tsx` - Recharts-based job performance charts
 
-## Route Additions
-- `/admin/applications` - AdminApplications
-- `/admin/notifications` - AdminNotifications
-- `/admin/moderation` - AdminModeration
+### Files to Modify
+- `src/pages/EmployerDashboard.tsx` - Add PlatformNotificationBanner import and usage, wire JobAnalyticsDashboard into analytics section
+- `src/pages/admin/AdminUsers.tsx` - Add pagination, add view profile links
+- `src/pages/admin/AdminEmployers.tsx` - Add pagination, add view detail links
+- `src/pages/admin/AdminJobs.tsx` - Add pagination, add view job links
+- `src/pages/admin/AdminCandidates.tsx` - Add pagination, add view detail links
+- `src/pages/admin/AdminMessages.tsx` - Add pagination
+- `src/pages/admin/AdminDashboard.tsx` - Add moderation queue quick action link
