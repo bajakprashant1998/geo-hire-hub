@@ -14,6 +14,7 @@ interface Interview {
   interview_type: string;
   date: string;
   time: string;
+  meeting_link?: string | null;
 }
 
 interface EmployerInterviewsCardProps {
@@ -29,84 +30,67 @@ export const EmployerInterviewsCard = ({ employerId }: EmployerInterviewsCardPro
   }, [employerId]);
 
   const fetchInterviews = async () => {
-    // Fetch shortlisted applications as "interviews"
-    const { data: applications } = await supabase
-      .from('applications')
+    // Fetch from interviews table
+    const { data: interviewRows } = await supabase
+      .from('interviews')
       .select(`
         id,
-        job_id,
+        scheduled_date,
+        scheduled_time,
+        interview_type,
+        meeting_link,
         candidate_id,
-        updated_at,
-        jobs!inner(title, employer_id),
-        candidates!inner(profile_id)
+        candidates!inner(profile_id),
+        jobs!inner(title)
       `)
-      .eq('status', 'shortlisted')
-      .eq('jobs.employer_id', employerId)
-      .order('updated_at', { ascending: false })
+      .eq('employer_id', employerId)
+      .eq('status', 'scheduled')
+      .order('scheduled_date', { ascending: true })
       .limit(4);
 
-    if (applications && applications.length > 0) {
+    if (interviewRows && interviewRows.length > 0) {
       const interviewsData = await Promise.all(
-        applications.map(async (app: any) => {
+        interviewRows.map(async (row: any) => {
           const { data: profileData } = await supabase
             .from('profiles')
             .select('full_name, avatar_url')
-            .eq('id', app.candidates.profile_id)
+            .eq('id', row.candidates.profile_id)
             .maybeSingle();
 
-          // Generate mock interview times
-          const interviewTypes = ['Technical Round', 'Final Round', 'Portfolio Review', 'HR Interview'];
-          const randomType = interviewTypes[Math.floor(Math.random() * interviewTypes.length)];
-          
-          const now = new Date();
-          const futureDate = new Date(now.getTime() + Math.random() * 7 * 24 * 60 * 60 * 1000);
-          const dateStr = futureDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-          const hours = 9 + Math.floor(Math.random() * 8);
-          const timeStr = `${hours}:00 ${hours >= 12 ? 'PM' : 'AM'}`;
+          const scheduledDate = new Date(row.scheduled_date);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const tomorrow = new Date(today);
+          tomorrow.setDate(tomorrow.getDate() + 1);
+
+          let dateStr: string;
+          if (scheduledDate.toDateString() === today.toDateString()) {
+            dateStr = 'Today';
+          } else if (scheduledDate.toDateString() === tomorrow.toDateString()) {
+            dateStr = 'Tomorrow';
+          } else {
+            dateStr = scheduledDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+          }
+
+          const typeMap: Record<string, string> = {
+            video: 'Technical Round',
+            'in-person': 'Portfolio Review',
+            phone: 'HR Interview',
+          };
 
           return {
-            id: app.id,
+            id: row.id,
             candidate_name: profileData?.full_name || 'Candidate',
             candidate_avatar: profileData?.avatar_url,
-            position: app.jobs.title,
-            interview_type: randomType,
-            date: dateStr === new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) ? 'Today' : dateStr,
-            time: timeStr
+            position: row.jobs.title,
+            interview_type: typeMap[row.interview_type] || row.interview_type,
+            date: dateStr,
+            time: row.scheduled_time,
+            meeting_link: row.meeting_link,
           };
         })
       );
       setInterviews(interviewsData);
-    } else {
-      // Demo data if no real interviews
-      setInterviews([
-        {
-          id: '1',
-          candidate_name: 'Sarah Johnson',
-          candidate_avatar: null,
-          position: 'Senior Frontend Devel...',
-          interview_type: 'Technical Round',
-          date: 'Today',
-          time: '2:00 PM'
-        },
-        {
-          id: '2',
-          candidate_name: 'Michael Chen',
-          candidate_avatar: null,
-          position: 'Backend Engineer',
-          interview_type: 'Final Round',
-          date: 'Tomorrow',
-          time: '10:00 AM'
-        },
-        {
-          id: '3',
-          candidate_name: 'Emily Davis',
-          candidate_avatar: null,
-          position: 'Product Designer',
-          interview_type: 'Portfolio Review',
-          date: 'Jan 21',
-          time: '3:30 PM'
-        }
-      ]);
     }
     setLoading(false);
   };
@@ -178,6 +162,11 @@ export const EmployerInterviewsCard = ({ employerId }: EmployerInterviewsCardPro
                 <Button 
                   size="sm" 
                   className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1"
+                  onClick={() => {
+                    if (interview.meeting_link) {
+                      window.open(interview.meeting_link, '_blank');
+                    }
+                  }}
                 >
                   Join Call
                 </Button>

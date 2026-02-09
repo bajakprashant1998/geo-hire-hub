@@ -519,12 +519,12 @@ const CandidateDetail = () => {
                   </div>
                   <div className="flex items-center gap-2 px-6 py-4 text-sm">
                     <Eye className="w-4 h-4 text-google-green" />
-                    <span className="font-semibold">{Math.floor(Math.random() * 5000) + 500}</span>
+                    <span className="font-semibold">—</span>
                     <span className="text-muted-foreground">views</span>
                   </div>
                   <div className="flex items-center gap-2 px-6 py-4 text-sm">
                     <MessageCircle className="w-4 h-4 text-google-yellow" />
-                    <span className="font-semibold">{Math.floor(Math.random() * 20) + 5}</span>
+                    <span className="font-semibold">—</span>
                     <span className="text-muted-foreground">messages</span>
                   </div>
                 </div>
@@ -606,7 +606,7 @@ const CandidateDetail = () => {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground mb-1">Profile Views</p>
-                        <p className="font-semibold text-lg">{Math.floor(Math.random() * 5000) + 500}</p>
+                        <p className="font-semibold text-lg">—</p>
                       </div>
                     </div>
 
