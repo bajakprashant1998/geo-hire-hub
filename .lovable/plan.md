@@ -1,123 +1,113 @@
 
 
-# Pending Tasks Cleanup + Video Call Interview Integration
+# Enhanced Map Cards, Candidate Visibility Controls, and Navigation Audit
 
-## Pending Items Found
+## Overview
 
-After auditing the full codebase, the previous plan's tasks are **mostly complete**:
-
-**Already Done:**
-- Pagination on ALL admin tables (AdminUsers, AdminEmployers, AdminJobs, AdminCandidates, AdminMessages, AdminApplications, AdminModeration)
-- ExternalLink/View Profile links on all admin tables
-- PlatformNotificationBanner on Employer Dashboard
-- JobAnalyticsDashboard component created and wired into Employer analytics section
-- AdminDashboard moderation queue quick action link added
-- Real stats on Candidate Dashboard (no Math.random for profile views)
-- Real stats on Employer Dashboard (real view_count aggregation)
-
-**Still Pending (Bugs/Cleanup):**
-
-1. **Math.random() still used in 5 places:**
-   - `InterviewScheduler.tsx` line 209: Video Calls count uses `Math.random()`
-   - `EmployerInterviewsCard.tsx` lines 59-64: Random interview types, dates, times
-   - `InterviewCalendar.tsx` line 84: Random interview type (video vs in-person)
-   - `CandidateDetail.tsx` lines 522, 527, 609: Profile views and messages use random numbers
-   - `EmployerDetail.tsx` line 390: Views use random number
-
-2. **No proper `interviews` table** - The platform uses `applications.status = 'shortlisted'` as a proxy for interviews. There is no actual interviews table to store date, time, type, meeting link, or notes.
-
-3. **"Join Call" / "Start Call" buttons are non-functional** - They exist in EmployerInterviewsCard and InterviewScheduler but do nothing.
+This plan covers three areas: (1) visual polish of map popup cards and the marker preview sheet, (2) restricting candidate profile details to authenticated employer accounts, and (3) auditing and fixing cross-page navigation links.
 
 ---
 
-## New Feature: Video Call Interview System
+## 1. Enhanced Map Popup Cards (Visual Polish)
 
-Since there is no backend video infrastructure (WebRTC server, TURN/STUN), the most practical approach is to generate unique meeting room links using a free, embeddable service pattern. We will create a lightweight video call page using a unique room ID derived from the interview ID, allowing both parties to join the same room.
+### Current State
+The map popup cards (`createJobPopupContent` and `createCandidatePopupContent` in `MapContainer.tsx`) use raw inline HTML strings. They already have a decent structure but need refinement for clarity and consistency.
 
-### Approach
-- Create an `interviews` database table to store scheduled interview details (date, time, type, meeting link, notes)
-- Create a `/video-call/:interviewId` page that embeds a peer-to-peer video call using the browser's built-in `getUserMedia` API with a simple "waiting room" UI
-- Since true multi-party WebRTC requires a signaling server, we will generate a Jitsi Meet link (free, no account needed) as the meeting URL for each interview
-- Update "Join Call" / "Start Call" buttons to navigate to the video call or open the meeting link
+### Changes
+
+**Job Popup Cards** (in `MapContainer.tsx` - `createJobPopupContent`):
+- Add a colored header bar (red for private, emerald for government) with job title and company
+- Show a "NEW" badge for jobs posted within 24 hours
+- Add distance tag alongside job type and salary
+- Add posted date in meta section
+- Improve button styling with more prominent "View Details" CTA
+
+**Candidate Popup Cards** (in `MapContainer.tsx` - `createCandidatePopupContent`):
+- For unauthenticated users: show only name and job title, hide skills/experience details, replace "Contact" with "Sign In to View"
+- For authenticated non-employer users: show name, job title, basic stats, but replace "Contact" with "Register as Employer"
+- For authenticated employers: show full card (current behavior)
+
+**MarkerPreviewSheet** (bottom sheet on mobile):
+- Apply same auth-gating logic for candidate previews
+- Add a subtle gradient header matching the card type
+- Add "posted X days ago" for jobs
+- Improve spacing and typography consistency
 
 ---
 
-## Implementation Steps
+## 2. Candidate Profile Access Control
 
-### Step 1: Create `interviews` Table
-```sql
-CREATE TABLE public.interviews (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  application_id UUID NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
-  job_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
-  candidate_id UUID NOT NULL REFERENCES candidates(id),
-  employer_id UUID NOT NULL REFERENCES employers(id),
-  scheduled_date DATE NOT NULL,
-  scheduled_time TEXT NOT NULL,
-  interview_type TEXT NOT NULL DEFAULT 'video',
-  meeting_link TEXT,
-  location TEXT,
-  notes TEXT,
-  status TEXT NOT NULL DEFAULT 'scheduled',
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
-);
-```
-- Add RLS policies for employer (create/read/update) and candidate (read own)
-- Add a validation trigger for status values
-- Auto-generate a Jitsi meeting link on insert
+### Current State
+`CandidateDetail.tsx` shows ALL candidate information (bio, skills, experience, salary, education, work history, contact info, resume) to anyone -- even unauthenticated visitors.
 
-### Step 2: Update InterviewScheduler
-- On "Schedule Interview", insert into the `interviews` table (not just update application status)
-- Auto-generate a meeting link: `https://meet.jit.si/hireforjob-{interviewId}`
-- Show real scheduled date/time from the interviews table instead of mock data
-- Fix Video Calls stat count (remove Math.random)
-- Make "Start Call" button open the meeting link
+### Changes to `CandidateDetail.tsx`
+- **Public view (no login)**: Show only name, job title, avatar, availability status, and member since date. Show a prominent CTA: "Sign in as an employer to view full profile"
+- **Logged-in candidate**: Same limited view with message: "Only employers can view full candidate profiles"
+- **Logged-in employer**: Full profile access (current behavior)
+- Use `useAuth()` hook (already imported in many places) to check `user` and `profile.user_type`
 
-### Step 3: Update InterviewCalendar (Candidate Side)
-- Query from `interviews` table instead of inferring from shortlisted applications
-- Show real date, time, type from the database
-- Remove Math.random for interview type
-- Make "Join" button open the meeting link
+### Changes to Map Cards for Candidates
+- **Popup cards** (`createCandidatePopupContent`): Accept an `isEmployer` flag. If false, hide skills count, experience years, and swap "Contact" button for "Sign In to View Full Profile"
+- **MarkerPreviewSheet** (`renderCandidatePreview`): Same gating -- show limited info for non-employers
+- **Sidebar** candidate list items: Show name and job title only for non-employers; hide experience badge
 
-### Step 4: Update EmployerInterviewsCard
-- Query from `interviews` table for real upcoming interviews
-- Remove all Math.random for types, dates, times
-- Make "Join Call" button open the meeting link
+---
 
-### Step 5: Create Video Call Page
-- New page: `src/pages/VideoCall.tsx`
-- Route: `/video-call/:interviewId`
-- Fetches interview details from the database
-- Shows interview info (candidate name, job title, scheduled time)
-- Provides a prominent "Join Meeting" button that opens the Jitsi link
-- Shows a pre-call checklist (camera, microphone permissions)
-- Both employer and candidate can access this page
+## 3. Navigation and Link Audit
 
-### Step 6: Fix Remaining Math.random() Usage
-- `CandidateDetail.tsx`: Replace random views/messages with real counts from `job_views` and `messages` tables
-- `EmployerDetail.tsx`: Replace random views with real count from `job_views`
+### Issues Found
 
-### Step 7: Add Route
-- Add `/video-call/:interviewId` route to App.tsx
+1. **`/employer/:id` vs `/employers/:id`**: Both routes exist. `JobDetail.tsx` links to `/employer/${id}` (line 470) while admin tables link to `/employers/:id`. Both work (one is an alias), but should be consistent.
+
+2. **Candidate popup "Contact" button** navigates to `/messages?candidate=${id}` -- this passes candidate table ID, but the Messages page expects a user_id for conversation lookup. This is a mismatch that could cause silent failures.
+
+3. **Candidate popup "View" button** correctly navigates to `/candidates/${id}`.
+
+4. **Job popup "Apply" button** navigates to `/jobs/${id}?action=apply` but `JobDetail.tsx` does not read the `action=apply` query param to auto-open the apply dialog.
+
+5. **MarkerPreviewSheet** navigates to `/candidates/${item.id}` and `/jobs/${item.id}` -- correct.
+
+### Fixes
+
+- **Fix #1**: Standardize all employer links to `/employers/:id` (update `JobDetail.tsx` link)
+- **Fix #2**: Update candidate contact flow in popup to navigate to `/candidates/${id}` with a query param `?action=contact` instead of broken `/messages?candidate=${id}`. In `CandidateDetail.tsx`, read the query param and auto-trigger the contact flow.
+- **Fix #4**: In `JobDetail.tsx`, read `?action=apply` query param and auto-open the apply dialog on mount.
 
 ---
 
 ## Technical Details
 
-### Database Table
-- `interviews` with foreign keys to applications, jobs, candidates, employers
-- RLS: employers can CRUD their own interviews; candidates can read interviews where they are the candidate
-- Meeting link auto-generated as `https://meet.jit.si/hireforjob-{uuid}`
-
-### Files to Create
-- `src/pages/VideoCall.tsx` - Pre-call lobby + Jitsi redirect
-
 ### Files to Modify
-- `src/components/employer/InterviewScheduler.tsx` - Use interviews table, fix Math.random, wire meeting links
-- `src/components/candidate/InterviewCalendar.tsx` - Query interviews table, fix Math.random, add join link
-- `src/components/dashboard/EmployerInterviewsCard.tsx` - Query interviews table, remove all Math.random
-- `src/pages/CandidateDetail.tsx` - Replace Math.random stats with real data
-- `src/pages/EmployerDetail.tsx` - Replace Math.random stats with real data
-- `src/App.tsx` - Add video call route
+
+| File | Changes |
+|------|---------|
+| `src/components/map/MapContainer.tsx` | Update `createJobPopupContent` and `createCandidatePopupContent` with enhanced visuals, auth-gating for candidate cards, pass auth state to popup generators |
+| `src/components/map/MarkerPreviewSheet.tsx` | Add auth-gating for candidate preview, improve visual design with gradient headers and better spacing, add time-ago for jobs |
+| `src/components/map/Sidebar.tsx` | Limit candidate info shown to non-employers in list view |
+| `src/pages/CandidateDetail.tsx` | Add auth gate: show limited public profile for non-employers, full profile for employers. Handle `?action=contact` query param |
+| `src/pages/JobDetail.tsx` | Fix employer link path (`/employer/` to `/employers/`). Handle `?action=apply` query param to auto-open apply dialog |
+| `src/pages/Index.tsx` | Pass auth state down to MapContainer for popup generation |
+
+### Auth Flow for Candidate Cards
+
+```text
+User visits map (/)
+  |
+  +--> Clicks candidate marker
+        |
+        +--> Is user logged in?
+        |     |
+        |     +--> NO: Show name + job title only
+        |     |         CTA: "Sign In to View Profile"
+        |     |
+        |     +--> YES: Is user_type === 'employer'?
+        |           |
+        |           +--> YES: Show full card + Contact button
+        |           |
+        |           +--> NO: Show name + job title only
+        |                     Message: "Employer account required"
+```
+
+### No Database Changes Required
+All changes are frontend-only. The existing RLS policies and data queries remain unchanged.
 
