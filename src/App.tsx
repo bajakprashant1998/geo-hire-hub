@@ -25,6 +25,7 @@ import EmployerDetail from "./pages/EmployerDetail";
 import JobDetail from "./pages/JobDetail";
 import Plans from "./pages/Plans";
 import CompanyProfileEdit from "./pages/CompanyProfileEdit";
+import VideoCall from "./pages/VideoCall";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminEmployers from "./pages/admin/AdminEmployers";
@@ -83,6 +84,7 @@ const App = () => (
               <Route path="/post-job" element={<PostJob />} />
               <Route path="/edit-job/:jobId" element={<PostJob />} />
               <Route path="/company-profile" element={<CompanyProfileEdit />} />
+              <Route path="/video-call/:interviewId" element={<VideoCall />} />
 
               {/* ==================== ADMIN ROUTES ==================== */}
               <Route path="/admin" element={<AdminDashboard />} />

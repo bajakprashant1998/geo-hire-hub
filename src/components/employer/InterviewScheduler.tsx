@@ -40,6 +40,7 @@ import { format, addDays, isAfter, isBefore, startOfDay } from 'date-fns';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 
 interface InterviewSchedulerProps {
   employerId: string;
@@ -64,6 +65,7 @@ interface Applicant {
 }
 
 export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
+  const navigate = useNavigate();
   const [applicants, setApplicants] = useState<Applicant[]>([]);
   const [loading, setLoading] = useState(true);
   const [scheduleDialog, setScheduleDialog] = useState<{
@@ -122,8 +124,8 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
 
     setScheduling(true);
     try {
-      // Update application status to shortlisted (which represents scheduled interview)
-      const { error } = await supabase
+      // Update application status to shortlisted
+      const { error: appError } = await supabase
         .from('applications')
         .update({ 
           status: 'shortlisted',
@@ -131,7 +133,23 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
         })
         .eq('id', scheduleDialog.applicant.id);
 
-      if (error) throw error;
+      if (appError) throw appError;
+
+      // Insert into interviews table
+      const { error: intError } = await supabase
+        .from('interviews')
+        .insert({
+          application_id: scheduleDialog.applicant.id,
+          job_id: scheduleDialog.applicant.job_id,
+          candidate_id: scheduleDialog.applicant.candidate_id,
+          employer_id: employerId,
+          scheduled_date: interviewDetails.date,
+          scheduled_time: interviewDetails.time,
+          interview_type: interviewDetails.type,
+          location: interviewDetails.type === 'in-person' ? interviewDetails.location : null,
+        });
+
+      if (intError) throw intError;
 
       toast.success('Interview scheduled successfully!');
       setScheduleDialog({ open: false, applicant: null });
@@ -206,7 +224,7 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
                 <Video className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{shortlistedApplicants.filter(() => Math.random() > 0.5).length}</p>
+                <p className="text-2xl font-bold">{shortlistedApplicants.length}</p>
                 <p className="text-xs text-muted-foreground">Video Calls</p>
               </div>
             </div>
@@ -343,7 +361,7 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
                           <Button size="sm" variant="outline">
                             Reschedule
                           </Button>
-                          <Button size="sm">
+                          <Button size="sm" onClick={() => navigate(`/video-call/${applicant.id}`)}>
                             <Video className="w-4 h-4 mr-1" />
                             Start Call
                           </Button>

@@ -34,6 +34,7 @@ interface Interview {
   location?: string;
   status: 'scheduled' | 'completed' | 'cancelled';
   companyLogo?: string;
+  meetingLink?: string | null;
 }
 
 export const InterviewCalendar = ({ candidateId }: InterviewCalendarProps) => {
@@ -47,47 +48,48 @@ export const InterviewCalendar = ({ candidateId }: InterviewCalendarProps) => {
   }, [candidateId]);
 
   const fetchInterviews = async () => {
-    // Fetch shortlisted applications as scheduled interviews
-    const { data: applications } = await supabase
-      .from('applications')
+    // Fetch from interviews table
+    const { data: interviewRows } = await supabase
+      .from('interviews')
       .select(`
         id,
+        scheduled_date,
+        scheduled_time,
+        interview_type,
+        meeting_link,
+        location,
         status,
-        created_at,
-        job:jobs (
-          id,
-          title,
-          interview_time,
-          interview_days,
-          job_address,
-          employer:employers (
-            company_name,
-            profile:profiles (avatar_url)
-          )
-        )
+        jobs!inner(title, job_address),
+        employers!inner(company_name, profile_id)
       `)
       .eq('candidate_id', candidateId)
-      .eq('status', 'shortlisted');
+      .eq('status', 'scheduled')
+      .order('scheduled_date', { ascending: true });
 
-    if (applications) {
-      const mockInterviews: Interview[] = applications.map((app, index) => {
-        const job = app.job as any;
-        const interviewDate = new Date();
-        interviewDate.setDate(interviewDate.getDate() + (index + 1) * 2);
-        
-        return {
-          id: app.id,
-          date: interviewDate,
-          time: job?.interview_time || '10:00 AM',
-          company: job?.employer?.company_name || 'Company',
-          position: job?.title || 'Position',
-          type: Math.random() > 0.5 ? 'video' : 'in-person',
-          location: job?.job_address,
-          status: 'scheduled',
-          companyLogo: job?.employer?.profile?.avatar_url
-        };
-      });
-      setInterviews(mockInterviews);
+    if (interviewRows && interviewRows.length > 0) {
+      const mappedInterviews: Interview[] = await Promise.all(
+        interviewRows.map(async (row: any) => {
+          const { data: empProfile } = await supabase
+            .from('profiles')
+            .select('avatar_url')
+            .eq('id', row.employers.profile_id)
+            .maybeSingle();
+
+          return {
+            id: row.id,
+            date: new Date(row.scheduled_date),
+            time: row.scheduled_time,
+            company: row.employers.company_name,
+            position: row.jobs.title,
+            type: row.interview_type as 'video' | 'in-person' | 'phone',
+            location: row.location || row.jobs.job_address,
+            status: row.status as 'scheduled' | 'completed' | 'cancelled',
+            companyLogo: empProfile?.avatar_url,
+            meetingLink: row.meeting_link,
+          };
+        })
+      );
+      setInterviews(mappedInterviews);
     }
     setLoading(false);
   };
@@ -279,8 +281,8 @@ export const InterviewCalendar = ({ candidateId }: InterviewCalendarProps) => {
                         <CalendarPlus className="w-4 h-4 mr-1" />
                         Add to Calendar
                       </Button>
-                      {interview.type === 'video' && (
-                        <Button size="sm" variant="outline">
+                      {interview.type === 'video' && interview.meetingLink && (
+                        <Button size="sm" variant="outline" onClick={() => window.open(interview.meetingLink!, '_blank')}>
                           <Video className="w-4 h-4 mr-1" />
                           Join
                         </Button>

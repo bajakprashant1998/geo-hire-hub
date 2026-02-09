@@ -387,7 +387,7 @@ const EmployerDetail = () => {
                 </div>
                 <div className="flex items-center gap-2 px-6 py-4 text-sm">
                   <Eye className="w-4 h-4 text-muted-foreground" />
-                  <span className="font-semibold">{Math.floor(Math.random() * 10000) + 1000}</span>
+                  <span className="font-semibold">—</span>
                   <span className="text-muted-foreground">views</span>
                 </div>
                 <div className="flex items-center gap-2 px-6 py-4 text-sm">
