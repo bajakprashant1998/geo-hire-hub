@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -41,9 +41,12 @@ import {
   Twitter,
   Instagram,
   Youtube,
+  Lock,
+  LogIn,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useStartConversation } from '@/hooks/useStartConversation';
+import { useAuth } from '@/hooks/useAuth';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
@@ -107,12 +110,22 @@ interface CandidateProfile {
 const CandidateDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { startConversation } = useStartConversation();
+  const { user, profile } = useAuth();
+  const isEmployerUser = user && profile?.user_type === 'employer';
   const [candidate, setCandidate] = useState<CandidateProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const [contacting, setContacting] = useState(false);
   const [candidateUserId, setCandidateUserId] = useState<string | null>(null);
+
+  // Auto-trigger contact from query param
+  useEffect(() => {
+    if (searchParams.get('action') === 'contact' && !loading && candidate && candidateUserId && isEmployerUser) {
+      handleContact();
+    }
+  }, [searchParams, loading, candidate, candidateUserId, isEmployerUser]);
 
   const isValidUUID = (uuid: string | undefined): boolean => {
     if (!uuid) return false;
@@ -533,6 +546,8 @@ const CandidateDetail = () => {
           </Card>
         </motion.div>
 
+        {/* Auth Gate: Only employers see full details */}
+        {isEmployerUser ? (
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
@@ -1071,8 +1086,49 @@ const CandidateDetail = () => {
             </div>
           </div>
         </div>
+        ) : (
+          /* Non-employer: restricted view */
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+            className="mt-8"
+          >
+            <Card className="shadow-google-card border-0 overflow-hidden">
+              <CardContent className="p-8 md:p-12 text-center">
+                <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Lock className="w-10 h-10 text-primary" />
+                </div>
+                <h3 className="text-xl font-heading font-bold mb-3">Full Profile Restricted</h3>
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                  {user 
+                    ? 'Only employer accounts can view full candidate profiles, including skills, experience, and contact information.'
+                    : "Sign in with an employer account to view this candidate's full profile, skills, experience, and contact details."
+                  }
+                </p>
+                {!user ? (
+                  <div className="flex gap-3 justify-center">
+                    <Button onClick={() => navigate('/login')} size="lg" className="px-8">
+                      <LogIn className="w-4 h-4 mr-2" />
+                      Sign In
+                    </Button>
+                    <Button onClick={() => navigate('/signup')} variant="outline" size="lg" className="px-8">
+                      Create Account
+                    </Button>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    {"You're signed in as a candidate. Switch to an employer account to access full profiles."}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
       </div>
 
+      {/* Mobile Bottom Bar - Employer only */}
+      {isEmployerUser && (
       <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-background/95 backdrop-blur-lg border-t shadow-google-hover p-4 z-50">
         <div className="flex items-center gap-3">
           <Button
@@ -1110,6 +1166,7 @@ const CandidateDetail = () => {
           </Button>
         </div>
       </div>
+      )}
     </div>
     </TooltipProvider>
   );

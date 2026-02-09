@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -124,6 +124,7 @@ interface JobDetails {
 const JobDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, profile, isEmailVerified } = useAuth();
   const { startConversation } = useStartConversation();
 
@@ -137,6 +138,13 @@ const JobDetail = () => {
   const [relatedJobs, setRelatedJobs] = useState<any[]>([]);
   const [applicantCount, setApplicantCount] = useState(0);
   const [contacting, setContacting] = useState(false);
+
+  // Auto-open apply dialog from query param
+  useEffect(() => {
+    if (searchParams.get('action') === 'apply' && !loading && job && !hasApplied && user) {
+      setApplyDialogOpen(true);
+    }
+  }, [searchParams, loading, job, hasApplied, user]);
 
   useEffect(() => {
     if (id) {
@@ -467,7 +475,7 @@ const JobDetail = () => {
                 className="flex items-center gap-3 flex-wrap"
               >
                 <Link
-                  to={`/employer/${job.employer.id}`}
+                  to={`/employers/${job.employer.id}`}
                   className="inline-flex items-center gap-2 text-white/90 hover:text-white font-medium transition-colors group"
                 >
                   <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
