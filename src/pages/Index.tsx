@@ -18,7 +18,7 @@ import { Navigation } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Index = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [mode, setMode] = useState<ViewMode>('seeking');
   const [radius, setRadius] = useState(50);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -115,6 +115,7 @@ const Index = () => {
             radius={radius}
             onMarkerClick={handleMarkerClick}
             selectedItem={selectedItem}
+            isEmployer={profile?.user_type === 'employer'}
           />
 
           {/* Navigation Button - Desktop */}
@@ -142,6 +143,7 @@ const Index = () => {
             radius={radius}
             onMarkerClick={handleMarkerClick}
             selectedItem={selectedItem}
+            isEmployer={profile?.user_type === 'employer'}
           />
         </div>
 
@@ -197,6 +199,7 @@ const Index = () => {
         onClose={() => setPreviewOpen(false)}
         mode={mode}
         item={selectedItem}
+        isEmployer={profile?.user_type === 'employer'}
       />
 
       {/* Welcome Overlay - Only for guests */}

@@ -25,6 +25,7 @@ interface MapContainerProps {
   radius: number;
   onMarkerClick: (data: Candidate | Job) => void;
   selectedItem: Candidate | Job | null;
+  isEmployer?: boolean;
 }
 
 // Custom marker icons with animation support
@@ -118,7 +119,7 @@ const createUserIcon = () =>
   });
 
 // Generate popup content for candidates - with contact and save buttons
-const createCandidatePopupContent = (candidate: Candidate, isSaved: boolean = false): string => {
+const createCandidatePopupContent = (candidate: Candidate, isSaved: boolean = false, isEmployer: boolean = false): string => {
   const initials = candidate.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'C';
   const avatarHtml = candidate.avatar_url 
     ? `<img src="${candidate.avatar_url}" alt="${candidate.full_name}" style="width: 48px; height: 48px; border-radius: 12px; object-fit: cover; border: 2px solid hsl(217, 89%, 85%);" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" /><div style="display: none; width: 48px; height: 48px; border-radius: 12px; background: hsl(217, 89%, 95%); align-items: center; justify-content: center; color: hsl(217, 89%, 61%); font-weight: 600; font-size: 18px;">${initials}</div>`
@@ -148,6 +149,7 @@ const createCandidatePopupContent = (candidate: Candidate, isSaved: boolean = fa
           <h4 style="margin: 0; font-size: 16px; font-weight: 600; color: hsl(220, 9%, 15%); line-height: 1.3; font-family: 'Playfair Display', Georgia, serif;">${candidate.full_name}</h4>
           <p style="margin: 4px 0 0; font-size: 13px; color: hsl(217, 89%, 61%); font-weight: 500;">${candidate.job_title || 'Job Seeker'}</p>
         </div>
+        ${isEmployer ? `
         <!-- Save button -->
         <button class="popup-save-candidate-btn ${isSaved ? 'saved' : ''}" data-action="save-candidate" data-candidate-id="${candidate.id}" data-saved="${isSaved}" style="
           width: 36px;
@@ -167,17 +169,25 @@ const createCandidatePopupContent = (candidate: Candidate, isSaved: boolean = fa
             <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
           </svg>
         </button>
+        ` : ''}
       </div>
       
       <!-- Tags row with Google colors -->
+      ${isEmployer ? `
       <div style="padding: 0 16px 14px; display: flex; flex-wrap: wrap; gap: 8px;">
         ${candidate.experience_years ? `<span style="padding: 6px 12px; background: hsl(217, 89%, 95%); color: hsl(217, 89%, 45%); font-size: 12px; border-radius: 6px; font-weight: 500;">${candidate.experience_years}+ years</span>` : ''}
         ${candidate.skills && candidate.skills.length > 0 ? `<span style="padding: 6px 12px; background: hsl(142, 70%, 95%); color: hsl(142, 76%, 30%); font-size: 12px; border-radius: 6px; font-weight: 600;">${candidate.skills.length} skills</span>` : ''}
         ${candidate.distance_km !== undefined ? `<span style="padding: 6px 12px; background: hsl(4, 90%, 95%); color: hsl(4, 90%, 50%); font-size: 12px; border-radius: 6px; font-weight: 500;">${candidate.distance_km.toFixed(1)} km</span>` : ''}
       </div>
+      ` : `
+      <div style="padding: 0 16px 14px;">
+        <p style="margin: 0; font-size: 12px; color: hsl(220, 9%, 46%); line-height: 1.5;">Sign in as an employer to view full profile details</p>
+      </div>
+      `}
       
-      <!-- Action buttons with Google Blue -->
+      <!-- Action buttons -->
       <div style="padding: 12px 16px; border-top: 1px solid hsl(220, 13%, 93%); display: flex; gap: 8px;">
+        ${isEmployer ? `
         <button class="popup-contact-btn" data-action="contact" data-candidate-id="${candidate.id}" style="
           flex: 1;
           padding: 10px 16px;
@@ -220,13 +230,62 @@ const createCandidatePopupContent = (candidate: Candidate, isSaved: boolean = fa
           </svg>
           View
         </button>
+        ` : `
+        <button class="popup-view-btn" data-action="view" style="
+          flex: 1;
+          padding: 10px 16px;
+          background: hsl(217, 89%, 61%);
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          transition: all 0.15s ease;
+        ">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+            <polyline points="10 17 15 12 10 7"/>
+            <line x1="15" y1="12" x2="3" y2="12"/>
+          </svg>
+          Sign In to View
+        </button>
+        `}
       </div>
     </div>
   `;
 };
 
+// Helper to format relative time
+const formatTimeAgo = (dateString: string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+  return `${Math.floor(diffDays / 30)}mo ago`;
+};
+
+const isNewJob = (dateString: string): boolean => {
+  const date = new Date(dateString);
+  const now = new Date();
+  return (now.getTime() - date.getTime()) < 24 * 60 * 60 * 1000;
+};
+
 // Generate popup content for jobs - with apply and save buttons
 const createJobPopupContent = (job: Job, isSaved: boolean = false): string => {
+  const isGovt = job.job_category === 'government';
+  const headerBg = isGovt ? 'hsl(152, 69%, 31%)' : 'hsl(4, 90%, 58%)';
+  const headerLightBg = isGovt ? 'hsl(152, 69%, 95%)' : 'hsl(4, 90%, 95%)';
+  const isNew = job.created_at && isNewJob(job.created_at);
+  const timeAgo = job.created_at ? formatTimeAgo(job.created_at) : '';
   const savedButtonStyle = isSaved 
     ? `background: hsl(45, 93%, 95%);`
     : `background: hsl(220, 14%, 96%);`;
@@ -244,16 +303,22 @@ const createJobPopupContent = (job: Job, isSaved: boolean = false): string => {
       overflow: hidden;
       box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
     ">
+      <!-- Colored top bar -->
+      <div style="height: 4px; background: ${headerBg};"></div>
+      
       <!-- Header with icon and title -->
-      <div style="padding: 16px 16px 12px; display: flex; gap: 14px; align-items: flex-start;">
-        <div style="width: 48px; height: 48px; border-radius: 12px; background: hsl(4, 90%, 95%); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="hsl(4, 90%, 58%)" stroke="none">
+      <div style="padding: 14px 16px 10px; display: flex; gap: 14px; align-items: flex-start;">
+        <div style="width: 48px; height: 48px; border-radius: 12px; background: ${headerLightBg}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="${headerBg}" stroke="none">
             <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
-            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" fill="hsl(4, 90%, 95%)"/>
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" fill="${headerLightBg}"/>
           </svg>
         </div>
         <div style="flex: 1; min-width: 0;">
-          <h4 style="margin: 0; font-size: 16px; font-weight: 600; color: hsl(220, 9%, 15%); line-height: 1.3; font-family: 'Playfair Display', Georgia, serif;">${job.title}</h4>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <h4 style="margin: 0; font-size: 16px; font-weight: 600; color: hsl(220, 9%, 15%); line-height: 1.3; font-family: 'Playfair Display', Georgia, serif; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${job.title}</h4>
+            ${isNew ? `<span style="padding: 2px 8px; background: hsl(45, 93%, 47%); color: white; font-size: 10px; border-radius: 4px; font-weight: 700; letter-spacing: 0.5px; white-space: nowrap;">NEW</span>` : ''}
+          </div>
           <p style="margin: 4px 0 0; font-size: 13px; color: hsl(220, 9%, 46%);">${job.company_name || 'Company'}</p>
         </div>
         <!-- Save button -->
@@ -278,9 +343,11 @@ const createJobPopupContent = (job: Job, isSaved: boolean = false): string => {
       </div>
       
       <!-- Tags row -->
-      <div style="padding: 0 16px 14px; display: flex; flex-wrap: wrap; gap: 8px;">
+      <div style="padding: 0 16px 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
         ${job.job_type ? `<span style="padding: 6px 12px; background: hsl(220, 14%, 96%); color: hsl(220, 9%, 35%); font-size: 12px; border-radius: 6px; font-weight: 500;">${job.job_type}</span>` : ''}
         ${job.salary_range ? `<span style="padding: 6px 12px; background: hsl(142, 70%, 95%); color: hsl(142, 76%, 30%); font-size: 12px; border-radius: 6px; font-weight: 600;">₹${job.salary_range}</span>` : ''}
+        ${job.distance_km !== undefined ? `<span style="padding: 6px 12px; background: hsl(4, 90%, 95%); color: hsl(4, 90%, 50%); font-size: 12px; border-radius: 6px; font-weight: 500;">${job.distance_km.toFixed(1)} km</span>` : ''}
+        ${timeAgo ? `<span style="margin-left: auto; font-size: 11px; color: hsl(220, 9%, 56%);">${timeAgo}</span>` : ''}
       </div>
       
       <!-- Action buttons -->
@@ -341,6 +408,7 @@ export const MapContainer = ({
   radius,
   onMarkerClick,
   selectedItem,
+  isEmployer = false,
 }: MapContainerProps) => {
   const navigate = useNavigate();
   const mapRef = useRef<L.Map | null>(null);
@@ -646,8 +714,8 @@ export const MapContainer = ({
         // Navigate to job detail with apply intent
         navigate(`/jobs/${id}?action=apply`);
       } else if (action === 'contact' && id) {
-        // Navigate to messages with candidate
-        navigate(`/messages?candidate=${id}`);
+        // Navigate to candidate detail with contact intent
+        navigate(`/candidates/${id}?action=contact`);
       } else if (action === 'view' && id) {
         // Navigate to detail page
         if (type === 'candidate') {
@@ -783,7 +851,7 @@ export const MapContainer = ({
 
         // Create popup with custom content for hover preview
         const popupContent = isCandidate 
-          ? createCandidatePopupContent(item as Candidate, savedCandidateIds.has(item.id))
+          ? createCandidatePopupContent(item as Candidate, savedCandidateIds.has(item.id), isEmployer)
           : createJobPopupContent(item as Job, savedJobIds.has(item.id));
 
         const popup = L.popup({
@@ -834,7 +902,7 @@ export const MapContainer = ({
         mapRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
       }
     }
-  }, [mode, candidates, jobs, isMobile, tappedMarkerId, savedJobIds, savedCandidateIds]);
+  }, [mode, candidates, jobs, isMobile, tappedMarkerId, savedJobIds, savedCandidateIds, isEmployer]);
 
   // Pan to selected item
   useEffect(() => {
