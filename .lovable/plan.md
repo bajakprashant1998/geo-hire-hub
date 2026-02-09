@@ -1,83 +1,123 @@
 
-# Pending Tasks Completion Plan
 
-## Audit Results - What's Done vs What's Still Needed
+# Pending Tasks Cleanup + Video Call Interview Integration
 
-### Already Completed
-- Candidate Dashboard: Real stats (no more Math.random), InterviewCalendar wired, sidebar items (Resume, Notifications, Saved Jobs) added
-- Employer Dashboard: Real profile views from job view_count aggregation
-- Admin: Routes for Applications, Moderation, Notifications all created and wired
-- Admin: Feature flags in Settings page working
-- Admin: PaginationControls component created and used in AdminApplications and AdminModeration
-- PlatformNotificationBanner on Candidate Dashboard
-- SavedJobsSection component created
+## Pending Items Found
 
-### Still Pending
+After auditing the full codebase, the previous plan's tasks are **mostly complete**:
 
-#### 1. Employer Dashboard - Missing PlatformNotificationBanner
-The employer dashboard does not show platform notifications. The candidate dashboard has it but employer dashboard was missed.
+**Already Done:**
+- Pagination on ALL admin tables (AdminUsers, AdminEmployers, AdminJobs, AdminCandidates, AdminMessages, AdminApplications, AdminModeration)
+- ExternalLink/View Profile links on all admin tables
+- PlatformNotificationBanner on Employer Dashboard
+- JobAnalyticsDashboard component created and wired into Employer analytics section
+- AdminDashboard moderation queue quick action link added
+- Real stats on Candidate Dashboard (no Math.random for profile views)
+- Real stats on Employer Dashboard (real view_count aggregation)
 
-#### 2. Pagination Missing on Most Admin Tables
-Only AdminApplications and AdminModeration use PaginationControls. These admin pages still load ALL records without pagination:
-- AdminUsers (loads all profiles)
-- AdminEmployers (loads all employers)
-- AdminJobs (loads all jobs)
-- AdminCandidates (loads all candidates)
-- AdminMessages (loads 100 conversations, but no pagination UI)
+**Still Pending (Bugs/Cleanup):**
 
-#### 3. Employer Dashboard - Analytics Section Still Just Shows PlanUsagePanel
-The "Analytics" sidebar item in the employer dashboard renders only `PlanUsagePanel`. It needs a proper job analytics view with charts showing views/applications trends per job.
+1. **Math.random() still used in 5 places:**
+   - `InterviewScheduler.tsx` line 209: Video Calls count uses `Math.random()`
+   - `EmployerInterviewsCard.tsx` lines 59-64: Random interview types, dates, times
+   - `InterviewCalendar.tsx` line 84: Random interview type (video vs in-person)
+   - `CandidateDetail.tsx` lines 522, 527, 609: Profile views and messages use random numbers
+   - `EmployerDetail.tsx` line 390: Views use random number
 
-#### 4. Admin Dashboard - Quick Actions Link to Moderation Queue
-The AdminDashboard "Moderate Jobs" quick action links to `/admin/jobs?moderation=pending` but there is now a dedicated `/admin/moderation` page that should also be linked.
+2. **No proper `interviews` table** - The platform uses `applications.status = 'shortlisted'` as a proxy for interviews. There is no actual interviews table to store date, time, type, meeting link, or notes.
 
-#### 5. Admin-to-User Dashboard Links Missing
-No "View as" or "View Profile" links from admin tables to the candidate/employer detail pages.
+3. **"Join Call" / "Start Call" buttons are non-functional** - They exist in EmployerInterviewsCard and InterviewScheduler but do nothing.
+
+---
+
+## New Feature: Video Call Interview System
+
+Since there is no backend video infrastructure (WebRTC server, TURN/STUN), the most practical approach is to generate unique meeting room links using a free, embeddable service pattern. We will create a lightweight video call page using a unique room ID derived from the interview ID, allowing both parties to join the same room.
+
+### Approach
+- Create an `interviews` database table to store scheduled interview details (date, time, type, meeting link, notes)
+- Create a `/video-call/:interviewId` page that embeds a peer-to-peer video call using the browser's built-in `getUserMedia` API with a simple "waiting room" UI
+- Since true multi-party WebRTC requires a signaling server, we will generate a Jitsi Meet link (free, no account needed) as the meeting URL for each interview
+- Update "Join Call" / "Start Call" buttons to navigate to the video call or open the meeting link
 
 ---
 
 ## Implementation Steps
 
-### Step 1: Add PlatformNotificationBanner to Employer Dashboard
-- Import and add `<PlatformNotificationBanner userType="employer" />` at the top of the employer dashboard home view
+### Step 1: Create `interviews` Table
+```sql
+CREATE TABLE public.interviews (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  application_id UUID NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+  job_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+  candidate_id UUID NOT NULL REFERENCES candidates(id),
+  employer_id UUID NOT NULL REFERENCES employers(id),
+  scheduled_date DATE NOT NULL,
+  scheduled_time TEXT NOT NULL,
+  interview_type TEXT NOT NULL DEFAULT 'video',
+  meeting_link TEXT,
+  location TEXT,
+  notes TEXT,
+  status TEXT NOT NULL DEFAULT 'scheduled',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+```
+- Add RLS policies for employer (create/read/update) and candidate (read own)
+- Add a validation trigger for status values
+- Auto-generate a Jitsi meeting link on insert
 
-### Step 2: Add Pagination to Admin Tables
-Add server-side pagination with `PaginationControls` to:
-- **AdminUsers**: Add page state, use `.range()` with `count: 'exact'`, render PaginationControls
-- **AdminEmployers**: Same pattern
-- **AdminJobs**: Same pattern
-- **AdminCandidates**: Same pattern
-- **AdminMessages**: Same pattern
+### Step 2: Update InterviewScheduler
+- On "Schedule Interview", insert into the `interviews` table (not just update application status)
+- Auto-generate a meeting link: `https://meet.jit.si/hireforjob-{interviewId}`
+- Show real scheduled date/time from the interviews table instead of mock data
+- Fix Video Calls stat count (remove Math.random)
+- Make "Start Call" button open the meeting link
 
-Each table will use PAGE_SIZE of 20, with range-based queries and total count.
+### Step 3: Update InterviewCalendar (Candidate Side)
+- Query from `interviews` table instead of inferring from shortlisted applications
+- Show real date, time, type from the database
+- Remove Math.random for interview type
+- Make "Join" button open the meeting link
 
-### Step 3: Create Employer Job Analytics Section
-- Create `src/components/employer/JobAnalyticsDashboard.tsx`
-- Show per-job performance: views, application counts, status breakdown
-- Use Recharts (already installed) for a bar chart of views and applications per job
-- Wire it into the employer dashboard `renderSectionContent` under `case 'analytics'` alongside the existing PlanUsagePanel
+### Step 4: Update EmployerInterviewsCard
+- Query from `interviews` table for real upcoming interviews
+- Remove all Math.random for types, dates, times
+- Make "Join Call" button open the meeting link
 
-### Step 4: Add Admin-to-User Links
-- In AdminUsers: Add a "View Profile" dropdown item that links to `/candidates/:id` or `/employers/:id` based on user_type
-- In AdminEmployers: Add "View Detail" link to `/employers/:id`
-- In AdminCandidates: Add "View Detail" link to `/candidates/:id`
-- In AdminJobs: Add "View Job" link to `/jobs/:id`
+### Step 5: Create Video Call Page
+- New page: `src/pages/VideoCall.tsx`
+- Route: `/video-call/:interviewId`
+- Fetches interview details from the database
+- Shows interview info (candidate name, job title, scheduled time)
+- Provides a prominent "Join Meeting" button that opens the Jitsi link
+- Shows a pre-call checklist (camera, microphone permissions)
+- Both employer and candidate can access this page
 
-### Step 5: Update Admin Dashboard Quick Actions
-- Add a link to the moderation queue (`/admin/moderation`) in the quick actions section
+### Step 6: Fix Remaining Math.random() Usage
+- `CandidateDetail.tsx`: Replace random views/messages with real counts from `job_views` and `messages` tables
+- `EmployerDetail.tsx`: Replace random views with real count from `job_views`
+
+### Step 7: Add Route
+- Add `/video-call/:interviewId` route to App.tsx
 
 ---
 
 ## Technical Details
 
+### Database Table
+- `interviews` with foreign keys to applications, jobs, candidates, employers
+- RLS: employers can CRUD their own interviews; candidates can read interviews where they are the candidate
+- Meeting link auto-generated as `https://meet.jit.si/hireforjob-{uuid}`
+
 ### Files to Create
-- `src/components/employer/JobAnalyticsDashboard.tsx` - Recharts-based job performance charts
+- `src/pages/VideoCall.tsx` - Pre-call lobby + Jitsi redirect
 
 ### Files to Modify
-- `src/pages/EmployerDashboard.tsx` - Add PlatformNotificationBanner import and usage, wire JobAnalyticsDashboard into analytics section
-- `src/pages/admin/AdminUsers.tsx` - Add pagination, add view profile links
-- `src/pages/admin/AdminEmployers.tsx` - Add pagination, add view detail links
-- `src/pages/admin/AdminJobs.tsx` - Add pagination, add view job links
-- `src/pages/admin/AdminCandidates.tsx` - Add pagination, add view detail links
-- `src/pages/admin/AdminMessages.tsx` - Add pagination
-- `src/pages/admin/AdminDashboard.tsx` - Add moderation queue quick action link
+- `src/components/employer/InterviewScheduler.tsx` - Use interviews table, fix Math.random, wire meeting links
+- `src/components/candidate/InterviewCalendar.tsx` - Query interviews table, fix Math.random, add join link
+- `src/components/dashboard/EmployerInterviewsCard.tsx` - Query interviews table, remove all Math.random
+- `src/pages/CandidateDetail.tsx` - Replace Math.random stats with real data
+- `src/pages/EmployerDetail.tsx` - Replace Math.random stats with real data
+- `src/App.tsx` - Add video call route
+
