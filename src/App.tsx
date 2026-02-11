@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { MessageNotificationProvider } from "@/components/messaging/MessageNotificationProvider";
 import { EmailVerificationBanner } from "@/components/auth/EmailVerificationBanner";
@@ -44,6 +44,12 @@ import AdminNotifications from "./pages/admin/AdminNotifications";
 import AdminModeration from "./pages/admin/AdminModeration";
 
 const queryClient = new QueryClient();
+
+// Proper redirect component that preserves the :id param
+const JobRedirect = () => {
+  const { id } = useParams();
+  return <Navigate to={`/jobs/${id}`} replace />;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -106,7 +112,7 @@ const App = () => (
               {/* ==================== REDIRECTS & ALIASES ==================== */}
               <Route path="/dashboard" element={<Navigate to="/candidate-dashboard" replace />} />
               <Route path="/employer/:id" element={<EmployerDetail />} />
-              <Route path="/job/:id" element={<Navigate to="/jobs/:id" replace />} />
+              <Route path="/job/:id" element={<JobRedirect />} />
 
               {/* ==================== CATCH-ALL ==================== */}
               <Route path="*" element={<NotFound />} />

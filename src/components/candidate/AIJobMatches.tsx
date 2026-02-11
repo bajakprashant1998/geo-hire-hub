@@ -166,7 +166,7 @@ export const AIJobMatches = ({ candidateId }: AIJobMatchesProps) => {
                     <div className="relative shrink-0">
                       <div
                         className={cn(
-                          'w-14 h-14 rounded-full flex items-center justify-center font-bold text-lg',
+                          'w-11 h-11 sm:w-14 sm:h-14 rounded-full flex items-center justify-center font-bold text-sm sm:text-lg',
                           scoreInfo.bg,
                           getScoreColor(match.match_score)
                         )}
@@ -192,7 +192,7 @@ export const AIJobMatches = ({ candidateId }: AIJobMatchesProps) => {
                         </div>
                         <Badge
                           className={cn(
-                            'shrink-0 text-xs font-medium border',
+                            'shrink-0 text-[10px] sm:text-xs font-medium border hidden sm:inline-flex',
                             scoreInfo.bg,
                             getScoreColor(match.match_score)
                           )}
@@ -279,7 +279,7 @@ export const AIJobMatches = ({ candidateId }: AIJobMatchesProps) => {
                       </div>
 
                       {/* Skills */}
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {match.skill_overlap.length > 0 && (
                           <div>
                             <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
