@@ -322,14 +322,14 @@ const CandidateDashboard = () => {
                   Back to Dashboard
                 </Button>
                 <Card className="bg-card shadow-sm border">
-                  <CardContent className="p-6">
+                  <CardContent className="p-3 sm:p-4 md:p-6">
                     {renderSectionContent()}
                   </CardContent>
                 </Card>
               </div>
             ) : (
               // Dashboard Home View
-              <div className="max-w-6xl mx-auto space-y-6">
+              <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
                 <PlatformNotificationBanner userType="candidate" />
                 {/* Quick Actions Bar */}
                 {completeness < 100 && (
@@ -366,7 +366,7 @@ const CandidateDashboard = () => {
                 )}
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
                   <DashboardStatCard
                     icon={FileText}
                     label="Total Applied"
@@ -401,7 +401,7 @@ const CandidateDashboard = () => {
                 </div>
 
                 {/* Messages Preview + Interview Card Row */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                   <div className="lg:col-span-2">
                     <MessagesPreview profileId={profile.id} onOpenChat={() => setChatModalOpen(true)} />
                   </div>
