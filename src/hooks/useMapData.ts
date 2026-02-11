@@ -41,7 +41,7 @@ export const useMapData = ({ userLocation, radius, searchQuery }: UseMapDataProp
     if (!userLocation) return [];
 
     try {
-      // Use the database function for geospatial query if user is logged in
+      // Use the database function for geospatial query ONLY if user is authenticated
       if (user) {
         const { data, error } = await supabase.rpc('get_nearby_candidates', {
           user_lat: userLocation.lat,
@@ -63,9 +63,10 @@ export const useMapData = ({ userLocation, radius, searchQuery }: UseMapDataProp
             distance_km: c.distance_km,
           }));
         }
+        // If RPC fails, fall through to direct query below
       }
 
-      // Fallback to direct query (works for logged out users too)
+      // Direct query fallback (works for anonymous users too with public RLS policies)
       const { data: directData, error: directError } = await supabase
         .from('candidates')
         .select(`
@@ -85,7 +86,10 @@ export const useMapData = ({ userLocation, radius, searchQuery }: UseMapDataProp
         .not('profiles.latitude', 'is', null)
         .not('profiles.longitude', 'is', null);
 
-      if (directError) throw directError;
+      if (directError) {
+        console.error('Error fetching candidates (direct):', directError);
+        return [];
+      }
 
       return (directData || [])
         .filter((c: any) => c.profiles?.is_visible_on_map)
