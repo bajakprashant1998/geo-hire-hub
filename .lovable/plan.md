@@ -1,113 +1,104 @@
 
 
-# Enhanced Map Cards, Candidate Visibility Controls, and Navigation Audit
+# Fix Map Visibility, Dashboard Responsiveness, and Navigation Links
 
-## Overview
+## Issues Found
 
-This plan covers three areas: (1) visual polish of map popup cards and the marker preview sheet, (2) restricting candidate profile details to authenticated employer accounts, and (3) auditing and fixing cross-page navigation links.
+### Issue 1: Candidate Cards Not Visible on Map Without Login
+**Root Cause**: The database Row-Level Security (RLS) policies on `candidates` and `profiles` tables block anonymous (unauthenticated) access entirely. The `candidates` table only allows viewing by admins, the candidate themselves, or authenticated employers. The `profiles` table only shows candidate profiles to authenticated employers via `is_employer(auth.uid())`. When a user is not logged in, the database returns zero rows, so no candidate markers appear on the map.
 
----
+**Fix**: Add public-facing RLS policies that allow anonymous users to read candidate profiles with `is_visible_on_map = true`. The data restriction (showing only name and job title) is already handled at the frontend level in the popup cards and MarkerPreviewSheet.
 
-## 1. Enhanced Map Popup Cards (Visual Polish)
+### Issue 2: Candidate Dashboard Not Responsive on Mobile
+**Root Cause**: Several layout issues in `CandidateDashboard.tsx` and child components:
+- The "Complete your profile" banner text and buttons can overflow on small screens
+- The Messages + Interview grid (`lg:grid-cols-3`) can feel cramped
+- Section content cards use `p-6` padding which is too large on mobile
+- The stat card subtitles can truncate awkwardly on small screens
 
-### Current State
-The map popup cards (`createJobPopupContent` and `createCandidatePopupContent` in `MapContainer.tsx`) use raw inline HTML strings. They already have a decent structure but need refinement for clarity and consistency.
+**Fix**: Adjust padding, text sizes, and grid breakpoints for better mobile rendering.
 
-### Changes
+### Issue 3: General Responsiveness Audit
+Key pages to fix:
+- `DashboardHeader.tsx`: Welcome message hidden on mobile (already handled with `hidden sm:block`) but the mobile header is too bare -- add a compact greeting
+- `DashboardStatCard.tsx`: Already responsive but value text (`text-2xl sm:text-3xl`) could be slightly smaller on very small screens
+- `AIJobMatches.tsx`: The match cards have a `grid-cols-2` skills section that can break on very narrow screens -- change to single column on mobile
+- `JobMatchCarousel.tsx`: Card width of 260px is good but the header buttons could overlap on small screens
 
-**Job Popup Cards** (in `MapContainer.tsx` - `createJobPopupContent`):
-- Add a colored header bar (red for private, emerald for government) with job title and company
-- Show a "NEW" badge for jobs posted within 24 hours
-- Add distance tag alongside job type and salary
-- Add posted date in meta section
-- Improve button styling with more prominent "View Details" CTA
+### Issue 4: Job Page Links Not Working Properly
+**Root Cause**: Navigation links from the candidate dashboard and homepage to job detail pages use `/jobs/${id}` which is correctly routed in `App.tsx`. However:
+- The `AIJobMatches` component links work correctly (`/jobs/${match.job_id}`)
+- The `JobMatchCarousel` links work correctly (`/jobs/${job.id}`)
+- The map popup "Apply Now" navigates to `/jobs/${id}?action=apply` which works
+- The redirect alias `/job/:id` to `/jobs/:id` does NOT work correctly -- it literally navigates to `/jobs/:id` (the string `:id`) instead of preserving the parameter
 
-**Candidate Popup Cards** (in `MapContainer.tsx` - `createCandidatePopupContent`):
-- For unauthenticated users: show only name and job title, hide skills/experience details, replace "Contact" with "Sign In to View"
-- For authenticated non-employer users: show name, job title, basic stats, but replace "Contact" with "Register as Employer"
-- For authenticated employers: show full card (current behavior)
-
-**MarkerPreviewSheet** (bottom sheet on mobile):
-- Apply same auth-gating logic for candidate previews
-- Add a subtle gradient header matching the card type
-- Add "posted X days ago" for jobs
-- Improve spacing and typography consistency
-
----
-
-## 2. Candidate Profile Access Control
-
-### Current State
-`CandidateDetail.tsx` shows ALL candidate information (bio, skills, experience, salary, education, work history, contact info, resume) to anyone -- even unauthenticated visitors.
-
-### Changes to `CandidateDetail.tsx`
-- **Public view (no login)**: Show only name, job title, avatar, availability status, and member since date. Show a prominent CTA: "Sign in as an employer to view full profile"
-- **Logged-in candidate**: Same limited view with message: "Only employers can view full candidate profiles"
-- **Logged-in employer**: Full profile access (current behavior)
-- Use `useAuth()` hook (already imported in many places) to check `user` and `profile.user_type`
-
-### Changes to Map Cards for Candidates
-- **Popup cards** (`createCandidatePopupContent`): Accept an `isEmployer` flag. If false, hide skills count, experience years, and swap "Contact" button for "Sign In to View Full Profile"
-- **MarkerPreviewSheet** (`renderCandidatePreview`): Same gating -- show limited info for non-employers
-- **Sidebar** candidate list items: Show name and job title only for non-employers; hide experience badge
+**Fix**: Fix the redirect in `App.tsx` from the broken static redirect to a proper component that reads the param and redirects.
 
 ---
 
-## 3. Navigation and Link Audit
+## Implementation Steps
 
-### Issues Found
+### Step 1: Add Public RLS Policies for Candidate Visibility
+Create a database migration adding:
+- A SELECT policy on `profiles` allowing anonymous reads where `is_visible_on_map = true` AND `user_type = 'candidate'`
+- A SELECT policy on `candidates` allowing anonymous reads (joined profiles must be visible)
 
-1. **`/employer/:id` vs `/employers/:id`**: Both routes exist. `JobDetail.tsx` links to `/employer/${id}` (line 470) while admin tables link to `/employers/:id`. Both work (one is an alias), but should be consistent.
+This allows the `useMapData.ts` fallback query (lines 69-104) to return candidate data for unauthenticated users.
 
-2. **Candidate popup "Contact" button** navigates to `/messages?candidate=${id}` -- this passes candidate table ID, but the Messages page expects a user_id for conversation lookup. This is a mismatch that could cause silent failures.
+### Step 2: Fix Candidate Dashboard Responsiveness
+In `CandidateDashboard.tsx`:
+- Reduce section content padding from `p-6` to `p-4 sm:p-6`
+- Add `text-center sm:text-left` to the profile completion banner for better mobile alignment
+- Make the "Back to Dashboard" button more compact on mobile
 
-3. **Candidate popup "View" button** correctly navigates to `/candidates/${id}`.
+### Step 3: Fix AIJobMatches Responsiveness
+In `AIJobMatches.tsx`:
+- Change skills grid from `grid-cols-2` to `grid-cols-1 sm:grid-cols-2`
+- Reduce score circle size on mobile (`w-12 h-12 sm:w-14 sm:h-14`)
+- Make the match badge wrap better on small screens
 
-4. **Job popup "Apply" button** navigates to `/jobs/${id}?action=apply` but `JobDetail.tsx` does not read the `action=apply` query param to auto-open the apply dialog.
+### Step 4: Fix the `/job/:id` Redirect in App.tsx
+Replace the broken `<Navigate to="/jobs/:id" replace />` with a proper redirect component that reads the `id` param and navigates to `/jobs/${id}`.
 
-5. **MarkerPreviewSheet** navigates to `/candidates/${item.id}` and `/jobs/${item.id}` -- correct.
-
-### Fixes
-
-- **Fix #1**: Standardize all employer links to `/employers/:id` (update `JobDetail.tsx` link)
-- **Fix #2**: Update candidate contact flow in popup to navigate to `/candidates/${id}` with a query param `?action=contact` instead of broken `/messages?candidate=${id}`. In `CandidateDetail.tsx`, read the query param and auto-trigger the contact flow.
-- **Fix #4**: In `JobDetail.tsx`, read `?action=apply` query param and auto-open the apply dialog on mount.
+### Step 5: Add Compact Mobile Greeting to DashboardHeader
+Show a short "Hi, Name" text on mobile screens where the full welcome message is hidden.
 
 ---
 
 ## Technical Details
 
+### Database Migration (Step 1)
+```sql
+-- Allow anonymous users to view candidate profiles on map
+CREATE POLICY "Public can view visible candidate profiles"
+ON public.profiles FOR SELECT
+USING (
+  is_visible_on_map = true
+  AND user_type = 'candidate'
+);
+
+-- Allow anonymous users to view candidates
+CREATE POLICY "Public can view candidates"
+ON public.candidates FOR SELECT
+USING (
+  EXISTS (
+    SELECT 1 FROM profiles p
+    WHERE p.id = candidates.profile_id
+    AND p.is_visible_on_map = true
+  )
+);
+```
+
 ### Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/components/map/MapContainer.tsx` | Update `createJobPopupContent` and `createCandidatePopupContent` with enhanced visuals, auth-gating for candidate cards, pass auth state to popup generators |
-| `src/components/map/MarkerPreviewSheet.tsx` | Add auth-gating for candidate preview, improve visual design with gradient headers and better spacing, add time-ago for jobs |
-| `src/components/map/Sidebar.tsx` | Limit candidate info shown to non-employers in list view |
-| `src/pages/CandidateDetail.tsx` | Add auth gate: show limited public profile for non-employers, full profile for employers. Handle `?action=contact` query param |
-| `src/pages/JobDetail.tsx` | Fix employer link path (`/employer/` to `/employers/`). Handle `?action=apply` query param to auto-open apply dialog |
-| `src/pages/Index.tsx` | Pass auth state down to MapContainer for popup generation |
+| Database migration | Add 2 public SELECT RLS policies |
+| `src/App.tsx` | Fix `/job/:id` redirect to properly forward the param |
+| `src/pages/CandidateDashboard.tsx` | Adjust padding and layout for mobile |
+| `src/components/candidate/AIJobMatches.tsx` | Fix grid and sizing for mobile |
+| `src/components/dashboard/DashboardHeader.tsx` | Add compact mobile greeting |
 
-### Auth Flow for Candidate Cards
-
-```text
-User visits map (/)
-  |
-  +--> Clicks candidate marker
-        |
-        +--> Is user logged in?
-        |     |
-        |     +--> NO: Show name + job title only
-        |     |         CTA: "Sign In to View Profile"
-        |     |
-        |     +--> YES: Is user_type === 'employer'?
-        |           |
-        |           +--> YES: Show full card + Contact button
-        |           |
-        |           +--> NO: Show name + job title only
-        |                     Message: "Employer account required"
-```
-
-### No Database Changes Required
-All changes are frontend-only. The existing RLS policies and data queries remain unchanged.
+### Redirect Fix (App.tsx)
+Create a small `JobRedirect` component that reads `useParams().id` and renders `<Navigate to={`/jobs/${id}`} replace />`.
 
