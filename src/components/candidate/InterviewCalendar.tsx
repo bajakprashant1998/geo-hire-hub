@@ -138,7 +138,7 @@ export const InterviewCalendar = ({ candidateId }: InterviewCalendarProps) => {
   }
 
   return (
-    <div className="grid lg:grid-cols-5 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
       {/* Calendar */}
       <Card className="lg:col-span-3 shadow-sm">
         <CardHeader className="pb-4">
@@ -277,14 +277,23 @@ export const InterviewCalendar = ({ candidateId }: InterviewCalendarProps) => {
                       </div>
                     </div>
                     <div className="mt-3 flex gap-2">
-                      <Button size="sm" className="flex-1">
+                      <Button size="sm" className="flex-1 text-xs sm:text-sm">
                         <CalendarPlus className="w-4 h-4 mr-1" />
                         Add to Calendar
                       </Button>
-                      {interview.type === 'video' && interview.meetingLink && (
-                        <Button size="sm" variant="outline" onClick={() => window.open(interview.meetingLink!, '_blank')}>
+                      {interview.type === 'video' && (
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => {
+                            if (interview.meetingLink) {
+                              window.open(interview.meetingLink, '_blank');
+                            }
+                          }}
+                          className="text-xs sm:text-sm"
+                        >
                           <Video className="w-4 h-4 mr-1" />
-                          Join
+                          Join Call
                         </Button>
                       )}
                     </div>

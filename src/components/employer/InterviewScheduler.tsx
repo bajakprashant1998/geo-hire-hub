@@ -177,7 +177,7 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
   return (
     <div className="space-y-6">
       {/* Quick Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Card className="bg-gradient-to-br from-primary/5 to-primary/10">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -260,7 +260,7 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
                       key={applicant.id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="flex items-center justify-between p-4 rounded-xl border hover:border-primary/30 hover:bg-muted/30 transition-all"
+                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 rounded-xl border hover:border-primary/30 hover:bg-muted/30 transition-all gap-3"
                     >
                       <div className="flex items-center gap-3">
                         <Avatar className="h-12 w-12">
@@ -286,9 +286,10 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
                         <Button 
                           size="sm"
+                          className="flex-1 sm:flex-none"
                           onClick={() => setScheduleDialog({ open: true, applicant })}
                         >
                           <CalendarPlus className="w-4 h-4 mr-1" />
@@ -321,7 +322,7 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
                         key={applicant.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="flex items-center justify-between p-4 rounded-xl border border-green-500/20 bg-green-500/5 transition-all"
+                        className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 rounded-xl border border-green-500/20 bg-green-500/5 transition-all gap-3"
                       >
                         <div className="flex items-center gap-3">
                           <div className="text-center p-2 bg-green-500/10 rounded-lg min-w-16">
@@ -357,11 +358,11 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
                             </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Button size="sm" variant="outline">
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                          <Button size="sm" variant="outline" className="flex-1 sm:flex-none text-xs sm:text-sm">
                             Reschedule
                           </Button>
-                          <Button size="sm" onClick={() => navigate(`/video-call/${applicant.id}`)}>
+                          <Button size="sm" className="flex-1 sm:flex-none text-xs sm:text-sm" onClick={() => navigate(`/video-call/${applicant.id}`)}>
                             <Video className="w-4 h-4 mr-1" />
                             Start Call
                           </Button>

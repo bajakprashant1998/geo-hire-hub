@@ -460,7 +460,7 @@ const EmployerDashboard = () => {
               </div>
             ) : (
               // Dashboard Home View
-              <div className="max-w-6xl mx-auto space-y-6">
+              <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
                 {/* Platform Notifications */}
                 <PlatformNotificationBanner userType="employer" />
 
@@ -473,7 +473,7 @@ const EmployerDashboard = () => {
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                   <DashboardStatCard
                     icon={Briefcase}
                     label="Active Jobs"
@@ -507,8 +507,8 @@ const EmployerDashboard = () => {
                 </div>
 
                 {/* Active Jobs Table + Interviews */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                  <div className="md:col-span-2 lg:col-span-2">
                     {employer && (
                       <ActiveJobsTable 
                         employerId={employer.id} 
@@ -516,7 +516,7 @@ const EmployerDashboard = () => {
                       />
                     )}
                   </div>
-                  <div className="lg:col-span-1">
+                  <div className="md:col-span-2 lg:col-span-1">
                     {employer && <EmployerInterviewsCard employerId={employer.id} />}
                   </div>
                 </div>

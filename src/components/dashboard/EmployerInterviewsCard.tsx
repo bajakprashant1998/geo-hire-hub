@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -22,6 +23,7 @@ interface EmployerInterviewsCardProps {
 }
 
 export const EmployerInterviewsCard = ({ employerId }: EmployerInterviewsCardProps) => {
+  const navigate = useNavigate();
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -161,14 +163,18 @@ export const EmployerInterviewsCard = ({ employerId }: EmployerInterviewsCardPro
                 </div>
                 <Button 
                   size="sm" 
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1 text-xs sm:text-sm"
                   onClick={() => {
                     if (interview.meeting_link) {
                       window.open(interview.meeting_link, '_blank');
+                    } else {
+                      navigate(`/video-call/${interview.id}`);
                     }
                   }}
                 >
-                  Join Call
+                  <Video className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Join Call</span>
+                  <span className="sm:hidden">Join</span>
                 </Button>
               </div>
               <p className="text-sm text-muted-foreground mt-2 line-clamp-1">{interview.position}</p>
