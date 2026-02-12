@@ -175,7 +175,7 @@ export const MessagesPreview = ({ profileId, onOpenChat }: MessagesPreviewProps)
       )}
 
       {/* Messages Area */}
-      <div className="h-52 overflow-y-auto p-4 space-y-4 bg-muted/30">
+      <div className="h-44 sm:h-52 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 bg-muted/30">
         {messages.map((message) => {
           const isOwn = message.sender_id === profileId;
           return (
@@ -196,8 +196,8 @@ export const MessagesPreview = ({ profileId, onOpenChat }: MessagesPreviewProps)
       </div>
 
       {/* Input Area */}
-      <div className="p-4 border-t bg-card">
-        <div className="flex items-center gap-3">
+      <div className="p-3 sm:p-4 border-t bg-card">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Button variant="ghost" size="icon" className="text-muted-foreground">
             <Paperclip className="w-5 h-5" />
           </Button>
