@@ -309,7 +309,7 @@ const CandidateDashboard = () => {
           />
 
           {/* Main Content */}
-          <main className="flex-1 p-4 lg:p-6 overflow-y-auto">
+          <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto">
             {activeSection && activeSection !== 'messages' && activeSection !== 'profile' ? (
               // Section Content View
               <div className="max-w-6xl mx-auto">
@@ -334,28 +334,30 @@ const CandidateDashboard = () => {
                 {/* Quick Actions Bar */}
                 {completeness < 100 && (
                   <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
-                    <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                          <User className="w-5 h-5 text-primary" />
+                    <CardContent className="p-3 sm:p-4 flex flex-col gap-3 sm:gap-4">
+                      <div className="flex items-start gap-3">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                          <User className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                         </div>
-                        <div>
-                          <p className="font-medium text-foreground">Complete your profile</p>
-                          <p className="text-sm text-muted-foreground">
+                        <div className="min-w-0">
+                          <p className="font-medium text-foreground text-sm sm:text-base">Complete your profile</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground">
                             Your profile is {completeness}% complete. Add more details to attract employers.
                           </p>
                         </div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 w-full">
                         <Button 
                           variant="outline" 
                           size="sm" 
+                          className="flex-1 sm:flex-none text-xs sm:text-sm"
                           onClick={() => setEditModalOpen(true)}
                         >
                           Quick Edit
                         </Button>
                         <Button 
                           size="sm" 
+                          className="flex-1 sm:flex-none text-xs sm:text-sm"
                           onClick={() => navigate('/candidate-settings')}
                         >
                           Full Settings
@@ -366,7 +368,7 @@ const CandidateDashboard = () => {
                 )}
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
                   <DashboardStatCard
                     icon={FileText}
                     label="Total Applied"
