@@ -28,6 +28,7 @@ import { InterviewCalendar } from '@/components/candidate/InterviewCalendar';
 import { PlatformNotificationBanner } from '@/components/dashboard/PlatformNotificationBanner';
 import { SavedJobsSection } from '@/components/candidate/SavedJobsSection';
 import { AIJobMatches } from '@/components/candidate/AIJobMatches';
+import { TaskList } from '@/components/candidate/TaskList';
 
 const CandidateDashboard = () => {
   const navigate = useNavigate();
@@ -151,6 +152,7 @@ const CandidateDashboard = () => {
     { icon: Briefcase, label: 'My Applications', value: 'jobs', badge: stats.applications },
     { icon: MessageSquare, label: 'Messages', value: 'messages', badge: stats.unreadMessages },
     { icon: Calendar, label: 'Scheduled Interviews', value: 'interviews' },
+    { icon: FileText, label: 'Tasks', value: 'tasks' },
     { icon: Bookmark, label: 'Saved Jobs', value: 'saved' },
     { icon: FileText, label: 'Resume', value: 'resume' },
     { icon: Bell, label: 'Notifications', value: 'notifications' },
@@ -260,6 +262,8 @@ const CandidateDashboard = () => {
         return candidate && <JobAlertsManager candidateId={candidate.id} />;
       case 'security':
         return <SecuritySettings />;
+      case 'tasks':
+        return candidate && <TaskList candidateId={candidate.id} />;
       case 'notifications':
         return <NotificationCenter />;
       case 'recommended':
