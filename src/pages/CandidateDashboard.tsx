@@ -282,7 +282,7 @@ const CandidateDashboard = () => {
 
   return (
     <EmailVerificationGuard fallbackMessage="Please verify your email to access your dashboard.">
-      <div className="min-h-screen bg-secondary flex">
+      <div className="min-h-screen bg-secondary flex overflow-x-hidden">
         {/* Sidebar */}
         <DashboardSidebar
           type="candidate"
@@ -298,7 +298,7 @@ const CandidateDashboard = () => {
         />
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-h-screen lg:ml-0">
+        <div className="flex-1 flex flex-col min-h-screen lg:ml-0 overflow-x-hidden">
           {/* Header */}
           <DashboardHeader
             type="candidate"
@@ -336,32 +336,32 @@ const CandidateDashboard = () => {
               <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
                 <PlatformNotificationBanner userType="candidate" />
                 {/* Quick Actions Bar */}
-                {completeness < 100 && (
+            {completeness < 100 && (
                   <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
-                    <CardContent className="p-3 sm:p-4 flex flex-col gap-3 sm:gap-4">
-                      <div className="flex items-start gap-3">
-                        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="flex items-start gap-2.5 sm:gap-3 mb-3">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
                           <User className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                         </div>
-                        <div className="min-w-0">
-                          <p className="font-medium text-foreground text-sm sm:text-base">Complete your profile</p>
-                          <p className="text-xs sm:text-sm text-muted-foreground">
-                            Your profile is {completeness}% complete. Add more details to attract employers.
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-foreground text-xs sm:text-base">Complete your profile ({completeness}%)</p>
+                          <p className="text-[11px] sm:text-sm text-muted-foreground leading-snug">
+                            Add more details to attract employers.
                           </p>
                         </div>
                       </div>
-                      <div className="flex gap-2 w-full">
+                      <div className="grid grid-cols-2 gap-2">
                         <Button 
                           variant="outline" 
                           size="sm" 
-                          className="flex-1 sm:flex-none text-xs sm:text-sm"
+                          className="text-xs sm:text-sm h-8 sm:h-9"
                           onClick={() => setEditModalOpen(true)}
                         >
                           Quick Edit
                         </Button>
                         <Button 
                           size="sm" 
-                          className="flex-1 sm:flex-none text-xs sm:text-sm"
+                          className="text-xs sm:text-sm h-8 sm:h-9"
                           onClick={() => navigate('/candidate-settings')}
                         >
                           Full Settings
@@ -372,7 +372,7 @@ const CandidateDashboard = () => {
                 )}
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
                   <DashboardStatCard
                     icon={FileText}
                     label="Total Applied"
@@ -407,11 +407,11 @@ const CandidateDashboard = () => {
                 </div>
 
                 {/* Messages Preview + Interview Card Row */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-                  <div className="md:col-span-2 lg:col-span-2">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-6">
+                  <div className="lg:col-span-2">
                     <MessagesPreview profileId={profile.id} onOpenChat={() => setChatModalOpen(true)} />
                   </div>
-                  <div className="md:col-span-2 lg:col-span-1">
+                  <div>
                     <UpcomingInterviewCard interview={null} />
                   </div>
                 </div>
