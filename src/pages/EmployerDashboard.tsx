@@ -36,6 +36,7 @@ import { InterviewScheduler } from '@/components/employer/InterviewScheduler';
 import { JobAnalyticsDashboard } from '@/components/employer/JobAnalyticsDashboard';
 import { PlatformNotificationBanner } from '@/components/dashboard/PlatformNotificationBanner';
 import { TaskManager } from '@/components/employer/TaskManager';
+import EmployerDetail from '@/pages/EmployerDetail';
 
 const EmployerDashboard = () => {
   const navigate = useNavigate();
@@ -201,6 +202,7 @@ const EmployerDashboard = () => {
     { icon: Calendar, label: 'Interviews', value: 'interviews' },
     { icon: BarChart3, label: 'Analytics', value: 'analytics' },
     { icon: Building2, label: 'Company Profile', value: 'company' },
+    { icon: Eye, label: 'Public Profile', value: 'public-profile' },
     { icon: Settings, label: 'Settings', value: 'settings' }
   ];
 
@@ -409,6 +411,8 @@ const EmployerDashboard = () => {
         );
       case 'interviews':
         return employer && <InterviewScheduler employerId={employer.id} />;
+      case 'public-profile':
+        return employer && <EmployerDetail id={employer.id} />;
       default:
         return null;
     }

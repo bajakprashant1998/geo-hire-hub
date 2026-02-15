@@ -29,6 +29,7 @@ import { PlatformNotificationBanner } from '@/components/dashboard/PlatformNotif
 import { SavedJobsSection } from '@/components/candidate/SavedJobsSection';
 import { AIJobMatches } from '@/components/candidate/AIJobMatches';
 import { TaskList } from '@/components/candidate/TaskList';
+import CandidateDetail from '@/pages/CandidateDetail';
 
 const CandidateDashboard = () => {
   const navigate = useNavigate();
@@ -157,6 +158,7 @@ const CandidateDashboard = () => {
     { icon: FileText, label: 'Resume', value: 'resume' },
     { icon: Bell, label: 'Notifications', value: 'notifications' },
     { icon: User, label: 'Edit Profile', value: 'profile' },
+    { icon: Eye, label: 'Public Profile', value: 'public-profile' },
     { icon: Sparkles, label: 'Job Alerts', value: 'alerts' },
     { icon: Shield, label: 'Security', value: 'security' }
   ];
@@ -266,6 +268,8 @@ const CandidateDashboard = () => {
         return candidate && <TaskList candidateId={candidate.id} />;
       case 'notifications':
         return <NotificationCenter />;
+      case 'public-profile':
+        return candidate && <CandidateDetail id={candidate.id} />;
       case 'recommended':
         return candidate && (
           <RecommendedJobs 
