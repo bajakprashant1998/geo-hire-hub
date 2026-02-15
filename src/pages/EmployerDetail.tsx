@@ -48,8 +48,9 @@ interface Job {
   status: string;
 }
 
-const EmployerDetail = () => {
-  const { id } = useParams<{ id: string }>();
+const EmployerDetail = ({ id: propId }: { id?: string }) => {
+  const { id: paramId } = useParams<{ id: string }>();
+  const id = propId || paramId;
   const navigate = useNavigate();
   const { user } = useAuth();
   const isAuthenticated = !!user;

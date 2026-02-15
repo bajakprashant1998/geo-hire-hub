@@ -35,8 +35,9 @@ interface CandidateProfile {
   social_links: SocialLinks | null; availability_status: string | null;
 }
 
-const CandidateDetail = () => {
-  const { id } = useParams<{ id: string }>();
+const CandidateDetail = ({ id: propId }: { id?: string }) => {
+  const { id: paramId } = useParams<{ id: string }>();
+  const id = propId || paramId;
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { startConversation } = useStartConversation();
