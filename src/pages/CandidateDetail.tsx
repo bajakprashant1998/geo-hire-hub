@@ -43,6 +43,7 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
   const { startConversation } = useStartConversation();
   const { user, profile } = useAuth();
   const isEmployerUser = user && profile?.user_type === 'employer';
+  const isOwnProfile = !!propId; // When rendered inline via dashboard, it's always the user's own profile
   const [candidate, setCandidate] = useState<CandidateProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
@@ -182,7 +183,7 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
             </Button>
             <div className="flex items-center gap-1.5">
               <Button variant="ghost" size="icon" onClick={handleShare} className="rounded-full w-9 h-9"><Share2 className="w-4 h-4" /></Button>
-              {isEmployerUser && (
+              {isEmployerUser && !isOwnProfile && (
                 <Button variant="ghost" size="icon" onClick={handleSave} className={`rounded-full w-9 h-9 ${isSaved ? 'text-destructive' : ''}`}>
                   <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
                 </Button>
@@ -268,7 +269,7 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
 
       {/* Content */}
       <div className="container mx-auto px-4 py-6 max-w-5xl">
-        {isEmployerUser ? (
+        {(isEmployerUser || isOwnProfile) ? (
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Main Column */}
             <div className="lg:col-span-2 space-y-4">
@@ -385,7 +386,8 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
 
             {/* Sidebar */}
             <div className="lg:col-span-1 space-y-4">
-              {/* Contact Card */}
+              {/* Contact Card - hidden when viewing own profile */}
+              {!isOwnProfile && (
               <Card className="overflow-hidden">
                 <div className="bg-primary p-4">
                   <h3 className="text-primary-foreground font-semibold flex items-center gap-2">
@@ -407,6 +409,7 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
                   </Button>
                 </CardContent>
               </Card>
+              )}
 
               {/* Highlights */}
               <Card>

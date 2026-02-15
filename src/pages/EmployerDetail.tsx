@@ -54,6 +54,7 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const isAuthenticated = !!user;
+  const isOwnProfile = !!propId;
 
   const [employer, setEmployer] = useState<EmployerProfile | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -173,9 +174,11 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
             </Button>
             <div className="flex items-center gap-1.5">
               <Button variant="ghost" size="icon" onClick={handleShare} className="rounded-full w-9 h-9"><Share2 className="w-4 h-4" /></Button>
+              {!isOwnProfile && (
               <Button variant="ghost" size="icon" onClick={handleFollow} className={`rounded-full w-9 h-9 ${isFollowing ? 'text-primary' : ''}`}>
                 <Heart className={`w-4 h-4 ${isFollowing ? 'fill-current' : ''}`} />
               </Button>
+              )}
             </div>
           </div>
         </div>
@@ -235,6 +238,7 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
             </div>
 
             {/* Desktop CTA */}
+            {!isOwnProfile && (
             <div className="hidden lg:flex flex-col gap-2 shrink-0">
               {isAuthenticated ? (
                 <>
@@ -251,6 +255,7 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
                 </>
               )}
             </div>
+            )}
           </div>
         </div>
       </div>
@@ -352,7 +357,8 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
 
           {/* Sidebar */}
           <div className="lg:col-span-1 space-y-4">
-            {/* Contact/Auth Card */}
+            {/* Contact/Auth Card - hidden when viewing own profile */}
+            {!isOwnProfile && (
             <Card className="overflow-hidden">
               <div className="bg-primary p-4">
                 <h3 className="text-primary-foreground font-semibold flex items-center gap-2">
@@ -379,6 +385,7 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
                 )}
               </CardContent>
             </Card>
+            )}
 
             {/* Company Info */}
             <Card>
@@ -433,6 +440,7 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
       </div>
 
       {/* Mobile Bottom Bar */}
+      {!isOwnProfile && (
       <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-background/95 backdrop-blur-lg border-t p-3 z-50">
         {isAuthenticated ? (
           <div className="flex items-center gap-2">
@@ -450,6 +458,7 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 };
