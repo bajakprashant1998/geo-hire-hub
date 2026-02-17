@@ -281,19 +281,26 @@ export const InterviewCalendar = ({ candidateId }: InterviewCalendarProps) => {
                         <CalendarPlus className="w-4 h-4 mr-1" />
                         Add to Calendar
                       </Button>
-                      {interview.type === 'video' && (
+                      {interview.type === 'video' && interview.meetingLink && (
                         <Button 
                           size="sm" 
                           variant="outline" 
-                          onClick={() => {
-                            if (interview.meetingLink) {
-                              window.open(interview.meetingLink, '_blank');
-                            }
-                          }}
+                          onClick={() => window.open(interview.meetingLink!, '_blank')}
                           className="text-xs sm:text-sm"
                         >
                           <Video className="w-4 h-4 mr-1" />
-                          Join Call
+                          Join Google Meet
+                        </Button>
+                      )}
+                      {interview.type === 'video' && !interview.meetingLink && (
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          disabled
+                          className="text-xs sm:text-sm"
+                        >
+                          <Video className="w-4 h-4 mr-1" />
+                          Link Pending
                         </Button>
                       )}
                     </div>
