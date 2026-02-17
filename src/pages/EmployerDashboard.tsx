@@ -34,6 +34,7 @@ import { SavedCandidatesSection } from '@/components/employer/SavedCandidatesSec
 import { ApplicantTabs } from '@/components/employer/ApplicantTabs';
 import { InterviewScheduler } from '@/components/employer/InterviewScheduler';
 import { JobAnalyticsDashboard } from '@/components/employer/JobAnalyticsDashboard';
+import { EmployerInterviewCalendar } from '@/components/employer/EmployerInterviewCalendar';
 import { PlatformNotificationBanner } from '@/components/dashboard/PlatformNotificationBanner';
 import { TaskManager } from '@/components/employer/TaskManager';
 import EmployerDetail from '@/pages/EmployerDetail';
@@ -130,12 +131,12 @@ const EmployerDashboard = () => {
         const totalViews = jobsWithCounts.reduce((sum, j) => sum + (j.view_count || 0), 0);
         const totalApplications = jobsWithCounts.reduce((sum, j) => sum + (j.applications_count || 0), 0);
 
-        // Count shortlisted as scheduled interviews
+        // Count from interviews table
         const { count: interviewCount } = await supabase
-          .from('applications')
+          .from('interviews')
           .select('*', { count: 'exact', head: true })
-          .eq('status', 'shortlisted')
-          .in('job_id', jobsWithCounts.map(j => j.id));
+          .eq('employer_id', employerData.id)
+          .eq('status', 'scheduled');
 
         setStats({
           activeJobs,
@@ -410,7 +411,12 @@ const EmployerDashboard = () => {
           </div>
         );
       case 'interviews':
-        return employer && <InterviewScheduler employerId={employer.id} />;
+        return employer && (
+          <div className="space-y-6">
+            <EmployerInterviewCalendar employerId={employer.id} />
+            <InterviewScheduler employerId={employer.id} />
+          </div>
+        );
       case 'public-profile':
         return employer && <EmployerDetail id={employer.id} />;
       default:

@@ -148,6 +148,7 @@ const VideoCall = () => {
               <Video className="w-8 h-8 text-primary" />
             </div>
             <CardTitle className="text-xl">Interview Lobby</CardTitle>
+            <p className="text-sm text-muted-foreground mt-1">Google Meet Video Interview</p>
             <Badge variant="outline" className="mx-auto mt-2">
               {interview.status === 'scheduled' ? 'Upcoming' : interview.status}
             </Badge>
@@ -231,9 +232,17 @@ const VideoCall = () => {
                 onClick={handleJoinMeeting}
               >
                 <Video className="w-5 h-5 mr-2" />
-                Join Video Meeting
+                Join Google Meet
                 <ExternalLink className="w-4 h-4 ml-2" />
               </Button>
+            )}
+
+            {interview.interview_type === 'video' && !interview.meeting_link && (
+              <div className="text-center p-4 rounded-lg bg-muted/50">
+                <p className="text-sm text-muted-foreground">
+                  Google Meet link has not been added yet. The employer will share it shortly.
+                </p>
+              </div>
             )}
 
             {interview.interview_type !== 'video' && (

@@ -184,14 +184,12 @@ export const UpcomingInterviewCard = () => {
           onClick={() => window.open(interview.meetingLink!, '_blank')}
         >
           <Video className="w-4 h-4" />
-          Join Meeting
+          Join Google Meet
         </Button>
       ) : isVideo ? (
-        <Button className="w-full gap-2 text-sm" asChild>
-          <a href={`/video-call/${interview.id}`}>
-            <Video className="w-4 h-4" />
-            Join Meeting
-          </a>
+        <Button className="w-full gap-2 text-sm" variant="outline" disabled>
+          <Video className="w-4 h-4" />
+          Google Meet Link Pending
         </Button>
       ) : (
         <Button variant="outline" className="w-full gap-2 text-sm">

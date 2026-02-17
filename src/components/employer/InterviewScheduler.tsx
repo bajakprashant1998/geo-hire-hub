@@ -77,11 +77,14 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
     date: '',
     time: '',
     type: 'video',
-    location: ''
+    location: '',
+    meetingLink: ''
   });
+  const [scheduledInterviews, setScheduledInterviews] = useState<any[]>([]);
 
   useEffect(() => {
     fetchApplicants();
+    fetchScheduledInterviews();
   }, [employerId]);
 
   const fetchApplicants = async () => {
@@ -108,12 +111,50 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
           )
         `)
         .in('job_id', jobIds)
-        .in('status', ['pending', 'shortlisted', 'reviewing'])
+        .in('status', ['pending', 'reviewing'])
         .order('created_at', { ascending: false });
 
       setApplicants(applications || []);
     }
     setLoading(false);
+  };
+
+  const fetchScheduledInterviews = async () => {
+    const { data: rows } = await supabase
+      .from('interviews')
+      .select(`
+        id, scheduled_date, scheduled_time, interview_type, meeting_link, location, status,
+        candidate_id,
+        candidates!inner(profile_id, job_title),
+        jobs!inner(title)
+      `)
+      .eq('employer_id', employerId)
+      .eq('status', 'scheduled')
+      .order('scheduled_date', { ascending: true });
+
+    if (rows && rows.length > 0) {
+      const mapped = await Promise.all(
+        rows.map(async (row: any) => {
+          const { data: prof } = await supabase
+            .from('profiles')
+            .select('full_name, avatar_url')
+            .eq('id', row.candidates.profile_id)
+            .maybeSingle();
+          return {
+            id: row.id,
+            scheduled_date: row.scheduled_date,
+            scheduled_time: row.scheduled_time,
+            interview_type: row.interview_type,
+            meeting_link: row.meeting_link,
+            location: row.location,
+            candidate_name: prof?.full_name || 'Candidate',
+            candidate_avatar: prof?.avatar_url,
+            job_title: row.jobs.title,
+          };
+        })
+      );
+      setScheduledInterviews(mapped);
+    }
   };
 
   const handleScheduleInterview = async () => {
@@ -135,7 +176,7 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
 
       if (appError) throw appError;
 
-      // Insert into interviews table
+      // Insert into interviews table with meeting link
       const { error: intError } = await supabase
         .from('interviews')
         .insert({
@@ -147,13 +188,14 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
           scheduled_time: interviewDetails.time,
           interview_type: interviewDetails.type,
           location: interviewDetails.type === 'in-person' ? interviewDetails.location : null,
+          meeting_link: interviewDetails.type === 'video' && interviewDetails.meetingLink ? interviewDetails.meetingLink : null,
         });
-
-      if (intError) throw intError;
 
       toast.success('Interview scheduled successfully!');
       setScheduleDialog({ open: false, applicant: null });
-      setInterviewDetails({ date: '', time: '', type: 'video', location: '' });
+      setInterviewDetails({ date: '', time: '', type: 'video', location: '', meetingLink: '' });
+      fetchApplicants();
+      fetchScheduledInterviews();
       fetchApplicants();
     } catch (error: any) {
       toast.error('Failed to schedule interview: ' + error.message);
@@ -185,7 +227,7 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
                 <Calendar className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{shortlistedApplicants.length}</p>
+                <p className="text-2xl font-bold">{scheduledInterviews.length}</p>
                 <p className="text-xs text-muted-foreground">Scheduled</p>
               </div>
             </div>
@@ -224,7 +266,7 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
                 <Video className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{shortlistedApplicants.length}</p>
+                <p className="text-2xl font-bold">{scheduledInterviews.filter(i => i.interview_type === 'video').length}</p>
                 <p className="text-xs text-muted-foreground">Video Calls</p>
               </div>
             </div>
@@ -243,7 +285,7 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
               </TabsTrigger>
               <TabsTrigger value="scheduled" className="gap-2">
                 <Calendar className="w-4 h-4" />
-                Scheduled ({shortlistedApplicants.length})
+                Scheduled ({scheduledInterviews.length})
               </TabsTrigger>
             </TabsList>
 
@@ -306,20 +348,19 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
             </TabsContent>
 
             <TabsContent value="scheduled">
-              {shortlistedApplicants.length === 0 ? (
+              {scheduledInterviews.length === 0 ? (
                 <div className="text-center py-12">
                   <Calendar className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
                   <p className="text-muted-foreground">No interviews scheduled yet</p>
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {shortlistedApplicants.map((applicant, index) => {
-                    const interviewDate = addDays(new Date(), index + 1);
-                    const interviewTime = ['9:00 AM', '11:00 AM', '2:00 PM', '4:00 PM'][index % 4];
+                  {scheduledInterviews.map((interview) => {
+                    const interviewDate = new Date(interview.scheduled_date);
                     
                     return (
                       <motion.div
-                        key={applicant.id}
+                        key={interview.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 rounded-xl border border-green-500/20 bg-green-500/5 transition-all gap-3"
@@ -334,37 +375,40 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
                             </p>
                           </div>
                           <Avatar className="h-12 w-12">
-                            <AvatarImage src={applicant.candidate?.profile?.avatar_url || ''} />
+                            <AvatarImage src={interview.candidate_avatar || ''} />
                             <AvatarFallback className="bg-green-500/10 text-green-600">
                               <User className="w-6 h-6" />
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-semibold">
-                              {applicant.candidate?.profile?.full_name || 'Candidate'}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {applicant.job?.title}
-                            </p>
+                            <p className="font-semibold">{interview.candidate_name}</p>
+                            <p className="text-sm text-muted-foreground">{interview.job_title}</p>
                             <div className="flex items-center gap-2 mt-1">
                               <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-xs">
-                                <Video className="w-3 h-3 mr-1" />
-                                Video Call
+                                {interview.interview_type === 'video' ? <Video className="w-3 h-3 mr-1" /> : <MapPin className="w-3 h-3 mr-1" />}
+                                {interview.interview_type === 'video' ? 'Google Meet' : interview.interview_type}
                               </Badge>
                               <span className="text-xs text-muted-foreground flex items-center gap-1">
                                 <Clock className="w-3 h-3" />
-                                {interviewTime}
+                                {interview.scheduled_time}
                               </span>
                             </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-2 w-full sm:w-auto">
-                          <Button size="sm" variant="outline" className="flex-1 sm:flex-none text-xs sm:text-sm">
-                            Reschedule
-                          </Button>
-                          <Button size="sm" className="flex-1 sm:flex-none text-xs sm:text-sm" onClick={() => navigate(`/video-call/${applicant.id}`)}>
-                            <Video className="w-4 h-4 mr-1" />
-                            Start Call
+                          {interview.interview_type === 'video' && interview.meeting_link && (
+                            <Button 
+                              size="sm" 
+                              className="flex-1 sm:flex-none text-xs sm:text-sm" 
+                              onClick={() => window.open(interview.meeting_link, '_blank')}
+                            >
+                              <Video className="w-4 h-4 mr-1" />
+                              Join Meet
+                            </Button>
+                          )}
+                          <Button size="sm" variant="outline" className="flex-1 sm:flex-none text-xs sm:text-sm" onClick={() => navigate(`/video-call/${interview.id}`)}>
+                            <ChevronRight className="w-4 h-4 mr-1" />
+                            Details
                           </Button>
                         </div>
                       </motion.div>
@@ -383,7 +427,7 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
         onOpenChange={(open) => {
           if (!open) {
             setScheduleDialog({ open: false, applicant: null });
-            setInterviewDetails({ date: '', time: '', type: 'video', location: '' });
+            setInterviewDetails({ date: '', time: '', type: 'video', location: '', meetingLink: '' });
           }
         }}
       >
@@ -475,6 +519,20 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
                 </SelectContent>
               </Select>
             </div>
+
+            {interviewDetails.type === 'video' && (
+              <div className="space-y-2">
+                <Label>Google Meet Link</Label>
+                <Input
+                  placeholder="https://meet.google.com/xxx-xxxx-xxx"
+                  value={interviewDetails.meetingLink}
+                  onChange={(e) => setInterviewDetails(prev => ({ ...prev, meetingLink: e.target.value }))}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Create a meeting at <a href="https://meet.google.com" target="_blank" rel="noopener noreferrer" className="text-primary underline">meet.google.com</a> and paste the link here
+                </p>
+              </div>
+            )}
 
             {interviewDetails.type === 'in-person' && (
               <div className="space-y-2">
