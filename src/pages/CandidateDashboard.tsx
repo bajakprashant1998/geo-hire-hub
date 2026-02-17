@@ -416,7 +416,7 @@ const CandidateDashboard = () => {
                     <MessagesPreview profileId={profile.id} onOpenChat={() => setChatModalOpen(true)} />
                   </div>
                   <div>
-                    <UpcomingInterviewCard interview={null} />
+                    <UpcomingInterviewCard />
                   </div>
                 </div>
 
