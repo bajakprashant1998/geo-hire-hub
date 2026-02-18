@@ -127,6 +127,8 @@ const CandidateDashboard = () => {
       setActiveSection(null);
     } else if (value === 'messages') {
       setChatModalOpen(true);
+    } else if (value === 'ai-resume') {
+      navigate('/ai-resume-builder');
     } else {
       setActiveSection(value);
     }
@@ -156,6 +158,7 @@ const CandidateDashboard = () => {
     { icon: FileText, label: 'Tasks', value: 'tasks' },
     { icon: Bookmark, label: 'Saved Jobs', value: 'saved' },
     { icon: FileText, label: 'Resume', value: 'resume' },
+    { icon: Sparkles, label: 'AI Resume Builder', value: 'ai-resume' },
     { icon: Bell, label: 'Notifications', value: 'notifications' },
     { icon: User, label: 'Edit Profile', value: 'profile' },
     { icon: Eye, label: 'Public Profile', value: 'public-profile' },
