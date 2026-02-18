@@ -371,7 +371,7 @@ const CandidateDashboard = () => {
                           className="text-xs sm:text-sm h-8 sm:h-9"
                           onClick={() => navigate('/candidate-settings')}
                         >
-                          Full Settings
+                          Edit Profile
                         </Button>
                       </div>
                     </CardContent>
