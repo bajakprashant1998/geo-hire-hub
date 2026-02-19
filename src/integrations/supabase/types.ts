@@ -354,6 +354,45 @@ export type Database = {
           },
         ]
       }
+      email_templates: {
+        Row: {
+          created_at: string
+          description: string | null
+          html_body: string
+          id: string
+          is_active: boolean | null
+          subject: string
+          template_key: string
+          updated_at: string
+          updated_by: string | null
+          variables: string[] | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          html_body: string
+          id?: string
+          is_active?: boolean | null
+          subject: string
+          template_key: string
+          updated_at?: string
+          updated_by?: string | null
+          variables?: string[] | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          html_body?: string
+          id?: string
+          is_active?: boolean | null
+          subject?: string
+          template_key?: string
+          updated_at?: string
+          updated_by?: string | null
+          variables?: string[] | null
+        }
+        Relationships: []
+      }
       email_verification_tokens: {
         Row: {
           created_at: string
@@ -1584,6 +1623,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      site_content: {
+        Row: {
+          body: string | null
+          content_key: string
+          content_type: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          metadata: Json | null
+          title: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          body?: string | null
+          content_key: string
+          content_type?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          title?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          body?: string | null
+          content_key?: string
+          content_type?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          title?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       tasks: {
         Row: {

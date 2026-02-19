@@ -9,6 +9,8 @@ import {
   RevenueChart,
   JobCategoryChart,
   ApplicationFunnelChart,
+  GeographicDistributionChart,
+  JobPostingTrendChart,
   StatsTrendCard
 } from '@/components/admin/AnalyticsCharts';
 import { 
@@ -153,6 +155,55 @@ export default function AdminAnalytics() {
     },
   });
 
+  // Geographic distribution (by employer country)
+  const { data: geoData, isLoading: geoLoading } = useQuery({
+    queryKey: ['admin-geo-distribution'],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('employers')
+        .select('country_code');
+
+      const counts: Record<string, number> = {};
+      data?.forEach(e => {
+        const cc = e.country_code || 'Unknown';
+        counts[cc] = (counts[cc] || 0) + 1;
+      });
+
+      return Object.entries(counts)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => b.value - a.value);
+    },
+  });
+
+  // Job posting trends (last 30 days)
+  const { data: jobTrendData, isLoading: jobTrendLoading } = useQuery({
+    queryKey: ['admin-job-posting-trends'],
+    queryFn: async () => {
+      const days = eachDayOfInterval({
+        start: subDays(new Date(), 30),
+        end: new Date()
+      });
+
+      const results = await Promise.all(
+        days.map(async (day) => {
+          const startOfDay = new Date(day);
+          startOfDay.setHours(0, 0, 0, 0);
+          const endOfDay = new Date(day);
+          endOfDay.setHours(23, 59, 59, 999);
+
+          const { count } = await supabase
+            .from('jobs')
+            .select('*', { count: 'exact', head: true })
+            .gte('created_at', startOfDay.toISOString())
+            .lte('created_at', endOfDay.toISOString());
+
+          return { name: format(day, 'MMM d'), value: count || 0 };
+        })
+      );
+      return results;
+    },
+  });
+
   // Quick stats
   const { data: quickStats } = useQuery({
     queryKey: ['admin-quick-stats'],
@@ -190,7 +241,7 @@ export default function AdminAnalytics() {
     },
   });
 
-  const isLoading = regLoading || revLoading || catLoading || funnelLoading;
+  const isLoading = regLoading || revLoading || catLoading || funnelLoading || geoLoading || jobTrendLoading;
 
   return (
     <AdminLayout title="Analytics">
@@ -241,7 +292,7 @@ export default function AdminAnalytics() {
             ) : (
               <>
                 <RegistrationTrendChart data={registrationData || []} />
-                <JobCategoryChart data={categoryData || []} />
+                <JobPostingTrendChart data={jobTrendData || []} />
               </>
             )}
           </div>
@@ -258,19 +309,8 @@ export default function AdminAnalytics() {
               </>
             )}
           </div>
-        </TabsContent>
-
-        <TabsContent value="users">
-          {regLoading ? (
-            <Card><CardContent className="p-6"><Skeleton className="h-[400px] w-full" /></CardContent></Card>
-          ) : (
-            <RegistrationTrendChart data={registrationData || []} />
-          )}
-        </TabsContent>
-
-        <TabsContent value="jobs" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {catLoading || funnelLoading ? (
+            {isLoading ? (
               <>
                 <Card><CardContent className="p-6"><Skeleton className="h-[300px] w-full" /></CardContent></Card>
                 <Card><CardContent className="p-6"><Skeleton className="h-[300px] w-full" /></CardContent></Card>
@@ -278,10 +318,38 @@ export default function AdminAnalytics() {
             ) : (
               <>
                 <JobCategoryChart data={categoryData || []} />
-                <ApplicationFunnelChart data={funnelData || []} />
+                <GeographicDistributionChart data={geoData || []} />
               </>
             )}
           </div>
+        </TabsContent>
+
+        <TabsContent value="users" className="space-y-6">
+          {isLoading ? (
+            <Card><CardContent className="p-6"><Skeleton className="h-[400px] w-full" /></CardContent></Card>
+          ) : (
+            <>
+              <RegistrationTrendChart data={registrationData || []} />
+              <GeographicDistributionChart data={geoData || []} />
+            </>
+          )}
+        </TabsContent>
+
+        <TabsContent value="jobs" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {isLoading ? (
+              <>
+                <Card><CardContent className="p-6"><Skeleton className="h-[300px] w-full" /></CardContent></Card>
+                <Card><CardContent className="p-6"><Skeleton className="h-[300px] w-full" /></CardContent></Card>
+              </>
+            ) : (
+              <>
+                <JobPostingTrendChart data={jobTrendData || []} />
+                <JobCategoryChart data={categoryData || []} />
+              </>
+            )}
+          </div>
+          <ApplicationFunnelChart data={funnelData || []} />
         </TabsContent>
 
         <TabsContent value="revenue">
