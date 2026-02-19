@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, ChevronUp, Plus, X, Sparkles, Loader2 } from 'lucide-react';
+import { CURRENCIES, getCurrencyByCode } from '@/lib/currencies';
 
 interface CandidateRequirementSectionProps {
   experienceType: 'Any' | 'Fresher Only' | 'Experienced Only';
@@ -43,6 +44,8 @@ interface CandidateRequirementSectionProps {
   onGenerateDescription: () => void;
   generatingDescription: boolean;
   title: string;
+  salaryCurrency: string;
+  setSalaryCurrency: (currency: string) => void;
 }
 
 const experienceOptions = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10+'];
@@ -93,6 +96,8 @@ export const CandidateRequirementSection = ({
   onGenerateDescription,
   generatingDescription,
   title,
+  salaryCurrency,
+  setSalaryCurrency,
 }: CandidateRequirementSectionProps) => {
   const [isAdditionalOpen, setIsAdditionalOpen] = useState(false);
   const [skillInput, setSkillInput] = useState('');
@@ -177,19 +182,37 @@ export const CandidateRequirementSection = ({
         </div>
       )}
 
-      {/* Salary Range */}
+      {/* Salary Range with Currency */}
       <div className="space-y-2">
-        <Label>Monthly In-hand Salary (₹) *</Label>
+        <Label>Monthly In-hand Salary *</Label>
+        <div className="flex items-center gap-2 mb-2">
+          <Select value={salaryCurrency} onValueChange={setSalaryCurrency}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="max-h-[200px]">
+              {CURRENCIES.map((c) => (
+                <SelectItem key={c.code} value={c.code}>
+                  <span className="flex items-center gap-1.5">
+                    <span>{c.flag}</span>
+                    <span>{c.code}</span>
+                    <span className="text-muted-foreground">({c.symbol})</span>
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <div className="flex items-center gap-3">
           <Input
-            placeholder="Min (e.g., 15000)"
+            placeholder={`Min (e.g., 15000)`}
             value={salaryMin}
             onChange={(e) => setSalaryMin(e.target.value)}
             type="number"
           />
           <span className="text-muted-foreground">to</span>
           <Input
-            placeholder="Max (e.g., 25000)"
+            placeholder={`Max (e.g., 25000)`}
             value={salaryMax}
             onChange={(e) => setSalaryMax(e.target.value)}
             type="number"

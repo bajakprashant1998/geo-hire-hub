@@ -1,0 +1,11 @@
+{
+  "nav": { "home": "ホーム", "dashboard": "ダッシュボード", "messages": "メッセージ", "profile": "プロフィール", "settings": "設定", "signOut": "ログアウト", "login": "ログイン", "signup": "登録" },
+  "dashboard": { "welcome": "おかえりなさい", "findDreamJob": "今日、夢の仕事を見つけましょう", "totalApplications": "応募総数", "activeJobs": "アクティブな求人", "interviews": "面接", "savedJobs": "保存した求人", "profileCompleteness": "プロフィール", "overview": "概要", "applications": "応募", "tasks": "タスク", "jobAlerts": "求人アラート", "recommendations": "おすすめ" },
+  "employer": { "postJob": "求人を掲載", "applicants": "応募者", "analytics": "分析", "companyProfile": "企業プロフィール", "totalApplicants": "応募者総数", "activeListings": "アクティブな掲載", "interviewsScheduled": "面接予定", "savedCandidates": "保存した候補者" },
+  "jobs": { "jobTitle": "職種名", "location": "勤務地", "salary": "給与", "experience": "経験", "skills": "スキル", "applyNow": "今すぐ応募", "saveJob": "求人を保存", "fullTime": "フルタイム", "partTime": "パートタイム", "description": "仕事の説明", "requirements": "要件", "postedOn": "掲載日", "openings": "募集人数", "currency": "通貨" },
+  "profile": { "editProfile": "プロフィール編集", "completeProfile": "プロフィールを完成させましょう", "bio": "自己紹介", "contactInfo": "連絡先", "workExperience": "職歴", "education": "学歴", "certifications": "資格", "languages": "言語", "downloadPDF": "PDFダウンロード", "timezone": "タイムゾーン" },
+  "auth": { "email": "メール", "password": "パスワード", "forgotPassword": "パスワードを忘れた？", "createAccount": "アカウント作成", "alreadyHaveAccount": "アカウントをお持ちですか？", "dontHaveAccount": "アカウントをお持ちでないですか？" },
+  "common": { "search": "検索", "save": "保存", "cancel": "キャンセル", "delete": "削除", "edit": "編集", "view": "表示", "loading": "読み込み中...", "noResults": "結果なし", "submit": "送信", "next": "次へ", "previous": "前へ", "close": "閉じる", "language": "言語", "selectCountry": "国を選択", "phone": "電話番号" },
+  "map": { "searchLocation": "都市、エリア、住所を検索...", "useMyLocation": "現在地を使用", "locationDetected": "位置を検出しました！", "clickToSet": "地図をクリックして勤務地を設定", "satellite": "衛星", "street": "ストリート" },
+  "interview": { "schedule": "面接を予約", "scheduled": "予約済み", "yourTimezone": "あなたのタイムゾーン", "employerTimezone": "雇用主のタイムゾーン", "localTime": "現地時間" }
+}

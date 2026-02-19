@@ -1092,6 +1092,7 @@ export type Database = {
           moderation_status: string | null
           openings: number | null
           organization_size: string | null
+          salary_currency: string | null
           salary_range: string | null
           shift_type: string | null
           skills: string[] | null
@@ -1141,6 +1142,7 @@ export type Database = {
           moderation_status?: string | null
           openings?: number | null
           organization_size?: string | null
+          salary_currency?: string | null
           salary_range?: string | null
           shift_type?: string | null
           skills?: string[] | null
@@ -1190,6 +1192,7 @@ export type Database = {
           moderation_status?: string | null
           openings?: number | null
           organization_size?: string | null
+          salary_currency?: string | null
           salary_range?: string | null
           shift_type?: string | null
           skills?: string[] | null
@@ -1465,6 +1468,7 @@ export type Database = {
           latitude: number | null
           longitude: number | null
           profile_completed: boolean | null
+          timezone: string | null
           two_factor_enabled: boolean | null
           updated_at: string | null
           user_id: string
@@ -1482,6 +1486,7 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           profile_completed?: boolean | null
+          timezone?: string | null
           two_factor_enabled?: boolean | null
           updated_at?: string | null
           user_id: string
@@ -1499,6 +1504,7 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           profile_completed?: boolean | null
+          timezone?: string | null
           two_factor_enabled?: boolean | null
           updated_at?: string | null
           user_id?: string

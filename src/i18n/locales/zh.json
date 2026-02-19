@@ -1,0 +1,11 @@
+{
+  "nav": { "home": "首页", "dashboard": "仪表板", "messages": "消息", "profile": "个人资料", "settings": "设置", "signOut": "退出登录", "login": "登录", "signup": "注册" },
+  "dashboard": { "welcome": "欢迎回来", "findDreamJob": "让我们今天找到您的理想工作", "totalApplications": "申请总数", "activeJobs": "活跃职位", "interviews": "面试", "savedJobs": "已收藏职位", "profileCompleteness": "个人资料", "overview": "概览", "applications": "申请", "tasks": "任务", "jobAlerts": "职位提醒", "recommendations": "推荐" },
+  "employer": { "postJob": "发布职位", "applicants": "申请人", "analytics": "分析", "companyProfile": "公司简介", "totalApplicants": "申请人总数", "activeListings": "活跃列表", "interviewsScheduled": "已安排面试", "savedCandidates": "已保存候选人" },
+  "jobs": { "jobTitle": "职位名称", "location": "地点", "salary": "薪资", "experience": "经验", "skills": "技能", "applyNow": "立即申请", "saveJob": "收藏职位", "fullTime": "全职", "partTime": "兼职", "description": "职位描述", "requirements": "要求", "postedOn": "发布于", "openings": "空缺", "currency": "货币" },
+  "profile": { "editProfile": "编辑资料", "completeProfile": "完善您的资料", "bio": "简介", "contactInfo": "联系方式", "workExperience": "工作经验", "education": "教育背景", "certifications": "证书", "languages": "语言", "downloadPDF": "下载PDF", "timezone": "时区" },
+  "auth": { "email": "邮箱", "password": "密码", "forgotPassword": "忘记密码？", "createAccount": "创建账户", "alreadyHaveAccount": "已有账户？", "dontHaveAccount": "没有账户？" },
+  "common": { "search": "搜索", "save": "保存", "cancel": "取消", "delete": "删除", "edit": "编辑", "view": "查看", "loading": "加载中...", "noResults": "无结果", "submit": "提交", "next": "下一步", "previous": "上一步", "close": "关闭", "language": "语言", "selectCountry": "选择国家", "phone": "电话号码" },
+  "map": { "searchLocation": "搜索城市、地区或地址...", "useMyLocation": "使用我的位置", "locationDetected": "位置已检测！", "clickToSet": "点击地图设置职位位置", "satellite": "卫星", "street": "街道" },
+  "interview": { "schedule": "安排面试", "scheduled": "已安排", "yourTimezone": "您的时区", "employerTimezone": "雇主时区", "localTime": "当地时间" }
+}

@@ -12,6 +12,8 @@ import {
 import { Menu, Bell, Moon, Sun, User, Settings, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from 'next-themes';
+import { LanguageSelector } from '@/components/LanguageSelector';
+import { useTranslation } from 'react-i18next';
 
 interface DashboardHeaderProps {
   type: 'candidate' | 'employer';
@@ -39,6 +41,7 @@ export const DashboardHeader = ({
   const settingsPath = type === 'employer' ? '/company-profile' : '/candidate-settings';
   const firstName = userName?.split(' ')[0] || 'User';
   const { theme, setTheme } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <header className="sticky top-0 z-30 h-14 sm:h-16 bg-card border-b shadow-sm safe-area-pt">
@@ -104,6 +107,9 @@ export const DashboardHeader = ({
               </span>
             )}
           </Button>
+
+          {/* Language Selector */}
+          <LanguageSelector className="hidden sm:flex" />
 
           {/* Theme Toggle */}
           <Button 
