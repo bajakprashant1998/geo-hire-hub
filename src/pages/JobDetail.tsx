@@ -232,6 +232,7 @@ const JobDetail = () => {
             website_url,
             description,
             is_government,
+            verification_status,
             profiles!inner (
               avatar_url,
               user_id,

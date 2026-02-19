@@ -392,10 +392,6 @@ export const SecuritySettings = () => {
                     I understand, delete my account
                   </AlertDialogAction>
                 </AlertDialogFooter>
-                  >
-                    I understand, delete my account
-                  </AlertDialogAction>
-                </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
           </div>
