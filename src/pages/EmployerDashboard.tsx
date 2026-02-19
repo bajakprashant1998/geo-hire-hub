@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 import {
   MapPin, Briefcase, Building2, Plus, Loader2, Eye, Users, 
   CheckCircle2, ChevronRight, FileEdit, CreditCard, UserCheck,
-  MessageSquare, Calendar, BarChart3, User, Settings, Pencil, Trash2
+  MessageSquare, Calendar, BarChart3, User, Settings, Pencil, Trash2, Shield
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -43,6 +43,7 @@ import { EmployerProfileCompletionPrompts } from '@/components/employer/ProfileC
 import { DashboardBottomNav } from '@/components/dashboard/DashboardBottomNav';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 import { JobExpiryBadge } from '@/components/employer/JobExpiryBadge';
+import { SecuritySettings } from '@/components/candidate/SecuritySettings';
 
 const EmployerDashboard = () => {
   const navigate = useNavigate();
@@ -55,11 +56,13 @@ const EmployerDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [chatModalOpen, setChatModalOpen] = useState(false);
   const [profileRetryCount, setProfileRetryCount] = useState(0);
+  const [planName, setPlanName] = useState('Free Plan');
   const [stats, setStats] = useState({
     activeJobs: 0,
     totalApplications: 0,
     scheduledInterviews: 0,
-    profileViews: 0
+    profileViews: 0,
+    notificationCount: 0
   });
   const [jobToDelete, setJobToDelete] = useState<any>(null);
   const [deletingJob, setDeletingJob] = useState(false);
@@ -89,21 +92,13 @@ const EmployerDashboard = () => {
   }, [user, profile, profileLoading, profileRetryCount, refreshProfile]);
 
   useEffect(() => {
-    // Wait for auth to finish loading
     if (authLoading) return;
-    
-    // If no user after auth loaded, they need to login
     if (!user) return;
-    
-    // Wait for profile to load (but don't wait forever)
     if (!profile && profileLoading) return;
-    
-    // If profile still null after loading, show fallback
     if (!profile) {
       setDataLoading(false);
       return;
     }
-    
     if (profile.user_type !== 'employer') {
       navigate('/candidate-dashboard');
       return;
@@ -112,7 +107,7 @@ const EmployerDashboard = () => {
   }, [user, profile, authLoading, profileLoading]);
 
   const fetchEmployerData = async () => {
-    if (!profile) return;
+    if (!profile || !user) return;
     
     try {
       const { data: employerData } = await supabase
@@ -146,7 +141,6 @@ const EmployerDashboard = () => {
         }
 
         const activeJobs = jobsWithCounts.filter(j => j.is_active && j.status === 'open').length;
-        const totalViews = jobsWithCounts.reduce((sum, j) => sum + (j.view_count || 0), 0);
         const totalApplications = jobsWithCounts.reduce((sum, j) => sum + (j.applications_count || 0), 0);
 
         // Count from interviews table
@@ -156,11 +150,37 @@ const EmployerDashboard = () => {
           .eq('employer_id', employerData.id)
           .eq('status', 'scheduled');
 
+        // Real profile views from profile_views table
+        const { count: viewCount } = await supabase
+          .from('profile_views')
+          .select('*', { count: 'exact', head: true })
+          .eq('profile_id', profile.id);
+
+        // Real unread notification count
+        const { count: notifCount } = await supabase
+          .from('notifications')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('is_read', false);
+
+        // Fetch plan name from subscription
+        const { data: subData } = await supabase
+          .from('employer_subscriptions')
+          .select('employer_plans(name)')
+          .eq('employer_id', employerData.id)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        if (subData && (subData as any).employer_plans?.name) {
+          setPlanName((subData as any).employer_plans.name + ' Plan');
+        }
+
         setStats({
           activeJobs,
           totalApplications,
           scheduledInterviews: interviewCount || 0,
-          profileViews: totalViews
+          profileViews: viewCount || 0,
+          notificationCount: notifCount || 0
         });
       }
     } catch (error) {
@@ -197,7 +217,6 @@ const EmployerDashboard = () => {
       
       if (error) throw error;
       
-      // Update local state
       setJobs(jobs.filter(j => j.id !== jobToDelete.id));
       if (selectedJob?.id === jobToDelete.id) {
         setSelectedJob(jobs.find(j => j.id !== jobToDelete.id) || null);
@@ -221,7 +240,8 @@ const EmployerDashboard = () => {
     { icon: Calendar, label: 'Interviews', value: 'interviews' },
     { icon: BarChart3, label: 'Analytics', value: 'analytics' },
     { icon: Building2, label: 'Company Profile', value: 'company' },
-    { icon: Eye, label: 'Public Profile', value: 'public-profile' }
+    { icon: Eye, label: 'Public Profile', value: 'public-profile' },
+    { icon: Shield, label: 'Security', value: 'security' }
   ];
 
   // Show loading while auth is being checked
@@ -236,7 +256,6 @@ const EmployerDashboard = () => {
     );
   }
 
-  // Show loading while profile is being fetched (with timeout protection)
   if (user && !profile && profileLoading) {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center">
@@ -248,14 +267,13 @@ const EmployerDashboard = () => {
     );
   }
 
-  // Show login prompt only after auth has finished loading and no user
   if (!user) {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center p-4">
         <Card className="w-full max-w-md shadow-xl border-0">
           <CardContent className="p-8 text-center">
             <div className="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <Building2 className="w-10 h-10 text-white" />
+              <Building2 className="w-10 h-10 text-primary-foreground" />
             </div>
             <h2 className="text-2xl font-bold mb-3 text-foreground">Welcome to Hire for Job</h2>
             <p className="text-muted-foreground mb-8">Sign in to access your employer dashboard</p>
@@ -268,7 +286,6 @@ const EmployerDashboard = () => {
     );
   }
 
-  // Show error state if profile failed to load
   if (!profile) {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center p-4">
@@ -437,6 +454,8 @@ const EmployerDashboard = () => {
         );
       case 'public-profile':
         return employer && <EmployerDetail id={employer.id} />;
+      case 'security':
+        return <SecuritySettings />;
       default:
         return null;
     }
@@ -466,17 +485,16 @@ const EmployerDashboard = () => {
           {/* Header */}
           <EmployerHeader
             companyName={employer?.company_name || 'Your Company'}
-            planName="Enterprise Plan"
+            planName={planName}
             avatarUrl={profile.avatar_url}
             onMenuClick={() => setSidebarOpen(true)}
             onSignOut={signOut}
-            notificationCount={0}
+            notificationCount={stats.notificationCount}
           />
 
           {/* Main Content */}
           <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto pb-20 md:pb-6">
             {activeSection ? (
-              // Section Content View
               <div className="max-w-6xl mx-auto">
                 <Button 
                   variant="ghost" 
@@ -493,16 +511,13 @@ const EmployerDashboard = () => {
                 </Card>
               </div>
             ) : (
-              // Dashboard Home View
               <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
                 <PlatformNotificationBanner userType="employer" />
 
-                {/* Profile Completion Prompts */}
                 {employer && (
                   <EmployerProfileCompletionPrompts employer={employer} jobCount={jobs.length} />
                 )}
 
-                {/* Welcome Message */}
                 <div>
                   <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
                     Welcome back, {employer?.company_name || 'Company'}!
@@ -516,7 +531,7 @@ const EmployerDashboard = () => {
                     icon={Briefcase}
                     label="Active Jobs"
                     value={stats.activeJobs}
-                    subtitle={`+${Math.max(1, Math.floor(stats.activeJobs * 0.2))} this week`}
+                    subtitle="currently open"
                     accentColor="blue"
                     onClick={() => setActiveSection('jobs')}
                   />
@@ -524,7 +539,7 @@ const EmployerDashboard = () => {
                     icon={Users}
                     label="Total Applications"
                     value={stats.totalApplications}
-                    subtitle={`+${Math.floor(stats.totalApplications * 0.15)} today`}
+                    subtitle="across all jobs"
                     accentColor="amber"
                     onClick={() => setActiveSection('jobs')}
                   />
@@ -532,14 +547,14 @@ const EmployerDashboard = () => {
                     icon={Calendar}
                     label="Scheduled Interviews"
                     value={stats.scheduledInterviews}
-                    subtitle={`+${Math.max(1, Math.floor(stats.scheduledInterviews * 0.3))} this week`}
+                    subtitle="upcoming"
                     accentColor="green"
                   />
                   <DashboardStatCard
                     icon={Eye}
                     label="Profile Views"
                     value={stats.profileViews.toLocaleString()}
-                    subtitle="-3% vs last week"
+                    subtitle="all time"
                     accentColor="purple"
                   />
                 </div>

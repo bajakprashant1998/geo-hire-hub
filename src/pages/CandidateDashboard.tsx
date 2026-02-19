@@ -35,6 +35,7 @@ import CandidateDetail from '@/pages/CandidateDetail';
 import { ProfileCompletionPrompts } from '@/components/candidate/ProfileCompletionPrompts';
 import { DashboardBottomNav } from '@/components/dashboard/DashboardBottomNav';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
+import { format, isToday, isTomorrow } from 'date-fns';
 
 const CandidateDashboard = () => {
   const navigate = useNavigate();
@@ -46,6 +47,7 @@ const CandidateDashboard = () => {
   const [chatModalOpen, setChatModalOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileRetryCount, setProfileRetryCount] = useState(0);
+  const [nextInterviewLabel, setNextInterviewLabel] = useState('None scheduled');
   const [stats, setStats] = useState({
     applications: 0,
     views: 0,
@@ -60,14 +62,12 @@ const CandidateDashboard = () => {
     candidateId: candidate?.id,
   });
 
-  // Re-fetch stats when realtime events trigger
   useEffect(() => {
     if (refreshTrigger > 0 && candidate) {
       fetchCandidate();
     }
   }, [refreshTrigger]);
 
-  // Retry profile fetch if user exists but profile is null
   useEffect(() => {
     if (user && !profile && !profileLoading && profileRetryCount < 3) {
       const timer = setTimeout(() => {
@@ -79,21 +79,13 @@ const CandidateDashboard = () => {
   }, [user, profile, profileLoading, profileRetryCount, refreshProfile]);
 
   useEffect(() => {
-    // Wait for auth to finish loading
     if (authLoading) return;
-    
-    // If no user after auth loaded, they need to login
     if (!user) return;
-    
-    // Wait for profile to load (but don't wait forever)
     if (!profile && profileLoading) return;
-    
-    // If profile still null after loading, show fallback
     if (!profile) {
       setDataLoading(false);
       return;
     }
-    
     if (profile.user_type !== 'candidate') {
       navigate('/employer-dashboard');
       return;
@@ -102,7 +94,7 @@ const CandidateDashboard = () => {
   }, [user, profile, authLoading, profileLoading]);
 
   const fetchCandidate = async () => {
-    if (!profile) return;
+    if (!profile || !user) return;
     const { data } = await supabase
       .from('candidates')
       .select('*')
@@ -119,18 +111,40 @@ const CandidateDashboard = () => {
       const applications = appsRes.data || [];
       const interviews = applications.filter(a => a.status === 'shortlisted').length;
 
-      // Get real profile view count from profile_views table
       const { count: viewCount } = await supabase
         .from('profile_views')
         .select('*', { count: 'exact', head: true })
         .eq('profile_id', profile.id);
 
-      // Get real unread notification count
       const { count: notifCount } = await supabase
         .from('notifications')
         .select('*', { count: 'exact', head: true })
-        .eq('user_id', user!.id)
+        .eq('user_id', user.id)
         .eq('is_read', false);
+
+      // Fetch next interview date
+      const { data: nextInterview } = await supabase
+        .from('interviews')
+        .select('scheduled_date')
+        .eq('candidate_id', data.id)
+        .eq('status', 'scheduled')
+        .gte('scheduled_date', new Date().toISOString().split('T')[0])
+        .order('scheduled_date', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (nextInterview?.scheduled_date) {
+        const d = new Date(nextInterview.scheduled_date);
+        if (isToday(d)) {
+          setNextInterviewLabel('Next: Today');
+        } else if (isTomorrow(d)) {
+          setNextInterviewLabel('Next: Tomorrow');
+        } else {
+          setNextInterviewLabel(`Next: ${format(d, 'MMM d')}`);
+        }
+      } else {
+        setNextInterviewLabel('None scheduled');
+      }
 
       setStats({
         applications: applications.length,
@@ -194,7 +208,6 @@ const CandidateDashboard = () => {
     { icon: Shield, label: 'Security', value: 'security' }
   ];
 
-  // Show loading while auth is being checked
   if (authLoading) {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center">
@@ -206,7 +219,6 @@ const CandidateDashboard = () => {
     );
   }
 
-  // Show loading while profile is being fetched (with timeout protection)
   if (user && !profile && profileLoading) {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center">
@@ -218,7 +230,6 @@ const CandidateDashboard = () => {
     );
   }
 
-  // Show login prompt only after auth has finished loading and no user
   if (!user) {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center p-4">
@@ -238,7 +249,6 @@ const CandidateDashboard = () => {
     );
   }
 
-  // Show error state if profile failed to load
   if (!profile) {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center p-4">
@@ -276,7 +286,6 @@ const CandidateDashboard = () => {
 
   const completeness = calculateCompleteness();
 
-  // Render expanded section content
   const renderSectionContent = () => {
     switch (activeSection) {
       case 'jobs':
@@ -320,9 +329,7 @@ const CandidateDashboard = () => {
   return (
     <EmailVerificationGuard fallbackMessage="Please verify your email to access your dashboard.">
       <div className="min-h-screen bg-secondary flex overflow-x-hidden">
-        {/* Onboarding Tour */}
         {user && <OnboardingTour userId={user.id} type="candidate" />}
-        {/* Sidebar */}
         <DashboardSidebar
           type="candidate"
           items={sidebarItems}
@@ -336,9 +343,7 @@ const CandidateDashboard = () => {
           onClose={() => setSidebarOpen(false)}
         />
 
-        {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-h-screen lg:ml-0 overflow-x-hidden">
-          {/* Header */}
           <DashboardHeader
             type="candidate"
             userName={profile.full_name}
@@ -351,10 +356,8 @@ const CandidateDashboard = () => {
             profileCompleteness={completeness}
           />
 
-          {/* Main Content */}
           <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto pb-20 md:pb-6">
             {activeSection && activeSection !== 'messages' && activeSection !== 'profile' ? (
-              // Section Content View
               <div className="max-w-6xl mx-auto">
                 <Button 
                   variant="ghost" 
@@ -371,11 +374,9 @@ const CandidateDashboard = () => {
                 </Card>
               </div>
             ) : (
-              // Dashboard Home View
               <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
                 <PlatformNotificationBanner userType="candidate" />
 
-                {/* Profile Completion Prompts */}
                 {candidate && (
                   <ProfileCompletionPrompts
                     candidate={candidate}
@@ -384,8 +385,7 @@ const CandidateDashboard = () => {
                     onEditProfile={() => setEditModalOpen(true)}
                   />
                 )}
-                {/* Quick Actions Bar */}
-            {completeness < 100 && (
+                {completeness < 100 && (
                   <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
                     <CardContent className="p-3 sm:p-4">
                       <div className="flex items-start gap-2.5 sm:gap-3 mb-3">
@@ -426,7 +426,7 @@ const CandidateDashboard = () => {
                     icon={FileText}
                     label="Total Applied"
                     value={stats.applications}
-                    subtitle={`+${Math.floor(stats.applications * 0.2)} this week`}
+                    subtitle="all time"
                     accentColor="blue"
                     onClick={() => setActiveSection('jobs')}
                   />
@@ -434,7 +434,7 @@ const CandidateDashboard = () => {
                     icon={Eye}
                     label="Profile Views"
                     value={stats.views}
-                    subtitle="+12% this month"
+                    subtitle="all time"
                     accentColor="green"
                     onClick={() => setEditModalOpen(true)}
                   />
@@ -442,7 +442,7 @@ const CandidateDashboard = () => {
                     icon={MessageSquare}
                     label="Unread Messages"
                     value={stats.unreadMessages}
-                    subtitle={stats.unreadMessages > 0 ? `${Math.min(2, stats.unreadMessages)} urgent` : 'All caught up'}
+                    subtitle={stats.unreadMessages > 0 ? 'new messages' : 'all caught up'}
                     accentColor="amber"
                     onClick={() => setChatModalOpen(true)}
                   />
@@ -450,7 +450,7 @@ const CandidateDashboard = () => {
                     icon={Calendar}
                     label="Upcoming Interviews"
                     value={stats.interviews}
-                    subtitle={stats.interviews > 0 ? 'Next: Tomorrow' : 'None scheduled'}
+                    subtitle={nextInterviewLabel}
                     accentColor="purple"
                   />
                 </div>
@@ -465,12 +465,10 @@ const CandidateDashboard = () => {
                   </div>
                 </div>
 
-                {/* AI-Powered Job Matches */}
                 {candidate && (
                   <AIJobMatches candidateId={candidate.id} />
                 )}
 
-                {/* Jobs Matching Your Profile (Quick Carousel) */}
                 {candidate && (
                   <JobMatchCarousel 
                     candidateId={candidate.id} 
@@ -482,7 +480,6 @@ const CandidateDashboard = () => {
           </main>
         </div>
 
-        {/* Profile Edit Modal */}
         {profile && candidate && (
           <ProfileEditModal
             open={editModalOpen}
@@ -493,13 +490,11 @@ const CandidateDashboard = () => {
           />
         )}
 
-        {/* Chat Modal */}
         <ChatModal 
           isOpen={chatModalOpen} 
           onClose={() => setChatModalOpen(false)} 
         />
 
-        {/* Mobile Bottom Nav */}
         <DashboardBottomNav
           type="candidate"
           activeItem={activeSection}
