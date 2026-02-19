@@ -147,13 +147,37 @@ const JobDetail = () => {
     }
   }, [searchParams, loading, job, hasApplied, user]);
 
-  // Resolve slug to ID if needed
+  // Resolve slug to ID & redirect UUID URLs to SEO slugs
   useEffect(() => {
     if (!identifier) return;
     if (UUID_REGEX.test(identifier)) {
-      setResolvedId(identifier);
+      // UUID access — check if slug exists and redirect
+      supabase
+        .from('jobs')
+        .select('id, slug, location_country, location_state, location_city')
+        .eq('id', identifier)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) {
+            setResolvedId(data.id);
+            if (data.slug) {
+              const parts = ['/jobs'];
+              if (data.location_country) parts.push(encodeURIComponent(data.location_country.toLowerCase().replace(/\s+/g, '-')));
+              if (data.location_state) parts.push(encodeURIComponent(data.location_state.toLowerCase().replace(/\s+/g, '-')));
+              if (data.location_city) parts.push(encodeURIComponent(data.location_city.toLowerCase().replace(/\s+/g, '-')));
+              parts.push(data.slug);
+              const seoPath = parts.join('/');
+              const currentPath = window.location.pathname;
+              if (currentPath !== seoPath) {
+                navigate(seoPath + window.location.search, { replace: true });
+              }
+            }
+          } else {
+            setLoading(false);
+          }
+        });
     } else {
-      // Lookup by slug
+      // Slug access — resolve to ID
       supabase
         .from('jobs')
         .select('id')
