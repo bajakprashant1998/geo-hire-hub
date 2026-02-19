@@ -8,42 +8,45 @@ const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 const corsHeaders = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers":
-        "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 const handler = async (req: Request): Promise<Response> => {
-    if (req.method === "OPTIONS") {
-        return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { email, options } = await req.json();
+
+    if (!email) {
+      throw new Error("Missing required field: email");
     }
 
-    try {
-        const { email, options } = await req.json();
+    // 1. Generate the recovery link (magic link for password reset)
+    const appUrl = Deno.env.get("APP_URL") || "https://hireforjob1.lovable.app";
+    const redirectTo = options?.redirectTo || `${appUrl}/update-password`;
 
-        if (!email) {
-            throw new Error("Missing required field: email");
-        }
+    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+      type: "recovery",
+      email,
+      options: {
+        redirectTo: redirectTo,
+      }
+    });
 
-        // 1. Generate the recovery link (magic link for password reset)
-        const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-            type: "recovery",
-            email,
-            options: {
-                redirectTo: options?.redirectTo || "https://hireforjob.com/update-password",
-            }
-        });
+    if (linkError) throw linkError;
 
-        if (linkError) throw linkError;
+    // 2. Send the custom email via Resend
+    const recoveryLink = linkData.properties.action_link;
 
-        // 2. Send the custom email via Resend
-        const recoveryLink = linkData.properties.action_link;
-
-        const emailResponse = await resend.emails.send({
-            from: "Hire for Job <noreply@hireforjob.com>",
-            to: [email],
-            subject: "Reset Your Password - Hire for Job",
-            html: `
+    const emailResponse = await resend.emails.send({
+      from: "Hire for Job <noreply@hireforjob.com>",
+      to: [email],
+      subject: "Reset Your Password - Hire for Job",
+      html: `
         <!DOCTYPE html>
         <html>
         <head>
@@ -127,25 +130,25 @@ const handler = async (req: Request): Promise<Response> => {
         </body>
         </html>
       `,
-        });
+    });
 
-        console.log("Password reset email sent successfully:", emailResponse);
+    console.log("Password reset email sent successfully:", emailResponse);
 
-        return new Response(JSON.stringify({ success: true }), {
-            status: 200,
-            headers: { "Content-Type": "application/json", ...corsHeaders },
-        });
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
 
-    } catch (error: any) {
-        console.error("Error in reset-password:", error);
-        return new Response(
-            JSON.stringify({ error: error.message }),
-            {
-                status: 400,
-                headers: { "Content-Type": "application/json", ...corsHeaders },
-            }
-        );
-    }
+  } catch (error: any) {
+    console.error("Error in reset-password:", error);
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      }
+    );
+  }
 };
 
 serve(handler);

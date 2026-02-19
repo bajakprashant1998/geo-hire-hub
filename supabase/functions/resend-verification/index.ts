@@ -8,63 +8,68 @@ const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 const corsHeaders = {
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers":
-        "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
 };
 
 const handler = async (req: Request): Promise<Response> => {
-    if (req.method === "OPTIONS") {
-        return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { email, options } = await req.json();
+
+    if (!email) {
+      throw new Error("Missing required field: email");
     }
 
-    try {
-        const { email, options } = await req.json();
+    // 1. Generate the signup link (which acts as verification for unverified users)
+    // We use generateLink with type 'signup' again.
+    // Note: We don't have the password involved here, so we actually want to generate a 'magiclink' or 'signup' link?
+    // 'signup' link usually requires password. 'magiclink' doesn't.
+    // But we want them to just verify.
+    // Actually, 'signup' type in generateLink creates a confirmation audit log.
+    // If the user already exists, 'signup' link sends a "fake" link? No, admin generateLink works.
 
-        if (!email) {
-            throw new Error("Missing required field: email");
-        }
+    // BETTER APPROACH: Use 'magiclink' type if we just want them to log in / verify?
+    // No, we want to VERIFY the email.
+    // 'signup' type checks if user is confirmed?
+    // Let's use 'magiclink' (login link) for resending? That logs them in, which effectively verifies?
+    // Or 'invite'?
 
-        // 1. Generate the signup link (which acts as verification for unverified users)
-        // We use generateLink with type 'signup' again.
-        // Note: We don't have the password involved here, so we actually want to generate a 'magiclink' or 'signup' link?
-        // 'signup' link usually requires password. 'magiclink' doesn't.
-        // But we want them to just verify.
-        // Actually, 'signup' type in generateLink creates a confirmation audit log.
-        // If the user already exists, 'signup' link sends a "fake" link? No, admin generateLink works.
+    // Correct approach for existing unverified user:
+    // generateLink({ type: 'signup', email, password: ... }) requires password? 
+    // Docs say: "If you want to generate a link for a user that already exists, use type: 'magiclink' or 'recovery' or 'invite'."
+    // But 'signup' is for new users.
 
-        // BETTER APPROACH: Use 'magiclink' type if we just want them to log in / verify?
-        // No, we want to VERIFY the email.
-        // 'signup' type checks if user is confirmed?
-        // Let's use 'magiclink' (login link) for resending? That logs them in, which effectively verifies?
-        // Or 'invite'?
+    // If we want to resend the *verification* email, and we don't know the password...
+    // We should probably use 'magiclink' which will log them in and confirm their email if not confirmed.
 
-        // Correct approach for existing unverified user:
-        // generateLink({ type: 'signup', email, password: ... }) requires password? 
-        // Docs say: "If you want to generate a link for a user that already exists, use type: 'magiclink' or 'recovery' or 'invite'."
-        // But 'signup' is for new users.
+    // 1. Generate the signup link (which acts as verification for unverified users)
+    const appUrl = Deno.env.get("APP_URL") || "https://hireforjob1.lovable.app";
+    // For resend, we usually want to redirect to login or dashboard
+    const redirectTo = options?.emailRedirectTo || `${appUrl}/login`;
 
-        // If we want to resend the *verification* email, and we don't know the password...
-        // We should probably use 'magiclink' which will log them in and confirm their email if not confirmed.
+    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+      type: "magiclink",
+      email,
+      options: {
+        redirectTo: redirectTo,
+      }
+    });
 
-        const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
-            type: "magiclink",
-            email,
-            options: {
-                redirectTo: options?.emailRedirectTo || "https://hireforjob.com/login",
-            }
-        });
+    if (linkError) throw linkError;
 
-        if (linkError) throw linkError;
+    // 2. Send the custom email via Resend
+    const verificationLink = linkData.properties.action_link;
 
-        // 2. Send the custom email via Resend
-        const verificationLink = linkData.properties.action_link;
-
-        const emailResponse = await resend.emails.send({
-            from: "Hire for Job <noreply@hireforjob.com>",
-            to: [email],
-            subject: "Verify Your Email - Hire for Job",
-            html: `
+    const emailResponse = await resend.emails.send({
+      from: "Hire for Job <noreply@hireforjob.com>",
+      to: [email],
+      subject: "Verify Your Email - Hire for Job",
+      html: `
         <!DOCTYPE html>
         <html>
         <head>
@@ -148,25 +153,25 @@ const handler = async (req: Request): Promise<Response> => {
         </body>
         </html>
       `,
-        });
+    });
 
-        console.log("Resend verification email sent successfully:", emailResponse);
+    console.log("Resend verification email sent successfully:", emailResponse);
 
-        return new Response(JSON.stringify({ success: true }), {
-            status: 200,
-            headers: { "Content-Type": "application/json", ...corsHeaders },
-        });
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    });
 
-    } catch (error: any) {
-        console.error("Error in resend-verification:", error);
-        return new Response(
-            JSON.stringify({ error: error.message }),
-            {
-                status: 400,
-                headers: { "Content-Type": "application/json", ...corsHeaders },
-            }
-        );
-    }
+  } catch (error: any) {
+    console.error("Error in resend-verification:", error);
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      {
+        status: 400,
+        headers: { "Content-Type": "application/json", ...corsHeaders },
+      }
+    );
+  }
 };
 
 serve(handler);

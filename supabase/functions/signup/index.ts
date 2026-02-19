@@ -38,13 +38,15 @@ const handler = async (req: Request): Promise<Response> => {
     if (!userData.user) throw new Error("Failed to create user");
 
     // 2. Generate the verification link
-    // 'signup' type generates a link to verify the email
+    const appUrl = Deno.env.get("APP_URL") || "https://hireforjob1.lovable.app";
+    const redirectTo = options?.emailRedirectTo || appUrl;
+
     const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
       type: "signup",
       email,
       password,
       options: {
-        redirectTo: options?.emailRedirectTo || "https://hireforjob.com/login",
+        redirectTo: redirectTo,
       }
     });
 
