@@ -40,6 +40,9 @@ import { PlatformNotificationBanner } from '@/components/dashboard/PlatformNotif
 import { TaskManager } from '@/components/employer/TaskManager';
 import EmployerDetail from '@/pages/EmployerDetail';
 import { EmployerProfileCompletionPrompts } from '@/components/employer/ProfileCompletionPrompts';
+import { DashboardBottomNav } from '@/components/dashboard/DashboardBottomNav';
+import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
+import { JobExpiryBadge } from '@/components/employer/JobExpiryBadge';
 
 const EmployerDashboard = () => {
   const navigate = useNavigate();
@@ -218,8 +221,7 @@ const EmployerDashboard = () => {
     { icon: Calendar, label: 'Interviews', value: 'interviews' },
     { icon: BarChart3, label: 'Analytics', value: 'analytics' },
     { icon: Building2, label: 'Company Profile', value: 'company' },
-    { icon: Eye, label: 'Public Profile', value: 'public-profile' },
-    { icon: Settings, label: 'Settings', value: 'settings' }
+    { icon: Eye, label: 'Public Profile', value: 'public-profile' }
   ];
 
   // Show loading while auth is being checked
@@ -345,6 +347,7 @@ const EmployerDashboard = () => {
                           {job.is_active ? 'Active' : 'Inactive'}
                         </span>
                         <span className="text-sm text-muted-foreground">{job.applications_count} applicants</span>
+                        {job.expires_at && <JobExpiryBadge expiresAt={job.expires_at} />}
                       </div>
                     </CardContent>
                   </Card>
@@ -442,6 +445,8 @@ const EmployerDashboard = () => {
   return (
     <EmailVerificationGuard fallbackMessage="Please verify your email to access your employer dashboard.">
       <div className="min-h-screen bg-secondary flex">
+        {/* Onboarding Tour */}
+        {user && <OnboardingTour userId={user.id} type="employer" />}
         {/* Sidebar */}
         <DashboardSidebar
           type="employer"
@@ -469,7 +474,7 @@ const EmployerDashboard = () => {
           />
 
           {/* Main Content */}
-          <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto">
+          <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto pb-20 md:pb-6">
             {activeSection ? (
               // Section Content View
               <div className="max-w-6xl mx-auto">
@@ -593,6 +598,13 @@ const EmployerDashboard = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Mobile Bottom Nav */}
+        <DashboardBottomNav
+          type="employer"
+          activeItem={activeSection}
+          onItemClick={handleSectionClick}
+        />
       </div>
     </EmailVerificationGuard>
   );

@@ -33,6 +33,8 @@ import { TaskList } from '@/components/candidate/TaskList';
 import { AudioResumeCard } from '@/components/candidate/AudioResumeCard';
 import CandidateDetail from '@/pages/CandidateDetail';
 import { ProfileCompletionPrompts } from '@/components/candidate/ProfileCompletionPrompts';
+import { DashboardBottomNav } from '@/components/dashboard/DashboardBottomNav';
+import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 
 const CandidateDashboard = () => {
   const navigate = useNavigate();
@@ -309,6 +311,8 @@ const CandidateDashboard = () => {
   return (
     <EmailVerificationGuard fallbackMessage="Please verify your email to access your dashboard.">
       <div className="min-h-screen bg-secondary flex overflow-x-hidden">
+        {/* Onboarding Tour */}
+        {user && <OnboardingTour userId={user.id} type="candidate" />}
         {/* Sidebar */}
         <DashboardSidebar
           type="candidate"
@@ -339,7 +343,7 @@ const CandidateDashboard = () => {
           />
 
           {/* Main Content */}
-          <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto">
+          <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto pb-20 md:pb-6">
             {activeSection && activeSection !== 'messages' && activeSection !== 'profile' ? (
               // Section Content View
               <div className="max-w-6xl mx-auto">
@@ -484,6 +488,13 @@ const CandidateDashboard = () => {
         <ChatModal 
           isOpen={chatModalOpen} 
           onClose={() => setChatModalOpen(false)} 
+        />
+
+        {/* Mobile Bottom Nav */}
+        <DashboardBottomNav
+          type="candidate"
+          activeItem={activeSection}
+          onItemClick={handleSectionClick}
         />
       </div>
     </EmailVerificationGuard>

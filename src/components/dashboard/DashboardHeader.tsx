@@ -9,8 +9,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Menu, Bell, Moon, User, Settings, LogOut } from 'lucide-react';
+import { Menu, Bell, Moon, Sun, User, Settings, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTheme } from 'next-themes';
 
 interface DashboardHeaderProps {
   type: 'candidate' | 'employer';
@@ -37,6 +38,7 @@ export const DashboardHeader = ({
 }: DashboardHeaderProps) => {
   const settingsPath = type === 'employer' ? '/company-profile' : '/candidate-settings';
   const firstName = userName?.split(' ')[0] || 'User';
+  const { theme, setTheme } = useTheme();
 
   return (
     <header className="sticky top-0 z-30 h-14 sm:h-16 bg-card border-b shadow-sm safe-area-pt">
@@ -104,8 +106,17 @@ export const DashboardHeader = ({
           </Button>
 
           {/* Theme Toggle */}
-          <Button variant="ghost" size="icon" className="touch-target touch-scale hidden sm:flex">
-            <Moon className="w-5 h-5 text-muted-foreground" />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="touch-target touch-scale hidden sm:flex"
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          >
+            {theme === 'dark' ? (
+              <Sun className="w-5 h-5 text-muted-foreground" />
+            ) : (
+              <Moon className="w-5 h-5 text-muted-foreground" />
+            )}
           </Button>
 
           {/* Profile Dropdown */}

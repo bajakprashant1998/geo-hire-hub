@@ -10,6 +10,7 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
+import { ApplicationStatusTimeline } from './ApplicationStatusTimeline';
 
 interface JobActivityTabsProps {
   candidateId: string;
@@ -120,15 +121,11 @@ export const JobActivityTabs = ({ candidateId }: JobActivityTabsProps) => {
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <Badge variant="secondary">{job.job_type}</Badge>
-              {status && (
-                <Badge className={status.color}>
-                  <span className="flex items-center gap-1">
-                    {status.icon}
-                    {status.label}
-                  </span>
-                </Badge>
-              )}
             </div>
+            {/* Status Timeline for applications */}
+            {application && (
+              <ApplicationStatusTimeline status={application.status} />
+            )}
           </div>
 
           <div className="flex items-center gap-2 text-sm">
