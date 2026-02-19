@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import { EmailVerificationGuard } from '@/components/auth/EmailVerificationGuard';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
@@ -31,6 +32,7 @@ import { AIJobMatches } from '@/components/candidate/AIJobMatches';
 import { TaskList } from '@/components/candidate/TaskList';
 import { AudioResumeCard } from '@/components/candidate/AudioResumeCard';
 import CandidateDetail from '@/pages/CandidateDetail';
+import { ProfileCompletionPrompts } from '@/components/candidate/ProfileCompletionPrompts';
 
 const CandidateDashboard = () => {
   const navigate = useNavigate();
@@ -48,6 +50,19 @@ const CandidateDashboard = () => {
     unreadMessages: 0,
     interviews: 0
   });
+
+  // Realtime dashboard updates
+  const { refreshTrigger } = useRealtimeDashboard({
+    userId: user?.id,
+    candidateId: candidate?.id,
+  });
+
+  // Re-fetch stats when realtime events trigger
+  useEffect(() => {
+    if (refreshTrigger > 0 && candidate) {
+      fetchCandidate();
+    }
+  }, [refreshTrigger]);
 
   // Retry profile fetch if user exists but profile is null
   useEffect(() => {
@@ -346,6 +361,16 @@ const CandidateDashboard = () => {
               // Dashboard Home View
               <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
                 <PlatformNotificationBanner userType="candidate" />
+
+                {/* Profile Completion Prompts */}
+                {candidate && (
+                  <ProfileCompletionPrompts
+                    candidate={candidate}
+                    profile={profile}
+                    onNavigate={handleSectionClick}
+                    onEditProfile={() => setEditModalOpen(true)}
+                  />
+                )}
                 {/* Quick Actions Bar */}
             {completeness < 100 && (
                   <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
