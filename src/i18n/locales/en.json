@@ -1,0 +1,104 @@
+{
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "messages": "Messages",
+    "profile": "Profile",
+    "settings": "Settings",
+    "signOut": "Sign Out",
+    "login": "Login",
+    "signup": "Sign Up"
+  },
+  "dashboard": {
+    "welcome": "Welcome back",
+    "findDreamJob": "Let's find your dream job today",
+    "totalApplications": "Total Applications",
+    "activeJobs": "Active Jobs",
+    "interviews": "Interviews",
+    "savedJobs": "Saved Jobs",
+    "profileCompleteness": "Profile",
+    "overview": "Overview",
+    "applications": "Applications",
+    "tasks": "Tasks",
+    "jobAlerts": "Job Alerts",
+    "recommendations": "Recommendations"
+  },
+  "employer": {
+    "postJob": "Post a Job",
+    "applicants": "Applicants",
+    "analytics": "Analytics",
+    "companyProfile": "Company Profile",
+    "totalApplicants": "Total Applicants",
+    "activeListings": "Active Listings",
+    "interviewsScheduled": "Interviews Scheduled",
+    "savedCandidates": "Saved Candidates"
+  },
+  "jobs": {
+    "jobTitle": "Job Title",
+    "location": "Location",
+    "salary": "Salary",
+    "experience": "Experience",
+    "skills": "Skills",
+    "applyNow": "Apply Now",
+    "saveJob": "Save Job",
+    "fullTime": "Full Time",
+    "partTime": "Part Time",
+    "description": "Job Description",
+    "requirements": "Requirements",
+    "postedOn": "Posted on",
+    "openings": "Openings",
+    "currency": "Currency"
+  },
+  "profile": {
+    "editProfile": "Edit Profile",
+    "completeProfile": "Complete Your Profile",
+    "bio": "Bio",
+    "contactInfo": "Contact Information",
+    "workExperience": "Work Experience",
+    "education": "Education",
+    "certifications": "Certifications",
+    "languages": "Languages",
+    "downloadPDF": "Download PDF",
+    "timezone": "Timezone"
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "createAccount": "Create Account",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?"
+  },
+  "common": {
+    "search": "Search",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "loading": "Loading...",
+    "noResults": "No results found",
+    "submit": "Submit",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "language": "Language",
+    "selectCountry": "Select Country",
+    "phone": "Phone Number"
+  },
+  "map": {
+    "searchLocation": "Search for a city, area or address...",
+    "useMyLocation": "Use my location",
+    "locationDetected": "Location detected!",
+    "clickToSet": "Click on the map to set job location",
+    "satellite": "Satellite",
+    "street": "Street"
+  },
+  "interview": {
+    "schedule": "Schedule Interview",
+    "scheduled": "Scheduled",
+    "yourTimezone": "Your timezone",
+    "employerTimezone": "Employer timezone",
+    "localTime": "Local time"
+  }
+}

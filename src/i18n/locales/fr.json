@@ -1,0 +1,104 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "dashboard": "Tableau de bord",
+    "messages": "Messages",
+    "profile": "Profil",
+    "settings": "Paramètres",
+    "signOut": "Déconnexion",
+    "login": "Connexion",
+    "signup": "Inscription"
+  },
+  "dashboard": {
+    "welcome": "Bon retour",
+    "findDreamJob": "Trouvons votre emploi de rêve aujourd'hui",
+    "totalApplications": "Candidatures totales",
+    "activeJobs": "Emplois actifs",
+    "interviews": "Entretiens",
+    "savedJobs": "Emplois sauvegardés",
+    "profileCompleteness": "Profil",
+    "overview": "Aperçu",
+    "applications": "Candidatures",
+    "tasks": "Tâches",
+    "jobAlerts": "Alertes emploi",
+    "recommendations": "Recommandations"
+  },
+  "employer": {
+    "postJob": "Publier une offre",
+    "applicants": "Candidats",
+    "analytics": "Analyses",
+    "companyProfile": "Profil entreprise",
+    "totalApplicants": "Total candidats",
+    "activeListings": "Offres actives",
+    "interviewsScheduled": "Entretiens planifiés",
+    "savedCandidates": "Candidats sauvegardés"
+  },
+  "jobs": {
+    "jobTitle": "Titre du poste",
+    "location": "Lieu",
+    "salary": "Salaire",
+    "experience": "Expérience",
+    "skills": "Compétences",
+    "applyNow": "Postuler",
+    "saveJob": "Sauvegarder",
+    "fullTime": "Temps plein",
+    "partTime": "Temps partiel",
+    "description": "Description du poste",
+    "requirements": "Exigences",
+    "postedOn": "Publié le",
+    "openings": "Postes ouverts",
+    "currency": "Devise"
+  },
+  "profile": {
+    "editProfile": "Modifier le profil",
+    "completeProfile": "Complétez votre profil",
+    "bio": "Biographie",
+    "contactInfo": "Coordonnées",
+    "workExperience": "Expérience professionnelle",
+    "education": "Formation",
+    "certifications": "Certifications",
+    "languages": "Langues",
+    "downloadPDF": "Télécharger PDF",
+    "timezone": "Fuseau horaire"
+  },
+  "auth": {
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "forgotPassword": "Mot de passe oublié ?",
+    "createAccount": "Créer un compte",
+    "alreadyHaveAccount": "Vous avez déjà un compte ?",
+    "dontHaveAccount": "Pas encore de compte ?"
+  },
+  "common": {
+    "search": "Rechercher",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "view": "Voir",
+    "loading": "Chargement...",
+    "noResults": "Aucun résultat",
+    "submit": "Soumettre",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "close": "Fermer",
+    "language": "Langue",
+    "selectCountry": "Sélectionner un pays",
+    "phone": "Numéro de téléphone"
+  },
+  "map": {
+    "searchLocation": "Rechercher une ville, zone ou adresse...",
+    "useMyLocation": "Utiliser ma position",
+    "locationDetected": "Position détectée !",
+    "clickToSet": "Cliquez sur la carte pour définir l'emplacement",
+    "satellite": "Satellite",
+    "street": "Rue"
+  },
+  "interview": {
+    "schedule": "Planifier un entretien",
+    "scheduled": "Planifié",
+    "yourTimezone": "Votre fuseau horaire",
+    "employerTimezone": "Fuseau horaire de l'employeur",
+    "localTime": "Heure locale"
+  }
+}
