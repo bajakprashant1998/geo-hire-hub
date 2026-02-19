@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { EmailVerificationGuard } from '@/components/auth/EmailVerificationGuard';
+import { getCurrencyByCode } from '@/lib/currencies';
 
 import { JobBasicsSection } from '@/components/post-job/JobBasicsSection';
 import { CandidateRequirementSection } from '@/components/post-job/CandidateRequirementSection';
@@ -103,6 +104,7 @@ const PostJob = () => {
   const [hasBonus, setHasBonus] = useState(false);
   const [description, setDescription] = useState('');
   const [skills, setSkills] = useState<string[]>([]);
+  const [salaryCurrency, setSalaryCurrency] = useState('INR');
   
   // Additional details
   const [gender, setGender] = useState<'Any' | 'Male' | 'Female'>('Any');
@@ -562,8 +564,8 @@ const PostJob = () => {
     setLoading(true);
 
     try {
-      // Create salary range string
-      const formattedSalary = `₹${salaryMin || '0'} - ₹${salaryMax || salaryMin} /month`;
+      const currency = getCurrencyByCode(salaryCurrency);
+      const formattedSalary = `${currency.symbol}${salaryMin || '0'} - ${currency.symbol}${salaryMax || salaryMin} /month`;
 
       // Use coordinates from map picker
       const latitude = coordinates!.lat;
@@ -894,6 +896,8 @@ const PostJob = () => {
                           onGenerateDescription={generateDescription}
                           generatingDescription={generatingDescription}
                           title={title}
+                          salaryCurrency={salaryCurrency}
+                          setSalaryCurrency={setSalaryCurrency}
                         />
                       )}
 

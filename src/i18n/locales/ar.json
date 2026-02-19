@@ -1,0 +1,104 @@
+{
+  "nav": {
+    "home": "الرئيسية",
+    "dashboard": "لوحة التحكم",
+    "messages": "الرسائل",
+    "profile": "الملف الشخصي",
+    "settings": "الإعدادات",
+    "signOut": "تسجيل الخروج",
+    "login": "تسجيل الدخول",
+    "signup": "إنشاء حساب"
+  },
+  "dashboard": {
+    "welcome": "مرحبًا بعودتك",
+    "findDreamJob": "لنجد وظيفة أحلامك اليوم",
+    "totalApplications": "إجمالي الطلبات",
+    "activeJobs": "الوظائف النشطة",
+    "interviews": "المقابلات",
+    "savedJobs": "الوظائف المحفوظة",
+    "profileCompleteness": "الملف الشخصي",
+    "overview": "نظرة عامة",
+    "applications": "الطلبات",
+    "tasks": "المهام",
+    "jobAlerts": "تنبيهات الوظائف",
+    "recommendations": "التوصيات"
+  },
+  "employer": {
+    "postJob": "نشر وظيفة",
+    "applicants": "المتقدمون",
+    "analytics": "التحليلات",
+    "companyProfile": "ملف الشركة",
+    "totalApplicants": "إجمالي المتقدمين",
+    "activeListings": "الإعلانات النشطة",
+    "interviewsScheduled": "المقابلات المجدولة",
+    "savedCandidates": "المرشحون المحفوظون"
+  },
+  "jobs": {
+    "jobTitle": "عنوان الوظيفة",
+    "location": "الموقع",
+    "salary": "الراتب",
+    "experience": "الخبرة",
+    "skills": "المهارات",
+    "applyNow": "تقدم الآن",
+    "saveJob": "حفظ الوظيفة",
+    "fullTime": "دوام كامل",
+    "partTime": "دوام جزئي",
+    "description": "وصف الوظيفة",
+    "requirements": "المتطلبات",
+    "postedOn": "نُشرت في",
+    "openings": "الشواغر",
+    "currency": "العملة"
+  },
+  "profile": {
+    "editProfile": "تعديل الملف الشخصي",
+    "completeProfile": "أكمل ملفك الشخصي",
+    "bio": "نبذة",
+    "contactInfo": "معلومات الاتصال",
+    "workExperience": "خبرة العمل",
+    "education": "التعليم",
+    "certifications": "الشهادات",
+    "languages": "اللغات",
+    "downloadPDF": "تحميل PDF",
+    "timezone": "المنطقة الزمنية"
+  },
+  "auth": {
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "forgotPassword": "نسيت كلمة المرور؟",
+    "createAccount": "إنشاء حساب",
+    "alreadyHaveAccount": "لديك حساب بالفعل؟",
+    "dontHaveAccount": "ليس لديك حساب؟"
+  },
+  "common": {
+    "search": "بحث",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "edit": "تعديل",
+    "view": "عرض",
+    "loading": "جاري التحميل...",
+    "noResults": "لا توجد نتائج",
+    "submit": "إرسال",
+    "next": "التالي",
+    "previous": "السابق",
+    "close": "إغلاق",
+    "language": "اللغة",
+    "selectCountry": "اختر البلد",
+    "phone": "رقم الهاتف"
+  },
+  "map": {
+    "searchLocation": "ابحث عن مدينة أو منطقة أو عنوان...",
+    "useMyLocation": "استخدم موقعي",
+    "locationDetected": "تم اكتشاف الموقع!",
+    "clickToSet": "انقر على الخريطة لتحديد موقع الوظيفة",
+    "satellite": "قمر صناعي",
+    "street": "شارع"
+  },
+  "interview": {
+    "schedule": "جدولة مقابلة",
+    "scheduled": "مجدولة",
+    "yourTimezone": "منطقتك الزمنية",
+    "employerTimezone": "المنطقة الزمنية لصاحب العمل",
+    "localTime": "التوقيت المحلي"
+  }
+}

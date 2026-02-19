@@ -1,4 +1,4 @@
-import { useState, forwardRef } from 'react';
+import { useState, useEffect, forwardRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Shield, Key, Clock, Smartphone, Trash2, AlertTriangle, Loader2, Eye, EyeOff, LogOut } from 'lucide-react';
+import { Shield, Key, Clock, Smartphone, Trash2, AlertTriangle, Loader2, Eye, EyeOff, LogOut, Mail, AtSign } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -28,6 +28,44 @@ export const SecuritySettings = () => {
   const [loading, setLoading] = useState(false);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [deactivating, setDeactivating] = useState(false);
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [loadingEmailPref, setLoadingEmailPref] = useState(false);
+
+  // Email change state
+  const [changingEmail, setChangingEmail] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [emailLoading, setEmailLoading] = useState(false);
+
+  // Load email notification preference
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from('notification_preferences')
+      .select('email_notifications_enabled')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setEmailNotifications(data.email_notifications_enabled);
+      });
+  }, [user]);
+
+  const handleEmailNotificationToggle = async (enabled: boolean) => {
+    if (!user) return;
+    setLoadingEmailPref(true);
+    setEmailNotifications(enabled);
+    try {
+      const { error } = await supabase
+        .from('notification_preferences')
+        .upsert({ user_id: user.id, email_notifications_enabled: enabled }, { onConflict: 'user_id' });
+      if (error) throw error;
+      toast.success(enabled ? 'Email notifications enabled' : 'Email notifications disabled');
+    } catch {
+      setEmailNotifications(!enabled);
+      toast.error('Failed to update preference');
+    } finally {
+      setLoadingEmailPref(false);
+    }
+  };
 
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
@@ -60,10 +98,29 @@ export const SecuritySettings = () => {
     }
   };
 
+  const handleChangeEmail = async () => {
+    if (!newEmail || !newEmail.includes('@')) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    setEmailLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ email: newEmail });
+      if (error) throw error;
+      toast.success('Confirmation email sent to your new address. Please verify to complete the change.');
+      setChangingEmail(false);
+      setNewEmail('');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update email');
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
   const handleDeactivateAccount = async () => {
     setDeactivating(true);
     try {
-      // Update profile to mark as deactivated
       const { error } = await supabase
         .from('profiles')
         .update({ is_visible_on_map: false })
@@ -88,6 +145,79 @@ export const SecuritySettings = () => {
 
   return (
     <div className="space-y-6">
+      {/* Email Notification Preferences */}
+      <Card className="shadow-google">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Mail className="w-5 h-5 text-primary" />
+            Email Notifications
+          </CardTitle>
+          <CardDescription>Control email notifications for dashboard events</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between p-4 bg-secondary rounded-lg">
+            <div>
+              <p className="font-medium">Email Notifications</p>
+              <p className="text-sm text-muted-foreground">
+                Receive email alerts for new messages, task assignments, and application updates
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge variant={emailNotifications ? "default" : "secondary"}>
+                {emailNotifications ? 'Enabled' : 'Disabled'}
+              </Badge>
+              <Switch
+                checked={emailNotifications}
+                onCheckedChange={handleEmailNotificationToggle}
+                disabled={loadingEmailPref}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Update Email */}
+      <Card className="shadow-google">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AtSign className="w-5 h-5 text-primary" />
+            Email Address
+          </CardTitle>
+          <CardDescription>Change the email associated with your account</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-3">
+            Current email: <span className="font-medium text-foreground">{user?.email}</span>
+          </p>
+          {!changingEmail ? (
+            <Button onClick={() => setChangingEmail(true)} variant="outline">
+              Change Email
+            </Button>
+          ) : (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>New Email Address</Label>
+                <Input
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  placeholder="Enter new email address"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleChangeEmail} disabled={emailLoading}>
+                  {emailLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Update Email
+                </Button>
+                <Button variant="outline" onClick={() => { setChangingEmail(false); setNewEmail(''); }}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Password Change */}
       <Card className="shadow-google">
         <CardHeader>
@@ -302,7 +432,28 @@ export const SecuritySettings = () => {
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction 
                     className="bg-destructive hover:bg-destructive/90"
-                    onClick={() => toast.info('Account deletion requires contacting support')}
+                    onClick={async () => {
+                      try {
+                        const { data: { session } } = await supabase.auth.getSession();
+                        if (!session) { toast.error('Not authenticated'); return; }
+                        const res = await fetch(
+                          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-account`,
+                          {
+                            method: 'POST',
+                            headers: {
+                              Authorization: `Bearer ${session.access_token}`,
+                              'Content-Type': 'application/json',
+                            },
+                          }
+                        );
+                        if (!res.ok) throw new Error('Failed to delete account');
+                        toast.success('Account deleted successfully');
+                        await signOut();
+                        navigate('/');
+                      } catch (err: any) {
+                        toast.error(err.message || 'Failed to delete account');
+                      }
+                    }}
                   >
                     I understand, delete my account
                   </AlertDialogAction>

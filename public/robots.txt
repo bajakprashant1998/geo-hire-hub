@@ -12,3 +12,10 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+Sitemap: https://hireforjob1.lovable.app/functions/v1/sitemap
+
+# SEO-friendly URL structure
+# /jobs/{country}/{state}/{city}/{job-slug}
+# /candidates/{country}/{state}/{city}/{candidate-slug}
+# /companies/{country}/{state}/{city}/{company-slug}

@@ -17,3 +17,12 @@ verify_jwt = false
 
 [functions.generate-audio-resume]
 verify_jwt = false
+
+[functions.send-notification-email]
+verify_jwt = false
+
+[functions.delete-account]
+verify_jwt = false
+
+[functions.sitemap]
+verify_jwt = false

@@ -354,6 +354,45 @@ export type Database = {
           },
         ]
       }
+      email_templates: {
+        Row: {
+          created_at: string
+          description: string | null
+          html_body: string
+          id: string
+          is_active: boolean | null
+          subject: string
+          template_key: string
+          updated_at: string
+          updated_by: string | null
+          variables: string[] | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          html_body: string
+          id?: string
+          is_active?: boolean | null
+          subject: string
+          template_key: string
+          updated_at?: string
+          updated_by?: string | null
+          variables?: string[] | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          html_body?: string
+          id?: string
+          is_active?: boolean | null
+          subject?: string
+          template_key?: string
+          updated_at?: string
+          updated_by?: string | null
+          variables?: string[] | null
+        }
+        Relationships: []
+      }
       email_verification_tokens: {
         Row: {
           created_at: string
@@ -539,9 +578,13 @@ export type Database = {
           industry: string | null
           is_government: boolean | null
           is_suspended: boolean | null
+          location_city: string | null
+          location_country: string | null
+          location_state: string | null
           office_photo_url: string | null
           profile_completeness: number | null
           profile_id: string
+          slug: string | null
           social_links: Json | null
           specializations: string[] | null
           suspended_at: string | null
@@ -573,9 +616,13 @@ export type Database = {
           industry?: string | null
           is_government?: boolean | null
           is_suspended?: boolean | null
+          location_city?: string | null
+          location_country?: string | null
+          location_state?: string | null
           office_photo_url?: string | null
           profile_completeness?: number | null
           profile_id: string
+          slug?: string | null
           social_links?: Json | null
           specializations?: string[] | null
           suspended_at?: string | null
@@ -607,9 +654,13 @@ export type Database = {
           industry?: string | null
           is_government?: boolean | null
           is_suspended?: boolean | null
+          location_city?: string | null
+          location_country?: string | null
+          location_state?: string | null
           office_photo_url?: string | null
           profile_completeness?: number | null
           profile_id?: string
+          slug?: string | null
           social_links?: Json | null
           specializations?: string[] | null
           suspended_at?: string | null
@@ -1082,6 +1133,9 @@ export type Database = {
           job_type: string | null
           languages: string[] | null
           latitude: number
+          location_city: string | null
+          location_country: string | null
+          location_state: string | null
           longitude: number
           max_age: number | null
           max_experience: number | null
@@ -1092,9 +1146,11 @@ export type Database = {
           moderation_status: string | null
           openings: number | null
           organization_size: string | null
+          salary_currency: string | null
           salary_range: string | null
           shift_type: string | null
           skills: string[] | null
+          slug: string | null
           start_time: string | null
           status: Database["public"]["Enums"]["job_status"] | null
           title: string
@@ -1131,6 +1187,9 @@ export type Database = {
           job_type?: string | null
           languages?: string[] | null
           latitude: number
+          location_city?: string | null
+          location_country?: string | null
+          location_state?: string | null
           longitude: number
           max_age?: number | null
           max_experience?: number | null
@@ -1141,9 +1200,11 @@ export type Database = {
           moderation_status?: string | null
           openings?: number | null
           organization_size?: string | null
+          salary_currency?: string | null
           salary_range?: string | null
           shift_type?: string | null
           skills?: string[] | null
+          slug?: string | null
           start_time?: string | null
           status?: Database["public"]["Enums"]["job_status"] | null
           title: string
@@ -1180,6 +1241,9 @@ export type Database = {
           job_type?: string | null
           languages?: string[] | null
           latitude?: number
+          location_city?: string | null
+          location_country?: string | null
+          location_state?: string | null
           longitude?: number
           max_age?: number | null
           max_experience?: number | null
@@ -1190,9 +1254,11 @@ export type Database = {
           moderation_status?: string | null
           openings?: number | null
           organization_size?: string | null
+          salary_currency?: string | null
           salary_range?: string | null
           shift_type?: string | null
           skills?: string[] | null
+          slug?: string | null
           start_time?: string | null
           status?: Database["public"]["Enums"]["job_status"] | null
           title?: string
@@ -1357,6 +1423,33 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          email_digest_frequency: string
+          email_notifications_enabled: boolean
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_digest_frequency?: string
+          email_notifications_enabled?: boolean
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_digest_frequency?: string
+          email_notifications_enabled?: boolean
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -1426,6 +1519,42 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_views: {
+        Row: {
+          created_at: string | null
+          id: string
+          profile_id: string
+          viewer_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          profile_id: string
+          viewer_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          profile_id?: string
+          viewer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_views_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profile_views_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -1436,8 +1565,13 @@ export type Database = {
           is_visible_on_map: boolean | null
           last_login_at: string | null
           latitude: number | null
+          location_city: string | null
+          location_country: string | null
+          location_state: string | null
           longitude: number | null
           profile_completed: boolean | null
+          slug: string | null
+          timezone: string | null
           two_factor_enabled: boolean | null
           updated_at: string | null
           user_id: string
@@ -1453,8 +1587,13 @@ export type Database = {
           is_visible_on_map?: boolean | null
           last_login_at?: string | null
           latitude?: number | null
+          location_city?: string | null
+          location_country?: string | null
+          location_state?: string | null
           longitude?: number | null
           profile_completed?: boolean | null
+          slug?: string | null
+          timezone?: string | null
           two_factor_enabled?: boolean | null
           updated_at?: string | null
           user_id: string
@@ -1470,8 +1609,13 @@ export type Database = {
           is_visible_on_map?: boolean | null
           last_login_at?: string | null
           latitude?: number | null
+          location_city?: string | null
+          location_country?: string | null
+          location_state?: string | null
           longitude?: number | null
           profile_completed?: boolean | null
+          slug?: string | null
+          timezone?: string | null
           two_factor_enabled?: boolean | null
           updated_at?: string | null
           user_id?: string
@@ -1551,6 +1695,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      site_content: {
+        Row: {
+          body: string | null
+          content_key: string
+          content_type: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          metadata: Json | null
+          title: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          body?: string | null
+          content_key: string
+          content_type?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          title?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          body?: string | null
+          content_key?: string
+          content_type?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          title?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       tasks: {
         Row: {
@@ -1698,6 +1881,7 @@ export type Database = {
         Returns: Json
       }
       cleanup_old_messages: { Args: never; Returns: undefined }
+      generate_slug: { Args: { input_text: string }; Returns: string }
       get_admin_dashboard_stats: { Args: never; Returns: Json }
       get_current_user_candidate_id: { Args: never; Returns: string }
       get_current_user_employer_id: { Args: never; Returns: string }

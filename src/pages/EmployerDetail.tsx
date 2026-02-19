@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { VerificationBadge } from '@/components/employer/VerificationBadge';
 import { useAuth } from '@/hooks/useAuth';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
+import { ReportDialog } from '@/components/ReportDialog';
 
 interface EmployerProfile {
   id: string;
@@ -48,9 +49,12 @@ interface Job {
   status: string;
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const EmployerDetail = ({ id: propId }: { id?: string }) => {
-  const { id: paramId } = useParams<{ id: string }>();
-  const id = propId || paramId;
+  const params = useParams();
+  const identifier = propId || params.slug || params.id || params['*']?.split('/').pop();
+  const [resolvedId, setResolvedId] = useState<string | null>(propId || null);
   const navigate = useNavigate();
   const { user } = useAuth();
   const isAuthenticated = !!user;
@@ -61,19 +65,64 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
   const [loading, setLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
 
-  const isValidUUID = (uuid: string | undefined): boolean => {
-    if (!uuid) return false;
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uuid);
-  };
+  // Resolve slug to ID & redirect UUID URLs to SEO slugs
+  useEffect(() => {
+    if (!identifier || propId) return;
+    if (UUID_REGEX.test(identifier)) {
+      // UUID access — check for slug redirect
+      supabase
+        .from('employers')
+        .select('id, slug, location_country, location_state, location_city')
+        .eq('id', identifier)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) {
+            setResolvedId(data.id);
+            if (data.slug) {
+              const parts = ['/companies'];
+              if (data.location_country) parts.push(encodeURIComponent(data.location_country.toLowerCase().replace(/\s+/g, '-')));
+              if (data.location_state) parts.push(encodeURIComponent(data.location_state.toLowerCase().replace(/\s+/g, '-')));
+              if (data.location_city) parts.push(encodeURIComponent(data.location_city.toLowerCase().replace(/\s+/g, '-')));
+              parts.push(data.slug);
+              const seoPath = parts.join('/');
+              if (window.location.pathname !== seoPath) {
+                navigate(seoPath + window.location.search, { replace: true });
+              }
+            }
+          } else setLoading(false);
+        });
+    } else {
+      supabase
+        .from('employers')
+        .select('id')
+        .eq('slug', identifier)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) setResolvedId(data.id);
+          else setLoading(false);
+        });
+    }
+  }, [identifier, propId]);
+
+  const id = resolvedId;
 
   useEffect(() => {
-    if (id && isValidUUID(id)) {
+    if (id) {
       fetchEmployer();
       fetchJobs();
-    } else if (id) {
-      setLoading(false);
     }
   }, [id]);
+
+  // SEO meta tags
+  useEffect(() => {
+    if (employer) {
+      document.title = `${employer.company_name}${employer.industry ? ` - ${employer.industry}` : ''} | HireForJob`;
+      const desc = `${employer.company_name}${employer.industry ? `, ${employer.industry}` : ''}. ${jobs.length} open positions. View company profile on HireForJob.`;
+      let metaDesc = document.querySelector('meta[name="description"]') as HTMLMetaElement;
+      if (!metaDesc) { metaDesc = document.createElement('meta'); metaDesc.name = 'description'; document.head.appendChild(metaDesc); }
+      metaDesc.content = desc.slice(0, 160);
+    }
+  }, [employer, jobs]);
 
   const fetchEmployer = async () => {
     try {
@@ -179,6 +228,7 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
                 <Heart className={`w-4 h-4 ${isFollowing ? 'fill-current' : ''}`} />
               </Button>
               )}
+              {!isOwnProfile && <ReportDialog targetId={employer?.id || ''} targetType="employer" />}
             </div>
           </div>
         </div>
@@ -188,7 +238,7 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
       <div className="bg-background border-b">
         <div className="container mx-auto px-4 py-6 sm:py-8 max-w-5xl">
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-center sm:items-start">
-            <div className="relative shrink-0">
+            <div className="flex flex-col items-center gap-2 shrink-0">
               <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-primary/10 flex items-center justify-center border border-border shadow-sm overflow-hidden">
                 {employer.avatar_url ? (
                   <Avatar className="w-full h-full rounded-xl">
@@ -200,7 +250,9 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
                 )}
               </div>
               {employer.verification_status === 'approved' && (
-                <div className="absolute -bottom-1 -right-1"><VerificationBadge status="approved" size="sm" /></div>
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full whitespace-nowrap">
+                  <ShieldCheck className="w-3 h-3" />Verified
+                </span>
               )}
             </div>
 

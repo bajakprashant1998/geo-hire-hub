@@ -18,6 +18,9 @@ import { toast } from 'sonner';
 import { useStartConversation } from '@/hooks/useStartConversation';
 import { useAuth } from '@/hooks/useAuth';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
+import { ProfilePDFExport } from '@/components/candidate/ProfilePDFExport';
+import { ReportDialog } from '@/components/ReportDialog';
+import { useRef } from 'react';
 
 interface Education { institution: string; degree: string; field: string; startYear: string; endYear: string; }
 interface WorkExperience { company: string; title: string; startDate: string; endDate: string; isCurrent: boolean; description: string; }
@@ -35,15 +38,19 @@ interface CandidateProfile {
   social_links: SocialLinks | null; availability_status: string | null;
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const CandidateDetail = ({ id: propId }: { id?: string }) => {
-  const { id: paramId } = useParams<{ id: string }>();
-  const id = propId || paramId;
+  const params = useParams();
+  const identifier = propId || params.slug || params.id || params['*']?.split('/').pop();
+  const [resolvedId, setResolvedId] = useState<string | null>(propId || null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { startConversation } = useStartConversation();
   const { user, profile } = useAuth();
   const isEmployerUser = user && profile?.user_type === 'employer';
-  const isOwnProfile = !!propId; // When rendered inline via dashboard, it's always the user's own profile
+  const isOwnProfile = !!propId;
+  const profileContentRef = useRef<HTMLDivElement>(null);
   const [candidate, setCandidate] = useState<CandidateProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
@@ -56,15 +63,71 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
     }
   }, [searchParams, loading, candidate, candidateUserId, isEmployerUser]);
 
-  const isValidUUID = (uuid: string | undefined): boolean => {
-    if (!uuid) return false;
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uuid);
-  };
+  // Resolve slug to ID & redirect UUID URLs to SEO slugs
+  useEffect(() => {
+    if (!identifier || propId) return;
+    if (UUID_REGEX.test(identifier)) {
+      // UUID access — check for slug redirect
+      supabase
+        .from('candidates')
+        .select('id, profiles!inner(slug, location_country, location_state, location_city)')
+        .eq('id', identifier)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) {
+            setResolvedId(data.id);
+            const p = data.profiles as any;
+            if (p?.slug) {
+              const parts = ['/candidates'];
+              if (p.location_country) parts.push(encodeURIComponent(p.location_country.toLowerCase().replace(/\s+/g, '-')));
+              if (p.location_state) parts.push(encodeURIComponent(p.location_state.toLowerCase().replace(/\s+/g, '-')));
+              if (p.location_city) parts.push(encodeURIComponent(p.location_city.toLowerCase().replace(/\s+/g, '-')));
+              parts.push(p.slug);
+              const seoPath = parts.join('/');
+              if (window.location.pathname !== seoPath) {
+                navigate(seoPath + window.location.search, { replace: true });
+              }
+            }
+          } else setLoading(false);
+        });
+    } else {
+      supabase
+        .from('profiles')
+        .select('id')
+        .eq('slug', identifier)
+        .maybeSingle()
+        .then(({ data: profileData }) => {
+          if (profileData) {
+            supabase
+              .from('candidates')
+              .select('id')
+              .eq('profile_id', profileData.id)
+              .maybeSingle()
+              .then(({ data: candData }) => {
+                if (candData) setResolvedId(candData.id);
+                else setLoading(false);
+              });
+          } else setLoading(false);
+        });
+    }
+  }, [identifier, propId]);
+
+  const id = resolvedId;
 
   useEffect(() => {
-    if (id && isValidUUID(id)) fetchCandidate();
-    else if (id) setLoading(false);
+    if (id) fetchCandidate();
   }, [id]);
+
+  // SEO meta tags
+  useEffect(() => {
+    if (candidate) {
+      document.title = `${candidate.full_name} - ${candidate.job_title} | HireForJob`;
+      const desc = `${candidate.full_name}, ${candidate.job_title}${candidate.experience_years ? ` with ${candidate.experience_years}+ years experience` : ''}. View profile on HireForJob.`;
+      let metaDesc = document.querySelector('meta[name="description"]') as HTMLMetaElement;
+      if (!metaDesc) { metaDesc = document.createElement('meta'); metaDesc.name = 'description'; document.head.appendChild(metaDesc); }
+      metaDesc.content = desc.slice(0, 160);
+    }
+  }, [candidate]);
 
   const fetchCandidate = async () => {
     try {
@@ -182,12 +245,14 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
               <ArrowLeft className="w-4 h-4" />Back
             </Button>
             <div className="flex items-center gap-1.5">
+              {isOwnProfile && <ProfilePDFExport targetRef={profileContentRef} fileName={candidate?.full_name || 'profile'} />}
               <Button variant="ghost" size="icon" onClick={handleShare} className="rounded-full w-9 h-9"><Share2 className="w-4 h-4" /></Button>
               {isEmployerUser && !isOwnProfile && (
                 <Button variant="ghost" size="icon" onClick={handleSave} className={`rounded-full w-9 h-9 ${isSaved ? 'text-destructive' : ''}`}>
                   <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
                 </Button>
               )}
+              {isEmployerUser && !isOwnProfile && <ReportDialog targetId={candidate?.id || ''} targetType="employer" />}
             </div>
           </div>
         </div>
@@ -268,7 +333,7 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-4 py-6 max-w-5xl">
+      <div ref={profileContentRef} className="container mx-auto px-4 py-6 max-w-5xl">
         {(isEmployerUser || isOwnProfile) ? (
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Main Column */}
@@ -340,7 +405,7 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
                           <div className="flex-1 min-w-0">
                             <h4 className="font-semibold text-foreground text-sm">{edu.institution}</h4>
                             <p className="text-sm text-muted-foreground">{edu.degree} — {edu.field}</p>
-                            <p className="text-xs text-muted-foreground mt-0.5">{edu.startYear} — {edu.endYear || 'Present'}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{String(edu.startYear)} — {edu.endYear ? String(edu.endYear) : 'Present'}</p>
                           </div>
                         </div>
                       ))}

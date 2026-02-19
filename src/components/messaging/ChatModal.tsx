@@ -459,6 +459,7 @@ export const ChatModal = ({ isOpen, onClose, initialConversationId }: ChatModalP
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent 
+        hideClose
         className={cn(
           "p-0 gap-0 overflow-hidden border-0 shadow-2xl",
           "md:max-w-5xl md:h-[85vh] md:max-h-[750px] md:rounded-2xl",

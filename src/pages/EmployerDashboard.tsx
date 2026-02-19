@@ -16,10 +16,11 @@ import { toast } from 'sonner';
 import {
   MapPin, Briefcase, Building2, Plus, Loader2, Eye, Users, 
   CheckCircle2, ChevronRight, FileEdit, CreditCard, UserCheck,
-  MessageSquare, Calendar, BarChart3, User, Settings, Pencil, Trash2
+  MessageSquare, Calendar, BarChart3, User, Settings, Pencil, Trash2, Shield
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import { EmailVerificationGuard } from '@/components/auth/EmailVerificationGuard';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
 import { EmployerHeader } from '@/components/dashboard/EmployerHeader';
@@ -38,6 +39,11 @@ import { EmployerInterviewCalendar } from '@/components/employer/EmployerIntervi
 import { PlatformNotificationBanner } from '@/components/dashboard/PlatformNotificationBanner';
 import { TaskManager } from '@/components/employer/TaskManager';
 import EmployerDetail from '@/pages/EmployerDetail';
+import { EmployerProfileCompletionPrompts } from '@/components/employer/ProfileCompletionPrompts';
+import { DashboardBottomNav } from '@/components/dashboard/DashboardBottomNav';
+import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
+import { JobExpiryBadge } from '@/components/employer/JobExpiryBadge';
+import { SecuritySettings } from '@/components/candidate/SecuritySettings';
 
 const EmployerDashboard = () => {
   const navigate = useNavigate();
@@ -50,14 +56,29 @@ const EmployerDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [chatModalOpen, setChatModalOpen] = useState(false);
   const [profileRetryCount, setProfileRetryCount] = useState(0);
+  const [planName, setPlanName] = useState('Free Plan');
   const [stats, setStats] = useState({
     activeJobs: 0,
     totalApplications: 0,
     scheduledInterviews: 0,
-    profileViews: 0
+    profileViews: 0,
+    notificationCount: 0
   });
   const [jobToDelete, setJobToDelete] = useState<any>(null);
   const [deletingJob, setDeletingJob] = useState(false);
+
+  // Realtime dashboard updates
+  const { refreshTrigger } = useRealtimeDashboard({
+    userId: user?.id,
+    employerId: employer?.id,
+  });
+
+  // Re-fetch data when realtime events trigger
+  useEffect(() => {
+    if (refreshTrigger > 0 && employer) {
+      fetchEmployerData();
+    }
+  }, [refreshTrigger]);
 
   // Retry profile fetch if user exists but profile is null
   useEffect(() => {
@@ -71,21 +92,13 @@ const EmployerDashboard = () => {
   }, [user, profile, profileLoading, profileRetryCount, refreshProfile]);
 
   useEffect(() => {
-    // Wait for auth to finish loading
     if (authLoading) return;
-    
-    // If no user after auth loaded, they need to login
     if (!user) return;
-    
-    // Wait for profile to load (but don't wait forever)
     if (!profile && profileLoading) return;
-    
-    // If profile still null after loading, show fallback
     if (!profile) {
       setDataLoading(false);
       return;
     }
-    
     if (profile.user_type !== 'employer') {
       navigate('/candidate-dashboard');
       return;
@@ -94,7 +107,7 @@ const EmployerDashboard = () => {
   }, [user, profile, authLoading, profileLoading]);
 
   const fetchEmployerData = async () => {
-    if (!profile) return;
+    if (!profile || !user) return;
     
     try {
       const { data: employerData } = await supabase
@@ -128,7 +141,6 @@ const EmployerDashboard = () => {
         }
 
         const activeJobs = jobsWithCounts.filter(j => j.is_active && j.status === 'open').length;
-        const totalViews = jobsWithCounts.reduce((sum, j) => sum + (j.view_count || 0), 0);
         const totalApplications = jobsWithCounts.reduce((sum, j) => sum + (j.applications_count || 0), 0);
 
         // Count from interviews table
@@ -138,11 +150,37 @@ const EmployerDashboard = () => {
           .eq('employer_id', employerData.id)
           .eq('status', 'scheduled');
 
+        // Real profile views from profile_views table
+        const { count: viewCount } = await supabase
+          .from('profile_views')
+          .select('*', { count: 'exact', head: true })
+          .eq('profile_id', profile.id);
+
+        // Real unread notification count
+        const { count: notifCount } = await supabase
+          .from('notifications')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('is_read', false);
+
+        // Fetch plan name from subscription
+        const { data: subData } = await supabase
+          .from('employer_subscriptions')
+          .select('employer_plans(name)')
+          .eq('employer_id', employerData.id)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        if (subData && (subData as any).employer_plans?.name) {
+          setPlanName((subData as any).employer_plans.name + ' Plan');
+        }
+
         setStats({
           activeJobs,
           totalApplications,
           scheduledInterviews: interviewCount || 0,
-          profileViews: totalViews
+          profileViews: viewCount || 0,
+          notificationCount: notifCount || 0
         });
       }
     } catch (error) {
@@ -179,7 +217,6 @@ const EmployerDashboard = () => {
       
       if (error) throw error;
       
-      // Update local state
       setJobs(jobs.filter(j => j.id !== jobToDelete.id));
       if (selectedJob?.id === jobToDelete.id) {
         setSelectedJob(jobs.find(j => j.id !== jobToDelete.id) || null);
@@ -204,7 +241,7 @@ const EmployerDashboard = () => {
     { icon: BarChart3, label: 'Analytics', value: 'analytics' },
     { icon: Building2, label: 'Company Profile', value: 'company' },
     { icon: Eye, label: 'Public Profile', value: 'public-profile' },
-    { icon: Settings, label: 'Settings', value: 'settings' }
+    { icon: Shield, label: 'Security', value: 'security' }
   ];
 
   // Show loading while auth is being checked
@@ -212,37 +249,35 @@ const EmployerDashboard = () => {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-10 h-10 animate-spin text-[hsl(142,53%,43%)] mx-auto mb-4" />
+          <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto mb-4" />
           <p className="text-muted-foreground font-medium">Checking authentication...</p>
         </div>
       </div>
     );
   }
 
-  // Show loading while profile is being fetched (with timeout protection)
   if (user && !profile && profileLoading) {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-10 h-10 animate-spin text-[hsl(142,53%,43%)] mx-auto mb-4" />
+          <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto mb-4" />
           <p className="text-muted-foreground font-medium">Loading your profile...</p>
         </div>
       </div>
     );
   }
 
-  // Show login prompt only after auth has finished loading and no user
   if (!user) {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center p-4">
         <Card className="w-full max-w-md shadow-xl border-0">
           <CardContent className="p-8 text-center">
-            <div className="w-20 h-20 bg-[hsl(142,53%,43%)] rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <Building2 className="w-10 h-10 text-white" />
+            <div className="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Building2 className="w-10 h-10 text-primary-foreground" />
             </div>
             <h2 className="text-2xl font-bold mb-3 text-foreground">Welcome to Hire for Job</h2>
             <p className="text-muted-foreground mb-8">Sign in to access your employer dashboard</p>
-            <Button onClick={() => navigate('/login')} className="w-full h-12 bg-[hsl(142,53%,43%)] hover:bg-[hsl(142,53%,38%)]" size="lg">
+            <Button onClick={() => navigate('/login')} className="w-full h-12" size="lg">
               Sign In to Continue
             </Button>
           </CardContent>
@@ -251,7 +286,6 @@ const EmployerDashboard = () => {
     );
   }
 
-  // Show error state if profile failed to load
   if (!profile) {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center p-4">
@@ -280,7 +314,7 @@ const EmployerDashboard = () => {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-10 h-10 animate-spin text-[hsl(142,53%,43%)] mx-auto mb-4" />
+          <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto mb-4" />
           <p className="text-muted-foreground font-medium">Loading your dashboard...</p>
         </div>
       </div>
@@ -297,8 +331,8 @@ const EmployerDashboard = () => {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-lg text-foreground">All Jobs ({jobs.length})</h3>
                 <Link to="/post-job">
-                  <Button size="sm" className="bg-[hsl(142,53%,43%)] hover:bg-[hsl(142,53%,38%)]">
-                    <Plus className="w-4 h-4 mr-1" /> New
+                <Button size="sm">
+                  <Plus className="w-4 h-4 mr-1" /> New
                   </Button>
                 </Link>
               </div>
@@ -308,7 +342,7 @@ const EmployerDashboard = () => {
                     <Briefcase className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
                     <p className="text-muted-foreground mb-4">No jobs posted yet</p>
                     <Link to="/post-job">
-                      <Button className="bg-[hsl(142,53%,43%)] hover:bg-[hsl(142,53%,38%)]">Post Your First Job</Button>
+                    <Button>Post Your First Job</Button>
                     </Link>
                   </CardContent>
                 </Card>
@@ -319,17 +353,18 @@ const EmployerDashboard = () => {
                     onClick={() => setSelectedJob(job)}
                     className={`cursor-pointer transition-all duration-200 ${
                       selectedJob?.id === job.id 
-                        ? 'ring-2 ring-[hsl(142,53%,43%)] shadow-md' 
+                        ? 'ring-2 ring-primary shadow-md' 
                         : 'hover:shadow-md'
                     }`}
                   >
                     <CardContent className="p-4">
                       <h4 className="font-semibold truncate mb-2 text-foreground">{job.title}</h4>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${job.is_active ? 'bg-[hsl(142,53%,43%)]/10 text-[hsl(142,53%,43%)]' : 'bg-muted text-muted-foreground'}`}>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${job.is_active ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
                           {job.is_active ? 'Active' : 'Inactive'}
                         </span>
                         <span className="text-sm text-muted-foreground">{job.applications_count} applicants</span>
+                        {job.expires_at && <JobExpiryBadge expiresAt={job.expires_at} />}
                       </div>
                     </CardContent>
                   </Card>
@@ -350,7 +385,7 @@ const EmployerDashboard = () => {
                         </p>
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${selectedJob.is_active ? 'bg-[hsl(142,53%,43%)]/10 text-[hsl(142,53%,43%)]' : 'bg-muted text-muted-foreground'}`}>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${selectedJob.is_active ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
                           {selectedJob.is_active ? 'Active' : 'Inactive'}
                         </span>
                         <Link to={`/jobs/${selectedJob.id}`}>
@@ -419,6 +454,8 @@ const EmployerDashboard = () => {
         );
       case 'public-profile':
         return employer && <EmployerDetail id={employer.id} />;
+      case 'security':
+        return <SecuritySettings />;
       default:
         return null;
     }
@@ -427,6 +464,8 @@ const EmployerDashboard = () => {
   return (
     <EmailVerificationGuard fallbackMessage="Please verify your email to access your employer dashboard.">
       <div className="min-h-screen bg-secondary flex">
+        {/* Onboarding Tour */}
+        {user && <OnboardingTour userId={user.id} type="employer" />}
         {/* Sidebar */}
         <DashboardSidebar
           type="employer"
@@ -446,17 +485,16 @@ const EmployerDashboard = () => {
           {/* Header */}
           <EmployerHeader
             companyName={employer?.company_name || 'Your Company'}
-            planName="Enterprise Plan"
+            planName={planName}
             avatarUrl={profile.avatar_url}
             onMenuClick={() => setSidebarOpen(true)}
             onSignOut={signOut}
-            notificationCount={3}
+            notificationCount={stats.notificationCount}
           />
 
           {/* Main Content */}
-          <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto">
+          <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto pb-20 md:pb-6">
             {activeSection ? (
-              // Section Content View
               <div className="max-w-6xl mx-auto">
                 <Button 
                   variant="ghost" 
@@ -467,18 +505,19 @@ const EmployerDashboard = () => {
                   Back to Dashboard
                 </Button>
                 <Card className="bg-card shadow-sm border">
-                  <CardContent className="p-6">
+                  <CardContent className="p-3 sm:p-4 md:p-6">
                     {renderSectionContent()}
                   </CardContent>
                 </Card>
               </div>
             ) : (
-              // Dashboard Home View
               <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
-                {/* Platform Notifications */}
                 <PlatformNotificationBanner userType="employer" />
 
-                {/* Welcome Message */}
+                {employer && (
+                  <EmployerProfileCompletionPrompts employer={employer} jobCount={jobs.length} />
+                )}
+
                 <div>
                   <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
                     Welcome back, {employer?.company_name || 'Company'}!
@@ -492,7 +531,7 @@ const EmployerDashboard = () => {
                     icon={Briefcase}
                     label="Active Jobs"
                     value={stats.activeJobs}
-                    subtitle={`+${Math.max(1, Math.floor(stats.activeJobs * 0.2))} this week`}
+                    subtitle="currently open"
                     accentColor="blue"
                     onClick={() => setActiveSection('jobs')}
                   />
@@ -500,7 +539,7 @@ const EmployerDashboard = () => {
                     icon={Users}
                     label="Total Applications"
                     value={stats.totalApplications}
-                    subtitle={`+${Math.floor(stats.totalApplications * 0.15)} today`}
+                    subtitle="across all jobs"
                     accentColor="amber"
                     onClick={() => setActiveSection('jobs')}
                   />
@@ -508,14 +547,14 @@ const EmployerDashboard = () => {
                     icon={Calendar}
                     label="Scheduled Interviews"
                     value={stats.scheduledInterviews}
-                    subtitle={`+${Math.max(1, Math.floor(stats.scheduledInterviews * 0.3))} this week`}
+                    subtitle="upcoming"
                     accentColor="green"
                   />
                   <DashboardStatCard
                     icon={Eye}
                     label="Profile Views"
                     value={stats.profileViews.toLocaleString()}
-                    subtitle="-3% vs last week"
+                    subtitle="all time"
                     accentColor="purple"
                   />
                 </div>
@@ -574,6 +613,13 @@ const EmployerDashboard = () => {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Mobile Bottom Nav */}
+        <DashboardBottomNav
+          type="employer"
+          activeItem={activeSection}
+          onItemClick={handleSectionClick}
+        />
       </div>
     </EmailVerificationGuard>
   );

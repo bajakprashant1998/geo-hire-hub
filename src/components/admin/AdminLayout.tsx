@@ -15,7 +15,10 @@ import {
   X,
   Globe,
   MessageSquare,
-  BarChart3
+  BarChart3,
+  Mail,
+  Activity,
+  FileText,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -47,6 +50,9 @@ const navItems = [
   { href: '/admin/messages', label: 'Messages', icon: MessageSquare },
   { href: '/admin/plans', label: 'Plans & Revenue', icon: CreditCard },
   { href: '/admin/reports', label: 'Reports', icon: Flag },
+  { href: '/admin/email-templates', label: 'Email Templates', icon: Mail },
+  { href: '/admin/content-seo', label: 'Content & SEO', icon: FileText },
+  { href: '/admin/system-health', label: 'System Health', icon: Activity },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 

@@ -65,6 +65,8 @@ export const ApplicantTabs = ({ jobId, employerId }: ApplicantTabsProps) => {
   const [applicants, setApplicants] = useState<Applicant[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('pending');
+  const [selectedApplicants, setSelectedApplicants] = useState<string[]>([]);
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const [noteDialogOpen, setNoteDialogOpen] = useState(false);
   const [selectedApplicant, setSelectedApplicant] = useState<Applicant | null>(null);
   const [newNote, setNewNote] = useState('');
@@ -134,6 +136,29 @@ export const ApplicantTabs = ({ jobId, employerId }: ApplicantTabsProps) => {
     } catch (error) {
       console.error('Error updating status:', error);
       toast.error('Failed to update status');
+    }
+  };
+
+  const handleBulkAction = async (status: string) => {
+    if (selectedApplicants.length === 0) return;
+    setBulkActionLoading(true);
+    try {
+      const { error } = await supabase
+        .from('applications')
+        .update({ status })
+        .in('id', selectedApplicants);
+
+      if (error) throw error;
+
+      setApplicants(prev => prev.map(app => 
+        selectedApplicants.includes(app.id) ? { ...app, status } : app
+      ));
+      setSelectedApplicants([]);
+      toast.success(`${selectedApplicants.length} applications updated to ${status}`);
+    } catch (error) {
+      toast.error('Failed to update applications');
+    } finally {
+      setBulkActionLoading(false);
     }
   };
 
@@ -225,6 +250,15 @@ export const ApplicantTabs = ({ jobId, employerId }: ApplicantTabsProps) => {
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           {/* Applicant Info */}
           <div className="flex items-center gap-4">
+            <input 
+              type="checkbox" 
+              checked={selectedApplicants.includes(applicant.id)}
+              onChange={(e) => {
+                if (e.target.checked) setSelectedApplicants([...selectedApplicants, applicant.id]);
+                else setSelectedApplicants(selectedApplicants.filter(id => id !== applicant.id));
+              }}
+              className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+            />
             <Avatar className="w-12 h-12">
               <AvatarImage src={applicant.candidates?.profiles?.avatar_url || ''} />
               <AvatarFallback>
@@ -388,6 +422,14 @@ export const ApplicantTabs = ({ jobId, employerId }: ApplicantTabsProps) => {
 
       {Object.keys(statusConfig).map((status) => (
         <TabsContent key={status} value={status} className="mt-4 space-y-4">
+          {selectedApplicants.length > 0 && (
+            <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg mb-4">
+              <span className="text-sm font-medium ml-2">{selectedApplicants.length} selected</span>
+              <div className="flex-1" />
+              <Button size="sm" variant="outline" onClick={() => handleBulkAction('shortlisted')} disabled={bulkActionLoading}>Shortlist</Button>
+              <Button size="sm" variant="outline" className="text-destructive" onClick={() => handleBulkAction('rejected')} disabled={bulkActionLoading}>Reject</Button>
+            </div>
+          )}
           {filteredApplicants.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />

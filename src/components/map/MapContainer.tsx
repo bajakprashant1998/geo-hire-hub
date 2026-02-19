@@ -308,11 +308,17 @@ const createJobPopupContent = (job: Job, isSaved: boolean = false): string => {
       
       <!-- Header with icon and title -->
       <div style="padding: 14px 16px 10px; display: flex; gap: 14px; align-items: flex-start;">
-        <div style="width: 48px; height: 48px; border-radius: 12px; background: ${headerLightBg}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <div style="position: relative; width: 48px; height: 48px; border-radius: 12px; background: ${headerLightBg}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="${headerBg}" stroke="none">
             <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
             <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" fill="${headerLightBg}"/>
           </svg>
+          ${(job as any).employers?.verification_status === 'approved' ? `
+          <div style="position: absolute; bottom: -4px; right: -4px; background: white; border-radius: 50%; padding: 2px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="#16a34a" stroke="white" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>` : ''}
         </div>
         <div style="flex: 1; min-width: 0;">
           <div style="display: flex; align-items: center; gap: 6px;">

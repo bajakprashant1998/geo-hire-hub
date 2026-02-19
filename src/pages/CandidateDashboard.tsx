@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Briefcase, Bell, Shield, FileText, Sparkles, Loader2, 
-  Eye, Calendar, Star, ChevronRight, User, MessageSquare, Bookmark
+  Eye, Calendar, Star, ChevronRight, User, MessageSquare, Bookmark, Mic
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import { EmailVerificationGuard } from '@/components/auth/EmailVerificationGuard';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
@@ -29,7 +30,12 @@ import { PlatformNotificationBanner } from '@/components/dashboard/PlatformNotif
 import { SavedJobsSection } from '@/components/candidate/SavedJobsSection';
 import { AIJobMatches } from '@/components/candidate/AIJobMatches';
 import { TaskList } from '@/components/candidate/TaskList';
+import { AudioResumeCard } from '@/components/candidate/AudioResumeCard';
 import CandidateDetail from '@/pages/CandidateDetail';
+import { ProfileCompletionPrompts } from '@/components/candidate/ProfileCompletionPrompts';
+import { DashboardBottomNav } from '@/components/dashboard/DashboardBottomNav';
+import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
+import { format, isToday, isTomorrow } from 'date-fns';
 
 const CandidateDashboard = () => {
   const navigate = useNavigate();
@@ -41,14 +47,27 @@ const CandidateDashboard = () => {
   const [chatModalOpen, setChatModalOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileRetryCount, setProfileRetryCount] = useState(0);
+  const [nextInterviewLabel, setNextInterviewLabel] = useState('None scheduled');
   const [stats, setStats] = useState({
     applications: 0,
     views: 0,
     unreadMessages: 0,
-    interviews: 0
+    interviews: 0,
+    unreadNotifications: 0,
   });
 
-  // Retry profile fetch if user exists but profile is null
+  // Realtime dashboard updates
+  const { refreshTrigger } = useRealtimeDashboard({
+    userId: user?.id,
+    candidateId: candidate?.id,
+  });
+
+  useEffect(() => {
+    if (refreshTrigger > 0 && candidate) {
+      fetchCandidate();
+    }
+  }, [refreshTrigger]);
+
   useEffect(() => {
     if (user && !profile && !profileLoading && profileRetryCount < 3) {
       const timer = setTimeout(() => {
@@ -60,21 +79,13 @@ const CandidateDashboard = () => {
   }, [user, profile, profileLoading, profileRetryCount, refreshProfile]);
 
   useEffect(() => {
-    // Wait for auth to finish loading
     if (authLoading) return;
-    
-    // If no user after auth loaded, they need to login
     if (!user) return;
-    
-    // Wait for profile to load (but don't wait forever)
     if (!profile && profileLoading) return;
-    
-    // If profile still null after loading, show fallback
     if (!profile) {
       setDataLoading(false);
       return;
     }
-    
     if (profile.user_type !== 'candidate') {
       navigate('/employer-dashboard');
       return;
@@ -83,7 +94,7 @@ const CandidateDashboard = () => {
   }, [user, profile, authLoading, profileLoading]);
 
   const fetchCandidate = async () => {
-    if (!profile) return;
+    if (!profile || !user) return;
     const { data } = await supabase
       .from('candidates')
       .select('*')
@@ -100,17 +111,47 @@ const CandidateDashboard = () => {
       const applications = appsRes.data || [];
       const interviews = applications.filter(a => a.status === 'shortlisted').length;
 
-      // Get real profile view count from job_views for jobs the candidate applied to
       const { count: viewCount } = await supabase
-        .from('job_views')
+        .from('profile_views')
         .select('*', { count: 'exact', head: true })
-        .in('job_id', applications.map(a => a.job_id || '').filter(Boolean));
+        .eq('profile_id', profile.id);
+
+      const { count: notifCount } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false);
+
+      // Fetch next interview date
+      const { data: nextInterview } = await supabase
+        .from('interviews')
+        .select('scheduled_date')
+        .eq('candidate_id', data.id)
+        .eq('status', 'scheduled')
+        .gte('scheduled_date', new Date().toISOString().split('T')[0])
+        .order('scheduled_date', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (nextInterview?.scheduled_date) {
+        const d = new Date(nextInterview.scheduled_date);
+        if (isToday(d)) {
+          setNextInterviewLabel('Next: Today');
+        } else if (isTomorrow(d)) {
+          setNextInterviewLabel('Next: Tomorrow');
+        } else {
+          setNextInterviewLabel(`Next: ${format(d, 'MMM d')}`);
+        }
+      } else {
+        setNextInterviewLabel('None scheduled');
+      }
 
       setStats({
         applications: applications.length,
         views: viewCount || 0,
         unreadMessages: messagesRes.data?.length || 0,
-        interviews
+        interviews,
+        unreadNotifications: notifCount || 0,
       });
     }
 
@@ -158,6 +199,7 @@ const CandidateDashboard = () => {
     { icon: FileText, label: 'Tasks', value: 'tasks' },
     { icon: Bookmark, label: 'Saved Jobs', value: 'saved' },
     { icon: FileText, label: 'Resume', value: 'resume' },
+    { icon: Mic, label: 'Audio Resume', value: 'audio-resume' },
     { icon: Sparkles, label: 'AI Resume Builder', value: 'ai-resume' },
     { icon: Bell, label: 'Notifications', value: 'notifications' },
     { icon: User, label: 'Edit Profile', value: 'profile' },
@@ -166,7 +208,6 @@ const CandidateDashboard = () => {
     { icon: Shield, label: 'Security', value: 'security' }
   ];
 
-  // Show loading while auth is being checked
   if (authLoading) {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center">
@@ -178,7 +219,6 @@ const CandidateDashboard = () => {
     );
   }
 
-  // Show loading while profile is being fetched (with timeout protection)
   if (user && !profile && profileLoading) {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center">
@@ -190,7 +230,6 @@ const CandidateDashboard = () => {
     );
   }
 
-  // Show login prompt only after auth has finished loading and no user
   if (!user) {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center p-4">
@@ -210,7 +249,6 @@ const CandidateDashboard = () => {
     );
   }
 
-  // Show error state if profile failed to load
   if (!profile) {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center p-4">
@@ -248,7 +286,6 @@ const CandidateDashboard = () => {
 
   const completeness = calculateCompleteness();
 
-  // Render expanded section content
   const renderSectionContent = () => {
     switch (activeSection) {
       case 'jobs':
@@ -263,6 +300,8 @@ const CandidateDashboard = () => {
         return null;
       case 'resume':
         return candidate && <ResumeUpload candidate={candidate} onUpdate={fetchCandidate} />;
+      case 'audio-resume':
+        return candidate && <AudioResumeCard candidate={candidate} onUpdate={fetchCandidate} />;
       case 'alerts':
         return candidate && <JobAlertsManager candidateId={candidate.id} />;
       case 'security':
@@ -290,7 +329,7 @@ const CandidateDashboard = () => {
   return (
     <EmailVerificationGuard fallbackMessage="Please verify your email to access your dashboard.">
       <div className="min-h-screen bg-secondary flex overflow-x-hidden">
-        {/* Sidebar */}
+        {user && <OnboardingTour userId={user.id} type="candidate" />}
         <DashboardSidebar
           type="candidate"
           items={sidebarItems}
@@ -304,9 +343,7 @@ const CandidateDashboard = () => {
           onClose={() => setSidebarOpen(false)}
         />
 
-        {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-h-screen lg:ml-0 overflow-x-hidden">
-          {/* Header */}
           <DashboardHeader
             type="candidate"
             userName={profile.full_name}
@@ -315,14 +352,12 @@ const CandidateDashboard = () => {
             onMenuClick={() => setSidebarOpen(true)}
             onSignOut={signOut}
             messageCount={stats.unreadMessages}
-            notificationCount={2}
+            notificationCount={stats.unreadNotifications}
             profileCompleteness={completeness}
           />
 
-          {/* Main Content */}
-          <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto">
+          <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto pb-20 md:pb-6">
             {activeSection && activeSection !== 'messages' && activeSection !== 'profile' ? (
-              // Section Content View
               <div className="max-w-6xl mx-auto">
                 <Button 
                   variant="ghost" 
@@ -339,11 +374,18 @@ const CandidateDashboard = () => {
                 </Card>
               </div>
             ) : (
-              // Dashboard Home View
               <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
                 <PlatformNotificationBanner userType="candidate" />
-                {/* Quick Actions Bar */}
-            {completeness < 100 && (
+
+                {candidate && (
+                  <ProfileCompletionPrompts
+                    candidate={candidate}
+                    profile={profile}
+                    onNavigate={handleSectionClick}
+                    onEditProfile={() => setEditModalOpen(true)}
+                  />
+                )}
+                {completeness < 100 && (
                   <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
                     <CardContent className="p-3 sm:p-4">
                       <div className="flex items-start gap-2.5 sm:gap-3 mb-3">
@@ -384,7 +426,7 @@ const CandidateDashboard = () => {
                     icon={FileText}
                     label="Total Applied"
                     value={stats.applications}
-                    subtitle={`+${Math.floor(stats.applications * 0.2)} this week`}
+                    subtitle="all time"
                     accentColor="blue"
                     onClick={() => setActiveSection('jobs')}
                   />
@@ -392,7 +434,7 @@ const CandidateDashboard = () => {
                     icon={Eye}
                     label="Profile Views"
                     value={stats.views}
-                    subtitle="+12% this month"
+                    subtitle="all time"
                     accentColor="green"
                     onClick={() => setEditModalOpen(true)}
                   />
@@ -400,7 +442,7 @@ const CandidateDashboard = () => {
                     icon={MessageSquare}
                     label="Unread Messages"
                     value={stats.unreadMessages}
-                    subtitle={stats.unreadMessages > 0 ? `${Math.min(2, stats.unreadMessages)} urgent` : 'All caught up'}
+                    subtitle={stats.unreadMessages > 0 ? 'new messages' : 'all caught up'}
                     accentColor="amber"
                     onClick={() => setChatModalOpen(true)}
                   />
@@ -408,7 +450,7 @@ const CandidateDashboard = () => {
                     icon={Calendar}
                     label="Upcoming Interviews"
                     value={stats.interviews}
-                    subtitle={stats.interviews > 0 ? 'Next: Tomorrow' : 'None scheduled'}
+                    subtitle={nextInterviewLabel}
                     accentColor="purple"
                   />
                 </div>
@@ -423,12 +465,10 @@ const CandidateDashboard = () => {
                   </div>
                 </div>
 
-                {/* AI-Powered Job Matches */}
                 {candidate && (
                   <AIJobMatches candidateId={candidate.id} />
                 )}
 
-                {/* Jobs Matching Your Profile (Quick Carousel) */}
                 {candidate && (
                   <JobMatchCarousel 
                     candidateId={candidate.id} 
@@ -440,7 +480,6 @@ const CandidateDashboard = () => {
           </main>
         </div>
 
-        {/* Profile Edit Modal */}
         {profile && candidate && (
           <ProfileEditModal
             open={editModalOpen}
@@ -451,10 +490,15 @@ const CandidateDashboard = () => {
           />
         )}
 
-        {/* Chat Modal */}
         <ChatModal 
           isOpen={chatModalOpen} 
           onClose={() => setChatModalOpen(false)} 
+        />
+
+        <DashboardBottomNav
+          type="candidate"
+          activeItem={activeSection}
+          onItemClick={handleSectionClick}
         />
       </div>
     </EmailVerificationGuard>

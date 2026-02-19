@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { LucideIcon } from 'lucide-react';
 
@@ -10,6 +11,31 @@ interface DashboardStatCardProps {
   onClick?: () => void;
 }
 
+const useCountUp = (target: number, duration = 800) => {
+  const [count, setCount] = useState(0);
+  const hasAnimated = useRef(false);
+
+  useEffect(() => {
+    if (hasAnimated.current || target === 0) {
+      setCount(target);
+      return;
+    }
+    hasAnimated.current = true;
+    const start = performance.now();
+    const animate = (now: number) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setCount(Math.round(eased * target));
+      if (progress < 1) requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
+  }, [target, duration]);
+
+  return count;
+};
+
 export const DashboardStatCard = ({
   icon: Icon,
   label,
@@ -18,6 +44,10 @@ export const DashboardStatCard = ({
   accentColor,
   onClick
 }: DashboardStatCardProps) => {
+  const isNumber = typeof value === 'number';
+  const animatedValue = useCountUp(isNumber ? value : 0);
+  const displayValue = isNumber ? animatedValue : value;
+
   const colorClasses = {
     blue: {
       border: 'border-t-[hsl(217,89%,61%)]',
@@ -56,7 +86,7 @@ export const DashboardStatCard = ({
       <div className="flex items-start justify-between gap-1">
         <div className="min-w-0 flex-1">
           <p className="text-[10px] sm:text-sm text-muted-foreground font-medium leading-tight">{label}</p>
-          <p className="text-lg sm:text-3xl font-bold text-foreground mt-0.5 sm:mt-1">{value}</p>
+          <p className="text-lg sm:text-3xl font-bold text-foreground mt-0.5 sm:mt-1">{displayValue}</p>
           {subtitle && (
             <p className={cn("text-[9px] sm:text-xs mt-0.5 sm:mt-1 font-medium truncate", colors.icon)}>{subtitle}</p>
           )}

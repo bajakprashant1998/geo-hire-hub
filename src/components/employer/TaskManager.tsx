@@ -47,10 +47,13 @@ export const TaskManager = ({ employerId }: TaskManagerProps) => {
   const [creating, setCreating] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [filter, setFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [candidateFilter, setCandidateFilter] = useState('all');
+  const [priorityFilter, setPriorityFilter] = useState('all');
   const [form, setForm] = useState({
     title: '',
     description: '',
-    candidate_id: '',
+    candidate_ids: [] as string[],
     priority: 'medium',
     due_date: '',
   });
@@ -128,23 +131,24 @@ export const TaskManager = ({ employerId }: TaskManagerProps) => {
   };
 
   const handleCreate = async () => {
-    if (!form.title || !form.candidate_id) {
-      toast.error('Please fill in title and select a candidate');
+    if (!form.title || form.candidate_ids.length === 0) {
+      toast.error('Please fill in title and select at least one candidate');
       return;
     }
     setCreating(true);
     try {
-      const { error } = await supabase.from('tasks').insert({
+      const inserts = form.candidate_ids.map(cid => ({
         employer_id: employerId,
-        candidate_id: form.candidate_id,
+        candidate_id: cid,
         title: form.title,
         description: form.description || null,
         priority: form.priority,
         due_date: form.due_date || null,
-      });
+      }));
+      const { error } = await supabase.from('tasks').insert(inserts);
       if (error) throw error;
-      toast.success('Task assigned successfully');
-      setForm({ title: '', description: '', candidate_id: '', priority: 'medium', due_date: '' });
+      toast.success(`Task assigned to ${form.candidate_ids.length} candidate(s)`);
+      setForm({ title: '', description: '', candidate_ids: [], priority: 'medium', due_date: '' });
       setDialogOpen(false);
       fetchTasks();
     } catch (error: any) {
@@ -165,7 +169,16 @@ export const TaskManager = ({ employerId }: TaskManagerProps) => {
     }
   };
 
-  const filteredTasks = filter === 'all' ? tasks : tasks.filter(t => t.status === filter);
+  const filteredTasks = tasks.filter(t => {
+    if (filter !== 'all' && t.status !== filter) return false;
+    if (candidateFilter !== 'all' && t.candidate_id !== candidateFilter) return false;
+    if (priorityFilter !== 'all' && t.priority !== priorityFilter) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      if (!t.title.toLowerCase().includes(q) && !(t.description || '').toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -203,23 +216,48 @@ export const TaskManager = ({ employerId }: TaskManagerProps) => {
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Assign New Task</DialogTitle>
+              <DialogTitle>
+                Assign Task {form.candidate_ids.length > 0 ? `to ${form.candidate_ids.length} candidate(s)` : ''}
+              </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 pt-2">
               <div className="space-y-2">
-                <Label>Candidate *</Label>
-                <Select value={form.candidate_id} onValueChange={v => setForm({ ...form, candidate_id: v })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select candidate" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {candidates.map(c => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {(c as any).profiles.full_name} — {c.job_title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>Candidates *</Label>
+                <div className="border rounded-md max-h-40 overflow-y-auto p-2 space-y-1">
+                  <label className="flex items-center gap-2 p-1.5 rounded hover:bg-muted cursor-pointer text-sm font-medium">
+                    <input
+                      type="checkbox"
+                      checked={form.candidate_ids.length === candidates.length && candidates.length > 0}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setForm({ ...form, candidate_ids: candidates.map(c => c.id) });
+                        } else {
+                          setForm({ ...form, candidate_ids: [] });
+                        }
+                      }}
+                      className="rounded"
+                    />
+                    Select All ({candidates.length})
+                  </label>
+                  <div className="border-t my-1" />
+                  {candidates.map(c => (
+                    <label key={c.id} className="flex items-center gap-2 p-1.5 rounded hover:bg-muted cursor-pointer text-sm">
+                      <input
+                        type="checkbox"
+                        checked={form.candidate_ids.includes(c.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setForm({ ...form, candidate_ids: [...form.candidate_ids, c.id] });
+                          } else {
+                            setForm({ ...form, candidate_ids: form.candidate_ids.filter(id => id !== c.id) });
+                          }
+                        }}
+                        className="rounded"
+                      />
+                      {(c as any).profiles.full_name} — {c.job_title}
+                    </label>
+                  ))}
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Title *</Label>
@@ -253,6 +291,40 @@ export const TaskManager = ({ employerId }: TaskManagerProps) => {
             </div>
           </DialogContent>
         </Dialog>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="flex flex-col sm:flex-row gap-2">
+        <Input
+          placeholder="Search tasks..."
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          className="sm:max-w-xs"
+        />
+        <Select value={candidateFilter} onValueChange={setCandidateFilter}>
+          <SelectTrigger className="sm:w-[180px]">
+            <SelectValue placeholder="All Candidates" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Candidates</SelectItem>
+            {candidates.map(c => (
+              <SelectItem key={c.id} value={c.id}>
+                {(c as any).profiles.full_name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+          <SelectTrigger className="sm:w-[140px]">
+            <SelectValue placeholder="All Priorities" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Priorities</SelectItem>
+            <SelectItem value="high">High</SelectItem>
+            <SelectItem value="medium">Medium</SelectItem>
+            <SelectItem value="low">Low</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Filter tabs */}

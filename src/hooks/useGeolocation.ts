@@ -35,10 +35,10 @@ export const useGeolocation = () => {
         });
       },
       (error) => {
-        // Default to a central location (Mumbai, India) if geolocation fails
+        // Default to a central world location (0, 0) if geolocation fails
         setState({
-          latitude: 19.0760,
-          longitude: 72.8777,
+          latitude: 0,
+          longitude: 0,
           error: error.message,
           loading: false,
         });

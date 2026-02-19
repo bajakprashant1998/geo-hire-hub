@@ -9,6 +9,8 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { ReportDialog } from '@/components/ReportDialog';
+import { VerificationBadge } from '@/components/employer/VerificationBadge';
 import {
   Dialog,
   DialogContent,
@@ -114,18 +116,24 @@ interface JobDetails {
     description: string | null;
     user_id: string | null;
     whatsapp_number: string | null;
+    verification_status: 'pending' | 'approved' | 'rejected';
     is_government: boolean | null;
   };
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const JobDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const params = useParams();
+  // Support both /jobs/:id (UUID) and /jobs/.../:slug (SEO)
+  const identifier = params.slug || params.id || params['*']?.split('/').pop();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, profile, isEmailVerified } = useAuth();
   const { startConversation } = useStartConversation();
 
   const [job, setJob] = useState<JobDetails | null>(null);
+  const [resolvedId, setResolvedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
@@ -142,13 +150,74 @@ const JobDetail = () => {
     }
   }, [searchParams, loading, job, hasApplied, user]);
 
+  // Resolve slug to ID & redirect UUID URLs to SEO slugs
   useEffect(() => {
-    if (id) {
+    if (!identifier) return;
+    if (UUID_REGEX.test(identifier)) {
+      // UUID access — check if slug exists and redirect
+      supabase
+        .from('jobs')
+        .select('id, slug, location_country, location_state, location_city')
+        .eq('id', identifier)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) {
+            setResolvedId(data.id);
+            if (data.slug) {
+              const parts = ['/jobs'];
+              if (data.location_country) parts.push(encodeURIComponent(data.location_country.toLowerCase().replace(/\s+/g, '-')));
+              if (data.location_state) parts.push(encodeURIComponent(data.location_state.toLowerCase().replace(/\s+/g, '-')));
+              if (data.location_city) parts.push(encodeURIComponent(data.location_city.toLowerCase().replace(/\s+/g, '-')));
+              parts.push(data.slug);
+              const seoPath = parts.join('/');
+              const currentPath = window.location.pathname;
+              if (currentPath !== seoPath) {
+                navigate(seoPath + window.location.search, { replace: true });
+              }
+            }
+          } else {
+            setLoading(false);
+          }
+        });
+    } else {
+      // Slug access — resolve to ID
+      supabase
+        .from('jobs')
+        .select('id')
+        .eq('slug', identifier)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) setResolvedId(data.id);
+          else setLoading(false);
+        });
+    }
+  }, [identifier]);
+
+  useEffect(() => {
+    if (resolvedId) {
       fetchJob();
       checkIfApplied();
       fetchApplicantCount();
     }
-  }, [id]);
+  }, [resolvedId]);
+
+  // SEO meta tags
+  useEffect(() => {
+    if (job) {
+      document.title = `${job.title} at ${job.employer.company_name} | HireForJob`;
+      const metaDesc = document.querySelector('meta[name="description"]');
+      const desc = `Apply for ${job.title} at ${job.employer.company_name}. ${job.job_type || 'Full-time'}${job.salary_range ? ` | ${job.salary_range}` : ''}${job.job_address ? ` | ${job.job_address}` : ''}`;
+      if (metaDesc) metaDesc.setAttribute('content', desc.slice(0, 160));
+      else {
+        const el = document.createElement('meta');
+        el.name = 'description';
+        el.content = desc.slice(0, 160);
+        document.head.appendChild(el);
+      }
+    }
+  }, [job]);
+
+  const id = resolvedId;
 
   const fetchJob = async () => {
     try {
@@ -163,6 +232,7 @@ const JobDetail = () => {
             website_url,
             description,
             is_government,
+            verification_status,
             profiles!inner (
               avatar_url,
               user_id,
@@ -170,7 +240,7 @@ const JobDetail = () => {
             )
           )
         `)
-        .eq('id', id)
+        .eq('id', resolvedId)
         .maybeSingle();
 
       if (error) throw error;
@@ -187,6 +257,7 @@ const JobDetail = () => {
           description: data.employers.description,
           user_id: data.employers.profiles?.user_id,
           whatsapp_number: data.employers.profiles?.whatsapp_number,
+          verification_status: (data.employers.verification_status as any) || 'pending',
           is_government: data.employers.is_government,
         },
       });
@@ -364,6 +435,7 @@ const JobDetail = () => {
             <Button variant="ghost" size="icon" onClick={handleShare} className="rounded-full text-muted-foreground">
               <Share2 className="w-5 h-5" />
             </Button>
+            <ReportDialog targetId={id || ''} targetType="job" />
           </div>
         </div>
       </div>
@@ -403,6 +475,7 @@ const JobDetail = () => {
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-foreground group-hover:text-primary transition-colors">{job.employer.company_name}</span>
+                <VerificationBadge status={job.employer.verification_status} size="sm" showLabel={false} />
                 {job.employer.is_government && <GovernmentEmployerBadge variant="compact" />}
                 <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>

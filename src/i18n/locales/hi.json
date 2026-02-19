@@ -1,0 +1,104 @@
+{
+  "nav": {
+    "home": "होम",
+    "dashboard": "डैशबोर्ड",
+    "messages": "संदेश",
+    "profile": "प्रोफ़ाइल",
+    "settings": "सेटिंग्स",
+    "signOut": "साइन आउट",
+    "login": "लॉगिन",
+    "signup": "साइन अप"
+  },
+  "dashboard": {
+    "welcome": "वापसी पर स्वागत है",
+    "findDreamJob": "आज अपनी सपनों की नौकरी खोजें",
+    "totalApplications": "कुल आवेदन",
+    "activeJobs": "सक्रिय नौकरियाँ",
+    "interviews": "साक्षात्कार",
+    "savedJobs": "सहेजी गई नौकरियाँ",
+    "profileCompleteness": "प्रोफ़ाइल",
+    "overview": "अवलोकन",
+    "applications": "आवेदन",
+    "tasks": "कार्य",
+    "jobAlerts": "नौकरी अलर्ट",
+    "recommendations": "सिफारिशें"
+  },
+  "employer": {
+    "postJob": "नौकरी पोस्ट करें",
+    "applicants": "आवेदक",
+    "analytics": "विश्लेषण",
+    "companyProfile": "कंपनी प्रोफ़ाइल",
+    "totalApplicants": "कुल आवेदक",
+    "activeListings": "सक्रिय सूचियाँ",
+    "interviewsScheduled": "निर्धारित साक्षात्कार",
+    "savedCandidates": "सहेजे गए उम्मीदवार"
+  },
+  "jobs": {
+    "jobTitle": "नौकरी का शीर्षक",
+    "location": "स्थान",
+    "salary": "वेतन",
+    "experience": "अनुभव",
+    "skills": "कौशल",
+    "applyNow": "अभी आवेदन करें",
+    "saveJob": "नौकरी सहेजें",
+    "fullTime": "पूर्णकालिक",
+    "partTime": "अंशकालिक",
+    "description": "नौकरी विवरण",
+    "requirements": "आवश्यकताएँ",
+    "postedOn": "पोस्ट किया गया",
+    "openings": "रिक्तियाँ",
+    "currency": "मुद्रा"
+  },
+  "profile": {
+    "editProfile": "प्रोफ़ाइल संपादित करें",
+    "completeProfile": "अपनी प्रोफ़ाइल पूरी करें",
+    "bio": "परिचय",
+    "contactInfo": "संपर्क जानकारी",
+    "workExperience": "कार्य अनुभव",
+    "education": "शिक्षा",
+    "certifications": "प्रमाणपत्र",
+    "languages": "भाषाएँ",
+    "downloadPDF": "PDF डाउनलोड करें",
+    "timezone": "समय क्षेत्र"
+  },
+  "auth": {
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "forgotPassword": "पासवर्ड भूल गए?",
+    "createAccount": "खाता बनाएं",
+    "alreadyHaveAccount": "पहले से खाता है?",
+    "dontHaveAccount": "खाता नहीं है?"
+  },
+  "common": {
+    "search": "खोजें",
+    "save": "सहेजें",
+    "cancel": "रद्द करें",
+    "delete": "हटाएं",
+    "edit": "संपादित करें",
+    "view": "देखें",
+    "loading": "लोड हो रहा है...",
+    "noResults": "कोई परिणाम नहीं मिला",
+    "submit": "जमा करें",
+    "next": "अगला",
+    "previous": "पिछला",
+    "close": "बंद करें",
+    "language": "भाषा",
+    "selectCountry": "देश चुनें",
+    "phone": "फ़ोन नंबर"
+  },
+  "map": {
+    "searchLocation": "शहर, क्षेत्र या पता खोजें...",
+    "useMyLocation": "मेरा स्थान उपयोग करें",
+    "locationDetected": "स्थान पता चला!",
+    "clickToSet": "नौकरी का स्थान सेट करने के लिए मानचित्र पर क्लिक करें",
+    "satellite": "उपग्रह",
+    "street": "सड़क"
+  },
+  "interview": {
+    "schedule": "साक्षात्कार निर्धारित करें",
+    "scheduled": "निर्धारित",
+    "yourTimezone": "आपका समय क्षेत्र",
+    "employerTimezone": "नियोक्ता का समय क्षेत्र",
+    "localTime": "स्थानीय समय"
+  }
+}

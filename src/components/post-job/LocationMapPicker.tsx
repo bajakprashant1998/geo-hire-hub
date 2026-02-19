@@ -49,8 +49,8 @@ export const LocationMapPicker = ({
     if (!containerRef.current || mapRef.current) return;
 
     const map = L.map(containerRef.current, {
-      center: coordinates ? [coordinates.lat, coordinates.lng] : [20.5937, 78.9629],
-      zoom: coordinates ? 15 : 5,
+      center: coordinates ? [coordinates.lat, coordinates.lng] : [20, 0],
+      zoom: coordinates ? 15 : 2,
     });
 
     tileLayerRef.current = L.tileLayer(streetTileUrl, {

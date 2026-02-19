@@ -1,0 +1,104 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "dashboard": "Panel",
+    "messages": "Mensajes",
+    "profile": "Perfil",
+    "settings": "Configuración",
+    "signOut": "Cerrar sesión",
+    "login": "Iniciar sesión",
+    "signup": "Registrarse"
+  },
+  "dashboard": {
+    "welcome": "Bienvenido de nuevo",
+    "findDreamJob": "Encontremos tu trabajo soñado hoy",
+    "totalApplications": "Solicitudes totales",
+    "activeJobs": "Empleos activos",
+    "interviews": "Entrevistas",
+    "savedJobs": "Empleos guardados",
+    "profileCompleteness": "Perfil",
+    "overview": "Resumen",
+    "applications": "Solicitudes",
+    "tasks": "Tareas",
+    "jobAlerts": "Alertas de empleo",
+    "recommendations": "Recomendaciones"
+  },
+  "employer": {
+    "postJob": "Publicar empleo",
+    "applicants": "Candidatos",
+    "analytics": "Análisis",
+    "companyProfile": "Perfil de empresa",
+    "totalApplicants": "Total de candidatos",
+    "activeListings": "Publicaciones activas",
+    "interviewsScheduled": "Entrevistas programadas",
+    "savedCandidates": "Candidatos guardados"
+  },
+  "jobs": {
+    "jobTitle": "Título del puesto",
+    "location": "Ubicación",
+    "salary": "Salario",
+    "experience": "Experiencia",
+    "skills": "Habilidades",
+    "applyNow": "Aplicar ahora",
+    "saveJob": "Guardar empleo",
+    "fullTime": "Tiempo completo",
+    "partTime": "Medio tiempo",
+    "description": "Descripción del puesto",
+    "requirements": "Requisitos",
+    "postedOn": "Publicado el",
+    "openings": "Vacantes",
+    "currency": "Moneda"
+  },
+  "profile": {
+    "editProfile": "Editar perfil",
+    "completeProfile": "Completa tu perfil",
+    "bio": "Biografía",
+    "contactInfo": "Información de contacto",
+    "workExperience": "Experiencia laboral",
+    "education": "Educación",
+    "certifications": "Certificaciones",
+    "languages": "Idiomas",
+    "downloadPDF": "Descargar PDF",
+    "timezone": "Zona horaria"
+  },
+  "auth": {
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "createAccount": "Crear cuenta",
+    "alreadyHaveAccount": "¿Ya tienes cuenta?",
+    "dontHaveAccount": "¿No tienes cuenta?"
+  },
+  "common": {
+    "search": "Buscar",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "view": "Ver",
+    "loading": "Cargando...",
+    "noResults": "Sin resultados",
+    "submit": "Enviar",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "close": "Cerrar",
+    "language": "Idioma",
+    "selectCountry": "Seleccionar país",
+    "phone": "Número de teléfono"
+  },
+  "map": {
+    "searchLocation": "Buscar ciudad, zona o dirección...",
+    "useMyLocation": "Usar mi ubicación",
+    "locationDetected": "¡Ubicación detectada!",
+    "clickToSet": "Haz clic en el mapa para establecer la ubicación",
+    "satellite": "Satélite",
+    "street": "Calle"
+  },
+  "interview": {
+    "schedule": "Programar entrevista",
+    "scheduled": "Programada",
+    "yourTimezone": "Tu zona horaria",
+    "employerTimezone": "Zona horaria del empleador",
+    "localTime": "Hora local"
+  }
+}

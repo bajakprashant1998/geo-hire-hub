@@ -15,6 +15,9 @@ import VerifyEmail from "./pages/VerifyEmail";
 import ProfileSetup from "./pages/ProfileSetup";
 import AuthCallback from "./pages/auth/AuthCallback";
 import RoleSelection from "./pages/auth/RoleSelection";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import BrowseJobs from "./pages/BrowseJobs";
 
 import CandidateDashboard from "./pages/CandidateDashboard";
 import CandidateSettings from "./pages/CandidateSettings";
@@ -44,6 +47,9 @@ import AdminJobCategories from "./pages/admin/AdminJobCategories";
 import AdminApplications from "./pages/admin/AdminApplications";
 import AdminNotifications from "./pages/admin/AdminNotifications";
 import AdminModeration from "./pages/admin/AdminModeration";
+import AdminEmailTemplates from "./pages/admin/AdminEmailTemplates";
+import AdminSystemHealth from "./pages/admin/AdminSystemHealth";
+import AdminContentSEO from "./pages/admin/AdminContentSEO";
 
 const queryClient = new QueryClient();
 
@@ -74,15 +80,33 @@ const App = () => (
               <Route path="/plans" element={<Plans />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/select-role" element={<RoleSelection />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/browse-jobs" element={<BrowseJobs />} />
 
               {/* ==================== SHARED ROUTES ==================== */}
               <Route path="/messages" element={<Messages />} />
               <Route path="/messages/:conversationId" element={<Messages />} />
 
-              {/* ==================== PUBLIC DETAIL PAGES ==================== */}
+              {/* ==================== SEO-FRIENDLY DETAIL PAGES ==================== */}
+              {/* Jobs: /jobs/:slug or /jobs/:country/:slug or /jobs/:country/:state/:slug or /jobs/:country/:state/:city/:slug */}
               <Route path="/jobs/:id" element={<JobDetail />} />
+              <Route path="/jobs/:country/:slug" element={<JobDetail />} />
+              <Route path="/jobs/:country/:state/:slug" element={<JobDetail />} />
+              <Route path="/jobs/:country/:state/:city/:slug" element={<JobDetail />} />
+
+              {/* Candidates: /candidates/:slug or with location hierarchy */}
               <Route path="/candidates/:id" element={<CandidateDetail />} />
+              <Route path="/candidates/:country/:slug" element={<CandidateDetail />} />
+              <Route path="/candidates/:country/:state/:slug" element={<CandidateDetail />} />
+              <Route path="/candidates/:country/:state/:city/:slug" element={<CandidateDetail />} />
+
+              {/* Companies/Employers: /companies/:slug or with location hierarchy */}
               <Route path="/employers/:id" element={<EmployerDetail />} />
+              <Route path="/companies/:slug" element={<EmployerDetail />} />
+              <Route path="/companies/:country/:slug" element={<EmployerDetail />} />
+              <Route path="/companies/:country/:state/:slug" element={<EmployerDetail />} />
+              <Route path="/companies/:country/:state/:city/:slug" element={<EmployerDetail />} />
 
               {/* ==================== CANDIDATE ROUTES ==================== */}
               <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
@@ -112,6 +136,9 @@ const App = () => (
               <Route path="/admin/plans" element={<AdminPlans />} />
               <Route path="/admin/reports" element={<AdminReports />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
+              <Route path="/admin/email-templates" element={<AdminEmailTemplates />} />
+              <Route path="/admin/system-health" element={<AdminSystemHealth />} />
+              <Route path="/admin/content-seo" element={<AdminContentSEO />} />
 
               {/* ==================== REDIRECTS & ALIASES ==================== */}
               <Route path="/dashboard" element={<Navigate to="/candidate-dashboard" replace />} />
@@ -120,12 +147,12 @@ const App = () => (
 
               {/* ==================== CATCH-ALL ==================== */}
               <Route path="*" element={<NotFound />} />
-            </Routes>
-          </MessageNotificationProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
-  </QueryClientProvider>
+            </Routes >
+          </MessageNotificationProvider >
+        </BrowserRouter >
+      </TooltipProvider >
+    </AuthProvider >
+  </QueryClientProvider >
 );
 
 export default App;

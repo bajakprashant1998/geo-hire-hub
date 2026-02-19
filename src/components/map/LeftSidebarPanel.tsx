@@ -89,10 +89,11 @@ export const LeftSidebarPanel = ({
   const navigate = useNavigate();
 
   const count = mode === 'hiring' ? candidateCount : jobCount;
+  const [limit, setLimit] = useState(10);
 
   // Fetch nearby jobs
   const { data: nearbyJobs } = useQuery({
-    queryKey: ['nearby-jobs-sidebar', userLocation?.lat, userLocation?.lng, radius],
+    queryKey: ['nearby-jobs-sidebar', userLocation?.lat, userLocation?.lng, radius, limit],
     queryFn: async () => {
       if (!userLocation) return [];
       const { data, error } = await supabase.rpc('get_nearby_jobs', {
@@ -101,14 +102,14 @@ export const LeftSidebarPanel = ({
         radius_km: radius
       });
       if (error) return [];
-      return (data || []).slice(0, 10) as Job[];
+      return (data || []).slice(0, limit) as Job[];
     },
     enabled: !!userLocation && mode === 'seeking',
   });
 
   // Fetch nearby candidates
   const { data: nearbyCandidates } = useQuery({
-    queryKey: ['nearby-candidates-sidebar', userLocation?.lat, userLocation?.lng, radius],
+    queryKey: ['nearby-candidates-sidebar', userLocation?.lat, userLocation?.lng, radius, limit],
     queryFn: async () => {
       if (!userLocation) return [];
       const { data, error } = await supabase.rpc('get_nearby_candidates', {
@@ -117,7 +118,7 @@ export const LeftSidebarPanel = ({
         radius_km: radius
       });
       if (error) return [];
-      return (data || []).slice(0, 10) as Candidate[];
+      return (data || []).slice(0, limit) as Candidate[];
     },
     enabled: !!userLocation && mode === 'hiring',
   });
@@ -376,6 +377,17 @@ export const LeftSidebarPanel = ({
               )
             )}
           </div>
+
+          {/* Load More Button */}
+          {(mode === 'seeking' ? nearbyJobs : nearbyCandidates)?.length === limit && (
+            <Button 
+              variant="outline" 
+              className="w-full mt-2" 
+              onClick={() => setLimit(l => l + 10)}
+            >
+              Load More
+            </Button>
+          )}
 
           {/* View All Button */}
           {count > 0 && (
