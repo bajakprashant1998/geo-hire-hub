@@ -52,6 +52,11 @@ export const DashboardHeader = ({
             <Menu className="w-5 h-5" />
           </Button>
 
+          {/* Mobile compact greeting */}
+          <h1 className="sm:hidden text-sm font-semibold text-foreground truncate">
+            Hi, <span className="text-primary">{firstName}</span>
+          </h1>
+          {/* Desktop full greeting */}
           <div className="hidden sm:block min-w-0">
             <h1 className="text-base sm:text-lg font-semibold text-foreground truncate">
               Welcome back, <span className="text-primary">{firstName}</span>

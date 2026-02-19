@@ -152,16 +152,16 @@ export const JobMatchCarousel = ({ candidateId, skills }: JobMatchCarouselProps)
   return (
     <div className="bg-card rounded-xl shadow-sm border p-5">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-primary" />
-          <h3 className="font-semibold text-foreground">Jobs Matching Your Profile</h3>
+      <div className="flex items-center justify-between mb-4 gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <Sparkles className="w-5 h-5 text-primary shrink-0" />
+          <h3 className="font-semibold text-foreground text-sm sm:text-base truncate">Jobs Matching Your Profile</h3>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 shrink-0">
           <Button 
             variant="outline" 
             size="icon" 
-            className="w-8 h-8 rounded-full"
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full"
             onClick={() => scroll('left')}
           >
             <ChevronLeft className="w-4 h-4" />
@@ -169,7 +169,7 @@ export const JobMatchCarousel = ({ candidateId, skills }: JobMatchCarouselProps)
           <Button 
             variant="outline" 
             size="icon" 
-            className="w-8 h-8 rounded-full"
+            className="w-7 h-7 sm:w-8 sm:h-8 rounded-full"
             onClick={() => scroll('right')}
           >
             <ChevronRight className="w-4 h-4" />
@@ -186,7 +186,7 @@ export const JobMatchCarousel = ({ candidateId, skills }: JobMatchCarouselProps)
         {jobs.map((job, index) => (
           <div 
             key={job.id}
-            className="flex-shrink-0 w-[260px] bg-secondary/50 rounded-xl p-4 border hover:shadow-md transition-all"
+            className="flex-shrink-0 w-[220px] sm:w-[260px] bg-secondary/50 rounded-xl p-3 sm:p-4 border hover:shadow-md transition-all"
           >
             {/* Header */}
             <div className="flex items-start justify-between mb-3">

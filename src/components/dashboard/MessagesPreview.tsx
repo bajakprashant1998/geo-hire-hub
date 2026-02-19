@@ -118,13 +118,13 @@ export const MessagesPreview = ({ profileId, onOpenChat }: MessagesPreviewProps)
 
   if (conversations.length === 0) {
     return (
-      <div className="bg-card rounded-xl shadow-sm border p-6">
-        <div className="text-center py-12">
-          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Send className="w-8 h-8 text-primary" />
+      <div className="bg-card rounded-xl shadow-sm border p-4 sm:p-6">
+        <div className="text-center py-8 sm:py-12">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+            <Send className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
           </div>
-          <h3 className="text-lg font-semibold text-foreground mb-2">No Messages Yet</h3>
-          <p className="text-muted-foreground text-sm mb-4">Start applying to jobs to connect with employers</p>
+          <h3 className="text-base sm:text-lg font-semibold text-foreground mb-1.5 sm:mb-2">No Messages Yet</h3>
+          <p className="text-muted-foreground text-xs sm:text-sm mb-3 sm:mb-4 px-2">Start applying to jobs to connect with employers</p>
           <Link to="/">
             <Button variant="outline" size="sm">Browse Jobs</Button>
           </Link>
@@ -175,7 +175,7 @@ export const MessagesPreview = ({ profileId, onOpenChat }: MessagesPreviewProps)
       )}
 
       {/* Messages Area */}
-      <div className="h-52 overflow-y-auto p-4 space-y-4 bg-muted/30">
+      <div className="h-44 sm:h-52 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 bg-muted/30">
         {messages.map((message) => {
           const isOwn = message.sender_id === profileId;
           return (
@@ -196,8 +196,8 @@ export const MessagesPreview = ({ profileId, onOpenChat }: MessagesPreviewProps)
       </div>
 
       {/* Input Area */}
-      <div className="p-4 border-t bg-card">
-        <div className="flex items-center gap-3">
+      <div className="p-3 sm:p-4 border-t bg-card">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Button variant="ghost" size="icon" className="text-muted-foreground">
             <Paperclip className="w-5 h-5" />
           </Button>

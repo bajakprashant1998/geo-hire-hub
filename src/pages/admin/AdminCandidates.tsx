@@ -40,6 +40,11 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { Link } from 'react-router-dom';
+import { PaginationControls } from '@/components/admin/PaginationControls';
+import { ExternalLink } from 'lucide-react';
+
+const PAGE_SIZE = 20;
 
 interface Candidate {
   id: string;
@@ -62,6 +67,7 @@ export default function AdminCandidates() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [page, setPage] = useState(1);
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   const [actionDialog, setActionDialog] = useState<{
     type: 'block' | 'unblock' | null;
@@ -69,16 +75,20 @@ export default function AdminCandidates() {
   }>({ type: null, candidate: null });
   const [actionReason, setActionReason] = useState('');
 
-  const { data: candidates, isLoading } = useQuery({
-    queryKey: ['admin-candidates', statusFilter],
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin-candidates', statusFilter, page],
     queryFn: async () => {
+      const from = (page - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
       let query = supabase
         .from('candidates')
         .select(`
           *,
           profile:profiles!candidates_profile_id_fkey(id, full_name, user_id, avatar_url, is_visible_on_map)
-        `)
-        .order('created_at', { ascending: false });
+        `, { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (statusFilter === 'blocked') {
         query = query.eq('is_blocked', true);
@@ -86,11 +96,14 @@ export default function AdminCandidates() {
         query = query.eq('is_blocked', false);
       }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
       if (error) throw error;
-      return data as unknown as Candidate[];
+      return { candidates: data as unknown as Candidate[], total: count || 0 };
     },
   });
+
+  const candidates = data?.candidates;
+  const totalPages = Math.ceil((data?.total || 0) / PAGE_SIZE);
 
   const updateCandidateMutation = useMutation({
     mutationFn: async ({ 
@@ -255,6 +268,11 @@ export default function AdminCandidates() {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
+                        <Button variant="ghost" size="icon" asChild>
+                          <Link to={`/candidates/${candidate.id}`}>
+                            <ExternalLink className="h-4 w-4" />
+                          </Link>
+                        </Button>
                         {candidate.is_blocked ? (
                           <Button
                             variant="ghost"
@@ -283,6 +301,9 @@ export default function AdminCandidates() {
           )}
         </CardContent>
       </Card>
+
+      {/* Pagination */}
+      <PaginationControls page={page} totalPages={totalPages} onPageChange={setPage} />
 
       {/* Detail Dialog */}
       <Dialog open={!!selectedCandidate} onOpenChange={() => setSelectedCandidate(null)}>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -10,34 +10,9 @@ export const EmailVerificationBanner = () => {
   const [dismissed, setDismissed] = useState(false);
   const [resending, setResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
-  const [customEmailVerified, setCustomEmailVerified] = useState<boolean | null>(null);
-
-  // Check custom email verification status
-  useEffect(() => {
-    const checkVerificationStatus = async () => {
-      if (!user) return;
-
-      try {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('custom_email_verified')
-          .eq('user_id', user.id)
-          .single();
-
-        setCustomEmailVerified(profile?.custom_email_verified ?? false);
-      } catch (error) {
-        console.error('Error checking verification status:', error);
-      }
-    };
-
-    checkVerificationStatus();
-  }, [user]);
-
-  // Check both Supabase native and custom verification
-  const isVerified = isEmailVerified || customEmailVerified === true;
 
   // Don't show if loading, no user, verified, or dismissed
-  if (loading || !user || isVerified || dismissed) {
+  if (loading || !user || isEmailVerified || dismissed) {
     return null;
   }
 

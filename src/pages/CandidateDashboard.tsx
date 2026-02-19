@@ -24,7 +24,12 @@ import { NotificationCenter } from '@/components/candidate/NotificationCenter';
 import { JobAlertsManager } from '@/components/candidate/JobAlertsManager';
 import { SecuritySettings } from '@/components/candidate/SecuritySettings';
 import { RecommendedJobs } from '@/components/candidate/RecommendedJobs';
+import { InterviewCalendar } from '@/components/candidate/InterviewCalendar';
+import { PlatformNotificationBanner } from '@/components/dashboard/PlatformNotificationBanner';
+import { SavedJobsSection } from '@/components/candidate/SavedJobsSection';
 import { AIJobMatches } from '@/components/candidate/AIJobMatches';
+import { TaskList } from '@/components/candidate/TaskList';
+import CandidateDetail from '@/pages/CandidateDetail';
 
 const CandidateDashboard = () => {
   const navigate = useNavigate();
@@ -88,17 +93,23 @@ const CandidateDashboard = () => {
 
     if (data) {
       const [appsRes, messagesRes] = await Promise.all([
-        supabase.from('applications').select('id, status').eq('candidate_id', data.id),
+        supabase.from('applications').select('id, status, job_id').eq('candidate_id', data.id),
         supabase.from('messages').select('id').eq('is_read', false).neq('sender_id', profile.id)
       ]);
 
       const applications = appsRes.data || [];
       const interviews = applications.filter(a => a.status === 'shortlisted').length;
 
+      // Get real profile view count from job_views for jobs the candidate applied to
+      const { count: viewCount } = await supabase
+        .from('job_views')
+        .select('*', { count: 'exact', head: true })
+        .in('job_id', applications.map(a => a.job_id || '').filter(Boolean));
+
       setStats({
         applications: applications.length,
-        views: Math.floor(Math.random() * 150) + 50,
-        unreadMessages: messagesRes.data?.length || Math.floor(Math.random() * 10),
+        views: viewCount || 0,
+        unreadMessages: messagesRes.data?.length || 0,
         interviews
       });
     }
@@ -116,6 +127,8 @@ const CandidateDashboard = () => {
       setActiveSection(null);
     } else if (value === 'messages') {
       setChatModalOpen(true);
+    } else if (value === 'ai-resume') {
+      navigate('/ai-resume-builder');
     } else {
       setActiveSection(value);
     }
@@ -142,9 +155,14 @@ const CandidateDashboard = () => {
     { icon: Briefcase, label: 'My Applications', value: 'jobs', badge: stats.applications },
     { icon: MessageSquare, label: 'Messages', value: 'messages', badge: stats.unreadMessages },
     { icon: Calendar, label: 'Scheduled Interviews', value: 'interviews' },
+    { icon: FileText, label: 'Tasks', value: 'tasks' },
     { icon: Bookmark, label: 'Saved Jobs', value: 'saved' },
+    { icon: FileText, label: 'Resume', value: 'resume' },
+    { icon: Sparkles, label: 'AI Resume Builder', value: 'ai-resume' },
+    { icon: Bell, label: 'Notifications', value: 'notifications' },
     { icon: User, label: 'Edit Profile', value: 'profile' },
-    { icon: Bell, label: 'Job Alerts', value: 'alerts' },
+    { icon: Eye, label: 'Public Profile', value: 'public-profile' },
+    { icon: Sparkles, label: 'Job Alerts', value: 'alerts' },
     { icon: Shield, label: 'Security', value: 'security' }
   ];
 
@@ -234,10 +252,11 @@ const CandidateDashboard = () => {
   const renderSectionContent = () => {
     switch (activeSection) {
       case 'jobs':
+        return candidate && <JobActivityTabs candidateId={candidate.id} />;
       case 'saved':
-        return candidate && <JobActivityTabs candidateId={candidate.id} />;
+        return candidate && <SavedJobsSection candidateId={candidate.id} />;
       case 'interviews':
-        return candidate && <JobActivityTabs candidateId={candidate.id} />;
+        return candidate && <InterviewCalendar candidateId={candidate.id} />;
       case 'profile':
         setEditModalOpen(true);
         setActiveSection(null);
@@ -248,8 +267,12 @@ const CandidateDashboard = () => {
         return candidate && <JobAlertsManager candidateId={candidate.id} />;
       case 'security':
         return <SecuritySettings />;
+      case 'tasks':
+        return candidate && <TaskList candidateId={candidate.id} />;
       case 'notifications':
         return <NotificationCenter />;
+      case 'public-profile':
+        return candidate && <CandidateDetail id={candidate.id} />;
       case 'recommended':
         return candidate && (
           <RecommendedJobs 
@@ -266,7 +289,7 @@ const CandidateDashboard = () => {
 
   return (
     <EmailVerificationGuard fallbackMessage="Please verify your email to access your dashboard.">
-      <div className="min-h-screen bg-secondary flex">
+      <div className="min-h-screen bg-secondary flex overflow-x-hidden">
         {/* Sidebar */}
         <DashboardSidebar
           type="candidate"
@@ -282,7 +305,7 @@ const CandidateDashboard = () => {
         />
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-h-screen lg:ml-0">
+        <div className="flex-1 flex flex-col min-h-screen lg:ml-0 overflow-x-hidden">
           {/* Header */}
           <DashboardHeader
             type="candidate"
@@ -297,7 +320,7 @@ const CandidateDashboard = () => {
           />
 
           {/* Main Content */}
-          <main className="flex-1 p-4 lg:p-6 overflow-y-auto">
+          <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto">
             {activeSection && activeSection !== 'messages' && activeSection !== 'profile' ? (
               // Section Content View
               <div className="max-w-6xl mx-auto">
@@ -310,42 +333,45 @@ const CandidateDashboard = () => {
                   Back to Dashboard
                 </Button>
                 <Card className="bg-card shadow-sm border">
-                  <CardContent className="p-6">
+                  <CardContent className="p-3 sm:p-4 md:p-6">
                     {renderSectionContent()}
                   </CardContent>
                 </Card>
               </div>
             ) : (
               // Dashboard Home View
-              <div className="max-w-6xl mx-auto space-y-6">
+              <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
+                <PlatformNotificationBanner userType="candidate" />
                 {/* Quick Actions Bar */}
-                {completeness < 100 && (
+            {completeness < 100 && (
                   <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
-                    <CardContent className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                          <User className="w-5 h-5 text-primary" />
+                    <CardContent className="p-3 sm:p-4">
+                      <div className="flex items-start gap-2.5 sm:gap-3 mb-3">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                          <User className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                         </div>
-                        <div>
-                          <p className="font-medium text-foreground">Complete your profile</p>
-                          <p className="text-sm text-muted-foreground">
-                            Your profile is {completeness}% complete. Add more details to attract employers.
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium text-foreground text-xs sm:text-base">Complete your profile ({completeness}%)</p>
+                          <p className="text-[11px] sm:text-sm text-muted-foreground leading-snug">
+                            Add more details to attract employers.
                           </p>
                         </div>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="grid grid-cols-2 gap-2">
                         <Button 
                           variant="outline" 
                           size="sm" 
+                          className="text-xs sm:text-sm h-8 sm:h-9"
                           onClick={() => setEditModalOpen(true)}
                         >
                           Quick Edit
                         </Button>
                         <Button 
                           size="sm" 
+                          className="text-xs sm:text-sm h-8 sm:h-9"
                           onClick={() => navigate('/candidate-settings')}
                         >
-                          Full Settings
+                          Edit Profile
                         </Button>
                       </div>
                     </CardContent>
@@ -353,7 +379,7 @@ const CandidateDashboard = () => {
                 )}
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
                   <DashboardStatCard
                     icon={FileText}
                     label="Total Applied"
@@ -388,12 +414,12 @@ const CandidateDashboard = () => {
                 </div>
 
                 {/* Messages Preview + Interview Card Row */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-6">
                   <div className="lg:col-span-2">
                     <MessagesPreview profileId={profile.id} onOpenChat={() => setChatModalOpen(true)} />
                   </div>
-                  <div className="lg:col-span-1">
-                    <UpcomingInterviewCard interview={null} />
+                  <div>
+                    <UpcomingInterviewCard />
                   </div>
                 </div>
 

@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { MessageNotificationProvider } from "@/components/messaging/MessageNotificationProvider";
 import { EmailVerificationBanner } from "@/components/auth/EmailVerificationBanner";
@@ -25,6 +25,7 @@ import EmployerDetail from "./pages/EmployerDetail";
 import JobDetail from "./pages/JobDetail";
 import Plans from "./pages/Plans";
 import CompanyProfileEdit from "./pages/CompanyProfileEdit";
+import VideoCall from "./pages/VideoCall";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminEmployers from "./pages/admin/AdminEmployers";
@@ -38,8 +39,17 @@ import AdminAnalytics from "./pages/admin/AdminAnalytics";
 import AdminGovernment from "./pages/admin/AdminGovernment";
 import AdminMessages from "./pages/admin/AdminMessages";
 import AdminJobCategories from "./pages/admin/AdminJobCategories";
+import AdminApplications from "./pages/admin/AdminApplications";
+import AdminNotifications from "./pages/admin/AdminNotifications";
+import AdminModeration from "./pages/admin/AdminModeration";
 
 const queryClient = new QueryClient();
+
+// Proper redirect component that preserves the :id param
+const JobRedirect = () => {
+  const { id } = useParams();
+  return <Navigate to={`/jobs/${id}`} replace />;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -80,6 +90,7 @@ const App = () => (
               <Route path="/post-job" element={<PostJob />} />
               <Route path="/edit-job/:jobId" element={<PostJob />} />
               <Route path="/company-profile" element={<CompanyProfileEdit />} />
+              <Route path="/video-call/:interviewId" element={<VideoCall />} />
 
               {/* ==================== ADMIN ROUTES ==================== */}
               <Route path="/admin" element={<AdminDashboard />} />
@@ -87,9 +98,12 @@ const App = () => (
               <Route path="/admin/users" element={<AdminUsers />} />
               <Route path="/admin/employers" element={<AdminEmployers />} />
               <Route path="/admin/jobs" element={<AdminJobs />} />
+              <Route path="/admin/applications" element={<AdminApplications />} />
               <Route path="/admin/candidates" element={<AdminCandidates />} />
               <Route path="/admin/categories" element={<AdminJobCategories />} />
               <Route path="/admin/government" element={<AdminGovernment />} />
+              <Route path="/admin/moderation" element={<AdminModeration />} />
+              <Route path="/admin/notifications" element={<AdminNotifications />} />
               <Route path="/admin/messages" element={<AdminMessages />} />
               <Route path="/admin/plans" element={<AdminPlans />} />
               <Route path="/admin/reports" element={<AdminReports />} />
@@ -98,7 +112,7 @@ const App = () => (
               {/* ==================== REDIRECTS & ALIASES ==================== */}
               <Route path="/dashboard" element={<Navigate to="/candidate-dashboard" replace />} />
               <Route path="/employer/:id" element={<EmployerDetail />} />
-              <Route path="/job/:id" element={<Navigate to="/jobs/:id" replace />} />
+              <Route path="/job/:id" element={<JobRedirect />} />
 
               {/* ==================== CATCH-ALL ==================== */}
               <Route path="*" element={<NotFound />} />

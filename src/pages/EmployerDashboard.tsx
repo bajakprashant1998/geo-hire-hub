@@ -32,6 +32,12 @@ import { PlanUsagePanel } from '@/components/employer/PlanUsagePanel';
 import { JobDraftsSection } from '@/components/employer/JobDraftsSection';
 import { SavedCandidatesSection } from '@/components/employer/SavedCandidatesSection';
 import { ApplicantTabs } from '@/components/employer/ApplicantTabs';
+import { InterviewScheduler } from '@/components/employer/InterviewScheduler';
+import { JobAnalyticsDashboard } from '@/components/employer/JobAnalyticsDashboard';
+import { EmployerInterviewCalendar } from '@/components/employer/EmployerInterviewCalendar';
+import { PlatformNotificationBanner } from '@/components/dashboard/PlatformNotificationBanner';
+import { TaskManager } from '@/components/employer/TaskManager';
+import EmployerDetail from '@/pages/EmployerDetail';
 
 const EmployerDashboard = () => {
   const navigate = useNavigate();
@@ -125,18 +131,18 @@ const EmployerDashboard = () => {
         const totalViews = jobsWithCounts.reduce((sum, j) => sum + (j.view_count || 0), 0);
         const totalApplications = jobsWithCounts.reduce((sum, j) => sum + (j.applications_count || 0), 0);
 
-        // Count shortlisted as scheduled interviews
+        // Count from interviews table
         const { count: interviewCount } = await supabase
-          .from('applications')
+          .from('interviews')
           .select('*', { count: 'exact', head: true })
-          .eq('status', 'shortlisted')
-          .in('job_id', jobsWithCounts.map(j => j.id));
+          .eq('employer_id', employerData.id)
+          .eq('status', 'scheduled');
 
         setStats({
           activeJobs,
           totalApplications,
           scheduledInterviews: interviewCount || 0,
-          profileViews: totalViews || Math.floor(Math.random() * 1000) + 500
+          profileViews: totalViews
         });
       }
     } catch (error) {
@@ -191,11 +197,13 @@ const EmployerDashboard = () => {
   const sidebarItems = [
     { icon: Briefcase, label: 'Job Postings', value: 'jobs', badge: stats.activeJobs },
     { icon: Users, label: 'Candidates', value: 'candidates' },
-    { icon: FileEdit, label: 'Tasks', value: 'drafts' },
+    { icon: FileEdit, label: 'Drafts', value: 'drafts' },
+    { icon: Users, label: 'Tasks', value: 'tasks' },
     { icon: MessageSquare, label: 'Chat', value: 'chat' },
     { icon: Calendar, label: 'Interviews', value: 'interviews' },
     { icon: BarChart3, label: 'Analytics', value: 'analytics' },
     { icon: Building2, label: 'Company Profile', value: 'company' },
+    { icon: Eye, label: 'Public Profile', value: 'public-profile' },
     { icon: Settings, label: 'Settings', value: 'settings' }
   ];
 
@@ -333,28 +341,28 @@ const EmployerDashboard = () => {
               {selectedJob ? (
                 <Card className="shadow-sm border bg-card">
                   <CardHeader className="border-b">
-                    <div className="flex items-start justify-between">
+                     <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
                       <div>
-                        <CardTitle className="text-xl text-foreground">{selectedJob.title}</CardTitle>
+                        <CardTitle className="text-lg sm:text-xl text-foreground">{selectedJob.title}</CardTitle>
                         <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
                           <MapPin className="w-3.5 h-3.5" />
                           {selectedJob.job_address || 'Location not set'}
                         </p>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className={`text-xs px-2 py-0.5 rounded-full ${selectedJob.is_active ? 'bg-[hsl(142,53%,43%)]/10 text-[hsl(142,53%,43%)]' : 'bg-muted text-muted-foreground'}`}>
                           {selectedJob.is_active ? 'Active' : 'Inactive'}
                         </span>
                         <Link to={`/jobs/${selectedJob.id}`}>
                           <Button variant="outline" size="sm">
-                            <Eye className="w-4 h-4 mr-1" />
-                            View
+                            <Eye className="w-4 h-4 sm:mr-1" />
+                            <span className="hidden sm:inline">View</span>
                           </Button>
                         </Link>
                         <Link to={`/edit-job/${selectedJob.id}`}>
                           <Button variant="outline" size="sm">
-                            <Pencil className="w-4 h-4 mr-1" />
-                            Edit
+                            <Pencil className="w-4 h-4 sm:mr-1" />
+                            <span className="hidden sm:inline">Edit</span>
                           </Button>
                         </Link>
                         <Button 
@@ -363,8 +371,8 @@ const EmployerDashboard = () => {
                           className="text-destructive hover:text-destructive hover:bg-destructive/10"
                           onClick={() => setJobToDelete(selectedJob)}
                         >
-                          <Trash2 className="w-4 h-4 mr-1" />
-                          Delete
+                          <Trash2 className="w-4 h-4 sm:mr-1" />
+                          <span className="hidden sm:inline">Delete</span>
                         </Button>
                       </div>
                     </div>
@@ -391,16 +399,26 @@ const EmployerDashboard = () => {
         return employer && <SavedCandidatesSection employerId={employer.id} />;
       case 'drafts':
         return employer && <JobDraftsSection employerId={employer.id} />;
+      case 'tasks':
+        return employer && <TaskManager employerId={employer.id} />;
       case 'plan':
-      case 'analytics':
         return employer && <PlanUsagePanel employerId={employer.id} />;
-      case 'interviews':
-        return (
-          <div className="text-center py-12">
-            <Calendar className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" />
-            <p className="text-muted-foreground">Interview scheduling coming soon</p>
+      case 'analytics':
+        return employer && (
+          <div className="space-y-6">
+            <JobAnalyticsDashboard employerId={employer.id} />
+            <PlanUsagePanel employerId={employer.id} />
           </div>
         );
+      case 'interviews':
+        return employer && (
+          <div className="space-y-6">
+            <EmployerInterviewCalendar employerId={employer.id} />
+            <InterviewScheduler employerId={employer.id} />
+          </div>
+        );
+      case 'public-profile':
+        return employer && <EmployerDetail id={employer.id} />;
       default:
         return null;
     }
@@ -436,7 +454,7 @@ const EmployerDashboard = () => {
           />
 
           {/* Main Content */}
-          <main className="flex-1 p-4 lg:p-6 overflow-y-auto">
+          <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto">
             {activeSection ? (
               // Section Content View
               <div className="max-w-6xl mx-auto">
@@ -456,17 +474,20 @@ const EmployerDashboard = () => {
               </div>
             ) : (
               // Dashboard Home View
-              <div className="max-w-6xl mx-auto space-y-6">
+              <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
+                {/* Platform Notifications */}
+                <PlatformNotificationBanner userType="employer" />
+
                 {/* Welcome Message */}
                 <div>
-                  <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
+                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
                     Welcome back, {employer?.company_name || 'Company'}!
                   </h1>
                   <p className="text-muted-foreground mt-1">Here's what's happening with your job postings today.</p>
                 </div>
 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                   <DashboardStatCard
                     icon={Briefcase}
                     label="Active Jobs"
@@ -500,8 +521,8 @@ const EmployerDashboard = () => {
                 </div>
 
                 {/* Active Jobs Table + Interviews */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="lg:col-span-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                  <div className="md:col-span-2 lg:col-span-2">
                     {employer && (
                       <ActiveJobsTable 
                         employerId={employer.id} 
@@ -509,7 +530,7 @@ const EmployerDashboard = () => {
                       />
                     )}
                   </div>
-                  <div className="lg:col-span-1">
+                  <div className="md:col-span-2 lg:col-span-1">
                     {employer && <EmployerInterviewsCard employerId={employer.id} />}
                   </div>
                 </div>

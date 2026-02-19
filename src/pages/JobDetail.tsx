@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,17 +26,13 @@ import {
   Calendar,
   Clock,
   IndianRupee,
-  Star,
   Users,
   Eye,
   Share2,
-  BookmarkPlus,
   Send,
   CheckCircle,
-  ExternalLink,
   Globe,
   Target,
-  Award,
   TrendingUp,
   FileText,
   Zap,
@@ -59,12 +55,13 @@ import {
   ChevronRight,
   Timer,
   Flame,
+  ExternalLink,
+  Shield,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useStartConversation } from '@/hooks/useStartConversation';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
-import { TooltipProvider } from '@/components/ui/tooltip';
 import { GovernmentJobBadge, GovernmentEmployerBadge } from '@/components/government';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -124,6 +121,7 @@ interface JobDetails {
 const JobDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, profile, isEmailVerified } = useAuth();
   const { startConversation } = useStartConversation();
 
@@ -137,6 +135,12 @@ const JobDetail = () => {
   const [relatedJobs, setRelatedJobs] = useState<any[]>([]);
   const [applicantCount, setApplicantCount] = useState(0);
   const [contacting, setContacting] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get('action') === 'apply' && !loading && job && !hasApplied && user) {
+      setApplyDialogOpen(true);
+    }
+  }, [searchParams, loading, job, hasApplied, user]);
 
   useEffect(() => {
     if (id) {
@@ -170,11 +174,7 @@ const JobDetail = () => {
         .maybeSingle();
 
       if (error) throw error;
-
-      if (!data) {
-        setLoading(false);
-        return;
-      }
+      if (!data) { setLoading(false); return; }
 
       setJob({
         ...data,
@@ -222,23 +222,19 @@ const JobDetail = () => {
 
   const checkIfApplied = async () => {
     if (!user) return;
-
     try {
       const { data: candidate } = await supabase
         .from('candidates')
         .select('id')
         .eq('profile_id', profile?.id)
         .maybeSingle();
-
       if (!candidate) return;
-
       const { data: application } = await supabase
         .from('applications')
         .select('id')
         .eq('job_id', id)
         .eq('candidate_id', candidate.id)
         .maybeSingle();
-
       setHasApplied(!!application);
     } catch (error) {
       console.error('Error checking application status:', error);
@@ -246,50 +242,16 @@ const JobDetail = () => {
   };
 
   const handleApply = async () => {
-    if (!user || !profile) {
-      toast.error('Please login to apply');
-      navigate('/login');
-      return;
-    }
-
-    if (profile.user_type !== 'candidate') {
-      toast.error('Only candidates can apply for jobs');
-      return;
-    }
-
+    if (!user || !profile) { toast.error('Please login to apply'); navigate('/login'); return; }
+    if (profile.user_type !== 'candidate') { toast.error('Only candidates can apply for jobs'); return; }
     setApplying(true);
-
     try {
-      if (!isEmailVerified) {
-        toast.error('Please verify your email before applying for jobs');
-        setApplying(false);
-        return;
-      }
-
-      const { data: candidate, error: candidateError } = await supabase
-        .from('candidates')
-        .select('id')
-        .eq('profile_id', profile.id)
-        .maybeSingle();
-
+      if (!isEmailVerified) { toast.error('Please verify your email before applying for jobs'); setApplying(false); return; }
+      const { data: candidate, error: candidateError } = await supabase.from('candidates').select('id').eq('profile_id', profile.id).maybeSingle();
       if (candidateError) throw candidateError;
-
-      if (!candidate) {
-        toast.error('Please complete your profile first');
-        navigate('/profile-setup');
-        return;
-      }
-
-      const { error: applicationError } = await supabase
-        .from('applications')
-        .insert({
-          job_id: id,
-          candidate_id: candidate.id,
-          cover_letter: coverLetter || null,
-        });
-
+      if (!candidate) { toast.error('Please complete your profile first'); navigate('/profile-setup'); return; }
+      const { error: applicationError } = await supabase.from('applications').insert({ job_id: id, candidate_id: candidate.id, cover_letter: coverLetter || null });
       if (applicationError) throw applicationError;
-
       setHasApplied(true);
       setApplyDialogOpen(false);
       toast.success('Application submitted successfully!');
@@ -308,11 +270,7 @@ const JobDetail = () => {
 
   const handleShare = async () => {
     try {
-      await navigator.share({
-        title: job?.title,
-        text: `Check out this job at ${job?.employer.company_name}`,
-        url: window.location.href,
-      });
+      await navigator.share({ title: job?.title, text: `Check out this job at ${job?.employer.company_name}`, url: window.location.href });
     } catch {
       navigator.clipboard.writeText(window.location.href);
       toast.success('Link copied to clipboard!');
@@ -320,10 +278,7 @@ const JobDetail = () => {
   };
 
   const handleContactEmployer = async () => {
-    if (!job?.employer.user_id) {
-      toast.error('Unable to contact this employer');
-      return;
-    }
+    if (!job?.employer.user_id) { toast.error('Unable to contact this employer'); return; }
     setContacting(true);
     await startConversation(job.employer.user_id, job.id);
     setContacting(false);
@@ -334,7 +289,6 @@ const JobDetail = () => {
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
     if (diffDays === 1) return 'Yesterday';
     if (diffDays < 7) return `${diffDays} days ago`;
     if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
@@ -352,26 +306,26 @@ const JobDetail = () => {
 
   const isNew = job?.created_at && new Date(job.created_at) > new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
   const isGovernmentJob = job?.job_category === 'government';
+  const accentColor = isGovernmentJob ? 'emerald' : 'primary';
 
   // Loading State
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background">
-        <div className="h-48 md:h-64 bg-gradient-to-r from-primary/20 to-primary/5 animate-pulse" />
-        <div className="container mx-auto px-4 -mt-16 md:-mt-24">
-          <div className="glass-morphism rounded-3xl p-6 md:p-8 mb-6">
-            <div className="flex flex-col md:flex-row gap-6">
-              <Skeleton className="w-20 h-20 md:w-24 md:h-24 rounded-2xl" />
-              <div className="flex-1 space-y-4">
-                <Skeleton className="h-8 w-3/4" />
-                <Skeleton className="h-5 w-1/2" />
-                <div className="flex gap-3">
-                  <Skeleton className="h-8 w-24 rounded-full" />
-                  <Skeleton className="h-8 w-32 rounded-full" />
-                </div>
-              </div>
-            </div>
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-6 max-w-4xl">
+          <Skeleton className="h-8 w-32 mb-6" />
+          <Skeleton className="h-10 w-3/4 mb-3" />
+          <Skeleton className="h-6 w-1/2 mb-6" />
+          <div className="flex gap-3 mb-8">
+            <Skeleton className="h-9 w-28 rounded-full" />
+            <Skeleton className="h-9 w-36 rounded-full" />
+            <Skeleton className="h-9 w-24 rounded-full" />
           </div>
+          <div className="grid md:grid-cols-4 gap-4 mb-8">
+            {[1,2,3,4].map(i => <Skeleton key={i} className="h-20 rounded-2xl" />)}
+          </div>
+          <Skeleton className="h-48 rounded-2xl mb-6" />
+          <Skeleton className="h-32 rounded-2xl" />
         </div>
       </div>
     );
@@ -380,22 +334,15 @@ const JobDetail = () => {
   // Not Found State
   if (!job) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/20 to-background flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="glass-morphism rounded-3xl p-8 md:p-12 text-center max-w-md"
-        >
-          <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
-            <Briefcase className="w-12 h-12 text-muted-foreground" />
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center max-w-sm">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-muted flex items-center justify-center">
+            <Briefcase className="w-10 h-10 text-muted-foreground" />
           </div>
-          <h2 className="text-2xl font-bold mb-3">Job Not Found</h2>
-          <p className="text-muted-foreground mb-6">
-            This job listing may have been removed or is no longer available.
-          </p>
-          <Button onClick={() => navigate('/')} size="lg" className="rounded-full px-8">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Explore Jobs
+          <h2 className="text-2xl font-bold mb-2">Job Not Found</h2>
+          <p className="text-muted-foreground mb-6">This job listing may have been removed or is no longer available.</p>
+          <Button onClick={() => navigate('/')} className="rounded-full px-8">
+            <ArrowLeft className="w-4 h-4 mr-2" /> Explore Jobs
           </Button>
         </motion.div>
       </div>
@@ -403,909 +350,501 @@ const JobDetail = () => {
   }
 
   return (
-    <TooltipProvider>
-      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/10 to-background pb-28 lg:pb-12">
-        {/* Compact Hero Header */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className={`relative overflow-hidden ${
-            isGovernmentJob 
-              ? 'bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500' 
-              : 'bg-gradient-to-br from-primary via-primary/90 to-destructive/80'
-          }`}
-        >
-          {/* Decorative Elements */}
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2" />
-            <div className="absolute bottom-0 left-0 w-64 h-64 bg-white rounded-full blur-3xl transform -translate-x-1/2 translate-y-1/2" />
+    <div className="min-h-screen bg-background pb-28 lg:pb-8">
+      {/* Minimal Top Bar */}
+      <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/50">
+        <div className="container mx-auto px-4 max-w-4xl flex items-center justify-between h-14">
+          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-2 -ml-2 text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="w-4 h-4" /> Back
+          </Button>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" onClick={handleSave} className={`rounded-full ${isSaved ? 'text-destructive' : 'text-muted-foreground'}`}>
+              <Heart className={`w-5 h-5 ${isSaved ? 'fill-current' : ''}`} />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={handleShare} className="rounded-full text-muted-foreground">
+              <Share2 className="w-5 h-5" />
+            </Button>
           </div>
-          
-          <div className="absolute inset-0 opacity-5" style={{
-            backgroundImage: 'radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)',
-            backgroundSize: '32px 32px'
-          }} />
+        </div>
+      </div>
 
-          <div className="container mx-auto px-4 py-4 md:py-6 relative z-10">
-            {/* Back Button & Badge Row */}
-            <div className="flex items-center justify-between mb-4 md:mb-6">
-              <Button
-                variant="ghost"
-                onClick={() => navigate(-1)}
-                className="text-white/90 hover:text-white hover:bg-white/10 rounded-full -ml-2"
-              >
-                <ArrowLeft className="w-5 h-5 mr-2" />
-                Back
-              </Button>
+      <div className="container mx-auto px-4 max-w-4xl py-6">
+        {/* ===== HERO SECTION ===== */}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+          {/* Badges Row */}
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            {isGovernmentJob && <GovernmentJobBadge variant="large" />}
+            {isNew && (
+              <Badge className="bg-warning/15 text-warning border-warning/30 gap-1">
+                <Sparkles className="w-3 h-3" /> New Listing
+              </Badge>
+            )}
+            {job.hiring_urgency === 'Immediately' && (
+              <Badge className="bg-destructive/15 text-destructive border-destructive/30 gap-1 animate-pulse">
+                <Flame className="w-3 h-3" /> Urgent Hiring
+              </Badge>
+            )}
+          </div>
+
+          {/* Title */}
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-3 tracking-tight">{job.title}</h1>
+
+          {/* Company */}
+          <Link
+            to={`/employers/${job.employer.id}`}
+            className="inline-flex items-center gap-3 mb-5 group"
+          >
+            <Avatar className="w-10 h-10 border-2 border-border">
+              <AvatarImage src={job.employer.avatar_url || ''} />
+              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+                {job.employer.company_name.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
+            <div>
               <div className="flex items-center gap-2">
-                {isNew && (
-                  <Badge className="bg-white/20 text-white border-0 backdrop-blur-sm">
-                    <Sparkles className="w-3 h-3 mr-1" />
-                    New
-                  </Badge>
-                )}
-                {isGovernmentJob && (
-                  <GovernmentJobBadge className="hidden md:flex bg-white/20 border-white/30 text-white" />
-                )}
+                <span className="font-semibold text-foreground group-hover:text-primary transition-colors">{job.employer.company_name}</span>
+                {job.employer.is_government && <GovernmentEmployerBadge variant="compact" />}
+                <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
+              {job.employer.industry && <span className="text-sm text-muted-foreground">{job.employer.industry}</span>}
             </div>
+          </Link>
 
-            {/* Job Title & Company */}
-            <div className="pb-16 md:pb-20">
-              <motion.h1 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="text-2xl md:text-4xl font-bold text-white mb-3 leading-tight"
-              >
-                {job.title}
-              </motion.h1>
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="flex items-center gap-3 flex-wrap"
-              >
-                <Link
-                  to={`/employer/${job.employer.id}`}
-                  className="inline-flex items-center gap-2 text-white/90 hover:text-white font-medium transition-colors group"
-                >
-                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-                    {job.employer.avatar_url ? (
-                      <Avatar className="w-8 h-8">
-                        <AvatarImage src={job.employer.avatar_url} />
-                        <AvatarFallback className="bg-transparent text-white text-xs">
-                          {job.employer.company_name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                    ) : (
-                      <Building2 className="w-4 h-4" />
-                    )}
-                  </div>
-                  <span>{job.employer.company_name}</span>
-                  <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </Link>
-                {job.employer.is_government && (
-                  <GovernmentEmployerBadge variant="compact" className="bg-white/20 border-white/30 text-white" />
-                )}
-              </motion.div>
-            </div>
+          {/* Key Info Pills */}
+          <div className="flex flex-wrap gap-2">
+            {job.job_address && (
+              <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 text-sm font-normal rounded-lg">
+                <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="truncate max-w-[200px]">{job.job_address}</span>
+              </Badge>
+            )}
+            <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 text-sm font-normal rounded-lg">
+              <Briefcase className="w-3.5 h-3.5 text-muted-foreground" />
+              {job.job_type || 'Full-time'}
+            </Badge>
+            {job.salary_range && (
+              <Badge className="gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-lg bg-success/10 text-success border-success/20 hover:bg-success/15">
+                <IndianRupee className="w-3.5 h-3.5" />
+                {job.salary_range}
+              </Badge>
+            )}
+            {job.has_bonus && (
+              <Badge className="gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-warning/10 text-warning border-warning/20">
+                <Gift className="w-3.5 h-3.5" /> +Bonus
+              </Badge>
+            )}
           </div>
         </motion.div>
 
-        {/* Main Content Card - Floating */}
-        <div className="container mx-auto px-4 -mt-12 md:-mt-16 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="glass-morphism rounded-3xl shadow-2xl border border-white/20 mb-6 overflow-hidden"
-          >
-            {/* Key Info Pills */}
-            <div className="p-4 md:p-6 border-b border-border/50">
-              <div className="flex flex-wrap items-center gap-2 md:gap-3">
-                {job.job_address && (
-                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-foreground text-sm font-medium">
-                    <MapPin className="w-4 h-4 text-primary" />
-                    <span className="truncate max-w-[200px]">{job.job_address}</span>
-                  </div>
-                )}
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary text-foreground text-sm font-medium">
-                  <Briefcase className="w-4 h-4 text-primary" />
-                  {job.job_type || 'Full-time'}
-                </div>
-                {job.salary_range && (
-                  <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-success/10 text-success text-sm font-bold">
-                    <IndianRupee className="w-4 h-4" />
-                    {job.salary_range}
-                  </div>
-                )}
-                {job.has_bonus && (
-                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-warning/10 text-warning text-sm font-bold">
-                    <Gift className="w-4 h-4" />
-                    +Bonus
-                  </div>
-                )}
-                {job.hiring_urgency === 'Immediately' && (
-                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-destructive/10 text-destructive text-sm font-bold animate-pulse">
-                    <Flame className="w-4 h-4" />
-                    Urgent
-                  </div>
-                )}
+        {/* ===== STATS ROW ===== */}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+          {[
+            { icon: Timer, label: 'Posted', value: job.created_at ? formatDate(job.created_at) : 'Recently' },
+            { icon: Eye, label: 'Views', value: String(job.view_count || 0) },
+            { icon: Users, label: 'Applicants', value: String(applicantCount) },
+            { icon: UserCheck, label: 'Openings', value: String(job.openings || 1) },
+          ].map((stat, i) => (
+            <div key={i} className="flex items-center gap-3 p-4 rounded-2xl bg-muted/50 border border-border/50">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <stat.icon className="w-5 h-5 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs text-muted-foreground">{stat.label}</p>
+                <p className="font-bold text-foreground truncate">{stat.value}</p>
               </div>
             </div>
+          ))}
+        </motion.div>
 
-            {/* Stats Row */}
-            <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-y md:divide-y-0 divide-border/50 bg-secondary/30">
-              <div className="flex items-center justify-center gap-2 p-4 text-sm">
-                <Timer className="w-4 h-4 text-muted-foreground" />
-                <span className="text-muted-foreground">Posted</span>
-                <span className="font-semibold">{job.created_at ? formatDate(job.created_at) : 'Recently'}</span>
+        {/* ===== APPLY CTA (Desktop) ===== */}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="hidden lg:block mb-8">
+          <div className={`flex items-center justify-between p-5 rounded-2xl border ${
+            isGovernmentJob ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800' : 'bg-primary/5 border-primary/20'
+          }`}>
+            {hasApplied ? (
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-success/15 flex items-center justify-center">
+                  <CheckCircle className="w-5 h-5 text-success" />
+                </div>
+                <div>
+                  <p className="font-semibold">Application Submitted</p>
+                  <p className="text-sm text-muted-foreground">We'll notify you when there's an update</p>
+                </div>
               </div>
-              <div className="flex items-center justify-center gap-2 p-4 text-sm">
-                <Eye className="w-4 h-4 text-muted-foreground" />
-                <span className="font-semibold">{job.view_count || 0}</span>
-                <span className="text-muted-foreground">views</span>
-              </div>
-              <div className="flex items-center justify-center gap-2 p-4 text-sm">
-                <Users className="w-4 h-4 text-muted-foreground" />
-                <span className="font-semibold">{applicantCount}</span>
-                <span className="text-muted-foreground">applicants</span>
-              </div>
-              <div className="flex items-center justify-center gap-2 p-4 text-sm">
-                <UserCheck className="w-4 h-4 text-muted-foreground" />
-                <span className="font-semibold">{job.openings || 1}</span>
-                <span className="text-muted-foreground">{(job.openings || 1) > 1 ? 'openings' : 'opening'}</span>
-              </div>
-            </div>
+            ) : (
+              <>
+                <div>
+                  <p className="font-semibold text-foreground">Interested in this role?</p>
+                  <p className="text-sm text-muted-foreground">Apply now and take the next step in your career</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Dialog open={applyDialogOpen} onOpenChange={setApplyDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button size="lg" className={`rounded-xl px-8 gap-2 ${isGovernmentJob ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}>
+                        <Send className="w-4 h-4" /> Apply Now
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2"><Send className="w-5 h-5 text-primary" />Apply for {job.title}</DialogTitle>
+                        <DialogDescription>Submit your application to {job.employer.company_name}</DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="coverLetter">Cover Letter (Optional)</Label>
+                          <Textarea id="coverLetter" placeholder="Tell the employer why you're a great fit..." rows={6} value={coverLetter} onChange={(e) => setCoverLetter(e.target.value)} className="resize-none rounded-xl" />
+                        </div>
+                      </div>
+                      <DialogFooter className="gap-2">
+                        <Button variant="outline" onClick={() => setApplyDialogOpen(false)} disabled={applying} className="rounded-xl">Cancel</Button>
+                        <Button onClick={handleApply} disabled={applying} className="rounded-xl">
+                          {applying ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Submitting...</> : 'Submit Application'}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                  <Button variant="outline" onClick={handleContactEmployer} disabled={contacting} className="rounded-xl gap-2">
+                    {contacting ? <Loader2 className="w-4 h-4 animate-spin" /> : <MessageSquare className="w-4 h-4" />}
+                    Message
+                  </Button>
+                  {job.employer.whatsapp_number && (
+                    <WhatsAppButton phoneNumber={job.employer.whatsapp_number} className="rounded-xl" />
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </motion.div>
+
+        {/* ===== MAIN CONTENT ===== */}
+        <div className="space-y-6">
+          {/* About this role */}
+          {job.description && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+              <Card className="border-border/50 shadow-sm">
+                <CardContent className="p-5 md:p-6">
+                  <h2 className="flex items-center gap-2.5 text-lg font-bold mb-4">
+                    <FileText className="w-5 h-5 text-primary" /> About This Role
+                  </h2>
+                  <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">{job.description}</p>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {/* Skills */}
+          {job.skills && job.skills.length > 0 && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+              <Card className="border-border/50 shadow-sm">
+                <CardContent className="p-5 md:p-6">
+                  <h2 className="flex items-center gap-2.5 text-lg font-bold mb-4">
+                    <Zap className="w-5 h-5 text-warning" /> Skills Required
+                  </h2>
+                  <div className="flex flex-wrap gap-2">
+                    {job.skills.map((skill, i) => (
+                      <Badge key={i} variant="secondary" className="px-3.5 py-1.5 text-sm rounded-lg font-medium">
+                        {skill}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {/* Requirements */}
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+            <Card className="border-border/50 shadow-sm">
+              <CardContent className="p-5 md:p-6">
+                <h2 className="flex items-center gap-2.5 text-lg font-bold mb-4">
+                  <Target className="w-5 h-5 text-success" /> Requirements
+                </h2>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <RequirementItem
+                    icon={TrendingUp}
+                    label="Experience"
+                    value={
+                      job.experience_type === 'Any' ? 'Any Level' :
+                      job.experience_type === 'Fresher Only' ? 'Freshers Welcome' :
+                      job.min_experience || job.max_experience
+                        ? `${job.min_experience || 0} - ${job.max_experience || '10+'} years`
+                        : job.experience_type || 'Not specified'
+                    }
+                  />
+                  {job.education && <RequirementItem icon={GraduationCap} label="Education" value={job.education} />}
+                  {job.languages && job.languages.length > 0 && <RequirementItem icon={Languages} label="Languages" value={job.languages.join(', ')} />}
+                  {(job.min_age || job.max_age) && (
+                    <RequirementItem
+                      icon={User}
+                      label="Age"
+                      value={job.min_age && job.max_age ? `${job.min_age} - ${job.max_age} years` : job.min_age ? `Min ${job.min_age} years` : `Max ${job.max_age} years`}
+                    />
+                  )}
+                  {job.certifications && <RequirementItem icon={BadgeCheck} label="Certifications" value={job.certifications} fullWidth />}
+                </div>
+                {job.additional_notes && (
+                  <div className="mt-4 flex items-start gap-3 p-4 rounded-xl bg-warning/5 border border-warning/15">
+                    <AlertCircle className="w-4 h-4 text-warning shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-semibold text-warning mb-0.5">Note from Employer</p>
+                      <p className="text-sm text-muted-foreground">{job.additional_notes}</p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </motion.div>
 
-          {/* Two Column Layout */}
-          <div className="grid lg:grid-cols-3 gap-6">
-            {/* Main Content */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Job Description */}
-              {job.description && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                >
-                  <Card className="glass-morphism border-0 shadow-lg overflow-hidden">
-                    <div className="p-5 md:p-6 border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent">
-                      <h2 className="flex items-center gap-3 text-lg font-semibold">
-                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                          <FileText className="w-5 h-5 text-primary" />
-                        </div>
-                        About This Role
-                      </h2>
-                    </div>
-                    <CardContent className="p-5 md:p-6">
-                      <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                        {job.description}
-                      </p>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
-
-              {/* Skills */}
-              {job.skills && job.skills.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.45 }}
-                >
-                  <Card className="glass-morphism border-0 shadow-lg overflow-hidden">
-                    <div className="p-5 md:p-6 border-b border-border/50 bg-gradient-to-r from-warning/5 to-transparent">
-                      <h2 className="flex items-center gap-3 text-lg font-semibold">
-                        <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center">
-                          <Zap className="w-5 h-5 text-warning" />
-                        </div>
-                        Skills Required
-                      </h2>
-                    </div>
-                    <CardContent className="p-5 md:p-6">
+          {/* Work Schedule */}
+          {(job.shift_type || job.start_time || job.work_days?.length) && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+              <Card className="border-border/50 shadow-sm">
+                <CardContent className="p-5 md:p-6">
+                  <h2 className="flex items-center gap-2.5 text-lg font-bold mb-4">
+                    <Clock className="w-5 h-5 text-primary" /> Work Schedule
+                  </h2>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {job.shift_type && (
+                      <RequirementItem
+                        icon={job.shift_type.toLowerCase().includes('night') ? Sunset : Sunrise}
+                        label="Shift"
+                        value={job.shift_type}
+                      />
+                    )}
+                    {(job.start_time || job.end_time) && (
+                      <RequirementItem icon={Clock} label="Hours" value={`${formatTime(job.start_time)} - ${formatTime(job.end_time)}`} />
+                    )}
+                  </div>
+                  {job.work_days && job.work_days.length > 0 && (
+                    <div className="mt-3 p-4 rounded-xl bg-muted/50 border border-border/50">
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2 font-medium">Working Days</p>
                       <div className="flex flex-wrap gap-2">
-                        {job.skills.map((skill, index) => (
-                          <Badge 
-                            key={index} 
-                            variant="secondary" 
-                            className="px-4 py-2 text-sm rounded-full bg-gradient-to-r from-secondary to-secondary/80 hover:from-primary/10 hover:to-primary/5 transition-colors"
-                          >
-                            {skill}
-                          </Badge>
+                        {job.work_days.map((day, i) => (
+                          <Badge key={i} variant="outline" className="rounded-lg px-3 py-1">{day}</Badge>
                         ))}
                       </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
-
-              {/* Requirements Grid */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-              >
-                <Card className="glass-morphism border-0 shadow-lg overflow-hidden">
-                  <div className="p-5 md:p-6 border-b border-border/50 bg-gradient-to-r from-success/5 to-transparent">
-                    <h2 className="flex items-center gap-3 text-lg font-semibold">
-                      <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center">
-                        <Target className="w-5 h-5 text-success" />
+                    </div>
+                  )}
+                  {(job.interview_time || (job.interview_days && job.interview_days.length > 0)) && (
+                    <div className="mt-3 p-4 rounded-xl bg-primary/5 border border-primary/15">
+                      <p className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
+                        <Calendar className="w-4 h-4" /> Interview Schedule
+                      </p>
+                      <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                        {job.interview_time && <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5" />{job.interview_time}</span>}
+                        {job.interview_days && job.interview_days.length > 0 && (
+                          <span className="flex items-center gap-1.5"><CalendarDays className="w-3.5 h-3.5" />{job.interview_days.join(', ')}</span>
+                        )}
                       </div>
-                      Requirements
-                    </h2>
-                  </div>
-                  <CardContent className="p-5 md:p-6">
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      {/* Experience */}
-                      <div className="flex items-start gap-4 p-4 rounded-2xl bg-gradient-to-br from-muted/80 to-muted/40 border border-border/30 hover:border-primary/20 transition-colors">
-                        <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <TrendingUp className="w-5 h-5 text-primary" />
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {/* Contact Information */}
+          {(job.contact_person || job.contact_phone || job.contact_email) && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+              <Card className="border-border/50 shadow-sm">
+                <CardContent className="p-5 md:p-6">
+                  <h2 className="flex items-center gap-2.5 text-lg font-bold mb-4">
+                    <Phone className="w-5 h-5 text-destructive" /> Contact Information
+                  </h2>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {job.contact_person && (
+                      <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 border border-border/50">
+                        <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
+                          <User className="w-5 h-5 text-destructive" />
                         </div>
                         <div>
-                          <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Experience</p>
-                          <p className="font-semibold text-foreground">
-                            {job.experience_type === 'Any' ? 'Any Level' :
-                             job.experience_type === 'Fresher Only' ? 'Freshers Welcome' :
-                             job.min_experience || job.max_experience 
-                               ? `${job.min_experience || 0} - ${job.max_experience || '10+'} years`
-                               : job.experience_type || 'Not specified'}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Education */}
-                      {job.education && (
-                        <div className="flex items-start gap-4 p-4 rounded-2xl bg-gradient-to-br from-muted/80 to-muted/40 border border-border/30 hover:border-primary/20 transition-colors">
-                          <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <GraduationCap className="w-5 h-5 text-primary" />
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Education</p>
-                            <p className="font-semibold text-foreground">{job.education}</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Languages */}
-                      {job.languages && job.languages.length > 0 && (
-                        <div className="flex items-start gap-4 p-4 rounded-2xl bg-gradient-to-br from-muted/80 to-muted/40 border border-border/30 hover:border-primary/20 transition-colors">
-                          <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <Languages className="w-5 h-5 text-primary" />
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Languages</p>
-                            <p className="font-semibold text-foreground">{job.languages.join(', ')}</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Age */}
-                      {(job.min_age || job.max_age) && (
-                        <div className="flex items-start gap-4 p-4 rounded-2xl bg-gradient-to-br from-muted/80 to-muted/40 border border-border/30 hover:border-primary/20 transition-colors">
-                          <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <User className="w-5 h-5 text-primary" />
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Age</p>
-                            <p className="font-semibold text-foreground">
-                              {job.min_age && job.max_age 
-                                ? `${job.min_age} - ${job.max_age} years`
-                                : job.min_age 
-                                  ? `Min ${job.min_age} years`
-                                  : `Max ${job.max_age} years`}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Certifications */}
-                      {job.certifications && (
-                        <div className="flex items-start gap-4 p-4 rounded-2xl bg-gradient-to-br from-muted/80 to-muted/40 border border-border/30 hover:border-primary/20 transition-colors sm:col-span-2">
-                          <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
-                            <BadgeCheck className="w-5 h-5 text-primary" />
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Certifications</p>
-                            <p className="font-semibold text-foreground">{job.certifications}</p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Additional Notes */}
-                    {job.additional_notes && (
-                      <div className="mt-4 p-4 rounded-2xl bg-gradient-to-r from-warning/5 to-warning/10 border border-warning/20">
-                        <div className="flex items-start gap-3">
-                          <AlertCircle className="w-5 h-5 text-warning flex-shrink-0 mt-0.5" />
-                          <div>
-                            <p className="text-sm font-semibold text-warning mb-1">Note from Employer</p>
-                            <p className="text-sm text-muted-foreground">{job.additional_notes}</p>
-                          </div>
+                          <p className="text-xs text-muted-foreground">Contact Person</p>
+                          <p className="font-semibold">{job.contact_person}</p>
+                          {job.contact_role && <p className="text-xs text-muted-foreground">{job.contact_role}</p>}
                         </div>
                       </div>
                     )}
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              {/* Work Schedule */}
-              {(job.shift_type || job.start_time || job.work_days?.length) && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.55 }}
-                >
-                  <Card className="glass-morphism border-0 shadow-lg overflow-hidden">
-                    <div className="p-5 md:p-6 border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent">
-                      <h2 className="flex items-center gap-3 text-lg font-semibold">
-                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                          <Clock className="w-5 h-5 text-primary" />
-                        </div>
-                        Work Schedule
-                      </h2>
-                    </div>
-                    <CardContent className="p-5 md:p-6">
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        {job.shift_type && (
-                          <div className="flex items-start gap-4 p-4 rounded-2xl bg-gradient-to-br from-muted/80 to-muted/40 border border-border/30">
-                            <div className="w-11 h-11 rounded-xl bg-warning/10 flex items-center justify-center flex-shrink-0">
-                              {job.shift_type.toLowerCase().includes('night') ? (
-                                <Sunset className="w-5 h-5 text-warning" />
-                              ) : (
-                                <Sunrise className="w-5 h-5 text-warning" />
-                              )}
-                            </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Shift</p>
-                              <p className="font-semibold text-foreground">{job.shift_type}</p>
-                            </div>
-                          </div>
-                        )}
-
-                        {(job.start_time || job.end_time) && (
-                          <div className="flex items-start gap-4 p-4 rounded-2xl bg-gradient-to-br from-muted/80 to-muted/40 border border-border/30">
-                            <div className="w-11 h-11 rounded-xl bg-warning/10 flex items-center justify-center flex-shrink-0">
-                              <Clock className="w-5 h-5 text-warning" />
-                            </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Hours</p>
-                              <p className="font-semibold text-foreground">
-                                {formatTime(job.start_time)} - {formatTime(job.end_time)}
-                              </p>
-                            </div>
-                          </div>
-                        )}
-
-                        {job.work_days && job.work_days.length > 0 && (
-                          <div className="sm:col-span-2 flex items-start gap-4 p-4 rounded-2xl bg-gradient-to-br from-muted/80 to-muted/40 border border-border/30">
-                            <div className="w-11 h-11 rounded-xl bg-warning/10 flex items-center justify-center flex-shrink-0">
-                              <CalendarDays className="w-5 h-5 text-warning" />
-                            </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Working Days</p>
-                              <div className="flex flex-wrap gap-2">
-                                {job.work_days.map((day, index) => (
-                                  <Badge key={index} variant="outline" className="rounded-full px-3 py-1">
-                                    {day}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Interview Schedule */}
-                      {(job.interview_time || (job.interview_days && job.interview_days.length > 0)) && (
-                        <div className="mt-4 p-4 rounded-2xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20">
-                          <p className="text-sm font-semibold text-primary mb-2 flex items-center gap-2">
-                            <Calendar className="w-4 h-4" />
-                            Interview Schedule
-                          </p>
-                          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                            {job.interview_time && (
-                              <span className="flex items-center gap-2">
-                                <Clock className="w-4 h-4" />
-                                {job.interview_time}
-                              </span>
-                            )}
-                            {job.interview_days && job.interview_days.length > 0 && (
-                              <span className="flex items-center gap-2">
-                                <CalendarDays className="w-4 h-4" />
-                                {job.interview_days.join(', ')}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
-
-              {/* Contact Information */}
-              {(job.contact_person || job.contact_phone || job.contact_email) && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
-                >
-                  <Card className="glass-morphism border-0 shadow-lg overflow-hidden">
-                    <div className="p-5 md:p-6 border-b border-border/50 bg-gradient-to-r from-destructive/5 to-transparent">
-                      <h2 className="flex items-center gap-3 text-lg font-semibold">
-                        <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
+                    {job.contact_phone && (
+                      <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 border border-border/50">
+                        <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
                           <Phone className="w-5 h-5 text-destructive" />
                         </div>
-                        Contact Information
-                      </h2>
-                    </div>
-                    <CardContent className="p-5 md:p-6">
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        {job.contact_person && (
-                          <div className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-br from-muted/80 to-muted/40 border border-border/30">
-                            <div className="w-11 h-11 rounded-xl bg-destructive/10 flex items-center justify-center flex-shrink-0">
-                              <User className="w-5 h-5 text-destructive" />
-                            </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground uppercase tracking-wide">Contact Person</p>
-                              <p className="font-semibold text-foreground">{job.contact_person}</p>
-                              {job.contact_role && (
-                                <p className="text-xs text-muted-foreground">{job.contact_role}</p>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        {job.contact_phone && (
-                          <div className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-br from-muted/80 to-muted/40 border border-border/30">
-                            <div className="w-11 h-11 rounded-xl bg-destructive/10 flex items-center justify-center flex-shrink-0">
-                              <Phone className="w-5 h-5 text-destructive" />
-                            </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground uppercase tracking-wide">Phone</p>
-                              <a href={`tel:${job.contact_phone}`} className="font-semibold text-primary hover:underline">
-                                {job.contact_phone}
-                              </a>
-                            </div>
-                          </div>
-                        )}
-
-                        {job.contact_email && (
-                          <div className="flex items-center gap-4 p-4 rounded-2xl bg-gradient-to-br from-muted/80 to-muted/40 border border-border/30 sm:col-span-2">
-                            <div className="w-11 h-11 rounded-xl bg-destructive/10 flex items-center justify-center flex-shrink-0">
-                              <Mail className="w-5 h-5 text-destructive" />
-                            </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground uppercase tracking-wide">Email</p>
-                              <a href={`mailto:${job.contact_email}`} className="font-semibold text-primary hover:underline break-all">
-                                {job.contact_email}
-                              </a>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
-
-              {/* Company Overview */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.65 }}
-              >
-                <Card className="glass-morphism border-0 shadow-lg overflow-hidden">
-                  <div className="p-5 md:p-6 border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent">
-                    <h2 className="flex items-center gap-3 text-lg font-semibold">
-                      <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                        <Building2 className="w-5 h-5 text-primary" />
-                      </div>
-                      About {job.employer.company_name}
-                    </h2>
-                  </div>
-                  <CardContent className="p-5 md:p-6">
-                    <div className="flex flex-col sm:flex-row items-start gap-5">
-                      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center border-2 flex-shrink-0 ${
-                        isGovernmentJob 
-                          ? 'bg-gradient-to-br from-emerald-100 to-teal-50 border-emerald-200' 
-                          : 'bg-gradient-to-br from-primary/10 to-primary/5 border-primary/10'
-                      }`}>
-                        {job.employer.avatar_url ? (
-                          <Avatar className="w-14 h-14 rounded-xl">
-                            <AvatarImage src={job.employer.avatar_url} className="object-cover" />
-                            <AvatarFallback className="bg-transparent text-primary">
-                              <Building2 className="w-7 h-7" />
-                            </AvatarFallback>
-                          </Avatar>
-                        ) : (
-                          <Building2 className={`w-7 h-7 ${isGovernmentJob ? 'text-emerald-600' : 'text-primary'}`} />
-                        )}
-                      </div>
-
-                      <div className="flex-1 space-y-4">
                         <div>
-                          <h4 className="font-bold text-xl mb-1">{job.employer.company_name}</h4>
-                          <p className="text-muted-foreground">{job.employer.industry || 'Multiple Industries'}</p>
+                          <p className="text-xs text-muted-foreground">Phone</p>
+                          <a href={`tel:${job.contact_phone}`} className="font-semibold text-primary hover:underline">{job.contact_phone}</a>
                         </div>
-
-                        {job.employer.description && (
-                          <p className="text-sm text-muted-foreground leading-relaxed">
-                            {job.employer.description}
-                          </p>
-                        )}
-
-                        <div className="flex items-center gap-2">
-                          <div className="flex items-center gap-0.5">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <Star
-                                key={star}
-                                className={`w-4 h-4 ${
-                                  star <= 4 ? 'text-warning fill-warning' : 'text-muted'
-                                }`}
-                              />
-                            ))}
-                          </div>
-                          <span className="text-sm font-medium">4.2</span>
-                          <span className="text-sm text-muted-foreground">(128 reviews)</span>
-                        </div>
-
-                        <div className="flex flex-wrap gap-4">
-                          {job.organization_size && (
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <Users className="w-4 h-4" />
-                              <span>{job.organization_size}</span>
-                            </div>
-                          )}
-                          {job.employer.website_url && (
-                            <a 
-                              href={job.employer.website_url} 
-                              target="_blank" 
-                              rel="noopener noreferrer" 
-                              className="flex items-center gap-2 text-sm text-primary hover:underline"
-                            >
-                              <Globe className="w-4 h-4" />
-                              Visit Website
-                            </a>
-                          )}
-                        </div>
-
-                        <Link
-                          to={`/employer/${job.employer.id}`}
-                          className="inline-flex items-center gap-2 text-primary hover:text-primary/80 font-medium transition-colors text-sm"
-                        >
-                          View Full Profile
-                          <ChevronRight className="w-4 h-4" />
-                        </Link>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              {/* Related Jobs */}
-              {relatedJobs.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7 }}
-                >
-                  <Card className="glass-morphism border-0 shadow-lg overflow-hidden">
-                    <div className="p-5 md:p-6 border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent">
-                      <h2 className="flex items-center gap-3 text-lg font-semibold">
-                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                          <TrendingUp className="w-5 h-5 text-primary" />
+                    )}
+                    {job.contact_email && (
+                      <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 border border-border/50 sm:col-span-2">
+                        <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
+                          <Mail className="w-5 h-5 text-destructive" />
                         </div>
-                        More from {job.employer.company_name}
-                      </h2>
-                    </div>
-                    <CardContent className="p-5 md:p-6">
-                      <div className="space-y-3">
-                        {relatedJobs.map((relJob) => (
-                          <Link
-                            key={relJob.id}
-                            to={`/jobs/${relJob.id}`}
-                            className="group flex items-center justify-between p-4 rounded-2xl border border-border/50 bg-gradient-to-r from-muted/40 to-transparent hover:from-primary/5 hover:border-primary/30 transition-all"
-                          >
-                            <div className="flex items-center gap-4">
-                              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
-                                <Briefcase className="w-5 h-5 text-primary" />
-                              </div>
-                              <div>
-                                <h4 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                                  {relJob.title}
-                                </h4>
-                                <div className="flex items-center gap-3 text-sm text-muted-foreground mt-0.5">
-                                  <span>{relJob.job_type || 'Full-time'}</span>
-                                  {relJob.salary_range && (
-                                    <span className="text-success font-medium">{relJob.salary_range}</span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                            <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                          </Link>
-                        ))}
+                        <div>
+                          <p className="text-xs text-muted-foreground">Email</p>
+                          <a href={`mailto:${job.contact_email}`} className="font-semibold text-primary hover:underline break-all">{job.contact_email}</a>
+                        </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
-            </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
 
-            {/* Sidebar */}
-            <div className="lg:col-span-1">
-              <div className="sticky top-6 space-y-6">
-                {/* Apply Card */}
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.4 }}
-                >
-                  <Card className="glass-morphism border-0 shadow-xl overflow-hidden">
-                    <div className={`p-5 ${
-                      isGovernmentJob 
-                        ? 'bg-gradient-to-r from-emerald-600 to-teal-600' 
-                        : 'bg-gradient-to-r from-primary to-primary/80'
-                    } text-white`}>
-                      <h3 className="font-bold text-lg flex items-center gap-2">
-                        <Award className="w-5 h-5" />
-                        {hasApplied ? 'Application Status' : 'Ready to Apply?'}
-                      </h3>
+          {/* Company Overview */}
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}>
+            <Card className="border-border/50 shadow-sm">
+              <CardContent className="p-5 md:p-6">
+                <h2 className="flex items-center gap-2.5 text-lg font-bold mb-4">
+                  <Building2 className="w-5 h-5 text-primary" /> About {job.employer.company_name}
+                </h2>
+                <div className="flex items-start gap-4">
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border-2 shrink-0 ${
+                    isGovernmentJob ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-800' : 'bg-primary/5 border-primary/10'
+                  }`}>
+                    {job.employer.avatar_url ? (
+                      <Avatar className="w-12 h-12 rounded-xl">
+                        <AvatarImage src={job.employer.avatar_url} className="object-cover" />
+                        <AvatarFallback className="bg-transparent text-primary"><Building2 className="w-6 h-6" /></AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <Building2 className={`w-6 h-6 ${isGovernmentJob ? 'text-emerald-600' : 'text-primary'}`} />
+                    )}
+                  </div>
+                  <div className="flex-1 space-y-3">
+                    <div>
+                      <h4 className="font-bold text-lg">{job.employer.company_name}</h4>
+                      <p className="text-sm text-muted-foreground">{job.employer.industry || 'Multiple Industries'}</p>
                     </div>
-                    <CardContent className="p-5 space-y-4">
-                      {hasApplied ? (
-                        <div className="text-center py-4">
-                          <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            className="w-16 h-16 mx-auto mb-4 rounded-full bg-success/10 flex items-center justify-center"
-                          >
-                            <CheckCircle className="w-8 h-8 text-success" />
-                          </motion.div>
-                          <h3 className="text-lg font-bold mb-2">Applied Successfully!</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Your application has been submitted. We'll notify you when there's an update.
-                          </p>
-                        </div>
-                      ) : (
-                        <>
-                          <p className="text-sm text-muted-foreground">
-                            Take the next step in your career at{' '}
-                            <span className="font-semibold text-foreground">{job.employer.company_name}</span>
-                          </p>
-
-                          <Dialog open={applyDialogOpen} onOpenChange={setApplyDialogOpen}>
-                            <DialogTrigger asChild>
-                              <Button 
-                                className={`w-full h-12 text-base font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all ${
-                                  isGovernmentJob 
-                                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700' 
-                                    : ''
-                                }`} 
-                                size="lg"
-                              >
-                                <Send className="w-5 h-5 mr-2" />
-                                Apply Now
-                              </Button>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-md">
-                              <DialogHeader>
-                                <DialogTitle className="flex items-center gap-2">
-                                  <Send className="w-5 h-5 text-primary" />
-                                  Apply for {job.title}
-                                </DialogTitle>
-                                <DialogDescription>
-                                  Submit your application to {job.employer.company_name}
-                                </DialogDescription>
-                              </DialogHeader>
-
-                              <div className="space-y-4 py-4">
-                                <div className="space-y-2">
-                                  <Label htmlFor="coverLetter">Cover Letter (Optional)</Label>
-                                  <Textarea
-                                    id="coverLetter"
-                                    placeholder="Tell the employer why you're a great fit..."
-                                    rows={6}
-                                    value={coverLetter}
-                                    onChange={(e) => setCoverLetter(e.target.value)}
-                                    className="resize-none rounded-xl"
-                                  />
-                                </div>
-                              </div>
-
-                              <DialogFooter className="gap-2">
-                                <Button
-                                  variant="outline"
-                                  onClick={() => setApplyDialogOpen(false)}
-                                  disabled={applying}
-                                  className="rounded-xl"
-                                >
-                                  Cancel
-                                </Button>
-                                <Button onClick={handleApply} disabled={applying} className="rounded-xl">
-                                  {applying ? (
-                                    <>
-                                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                      Submitting...
-                                    </>
-                                  ) : (
-                                    'Submit Application'
-                                  )}
-                                </Button>
-                              </DialogFooter>
-                            </DialogContent>
-                          </Dialog>
-
-                          <Separator />
-
-                          <div className="flex gap-2">
-                            <Button
-                              variant="outline"
-                              className="flex-1 h-11 rounded-xl"
-                              onClick={handleSave}
-                            >
-                              <Heart className={`w-4 h-4 mr-2 ${isSaved ? 'fill-primary text-primary' : ''}`} />
-                              {isSaved ? 'Saved' : 'Save'}
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              className="flex-1 h-11 rounded-xl" 
-                              onClick={handleShare}
-                            >
-                              <Share2 className="w-4 h-4 mr-2" />
-                              Share
-                            </Button>
-                          </div>
-                        </>
+                    {job.employer.description && (
+                      <p className="text-sm text-muted-foreground leading-relaxed">{job.employer.description}</p>
+                    )}
+                    <div className="flex flex-wrap items-center gap-4">
+                      {job.organization_size && (
+                        <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                          <Users className="w-4 h-4" /> {job.organization_size}
+                        </span>
                       )}
-                    </CardContent>
-                  </Card>
-                </motion.div>
-
-                {/* Quick Stats */}
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5 }}
-                >
-                  <Card className="glass-morphism border-0 shadow-lg">
-                    <CardContent className="p-5">
-                      <h4 className="font-semibold mb-4 flex items-center gap-2">
-                        <TrendingUp className="w-5 h-5 text-primary" />
-                        Insights
-                      </h4>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Competition</span>
-                          <Badge 
-                            variant="secondary" 
-                            className={`rounded-full ${
-                              applicantCount > 20 
-                                ? 'bg-destructive/10 text-destructive' 
-                                : applicantCount > 10 
-                                  ? 'bg-warning/10 text-warning' 
-                                  : 'bg-success/10 text-success'
-                            }`}
-                          >
-                            {applicantCount > 20 ? 'High' : applicantCount > 10 ? 'Medium' : 'Low'}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Response Rate</span>
-                          <span className="font-semibold text-success">85%</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Avg. Response</span>
-                          <span className="font-semibold">2-3 days</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-
-                {/* Contact Card */}
-                <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.55 }}
-                >
-                  <Card className="glass-morphism border-0 shadow-lg">
-                    <CardContent className="p-5">
-                      <h4 className="font-semibold mb-3 flex items-center gap-2">
-                        <MessageSquare className="w-5 h-5 text-primary" />
-                        Questions?
-                      </h4>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Reach out directly to the employer
-                      </p>
-                      <div className="space-y-2">
-                        <Button 
-                          variant="outline" 
-                          className="w-full rounded-xl"
-                          onClick={handleContactEmployer}
-                          disabled={contacting}
-                        >
-                          {contacting ? (
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          ) : (
-                            <MessageSquare className="w-4 h-4 mr-2" />
-                          )}
-                          Send Message
-                        </Button>
-                        {job.employer.whatsapp_number && (
-                          <WhatsAppButton 
-                            phoneNumber={job.employer.whatsapp_number}
-                            className="w-full rounded-xl"
-                          />
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Mobile Fixed Bottom Bar */}
-        <AnimatePresence>
-          <motion.div 
-            initial={{ y: 100 }}
-            animate={{ y: 0 }}
-            className="fixed bottom-0 left-0 right-0 lg:hidden glass-morphism border-t shadow-2xl p-4 z-50 safe-area-pb"
-          >
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleSave}
-                className={`w-12 h-12 rounded-xl flex-shrink-0 ${isSaved ? 'bg-primary/10 border-primary text-primary' : ''}`}
-              >
-                <Heart className={`w-5 h-5 ${isSaved ? 'fill-current' : ''}`} />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={handleShare}
-                className="w-12 h-12 rounded-xl flex-shrink-0"
-              >
-                <Share2 className="w-5 h-5" />
-              </Button>
-              {job.employer.whatsapp_number && (
-                <WhatsAppButton 
-                  phoneNumber={job.employer.whatsapp_number}
-                  variant="icon"
-                  className="flex-shrink-0 w-12 h-12 rounded-xl"
-                />
-              )}
-              {hasApplied ? (
-                <Button disabled className="flex-1 h-12 rounded-xl">
-                  <CheckCircle className="w-5 h-5 mr-2" />
-                  Applied
-                </Button>
-              ) : (
-                <Button 
-                  onClick={() => setApplyDialogOpen(true)} 
-                  className={`flex-1 h-12 rounded-xl text-base font-semibold ${
-                    isGovernmentJob 
-                      ? 'bg-gradient-to-r from-emerald-600 to-teal-600' 
-                      : ''
-                  }`}
-                >
-                  <Send className="w-5 h-5 mr-2" />
-                  Apply Now
-                </Button>
-              )}
-            </div>
+                      {job.employer.website_url && (
+                        <a href={job.employer.website_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline">
+                          <Globe className="w-4 h-4" /> Website <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
+                    <Link to={`/employers/${job.employer.id}`} className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline font-medium">
+                      View Company Profile <ChevronRight className="w-4 h-4" />
+                    </Link>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
-        </AnimatePresence>
+
+          {/* Related Jobs */}
+          {relatedJobs.length > 0 && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+              <Card className="border-border/50 shadow-sm">
+                <CardContent className="p-5 md:p-6">
+                  <h2 className="flex items-center gap-2.5 text-lg font-bold mb-4">
+                    <TrendingUp className="w-5 h-5 text-primary" /> More from {job.employer.company_name}
+                  </h2>
+                  <div className="space-y-2">
+                    {relatedJobs.map((relJob) => (
+                      <Link
+                        key={relJob.id}
+                        to={`/jobs/${relJob.id}`}
+                        className="group flex items-center justify-between p-4 rounded-xl border border-border/50 hover:border-primary/30 hover:bg-primary/5 transition-all"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                            <Briefcase className="w-5 h-5 text-primary" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold group-hover:text-primary transition-colors">{relJob.title}</h4>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span>{relJob.job_type || 'Full-time'}</span>
+                              {relJob.salary_range && <span className="text-success font-medium">{relJob.salary_range}</span>}
+                            </div>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                      </Link>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+        </div>
       </div>
-    </TooltipProvider>
+
+      {/* ===== MOBILE BOTTOM BAR ===== */}
+      <AnimatePresence>
+        <motion.div
+          initial={{ y: 100 }}
+          animate={{ y: 0 }}
+          className="fixed bottom-0 left-0 right-0 lg:hidden bg-background/95 backdrop-blur-xl border-t border-border/50 p-3 z-50"
+        >
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" onClick={handleSave} className={`w-11 h-11 rounded-xl shrink-0 ${isSaved ? 'bg-destructive/10 border-destructive text-destructive' : ''}`}>
+              <Heart className={`w-5 h-5 ${isSaved ? 'fill-current' : ''}`} />
+            </Button>
+            <Button variant="outline" size="icon" onClick={handleShare} className="w-11 h-11 rounded-xl shrink-0">
+              <Share2 className="w-5 h-5" />
+            </Button>
+            {job.employer.whatsapp_number && (
+              <WhatsAppButton phoneNumber={job.employer.whatsapp_number} variant="icon" className="shrink-0 w-11 h-11 rounded-xl" />
+            )}
+            {hasApplied ? (
+              <Button disabled className="flex-1 h-11 rounded-xl">
+                <CheckCircle className="w-5 h-5 mr-2" /> Applied
+              </Button>
+            ) : (
+              <Dialog open={applyDialogOpen} onOpenChange={setApplyDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className={`flex-1 h-11 rounded-xl font-semibold gap-2 ${isGovernmentJob ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}>
+                    <Send className="w-4 h-4" /> Apply Now
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2"><Send className="w-5 h-5 text-primary" />Apply for {job.title}</DialogTitle>
+                    <DialogDescription>Submit your application to {job.employer.company_name}</DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="coverLetterMobile">Cover Letter (Optional)</Label>
+                      <Textarea id="coverLetterMobile" placeholder="Tell the employer why you're a great fit..." rows={6} value={coverLetter} onChange={(e) => setCoverLetter(e.target.value)} className="resize-none rounded-xl" />
+                    </div>
+                  </div>
+                  <DialogFooter className="gap-2">
+                    <Button variant="outline" onClick={() => setApplyDialogOpen(false)} disabled={applying} className="rounded-xl">Cancel</Button>
+                    <Button onClick={handleApply} disabled={applying} className="rounded-xl">
+                      {applying ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Submitting...</> : 'Submit Application'}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
+          </div>
+        </motion.div>
+      </AnimatePresence>
+    </div>
   );
 };
+
+// ===== Reusable Requirement Item =====
+const RequirementItem = ({ icon: Icon, label, value, fullWidth }: { icon: any; label: string; value: string; fullWidth?: boolean }) => (
+  <div className={`flex items-center gap-3 p-4 rounded-xl bg-muted/50 border border-border/50 ${fullWidth ? 'sm:col-span-2' : ''}`}>
+    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+      <Icon className="w-5 h-5 text-primary" />
+    </div>
+    <div className="min-w-0">
+      <p className="text-xs text-muted-foreground uppercase tracking-wider">{label}</p>
+      <p className="font-semibold text-foreground">{value}</p>
+    </div>
+  </div>
+);
 
 export default JobDetail;

@@ -247,16 +247,23 @@ export const Sidebar = ({
                               {candidate.job_title}
                             </p>
                             <div className="flex items-center gap-2 mt-2">
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted text-[10px] font-medium">
-                                <TrendingUp className="w-3 h-3" />
-                                {candidate.experience_years}y exp
-                              </span>
-                              {candidate.distance_km !== undefined && (
-                                <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                                  <MapPin className="w-3 h-3" />
-                                  {candidate.distance_km.toFixed(1)} km
-                                </span>
+                              {profile?.user_type === 'employer' && (
+                                <>
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted text-[10px] font-medium">
+                                    <TrendingUp className="w-3 h-3" />
+                                    {candidate.experience_years}y exp
+                                  </span>
+                                  {candidate.distance_km !== undefined && (
+                                    <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                                      <MapPin className="w-3 h-3" />
+                                      {candidate.distance_km.toFixed(1)} km
+                                    </span>
+                                  )}
+                                </>
                               )}
+                              {!profile?.user_type || profile.user_type !== 'employer' ? (
+                                <span className="text-[10px] text-muted-foreground">Sign in as employer for details</span>
+                              ) : null}
                             </div>
                           </div>
                           <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />

@@ -10,9 +10,10 @@ import {
   Clock, 
   DollarSign, 
   ArrowRight,
-  User,
   Building2,
-  Star
+  Star,
+  Lock,
+  LogIn
 } from 'lucide-react';
 import { GovernmentJobBadge, GovernmentEmployerBadge } from '@/components/government';
 
@@ -21,13 +22,27 @@ interface MarkerPreviewSheetProps {
   onClose: () => void;
   mode: ViewMode;
   item: Candidate | Job | null;
+  isEmployer?: boolean;
 }
+
+const formatTimeAgo = (dateString: string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return 'Posted today';
+  if (diffDays === 1) return 'Posted yesterday';
+  if (diffDays < 7) return `Posted ${diffDays}d ago`;
+  if (diffDays < 30) return `Posted ${Math.floor(diffDays / 7)}w ago`;
+  return `Posted ${Math.floor(diffDays / 30)}mo ago`;
+};
 
 export const MarkerPreviewSheet = ({ 
   isOpen, 
   onClose, 
   mode, 
-  item 
+  item,
+  isEmployer = false,
 }: MarkerPreviewSheetProps) => {
   const navigate = useNavigate();
 
@@ -42,6 +57,11 @@ export const MarkerPreviewSheet = ({
     } else {
       navigate(`/jobs/${item.id}`);
     }
+  };
+
+  const handleSignIn = () => {
+    onClose();
+    navigate('/login');
   };
 
   const renderCandidatePreview = (candidate: Candidate) => (
@@ -66,53 +86,79 @@ export const MarkerPreviewSheet = ({
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="flex gap-4">
-        <div className="flex items-center gap-2 px-3 py-2 bg-primary/5 rounded-lg">
-          <Clock className="w-4 h-4 text-primary" />
-          <span className="text-sm font-medium">{candidate.experience_years || 0}+ years</span>
-        </div>
-        {candidate.skills && candidate.skills.length > 0 && (
-          <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
-            <Star className="w-4 h-4 text-warning" />
-            <span className="text-sm font-medium">{candidate.skills.length} skills</span>
-          </div>
-        )}
-      </div>
-
-      {/* Skills */}
-      {candidate.skills && candidate.skills.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Skills</p>
-          <div className="flex flex-wrap gap-2">
-            {candidate.skills.slice(0, 5).map((skill) => (
-              <Badge key={skill} variant="secondary" className="text-xs">
-                {skill}
-              </Badge>
-            ))}
-            {candidate.skills.length > 5 && (
-              <Badge variant="outline" className="text-xs">
-                +{candidate.skills.length - 5} more
-              </Badge>
+      {/* Auth-gated content */}
+      {isEmployer ? (
+        <>
+          {/* Stats */}
+          <div className="flex gap-4">
+            <div className="flex items-center gap-2 px-3 py-2 bg-primary/5 rounded-lg">
+              <Clock className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium">{candidate.experience_years || 0}+ years</span>
+            </div>
+            {candidate.skills && candidate.skills.length > 0 && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-lg">
+                <Star className="w-4 h-4 text-warning" />
+                <span className="text-sm font-medium">{candidate.skills.length} skills</span>
+              </div>
             )}
           </div>
-        </div>
-      )}
 
-      {/* Action */}
-      <Button 
-        onClick={handleViewDetails} 
-        className="w-full gap-2 mt-2"
-        size="lg"
-      >
-        View Full Profile
-        <ArrowRight className="w-4 h-4" />
-      </Button>
+          {/* Skills */}
+          {candidate.skills && candidate.skills.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Skills</p>
+              <div className="flex flex-wrap gap-2">
+                {candidate.skills.slice(0, 5).map((skill) => (
+                  <Badge key={skill} variant="secondary" className="text-xs">
+                    {skill}
+                  </Badge>
+                ))}
+                {candidate.skills.length > 5 && (
+                  <Badge variant="outline" className="text-xs">
+                    +{candidate.skills.length - 5} more
+                  </Badge>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Action */}
+          <Button 
+            onClick={handleViewDetails} 
+            className="w-full gap-2 mt-2"
+            size="lg"
+          >
+            View Full Profile
+            <ArrowRight className="w-4 h-4" />
+          </Button>
+        </>
+      ) : (
+        <>
+          {/* Locked content message */}
+          <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 border border-border">
+            <Lock className="w-5 h-5 text-muted-foreground shrink-0" />
+            <p className="text-sm text-muted-foreground">
+              Sign in as an employer to view full profile, skills, and contact details.
+            </p>
+          </div>
+
+          {/* Sign In CTA */}
+          <Button 
+            onClick={handleSignIn} 
+            className="w-full gap-2 mt-2"
+            size="lg"
+          >
+            <LogIn className="w-4 h-4" />
+            Sign In to View Profile
+          </Button>
+        </>
+      )}
     </div>
   );
 
   const renderJobPreview = (job: Job) => {
     const isGovernmentJob = job.job_category === 'government';
+    const isNew = job.created_at && (new Date().getTime() - new Date(job.created_at).getTime()) < 24 * 60 * 60 * 1000;
     
     return (
       <div className="space-y-4 animate-fade-in">
@@ -131,17 +177,29 @@ export const MarkerPreviewSheet = ({
             <Briefcase className={`w-7 h-7 ${isGovernmentJob ? 'text-emerald-600' : 'text-destructive'}`} />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-semibold truncate">{job.title}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold truncate">{job.title}</h3>
+              {isNew && (
+                <Badge className="bg-warning text-warning-foreground text-[10px] px-1.5 py-0 h-5 shrink-0">NEW</Badge>
+              )}
+            </div>
             <div className="flex items-center gap-1 text-muted-foreground">
               <Building2 className="w-3.5 h-3.5" />
               <span className="truncate">{job.company_name}</span>
             </div>
-            {job.distance_km && (
-              <div className="flex items-center gap-1 mt-1 text-sm text-muted-foreground">
-                <MapPin className="w-3.5 h-3.5" />
-                <span>{job.distance_km.toFixed(1)} km away</span>
-              </div>
-            )}
+            <div className="flex items-center gap-3 mt-1">
+              {job.distance_km && (
+                <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                  <MapPin className="w-3.5 h-3.5" />
+                  <span>{job.distance_km.toFixed(1)} km</span>
+                </div>
+              )}
+              {job.created_at && (
+                <span className="text-xs text-muted-foreground">
+                  {formatTimeAgo(job.created_at)}
+                </span>
+              )}
+            </div>
           </div>
         </div>
 

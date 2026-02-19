@@ -49,12 +49,17 @@ import {
   Key,
   Eye,
   Crown,
-  Users
+  Users,
+  ExternalLink
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { Link } from 'react-router-dom';
 import { BulkActionsBar } from '@/components/admin/BulkActionsBar';
 import { StatsCard } from '@/components/admin/StatsCard';
+import { PaginationControls } from '@/components/admin/PaginationControls';
+
+const PAGE_SIZE = 20;
 
 interface UserProfile {
   id: string;
@@ -76,6 +81,7 @@ export default function AdminUsers() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [page, setPage] = useState(1);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [roleDialog, setRoleDialog] = useState<{ user: UserProfile | null; action: 'add' | 'remove' }>({ 
@@ -84,23 +90,30 @@ export default function AdminUsers() {
   });
   const [selectedRole, setSelectedRole] = useState<'admin' | 'moderator'>('moderator');
 
-  const { data: profiles, isLoading } = useQuery({
-    queryKey: ['admin-users', typeFilter],
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin-users', typeFilter, page],
     queryFn: async () => {
+      const from = (page - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
       let query = supabase
         .from('profiles')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (typeFilter !== 'all') {
         query = query.eq('user_type', typeFilter as 'candidate' | 'employer');
       }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
       if (error) throw error;
-      return data as UserProfile[];
+      return { profiles: data as UserProfile[], total: count || 0 };
     },
   });
+
+  const profiles = data?.profiles;
+  const totalPages = Math.ceil((data?.total || 0) / PAGE_SIZE);
 
   const { data: roles } = useQuery({
     queryKey: ['admin-user-roles'],
@@ -297,11 +310,7 @@ export default function AdminUsers() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {user.custom_email_verified ? (
-                          <Badge className="bg-success/10 text-success border-success/20">Verified</Badge>
-                        ) : (
-                          <Badge variant="secondary">Unverified</Badge>
-                        )}
+                        <Badge className="bg-success/10 text-success border-success/20">Active</Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {format(new Date(user.created_at), 'MMM d, yyyy')}
@@ -322,6 +331,12 @@ export default function AdminUsers() {
                             <DropdownMenuItem onClick={() => setSelectedUser(user)}>
                               <Eye className="h-4 w-4 mr-2" />
                               View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link to={user.user_type === 'employer' ? `/employers/${user.id}` : `/candidates/${user.id}`}>
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                View Profile
+                              </Link>
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem 
@@ -354,6 +369,9 @@ export default function AdminUsers() {
           )}
         </CardContent>
       </Card>
+
+      {/* Pagination */}
+      <PaginationControls page={page} totalPages={totalPages} onPageChange={setPage} />
 
       {/* Bulk Actions */}
       <BulkActionsBar
@@ -388,8 +406,8 @@ export default function AdminUsers() {
                   <p className="font-mono text-xs truncate">{selectedUser.user_id}</p>
                 </div>
                 <div>
-                  <p className="text-muted-foreground">Email Verified</p>
-                  <p>{selectedUser.custom_email_verified ? 'Yes' : 'No'}</p>
+                  <p className="text-muted-foreground">Account Status</p>
+                  <p>Active</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Registered</p>

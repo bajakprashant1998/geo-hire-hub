@@ -43,6 +43,11 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import { Link } from 'react-router-dom';
+import { PaginationControls } from '@/components/admin/PaginationControls';
+import { ExternalLink } from 'lucide-react';
+
+const PAGE_SIZE = 20;
 
 interface Job {
   id: string;
@@ -65,6 +70,7 @@ export default function AdminJobs() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [moderationFilter, setModerationFilter] = useState<string>('all');
+  const [page, setPage] = useState(1);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [actionDialog, setActionDialog] = useState<{
     type: 'approve' | 'reject' | 'delete' | 'deactivate' | null;
@@ -72,16 +78,20 @@ export default function AdminJobs() {
   }>({ type: null, job: null });
   const [actionReason, setActionReason] = useState('');
 
-  const { data: jobs, isLoading } = useQuery({
-    queryKey: ['admin-jobs', statusFilter, moderationFilter],
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin-jobs', statusFilter, moderationFilter, page],
     queryFn: async () => {
+      const from = (page - 1) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
       let query = supabase
         .from('jobs')
         .select(`
           *,
           employer:employers!jobs_employer_id_fkey(id, company_name)
-        `)
-        .order('created_at', { ascending: false });
+        `, { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (statusFilter !== 'all') {
         if (statusFilter === 'active') {
@@ -97,11 +107,14 @@ export default function AdminJobs() {
         query = query.eq('moderation_status', moderationFilter);
       }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
       if (error) throw error;
-      return data as unknown as Job[];
+      return { jobs: data as unknown as Job[], total: count || 0 };
     },
   });
+
+  const jobs = data?.jobs;
+  const totalPages = Math.ceil((data?.total || 0) / PAGE_SIZE);
 
   const updateJobMutation = useMutation({
     mutationFn: async ({ 
@@ -310,6 +323,11 @@ export default function AdminJobs() {
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
+                        <Button variant="ghost" size="icon" asChild>
+                          <Link to={`/jobs/${job.id}`}>
+                            <ExternalLink className="h-4 w-4" />
+                          </Link>
+                        </Button>
                         {job.moderation_status === 'pending' && (
                           <>
                             <Button
@@ -357,6 +375,9 @@ export default function AdminJobs() {
           )}
         </CardContent>
       </Card>
+
+      {/* Pagination */}
+      <PaginationControls page={page} totalPages={totalPages} onPageChange={setPage} />
 
       {/* Detail Dialog */}
       <Dialog open={!!selectedJob} onOpenChange={() => setSelectedJob(null)}>
