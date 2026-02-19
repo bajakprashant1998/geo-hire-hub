@@ -64,11 +64,32 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
   const [loading, setLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
 
-  // Resolve slug to ID
+  // Resolve slug to ID & redirect UUID URLs to SEO slugs
   useEffect(() => {
     if (!identifier || propId) return;
     if (UUID_REGEX.test(identifier)) {
-      setResolvedId(identifier);
+      // UUID access — check for slug redirect
+      supabase
+        .from('employers')
+        .select('id, slug, location_country, location_state, location_city')
+        .eq('id', identifier)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) {
+            setResolvedId(data.id);
+            if (data.slug) {
+              const parts = ['/companies'];
+              if (data.location_country) parts.push(encodeURIComponent(data.location_country.toLowerCase().replace(/\s+/g, '-')));
+              if (data.location_state) parts.push(encodeURIComponent(data.location_state.toLowerCase().replace(/\s+/g, '-')));
+              if (data.location_city) parts.push(encodeURIComponent(data.location_city.toLowerCase().replace(/\s+/g, '-')));
+              parts.push(data.slug);
+              const seoPath = parts.join('/');
+              if (window.location.pathname !== seoPath) {
+                navigate(seoPath + window.location.search, { replace: true });
+              }
+            }
+          } else setLoading(false);
+        });
     } else {
       supabase
         .from('employers')

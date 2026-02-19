@@ -62,11 +62,33 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
     }
   }, [searchParams, loading, candidate, candidateUserId, isEmployerUser]);
 
-  // Resolve slug to ID
+  // Resolve slug to ID & redirect UUID URLs to SEO slugs
   useEffect(() => {
     if (!identifier || propId) return;
     if (UUID_REGEX.test(identifier)) {
-      setResolvedId(identifier);
+      // UUID access — check for slug redirect
+      supabase
+        .from('candidates')
+        .select('id, profiles!inner(slug, location_country, location_state, location_city)')
+        .eq('id', identifier)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) {
+            setResolvedId(data.id);
+            const p = data.profiles as any;
+            if (p?.slug) {
+              const parts = ['/candidates'];
+              if (p.location_country) parts.push(encodeURIComponent(p.location_country.toLowerCase().replace(/\s+/g, '-')));
+              if (p.location_state) parts.push(encodeURIComponent(p.location_state.toLowerCase().replace(/\s+/g, '-')));
+              if (p.location_city) parts.push(encodeURIComponent(p.location_city.toLowerCase().replace(/\s+/g, '-')));
+              parts.push(p.slug);
+              const seoPath = parts.join('/');
+              if (window.location.pathname !== seoPath) {
+                navigate(seoPath + window.location.search, { replace: true });
+              }
+            }
+          } else setLoading(false);
+        });
     } else {
       supabase
         .from('profiles')
