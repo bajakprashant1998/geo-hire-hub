@@ -6,8 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Search, Briefcase, MapPin, Clock, Building2, Filter } from 'lucide-react';
+import { ArrowLeft, Search, Briefcase, MapPin, Clock, Building2, Filter, LayoutDashboard } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { SEOHead } from '@/components/SEOHead';
 
 const PAGE_SIZE = 20;
@@ -16,6 +17,7 @@ const JOB_TYPES = ['Full-time', 'Part-time', 'Contract', 'Internship', 'Freelanc
 
 const BrowseJobs = () => {
   const navigate = useNavigate();
+  const { user, profile } = useAuth();
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -82,6 +84,8 @@ const BrowseJobs = () => {
     return `/jobs/${job.id}`;
   };
 
+  const dashboardPath = profile?.user_type === 'employer' ? '/employer-dashboard' : '/candidate-dashboard';
+
   return (
     <div className="min-h-screen bg-background">
       <SEOHead title="Browse Jobs | HireForJob" description="Browse all open job listings on HireForJob. Filter by type, location, and keywords." />
@@ -89,9 +93,16 @@ const BrowseJobs = () => {
       {/* Header */}
       <div className="border-b bg-card">
         <div className="container mx-auto px-4 py-6 max-w-5xl">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="gap-2 -ml-2 mb-4 text-muted-foreground">
-            <ArrowLeft className="w-4 h-4" /> Back to Map
-          </Button>
+          <div className="flex items-center gap-2 mb-4">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="gap-2 -ml-2 text-muted-foreground">
+              <ArrowLeft className="w-4 h-4" /> Back to Map
+            </Button>
+            {user && (
+              <Button variant="outline" size="sm" onClick={() => navigate(dashboardPath)} className="gap-2 text-muted-foreground">
+                <LayoutDashboard className="w-4 h-4" /> Dashboard
+              </Button>
+            )}
+          </div>
           <h1 className="text-2xl font-bold text-foreground mb-1">Browse Jobs</h1>
           <p className="text-muted-foreground">{total} open positions</p>
 

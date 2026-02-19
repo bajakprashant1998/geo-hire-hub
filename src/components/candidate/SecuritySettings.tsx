@@ -1,4 +1,4 @@
-import { useState, forwardRef } from 'react';
+import { useState, useEffect, forwardRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Shield, Key, Clock, Smartphone, Trash2, AlertTriangle, Loader2, Eye, EyeOff, LogOut, Mail } from 'lucide-react';
+import { Shield, Key, Clock, Smartphone, Trash2, AlertTriangle, Loader2, Eye, EyeOff, LogOut, Mail, AtSign } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -31,8 +31,13 @@ export const SecuritySettings = () => {
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [loadingEmailPref, setLoadingEmailPref] = useState(false);
 
+  // Email change state
+  const [changingEmail, setChangingEmail] = useState(false);
+  const [newEmail, setNewEmail] = useState('');
+  const [emailLoading, setEmailLoading] = useState(false);
+
   // Load email notification preference
-  useState(() => {
+  useEffect(() => {
     if (!user) return;
     supabase
       .from('notification_preferences')
@@ -42,7 +47,7 @@ export const SecuritySettings = () => {
       .then(({ data }) => {
         if (data) setEmailNotifications(data.email_notifications_enabled);
       });
-  });
+  }, [user]);
 
   const handleEmailNotificationToggle = async (enabled: boolean) => {
     if (!user) return;
@@ -93,10 +98,29 @@ export const SecuritySettings = () => {
     }
   };
 
+  const handleChangeEmail = async () => {
+    if (!newEmail || !newEmail.includes('@')) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+
+    setEmailLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ email: newEmail });
+      if (error) throw error;
+      toast.success('Confirmation email sent to your new address. Please verify to complete the change.');
+      setChangingEmail(false);
+      setNewEmail('');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update email');
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
   const handleDeactivateAccount = async () => {
     setDeactivating(true);
     try {
-      // Update profile to mark as deactivated
       const { error } = await supabase
         .from('profiles')
         .update({ is_visible_on_map: false })
@@ -149,6 +173,48 @@ export const SecuritySettings = () => {
               />
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Update Email */}
+      <Card className="shadow-google">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AtSign className="w-5 h-5 text-primary" />
+            Email Address
+          </CardTitle>
+          <CardDescription>Change the email associated with your account</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-3">
+            Current email: <span className="font-medium text-foreground">{user?.email}</span>
+          </p>
+          {!changingEmail ? (
+            <Button onClick={() => setChangingEmail(true)} variant="outline">
+              Change Email
+            </Button>
+          ) : (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>New Email Address</Label>
+                <Input
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  placeholder="Enter new email address"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={handleChangeEmail} disabled={emailLoading}>
+                  {emailLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Update Email
+                </Button>
+                <Button variant="outline" onClick={() => { setChangingEmail(false); setNewEmail(''); }}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
