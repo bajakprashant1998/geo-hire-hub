@@ -37,9 +37,12 @@ interface CandidateProfile {
   social_links: SocialLinks | null; availability_status: string | null;
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const CandidateDetail = ({ id: propId }: { id?: string }) => {
-  const { id: paramId } = useParams<{ id: string }>();
-  const id = propId || paramId;
+  const params = useParams();
+  const identifier = propId || params.slug || params.id || params['*']?.split('/').pop();
+  const [resolvedId, setResolvedId] = useState<string | null>(propId || null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { startConversation } = useStartConversation();
@@ -59,15 +62,49 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
     }
   }, [searchParams, loading, candidate, candidateUserId, isEmployerUser]);
 
-  const isValidUUID = (uuid: string | undefined): boolean => {
-    if (!uuid) return false;
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uuid);
-  };
+  // Resolve slug to ID
+  useEffect(() => {
+    if (!identifier || propId) return;
+    if (UUID_REGEX.test(identifier)) {
+      setResolvedId(identifier);
+    } else {
+      supabase
+        .from('profiles')
+        .select('id')
+        .eq('slug', identifier)
+        .maybeSingle()
+        .then(({ data: profileData }) => {
+          if (profileData) {
+            supabase
+              .from('candidates')
+              .select('id')
+              .eq('profile_id', profileData.id)
+              .maybeSingle()
+              .then(({ data: candData }) => {
+                if (candData) setResolvedId(candData.id);
+                else setLoading(false);
+              });
+          } else setLoading(false);
+        });
+    }
+  }, [identifier, propId]);
+
+  const id = resolvedId;
 
   useEffect(() => {
-    if (id && isValidUUID(id)) fetchCandidate();
-    else if (id) setLoading(false);
+    if (id) fetchCandidate();
   }, [id]);
+
+  // SEO meta tags
+  useEffect(() => {
+    if (candidate) {
+      document.title = `${candidate.full_name} - ${candidate.job_title} | HireForJob`;
+      const desc = `${candidate.full_name}, ${candidate.job_title}${candidate.experience_years ? ` with ${candidate.experience_years}+ years experience` : ''}. View profile on HireForJob.`;
+      let metaDesc = document.querySelector('meta[name="description"]') as HTMLMetaElement;
+      if (!metaDesc) { metaDesc = document.createElement('meta'); metaDesc.name = 'description'; document.head.appendChild(metaDesc); }
+      metaDesc.content = desc.slice(0, 160);
+    }
+  }, [candidate]);
 
   const fetchCandidate = async () => {
     try {

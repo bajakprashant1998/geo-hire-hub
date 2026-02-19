@@ -118,14 +118,19 @@ interface JobDetails {
   };
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const JobDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const params = useParams();
+  // Support both /jobs/:id (UUID) and /jobs/.../:slug (SEO)
+  const identifier = params.slug || params.id || params['*']?.split('/').pop();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, profile, isEmailVerified } = useAuth();
   const { startConversation } = useStartConversation();
 
   const [job, setJob] = useState<JobDetails | null>(null);
+  const [resolvedId, setResolvedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
@@ -142,13 +147,50 @@ const JobDetail = () => {
     }
   }, [searchParams, loading, job, hasApplied, user]);
 
+  // Resolve slug to ID if needed
   useEffect(() => {
-    if (id) {
+    if (!identifier) return;
+    if (UUID_REGEX.test(identifier)) {
+      setResolvedId(identifier);
+    } else {
+      // Lookup by slug
+      supabase
+        .from('jobs')
+        .select('id')
+        .eq('slug', identifier)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) setResolvedId(data.id);
+          else setLoading(false);
+        });
+    }
+  }, [identifier]);
+
+  useEffect(() => {
+    if (resolvedId) {
       fetchJob();
       checkIfApplied();
       fetchApplicantCount();
     }
-  }, [id]);
+  }, [resolvedId]);
+
+  // SEO meta tags
+  useEffect(() => {
+    if (job) {
+      document.title = `${job.title} at ${job.employer.company_name} | HireForJob`;
+      const metaDesc = document.querySelector('meta[name="description"]');
+      const desc = `Apply for ${job.title} at ${job.employer.company_name}. ${job.job_type || 'Full-time'}${job.salary_range ? ` | ${job.salary_range}` : ''}${job.job_address ? ` | ${job.job_address}` : ''}`;
+      if (metaDesc) metaDesc.setAttribute('content', desc.slice(0, 160));
+      else {
+        const el = document.createElement('meta');
+        el.name = 'description';
+        el.content = desc.slice(0, 160);
+        document.head.appendChild(el);
+      }
+    }
+  }, [job]);
+
+  const id = resolvedId;
 
   const fetchJob = async () => {
     try {
@@ -170,7 +212,7 @@ const JobDetail = () => {
             )
           )
         `)
-        .eq('id', id)
+        .eq('id', resolvedId)
         .maybeSingle();
 
       if (error) throw error;

@@ -48,9 +48,12 @@ interface Job {
   status: string;
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const EmployerDetail = ({ id: propId }: { id?: string }) => {
-  const { id: paramId } = useParams<{ id: string }>();
-  const id = propId || paramId;
+  const params = useParams();
+  const identifier = propId || params.slug || params.id || params['*']?.split('/').pop();
+  const [resolvedId, setResolvedId] = useState<string | null>(propId || null);
   const navigate = useNavigate();
   const { user } = useAuth();
   const isAuthenticated = !!user;
@@ -61,19 +64,43 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
   const [loading, setLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
 
-  const isValidUUID = (uuid: string | undefined): boolean => {
-    if (!uuid) return false;
-    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uuid);
-  };
+  // Resolve slug to ID
+  useEffect(() => {
+    if (!identifier || propId) return;
+    if (UUID_REGEX.test(identifier)) {
+      setResolvedId(identifier);
+    } else {
+      supabase
+        .from('employers')
+        .select('id')
+        .eq('slug', identifier)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) setResolvedId(data.id);
+          else setLoading(false);
+        });
+    }
+  }, [identifier, propId]);
+
+  const id = resolvedId;
 
   useEffect(() => {
-    if (id && isValidUUID(id)) {
+    if (id) {
       fetchEmployer();
       fetchJobs();
-    } else if (id) {
-      setLoading(false);
     }
   }, [id]);
+
+  // SEO meta tags
+  useEffect(() => {
+    if (employer) {
+      document.title = `${employer.company_name}${employer.industry ? ` - ${employer.industry}` : ''} | HireForJob`;
+      const desc = `${employer.company_name}${employer.industry ? `, ${employer.industry}` : ''}. ${jobs.length} open positions. View company profile on HireForJob.`;
+      let metaDesc = document.querySelector('meta[name="description"]') as HTMLMetaElement;
+      if (!metaDesc) { metaDesc = document.createElement('meta'); metaDesc.name = 'description'; document.head.appendChild(metaDesc); }
+      metaDesc.content = desc.slice(0, 160);
+    }
+  }, [employer, jobs]);
 
   const fetchEmployer = async () => {
     try {

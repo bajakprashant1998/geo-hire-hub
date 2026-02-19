@@ -578,9 +578,13 @@ export type Database = {
           industry: string | null
           is_government: boolean | null
           is_suspended: boolean | null
+          location_city: string | null
+          location_country: string | null
+          location_state: string | null
           office_photo_url: string | null
           profile_completeness: number | null
           profile_id: string
+          slug: string | null
           social_links: Json | null
           specializations: string[] | null
           suspended_at: string | null
@@ -612,9 +616,13 @@ export type Database = {
           industry?: string | null
           is_government?: boolean | null
           is_suspended?: boolean | null
+          location_city?: string | null
+          location_country?: string | null
+          location_state?: string | null
           office_photo_url?: string | null
           profile_completeness?: number | null
           profile_id: string
+          slug?: string | null
           social_links?: Json | null
           specializations?: string[] | null
           suspended_at?: string | null
@@ -646,9 +654,13 @@ export type Database = {
           industry?: string | null
           is_government?: boolean | null
           is_suspended?: boolean | null
+          location_city?: string | null
+          location_country?: string | null
+          location_state?: string | null
           office_photo_url?: string | null
           profile_completeness?: number | null
           profile_id?: string
+          slug?: string | null
           social_links?: Json | null
           specializations?: string[] | null
           suspended_at?: string | null
@@ -1121,6 +1133,9 @@ export type Database = {
           job_type: string | null
           languages: string[] | null
           latitude: number
+          location_city: string | null
+          location_country: string | null
+          location_state: string | null
           longitude: number
           max_age: number | null
           max_experience: number | null
@@ -1135,6 +1150,7 @@ export type Database = {
           salary_range: string | null
           shift_type: string | null
           skills: string[] | null
+          slug: string | null
           start_time: string | null
           status: Database["public"]["Enums"]["job_status"] | null
           title: string
@@ -1171,6 +1187,9 @@ export type Database = {
           job_type?: string | null
           languages?: string[] | null
           latitude: number
+          location_city?: string | null
+          location_country?: string | null
+          location_state?: string | null
           longitude: number
           max_age?: number | null
           max_experience?: number | null
@@ -1185,6 +1204,7 @@ export type Database = {
           salary_range?: string | null
           shift_type?: string | null
           skills?: string[] | null
+          slug?: string | null
           start_time?: string | null
           status?: Database["public"]["Enums"]["job_status"] | null
           title: string
@@ -1221,6 +1241,9 @@ export type Database = {
           job_type?: string | null
           languages?: string[] | null
           latitude?: number
+          location_city?: string | null
+          location_country?: string | null
+          location_state?: string | null
           longitude?: number
           max_age?: number | null
           max_experience?: number | null
@@ -1235,6 +1258,7 @@ export type Database = {
           salary_range?: string | null
           shift_type?: string | null
           skills?: string[] | null
+          slug?: string | null
           start_time?: string | null
           status?: Database["public"]["Enums"]["job_status"] | null
           title?: string
@@ -1505,8 +1529,12 @@ export type Database = {
           is_visible_on_map: boolean | null
           last_login_at: string | null
           latitude: number | null
+          location_city: string | null
+          location_country: string | null
+          location_state: string | null
           longitude: number | null
           profile_completed: boolean | null
+          slug: string | null
           timezone: string | null
           two_factor_enabled: boolean | null
           updated_at: string | null
@@ -1523,8 +1551,12 @@ export type Database = {
           is_visible_on_map?: boolean | null
           last_login_at?: string | null
           latitude?: number | null
+          location_city?: string | null
+          location_country?: string | null
+          location_state?: string | null
           longitude?: number | null
           profile_completed?: boolean | null
+          slug?: string | null
           timezone?: string | null
           two_factor_enabled?: boolean | null
           updated_at?: string | null
@@ -1541,8 +1573,12 @@ export type Database = {
           is_visible_on_map?: boolean | null
           last_login_at?: string | null
           latitude?: number | null
+          location_city?: string | null
+          location_country?: string | null
+          location_state?: string | null
           longitude?: number | null
           profile_completed?: boolean | null
+          slug?: string | null
           timezone?: string | null
           two_factor_enabled?: boolean | null
           updated_at?: string | null
@@ -1809,6 +1845,7 @@ export type Database = {
         Returns: Json
       }
       cleanup_old_messages: { Args: never; Returns: undefined }
+      generate_slug: { Args: { input_text: string }; Returns: string }
       get_admin_dashboard_stats: { Args: never; Returns: Json }
       get_current_user_candidate_id: { Args: never; Returns: string }
       get_current_user_employer_id: { Args: never; Returns: string }
