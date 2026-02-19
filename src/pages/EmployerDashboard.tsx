@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import { EmailVerificationGuard } from '@/components/auth/EmailVerificationGuard';
 import { DashboardSidebar } from '@/components/dashboard/DashboardSidebar';
 import { EmployerHeader } from '@/components/dashboard/EmployerHeader';
@@ -38,6 +39,7 @@ import { EmployerInterviewCalendar } from '@/components/employer/EmployerIntervi
 import { PlatformNotificationBanner } from '@/components/dashboard/PlatformNotificationBanner';
 import { TaskManager } from '@/components/employer/TaskManager';
 import EmployerDetail from '@/pages/EmployerDetail';
+import { EmployerProfileCompletionPrompts } from '@/components/employer/ProfileCompletionPrompts';
 
 const EmployerDashboard = () => {
   const navigate = useNavigate();
@@ -58,6 +60,19 @@ const EmployerDashboard = () => {
   });
   const [jobToDelete, setJobToDelete] = useState<any>(null);
   const [deletingJob, setDeletingJob] = useState(false);
+
+  // Realtime dashboard updates
+  const { refreshTrigger } = useRealtimeDashboard({
+    userId: user?.id,
+    employerId: employer?.id,
+  });
+
+  // Re-fetch data when realtime events trigger
+  useEffect(() => {
+    if (refreshTrigger > 0 && employer) {
+      fetchEmployerData();
+    }
+  }, [refreshTrigger]);
 
   // Retry profile fetch if user exists but profile is null
   useEffect(() => {
@@ -467,7 +482,7 @@ const EmployerDashboard = () => {
                   Back to Dashboard
                 </Button>
                 <Card className="bg-card shadow-sm border">
-                  <CardContent className="p-6">
+                  <CardContent className="p-3 sm:p-4 md:p-6">
                     {renderSectionContent()}
                   </CardContent>
                 </Card>
@@ -475,8 +490,12 @@ const EmployerDashboard = () => {
             ) : (
               // Dashboard Home View
               <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
-                {/* Platform Notifications */}
                 <PlatformNotificationBanner userType="employer" />
+
+                {/* Profile Completion Prompts */}
+                {employer && (
+                  <EmployerProfileCompletionPrompts employer={employer} jobCount={jobs.length} />
+                )}
 
                 {/* Welcome Message */}
                 <div>

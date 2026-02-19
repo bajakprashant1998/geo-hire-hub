@@ -47,6 +47,9 @@ export const TaskManager = ({ employerId }: TaskManagerProps) => {
   const [creating, setCreating] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [filter, setFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [candidateFilter, setCandidateFilter] = useState('all');
+  const [priorityFilter, setPriorityFilter] = useState('all');
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -165,7 +168,16 @@ export const TaskManager = ({ employerId }: TaskManagerProps) => {
     }
   };
 
-  const filteredTasks = filter === 'all' ? tasks : tasks.filter(t => t.status === filter);
+  const filteredTasks = tasks.filter(t => {
+    if (filter !== 'all' && t.status !== filter) return false;
+    if (candidateFilter !== 'all' && t.candidate_id !== candidateFilter) return false;
+    if (priorityFilter !== 'all' && t.priority !== priorityFilter) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      if (!t.title.toLowerCase().includes(q) && !(t.description || '').toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -253,6 +265,40 @@ export const TaskManager = ({ employerId }: TaskManagerProps) => {
             </div>
           </DialogContent>
         </Dialog>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="flex flex-col sm:flex-row gap-2">
+        <Input
+          placeholder="Search tasks..."
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          className="sm:max-w-xs"
+        />
+        <Select value={candidateFilter} onValueChange={setCandidateFilter}>
+          <SelectTrigger className="sm:w-[180px]">
+            <SelectValue placeholder="All Candidates" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Candidates</SelectItem>
+            {candidates.map(c => (
+              <SelectItem key={c.id} value={c.id}>
+                {(c as any).profiles.full_name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+          <SelectTrigger className="sm:w-[140px]">
+            <SelectValue placeholder="All Priorities" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Priorities</SelectItem>
+            <SelectItem value="high">High</SelectItem>
+            <SelectItem value="medium">Medium</SelectItem>
+            <SelectItem value="low">Low</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Filter tabs */}

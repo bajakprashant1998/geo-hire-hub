@@ -169,7 +169,7 @@ export const DashboardSidebar = ({
           </div>
 
           {/* Collapse Button - Desktop only */}
-          <div className="p-2 sm:p-3 border-t hidden lg:block">
+          <div className="p-2 sm:p-3 border-t hidden lg:block pb-[env(safe-area-inset-bottom)]">
             <button className="w-full flex items-center gap-3 px-3 sm:px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-all">
               <ChevronLeft className="w-5 h-5 shrink-0" />
               <span>Collapse</span>
