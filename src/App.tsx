@@ -13,6 +13,9 @@ import ForgotPassword from "./pages/ForgotPassword";
 import UpdatePassword from "./pages/UpdatePassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import ProfileSetup from "./pages/ProfileSetup";
+import TermsOfService from "./pages/TermsOfService";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import BrowseJobs from "./pages/BrowseJobs";
 
 import CandidateDashboard from "./pages/CandidateDashboard";
 import CandidateSettings from "./pages/CandidateSettings";
@@ -73,6 +76,9 @@ const App = () => (
               <Route path="/verify-email" element={<VerifyEmail />} />
               <Route path="/profile-setup" element={<ProfileSetup />} />
               <Route path="/plans" element={<Plans />} />
+              <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/browse-jobs" element={<BrowseJobs />} />
 
               {/* ==================== SHARED ROUTES ==================== */}
               <Route path="/messages" element={<Messages />} />

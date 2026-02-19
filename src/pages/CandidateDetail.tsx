@@ -19,6 +19,7 @@ import { useStartConversation } from '@/hooks/useStartConversation';
 import { useAuth } from '@/hooks/useAuth';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { ProfilePDFExport } from '@/components/candidate/ProfilePDFExport';
+import { ReportDialog } from '@/components/ReportDialog';
 import { useRef } from 'react';
 
 interface Education { institution: string; degree: string; field: string; startYear: string; endYear: string; }
@@ -251,6 +252,7 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
                   <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
                 </Button>
               )}
+              {isEmployerUser && !isOwnProfile && <ReportDialog targetId={candidate?.id || ''} targetType="employer" />}
             </div>
           </div>
         </div>

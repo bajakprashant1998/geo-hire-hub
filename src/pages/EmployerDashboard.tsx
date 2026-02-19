@@ -229,7 +229,7 @@ const EmployerDashboard = () => {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-10 h-10 animate-spin text-[hsl(142,53%,43%)] mx-auto mb-4" />
+          <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto mb-4" />
           <p className="text-muted-foreground font-medium">Checking authentication...</p>
         </div>
       </div>
@@ -241,7 +241,7 @@ const EmployerDashboard = () => {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-10 h-10 animate-spin text-[hsl(142,53%,43%)] mx-auto mb-4" />
+          <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto mb-4" />
           <p className="text-muted-foreground font-medium">Loading your profile...</p>
         </div>
       </div>
@@ -254,12 +254,12 @@ const EmployerDashboard = () => {
       <div className="min-h-screen bg-secondary flex items-center justify-center p-4">
         <Card className="w-full max-w-md shadow-xl border-0">
           <CardContent className="p-8 text-center">
-            <div className="w-20 h-20 bg-[hsl(142,53%,43%)] rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <div className="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-6">
               <Building2 className="w-10 h-10 text-white" />
             </div>
             <h2 className="text-2xl font-bold mb-3 text-foreground">Welcome to Hire for Job</h2>
             <p className="text-muted-foreground mb-8">Sign in to access your employer dashboard</p>
-            <Button onClick={() => navigate('/login')} className="w-full h-12 bg-[hsl(142,53%,43%)] hover:bg-[hsl(142,53%,38%)]" size="lg">
+            <Button onClick={() => navigate('/login')} className="w-full h-12" size="lg">
               Sign In to Continue
             </Button>
           </CardContent>
@@ -297,7 +297,7 @@ const EmployerDashboard = () => {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="w-10 h-10 animate-spin text-[hsl(142,53%,43%)] mx-auto mb-4" />
+          <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto mb-4" />
           <p className="text-muted-foreground font-medium">Loading your dashboard...</p>
         </div>
       </div>
@@ -314,8 +314,8 @@ const EmployerDashboard = () => {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-lg text-foreground">All Jobs ({jobs.length})</h3>
                 <Link to="/post-job">
-                  <Button size="sm" className="bg-[hsl(142,53%,43%)] hover:bg-[hsl(142,53%,38%)]">
-                    <Plus className="w-4 h-4 mr-1" /> New
+                <Button size="sm">
+                  <Plus className="w-4 h-4 mr-1" /> New
                   </Button>
                 </Link>
               </div>
@@ -325,7 +325,7 @@ const EmployerDashboard = () => {
                     <Briefcase className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
                     <p className="text-muted-foreground mb-4">No jobs posted yet</p>
                     <Link to="/post-job">
-                      <Button className="bg-[hsl(142,53%,43%)] hover:bg-[hsl(142,53%,38%)]">Post Your First Job</Button>
+                    <Button>Post Your First Job</Button>
                     </Link>
                   </CardContent>
                 </Card>
@@ -336,14 +336,14 @@ const EmployerDashboard = () => {
                     onClick={() => setSelectedJob(job)}
                     className={`cursor-pointer transition-all duration-200 ${
                       selectedJob?.id === job.id 
-                        ? 'ring-2 ring-[hsl(142,53%,43%)] shadow-md' 
+                        ? 'ring-2 ring-primary shadow-md' 
                         : 'hover:shadow-md'
                     }`}
                   >
                     <CardContent className="p-4">
                       <h4 className="font-semibold truncate mb-2 text-foreground">{job.title}</h4>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${job.is_active ? 'bg-[hsl(142,53%,43%)]/10 text-[hsl(142,53%,43%)]' : 'bg-muted text-muted-foreground'}`}>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${job.is_active ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
                           {job.is_active ? 'Active' : 'Inactive'}
                         </span>
                         <span className="text-sm text-muted-foreground">{job.applications_count} applicants</span>
@@ -368,7 +368,7 @@ const EmployerDashboard = () => {
                         </p>
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${selectedJob.is_active ? 'bg-[hsl(142,53%,43%)]/10 text-[hsl(142,53%,43%)]' : 'bg-muted text-muted-foreground'}`}>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${selectedJob.is_active ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
                           {selectedJob.is_active ? 'Active' : 'Inactive'}
                         </span>
                         <Link to={`/jobs/${selectedJob.id}`}>
@@ -470,7 +470,7 @@ const EmployerDashboard = () => {
             avatarUrl={profile.avatar_url}
             onMenuClick={() => setSidebarOpen(true)}
             onSignOut={signOut}
-            notificationCount={3}
+            notificationCount={0}
           />
 
           {/* Main Content */}

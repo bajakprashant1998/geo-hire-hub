@@ -237,10 +237,10 @@ const Signup = () => {
           >
             {/* Logo */}
             <div className="flex items-center gap-3 mb-12">
-              <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/30">
-                <MapPin className="w-8 h-8 text-white" />
+            <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/30">
+                <MapPin className="w-8 h-8 text-primary-foreground" />
               </div>
-              <span className="font-bold text-3xl text-white">Hire for Job</span>
+              <span className="font-bold text-3xl text-primary-foreground">Hire for Job</span>
             </div>
 
             {/* Headline */}
@@ -679,11 +679,11 @@ const Signup = () => {
           {/* Terms */}
           <p className="text-center text-xs text-muted-foreground pb-8">
             By creating an account, you agree to our{' '}
-            <Link to="#" className="underline hover:text-foreground">
+            <Link to="/terms" className="underline hover:text-foreground">
               Terms of Service
             </Link>{' '}
             and{' '}
-            <Link to="#" className="underline hover:text-foreground">
+            <Link to="/privacy" className="underline hover:text-foreground">
               Privacy Policy
             </Link>
           </p>

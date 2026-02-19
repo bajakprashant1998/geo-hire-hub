@@ -421,9 +421,9 @@ const Messages = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <MessageCircle className="w-16 h-16 text-google-blue mx-auto mb-4" />
+          <MessageCircle className="w-16 h-16 text-primary mx-auto mb-4" />
           <p className="text-muted-foreground mb-4">Please log in to view messages</p>
-          <Button onClick={() => navigate('/login')} className="bg-google-blue hover:bg-google-blue/90">
+          <Button onClick={() => navigate('/login')}>
             Log In
           </Button>
         </div>
@@ -436,21 +436,21 @@ const Messages = () => {
       {/* Conversation List */}
       <div className={`${conversationId ? 'hidden md:flex' : 'flex'} w-full md:w-96 bg-card border-r border-border flex-col`}>
         {/* Header */}
-        <div className="p-4 border-b border-border bg-google-blue text-white">
+        <div className="p-4 border-b border-border bg-primary text-primary-foreground">
           <div className="flex items-center gap-3 mb-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate(profile?.user_type === 'employer' ? '/employer-dashboard' : '/candidate-dashboard')} className="text-white hover:bg-white/20">
+            <Button variant="ghost" size="icon" onClick={() => navigate(profile?.user_type === 'employer' ? '/employer-dashboard' : '/candidate-dashboard')} className="text-primary-foreground hover:bg-white/20">
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <h1 className="text-xl font-heading font-semibold">Messages</h1>
           </div>
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary-foreground/60" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search conversations..."
-              className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/60 focus:bg-white/20"
+              className="pl-10 bg-white/10 border-white/20 text-primary-foreground placeholder:text-primary-foreground/60 focus:bg-white/20"
             />
           </div>
         </div>
@@ -458,7 +458,7 @@ const Messages = () => {
         <ScrollArea className="flex-1">
           {loading ? (
             <div className="p-8 text-center">
-              <div className="w-8 h-8 border-2 border-google-blue border-t-transparent rounded-full animate-spin mx-auto" />
+              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
             </div>
           ) : filteredConversations.length === 0 ? (
             <div className="p-8 text-center">
@@ -479,14 +479,14 @@ const Messages = () => {
                   animate={{ opacity: 1 }}
                   onClick={() => navigate(`/messages/${conv.id}`)}
                   className={`w-full p-4 text-left hover:bg-muted/50 transition-colors ${
-                    conversationId === conv.id ? 'bg-google-blue/5 border-l-4 border-google-blue' : ''
+                    conversationId === conv.id ? 'bg-primary/5 border-l-4 border-primary' : ''
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <div className="relative">
                       <Avatar className="w-12 h-12 border-2 border-background shadow">
                         <AvatarImage src={conv.otherProfile?.avatar_url || ''} />
-                        <AvatarFallback className="bg-google-blue/10 text-google-blue font-heading">
+                        <AvatarFallback className="bg-primary/10 text-primary font-heading">
                           {getInitials(conv.otherProfile?.full_name)}
                         </AvatarFallback>
                       </Avatar>

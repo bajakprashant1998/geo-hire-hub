@@ -1,5 +1,7 @@
 import { ViewMode } from '@/types';
 import { ViewToggle } from './ViewToggle';
+import { useTheme } from 'next-themes';
+import { Sun, Moon } from 'lucide-react';
 import { SearchBar } from './SearchBar';
 import { LocationBadge } from './LocationBadge';
 import { Button } from '@/components/ui/button';
@@ -29,6 +31,7 @@ interface HeaderProps {
 export const Header = ({ mode, onModeChange, onSearch, onMenuClick, userLocation }: HeaderProps) => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
 
   const handleSignOut = async () => {
     await signOut();
@@ -109,6 +112,16 @@ export const Header = ({ mode, onModeChange, onSearch, onMenuClick, userLocation
 
           {/* Right - Auth */}
            <div className="flex items-center gap-1.5 sm:gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="h-10 w-10 rounded-xl bg-muted/50 hover:bg-muted border border-border/30 touch-target touch-scale flex-shrink-0"
+            >
+              <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              <span className="sr-only">Toggle theme</span>
+            </Button>
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
