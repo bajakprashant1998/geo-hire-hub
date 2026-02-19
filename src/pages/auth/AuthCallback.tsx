@@ -30,41 +30,65 @@ const AuthCallback = () => {
 
       if (profileError) {
         console.error('Error fetching profile:', profileError);
-        // If profile doesn't exist, it likely means it hasn't been created yet by a trigger (if any),
-        // or we need to create it. For now, let's assume we proceed to role selection if no profile/type found.
       }
-
 
       // Check for a preferred role set during login/signup flow
       const preferredRole = sessionStorage.getItem('preferred_role');
+      let effectiveProfile = profile;
 
       if (preferredRole && (preferredRole === 'candidate' || preferredRole === 'employer')) {
-        // If the user explicitly selected a role, we ensure their profile matches it.
-        // This is crucial because DB triggers might have created a default 'candidate' profile.
+        console.log(`Enforcing preferred role: ${preferredRole}`);
 
-        if (profile?.user_type !== preferredRole) {
-          console.log(`Updating role from ${profile?.user_type} to ${preferredRole}`);
-          const { error: updateError } = await supabase
-            .from('profiles')
-            .update({ user_type: preferredRole })
-            .eq('user_id', session.user.id);
+        // Try to update first (most likely scenario if trigger ran)
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ user_type: preferredRole })
+          .eq('user_id', session.user.id);
 
-          if (updateError) {
-            console.error('Error enforcing preferred role:', updateError);
+        if (!updateError) {
+          // Update updated successfully
+          if (effectiveProfile) {
+            effectiveProfile.user_type = preferredRole;
           } else {
-            // Update local profile object so the redirect logic below uses the new role
-            if (profile) {
-              profile.user_type = preferredRole;
+            effectiveProfile = { user_type: preferredRole } as any;
+          }
+        } else {
+          // If update failed (likely row doesn't exist), try upsert with more data
+          // We need full_name to satisfy potential constraints if creating a new row
+          // although usually triggers handle this.
+          console.log('Update failed, trying upsert/insert', updateError);
+
+          const fullName = session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User';
+
+          const { error: upsertError } = await supabase
+            .from('profiles')
+            .upsert({
+              user_id: session.user.id,
+              user_type: preferredRole,
+              full_name: fullName,
+              // Add other required fields if known, but full_name is the main one usually
+            } as any, {
+              onConflict: 'user_id'
+            });
+
+          if (upsertError) {
+            console.error('Error forcing role update/insert:', upsertError);
+          } else {
+            if (effectiveProfile) {
+              effectiveProfile.user_type = preferredRole;
+            } else {
+              effectiveProfile = { user_type: preferredRole } as any;
             }
           }
         }
-        // Clear storage after using it
+
+        // Clear storage
         sessionStorage.removeItem('preferred_role');
       }
 
-      if (profile?.user_type) {
+      if (effectiveProfile?.user_type) {
         // User has a role, redirect to appropriate dashboard
-        if (profile.user_type === 'employer') {
+        if (effectiveProfile.user_type === 'employer') {
           navigate('/employer-dashboard');
         } else {
           navigate('/candidate-dashboard');
