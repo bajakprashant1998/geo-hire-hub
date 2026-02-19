@@ -42,6 +42,9 @@ import AdminJobCategories from "./pages/admin/AdminJobCategories";
 import AdminApplications from "./pages/admin/AdminApplications";
 import AdminNotifications from "./pages/admin/AdminNotifications";
 import AdminModeration from "./pages/admin/AdminModeration";
+import AdminEmailTemplates from "./pages/admin/AdminEmailTemplates";
+import AdminSystemHealth from "./pages/admin/AdminSystemHealth";
+import AdminContentSEO from "./pages/admin/AdminContentSEO";
 
 const queryClient = new QueryClient();
 
@@ -108,6 +111,9 @@ const App = () => (
               <Route path="/admin/plans" element={<AdminPlans />} />
               <Route path="/admin/reports" element={<AdminReports />} />
               <Route path="/admin/settings" element={<AdminSettings />} />
+              <Route path="/admin/email-templates" element={<AdminEmailTemplates />} />
+              <Route path="/admin/system-health" element={<AdminSystemHealth />} />
+              <Route path="/admin/content-seo" element={<AdminContentSEO />} />
 
               {/* ==================== REDIRECTS & ALIASES ==================== */}
               <Route path="/dashboard" element={<Navigate to="/candidate-dashboard" replace />} />
