@@ -125,6 +125,9 @@ const Signup = () => {
   const handleGoogleSignup = async () => {
     setGoogleLoading(true);
     try {
+      // Store the selected role to apply it after callback
+      sessionStorage.setItem('preferred_role', userType);
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {

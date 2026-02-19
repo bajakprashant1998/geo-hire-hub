@@ -34,6 +34,34 @@ const AuthCallback = () => {
         // or we need to create it. For now, let's assume we proceed to role selection if no profile/type found.
       }
 
+
+      // Check for a preferred role set during login/signup flow
+      const preferredRole = sessionStorage.getItem('preferred_role');
+
+      if (preferredRole && (preferredRole === 'candidate' || preferredRole === 'employer')) {
+        // If the user explicitly selected a role, we ensure their profile matches it.
+        // This is crucial because DB triggers might have created a default 'candidate' profile.
+
+        if (profile?.user_type !== preferredRole) {
+          console.log(`Updating role from ${profile?.user_type} to ${preferredRole}`);
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ user_type: preferredRole })
+            .eq('user_id', session.user.id);
+
+          if (updateError) {
+            console.error('Error enforcing preferred role:', updateError);
+          } else {
+            // Update local profile object so the redirect logic below uses the new role
+            if (profile) {
+              profile.user_type = preferredRole;
+            }
+          }
+        }
+        // Clear storage after using it
+        sessionStorage.removeItem('preferred_role');
+      }
+
       if (profile?.user_type) {
         // User has a role, redirect to appropriate dashboard
         if (profile.user_type === 'employer') {
