@@ -78,10 +78,25 @@ const App = () => (
               <Route path="/messages" element={<Messages />} />
               <Route path="/messages/:conversationId" element={<Messages />} />
               
-              {/* ==================== PUBLIC DETAIL PAGES ==================== */}
+              {/* ==================== SEO-FRIENDLY DETAIL PAGES ==================== */}
+              {/* Jobs: /jobs/:slug or /jobs/:country/:slug or /jobs/:country/:state/:slug or /jobs/:country/:state/:city/:slug */}
               <Route path="/jobs/:id" element={<JobDetail />} />
+              <Route path="/jobs/:country/:slug" element={<JobDetail />} />
+              <Route path="/jobs/:country/:state/:slug" element={<JobDetail />} />
+              <Route path="/jobs/:country/:state/:city/:slug" element={<JobDetail />} />
+
+              {/* Candidates: /candidates/:slug or with location hierarchy */}
               <Route path="/candidates/:id" element={<CandidateDetail />} />
+              <Route path="/candidates/:country/:slug" element={<CandidateDetail />} />
+              <Route path="/candidates/:country/:state/:slug" element={<CandidateDetail />} />
+              <Route path="/candidates/:country/:state/:city/:slug" element={<CandidateDetail />} />
+
+              {/* Companies/Employers: /companies/:slug or with location hierarchy */}
               <Route path="/employers/:id" element={<EmployerDetail />} />
+              <Route path="/companies/:slug" element={<EmployerDetail />} />
+              <Route path="/companies/:country/:slug" element={<EmployerDetail />} />
+              <Route path="/companies/:country/:state/:slug" element={<EmployerDetail />} />
+              <Route path="/companies/:country/:state/:city/:slug" element={<EmployerDetail />} />
 
               {/* ==================== CANDIDATE ROUTES ==================== */}
               <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
