@@ -14,7 +14,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+
   const [userType, setUserType] = useState<'candidate' | 'employer'>('candidate');
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -37,7 +37,7 @@ const Login = () => {
         .maybeSingle();
 
       toast.success('Welcome back!');
-      
+
       // Redirect based on user type
       if (profileData?.user_type === 'employer') {
         navigate('/employer-dashboard');
@@ -48,6 +48,21 @@ const Login = () => {
       toast.error(error.message || 'Login failed');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      toast.error(error.message || 'Google login failed');
     }
   };
 
@@ -177,11 +192,10 @@ const Login = () => {
             <button
               type="button"
               onClick={() => setUserType('candidate')}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
-                userType === 'candidate'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${userType === 'candidate'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+                }`}
             >
               <Users className="w-4 h-4" />
               Job Seeker
@@ -189,11 +203,10 @@ const Login = () => {
             <button
               type="button"
               onClick={() => setUserType('employer')}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
-                userType === 'employer'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${userType === 'employer'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+                }`}
             >
               <Briefcase className="w-4 h-4" />
               Employer
@@ -264,6 +277,25 @@ const Login = () => {
               ) : (
                 'Sign In'
               )}
+            </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-12 text-base font-semibold"
+              onClick={handleGoogleLogin}
+            >
+              <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5 mr-2" />
+              Sign in with Google
             </Button>
           </form>
 

@@ -88,17 +88,17 @@ const Signup = () => {
   const validateAndSetFile = (file: File) => {
     const validTypes = ['.doc', '.docx', '.pdf'];
     const extension = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
-    
+
     if (!validTypes.includes(extension)) {
       toast.error('Please upload a .doc, .docx, or .pdf file');
       return;
     }
-    
+
     if (file.size > 5 * 1024 * 1024) {
       toast.error('File size should be less than 5MB');
       return;
     }
-    
+
     setResumeFile(file);
     toast.success('Resume uploaded successfully!');
   };
@@ -128,7 +128,7 @@ const Signup = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/profile-setup`,
+          redirectTo: `${window.location.origin}/auth/callback`,
         },
       });
 
@@ -192,7 +192,7 @@ const Signup = () => {
       // Supabase will automatically send the verification email via built-in auth
       // Store email for verification page
       sessionStorage.setItem('pendingVerificationEmail', email);
-      
+
       toast.success('Account created! Please check your email to verify.');
       navigate('/verify-email');
     } catch (error: any) {
@@ -333,11 +333,10 @@ const Signup = () => {
             <button
               type="button"
               onClick={() => setUserType('candidate')}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
-                userType === 'candidate'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${userType === 'candidate'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+                }`}
             >
               <Users className="w-4 h-4" />
               Job Seeker
@@ -345,11 +344,10 @@ const Signup = () => {
             <button
               type="button"
               onClick={() => setUserType('employer')}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
-                userType === 'employer'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${userType === 'employer'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
+                }`}
             >
               <Briefcase className="w-4 h-4" />
               Employer
@@ -546,13 +544,12 @@ const Signup = () => {
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
-                  className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all duration-300 ${
-                    isDragging
-                      ? 'border-primary bg-primary/5 scale-[1.01]'
-                      : resumeFile
+                  className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all duration-300 ${isDragging
+                    ? 'border-primary bg-primary/5 scale-[1.01]'
+                    : resumeFile
                       ? 'border-green-500 bg-green-500/5'
                       : 'border-border hover:border-primary/50 hover:bg-secondary/50'
-                  }`}
+                    }`}
                 >
                   {resumeFile ? (
                     <div className="flex items-center justify-center gap-3">
@@ -599,13 +596,12 @@ const Signup = () => {
 
             {/* Location status */}
             <div
-              className={`p-3 rounded-lg flex items-center gap-3 transition-all text-sm ${
-                locationCaptured
-                  ? 'bg-green-500/10 border border-green-500/20'
-                  : geolocation.loading
+              className={`p-3 rounded-lg flex items-center gap-3 transition-all text-sm ${locationCaptured
+                ? 'bg-green-500/10 border border-green-500/20'
+                : geolocation.loading
                   ? 'bg-yellow-500/10 border border-yellow-500/20'
                   : 'bg-muted border border-border'
-              }`}
+                }`}
             >
               {geolocation.loading ? (
                 <Loader2 className="w-4 h-4 text-yellow-500 animate-spin" />
@@ -615,19 +611,18 @@ const Signup = () => {
                 <AlertCircle className="w-4 h-4 text-muted-foreground" />
               )}
               <span
-                className={`flex-1 ${
-                  locationCaptured
-                    ? 'text-green-600'
-                    : geolocation.loading
+                className={`flex-1 ${locationCaptured
+                  ? 'text-green-600'
+                  : geolocation.loading
                     ? 'text-yellow-600'
                     : 'text-muted-foreground'
-                }`}
+                  }`}
               >
                 {geolocation.loading
                   ? 'Detecting location...'
                   : locationCaptured
-                  ? 'Location captured'
-                  : 'Enable location for map placement'}
+                    ? 'Location captured'
+                    : 'Enable location for map placement'}
               </span>
               <MapPin className={`w-4 h-4 ${locationCaptured ? 'text-green-500' : 'text-muted-foreground'}`} />
             </div>
@@ -665,6 +660,27 @@ const Signup = () => {
               ) : (
                 'Create Account'
               )}
+
+            </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-12 text-base font-semibold"
+              onClick={handleGoogleSignup}
+              disabled={googleLoading}
+            >
+              <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5 mr-2" />
+              {googleLoading ? 'Redirecting...' : 'Sign up with Google'}
             </Button>
           </form>
 
@@ -689,7 +705,7 @@ const Signup = () => {
           </p>
         </motion.div>
       </div>
-    </div>
+    </div >
   );
 };
 

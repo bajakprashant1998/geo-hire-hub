@@ -13,6 +13,8 @@ import ForgotPassword from "./pages/ForgotPassword";
 import UpdatePassword from "./pages/UpdatePassword";
 import VerifyEmail from "./pages/VerifyEmail";
 import ProfileSetup from "./pages/ProfileSetup";
+import AuthCallback from "./pages/auth/AuthCallback";
+import RoleSelection from "./pages/auth/RoleSelection";
 
 import CandidateDashboard from "./pages/CandidateDashboard";
 import CandidateSettings from "./pages/CandidateSettings";
@@ -70,11 +72,13 @@ const App = () => (
               <Route path="/verify-email" element={<VerifyEmail />} />
               <Route path="/profile-setup" element={<ProfileSetup />} />
               <Route path="/plans" element={<Plans />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/select-role" element={<RoleSelection />} />
 
               {/* ==================== SHARED ROUTES ==================== */}
               <Route path="/messages" element={<Messages />} />
               <Route path="/messages/:conversationId" element={<Messages />} />
-              
+
               {/* ==================== PUBLIC DETAIL PAGES ==================== */}
               <Route path="/jobs/:id" element={<JobDetail />} />
               <Route path="/candidates/:id" element={<CandidateDetail />} />
