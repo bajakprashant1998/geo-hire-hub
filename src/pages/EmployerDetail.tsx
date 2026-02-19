@@ -188,7 +188,7 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
       <div className="bg-background border-b">
         <div className="container mx-auto px-4 py-6 sm:py-8 max-w-5xl">
           <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-center sm:items-start">
-            <div className="relative shrink-0">
+            <div className="flex flex-col items-center gap-2 shrink-0">
               <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-primary/10 flex items-center justify-center border border-border shadow-sm overflow-hidden">
                 {employer.avatar_url ? (
                   <Avatar className="w-full h-full rounded-xl">
@@ -200,7 +200,9 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
                 )}
               </div>
               {employer.verification_status === 'approved' && (
-                <div className="absolute -bottom-1 -right-1"><VerificationBadge status="approved" size="sm" /></div>
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full whitespace-nowrap">
+                  <ShieldCheck className="w-3 h-3" />Verified
+                </span>
               )}
             </div>
 
