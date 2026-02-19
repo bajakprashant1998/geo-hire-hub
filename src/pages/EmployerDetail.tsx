@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { VerificationBadge } from '@/components/employer/VerificationBadge';
 import { useAuth } from '@/hooks/useAuth';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
+import { ReportDialog } from '@/components/ReportDialog';
 
 interface EmployerProfile {
   id: string;
@@ -227,6 +228,7 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
                 <Heart className={`w-4 h-4 ${isFollowing ? 'fill-current' : ''}`} />
               </Button>
               )}
+              {!isOwnProfile && <ReportDialog targetId={employer?.id || ''} targetType="employer" />}
             </div>
           </div>
         </div>

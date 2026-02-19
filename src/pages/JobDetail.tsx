@@ -9,6 +9,8 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { ReportDialog } from '@/components/ReportDialog';
+import { VerificationBadge } from '@/components/employer/VerificationBadge';
 import {
   Dialog,
   DialogContent,
@@ -114,6 +116,7 @@ interface JobDetails {
     description: string | null;
     user_id: string | null;
     whatsapp_number: string | null;
+    verification_status: 'pending' | 'approved' | 'rejected';
     is_government: boolean | null;
   };
 }
@@ -253,6 +256,7 @@ const JobDetail = () => {
           description: data.employers.description,
           user_id: data.employers.profiles?.user_id,
           whatsapp_number: data.employers.profiles?.whatsapp_number,
+          verification_status: (data.employers.verification_status as any) || 'pending',
           is_government: data.employers.is_government,
         },
       });
@@ -430,6 +434,7 @@ const JobDetail = () => {
             <Button variant="ghost" size="icon" onClick={handleShare} className="rounded-full text-muted-foreground">
               <Share2 className="w-5 h-5" />
             </Button>
+            <ReportDialog targetId={id || ''} targetType="job" />
           </div>
         </div>
       </div>
@@ -469,6 +474,7 @@ const JobDetail = () => {
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-foreground group-hover:text-primary transition-colors">{job.employer.company_name}</span>
+                <VerificationBadge status={job.employer.verification_status} size="sm" showLabel={false} />
                 {job.employer.is_government && <GovernmentEmployerBadge variant="compact" />}
                 <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>

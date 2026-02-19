@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Mail, Lock, Eye, EyeOff, Briefcase, Users, MapPin } from 'lucide-react';
+import { ArrowLeft, Mail, Lock, Eye, EyeOff, MapPin } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
@@ -14,8 +14,23 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  
-  const [userType, setUserType] = useState<'candidate' | 'employer'>('candidate');
+  const [liveStats, setLiveStats] = useState({ jobs: 0, companies: 0, seekers: 0 });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      const [jobsRes, employersRes, candidatesRes] = await Promise.all([
+        supabase.from('jobs').select('id', { count: 'exact', head: true }).eq('status', 'open').eq('is_active', true),
+        supabase.from('employers').select('id', { count: 'exact', head: true }),
+        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('user_type', 'candidate'),
+      ]);
+      setLiveStats({
+        jobs: jobsRes.count || 0,
+        companies: employersRes.count || 0,
+        seekers: candidatesRes.count || 0,
+      });
+    };
+    fetchStats();
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,7 +127,7 @@ const Login = () => {
                 transition={{ duration: 0.6, delay: 0.2 }}
                 className="text-center"
               >
-                <div className="text-3xl font-bold text-white">10K+</div>
+                <div className="text-3xl font-bold text-white">{liveStats.jobs.toLocaleString()}+</div>
                 <div className="text-sm text-white/70">Active Jobs</div>
               </motion.div>
               <motion.div
@@ -121,7 +136,7 @@ const Login = () => {
                 transition={{ duration: 0.6, delay: 0.3 }}
                 className="text-center"
               >
-                <div className="text-3xl font-bold text-white">5K+</div>
+                <div className="text-3xl font-bold text-white">{liveStats.companies.toLocaleString()}+</div>
                 <div className="text-sm text-white/70">Companies</div>
               </motion.div>
               <motion.div
@@ -130,7 +145,7 @@ const Login = () => {
                 transition={{ duration: 0.6, delay: 0.4 }}
                 className="text-center"
               >
-                <div className="text-3xl font-bold text-white">50K+</div>
+                <div className="text-3xl font-bold text-white">{liveStats.seekers.toLocaleString()}+</div>
                 <div className="text-sm text-white/70">Job Seekers</div>
               </motion.div>
             </div>
@@ -170,34 +185,6 @@ const Login = () => {
           <div>
             <h2 className="text-3xl font-bold text-foreground">Welcome back</h2>
             <p className="mt-2 text-muted-foreground">Sign in to continue your journey</p>
-          </div>
-
-          {/* User type toggle */}
-          <div className="flex bg-secondary rounded-xl p-1.5">
-            <button
-              type="button"
-              onClick={() => setUserType('candidate')}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
-                userType === 'candidate'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <Users className="w-4 h-4" />
-              Job Seeker
-            </button>
-            <button
-              type="button"
-              onClick={() => setUserType('employer')}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
-                userType === 'employer'
-                  ? 'bg-background text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <Briefcase className="w-4 h-4" />
-              Employer
-            </button>
           </div>
 
 
@@ -278,11 +265,11 @@ const Login = () => {
           {/* Terms */}
           <p className="text-center text-xs text-muted-foreground">
             By signing in, you agree to our{' '}
-            <Link to="#" className="underline hover:text-foreground">
+            <Link to="/terms" className="underline hover:text-foreground">
               Terms of Service
             </Link>{' '}
             and{' '}
-            <Link to="#" className="underline hover:text-foreground">
+            <Link to="/privacy" className="underline hover:text-foreground">
               Privacy Policy
             </Link>
           </p>

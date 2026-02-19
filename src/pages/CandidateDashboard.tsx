@@ -50,7 +50,8 @@ const CandidateDashboard = () => {
     applications: 0,
     views: 0,
     unreadMessages: 0,
-    interviews: 0
+    interviews: 0,
+    unreadNotifications: 0,
   });
 
   // Realtime dashboard updates
@@ -118,17 +119,25 @@ const CandidateDashboard = () => {
       const applications = appsRes.data || [];
       const interviews = applications.filter(a => a.status === 'shortlisted').length;
 
-      // Get real profile view count from job_views for jobs the candidate applied to
+      // Get real profile view count from profile_views table
       const { count: viewCount } = await supabase
-        .from('job_views')
+        .from('profile_views')
         .select('*', { count: 'exact', head: true })
-        .in('job_id', applications.map(a => a.job_id || '').filter(Boolean));
+        .eq('profile_id', profile.id);
+
+      // Get real unread notification count
+      const { count: notifCount } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user!.id)
+        .eq('is_read', false);
 
       setStats({
         applications: applications.length,
         views: viewCount || 0,
         unreadMessages: messagesRes.data?.length || 0,
-        interviews
+        interviews,
+        unreadNotifications: notifCount || 0,
       });
     }
 
@@ -338,7 +347,7 @@ const CandidateDashboard = () => {
             onMenuClick={() => setSidebarOpen(true)}
             onSignOut={signOut}
             messageCount={stats.unreadMessages}
-            notificationCount={2}
+            notificationCount={stats.unreadNotifications}
             profileCompleteness={completeness}
           />
 

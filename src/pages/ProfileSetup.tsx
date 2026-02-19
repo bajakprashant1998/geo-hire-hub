@@ -103,7 +103,7 @@ const ProfileSetup = () => {
         // Create candidate record
         const { error: candidateError } = await supabase
           .from('candidates')
-          .insert({
+          .upsert({
             profile_id: profile.id,
             job_title: jobTitle,
             experience_years: parseInt(experienceYears),
@@ -111,20 +111,20 @@ const ProfileSetup = () => {
             bio,
             expected_salary: expectedSalary,
             portfolio_urls: portfolioUrls,
-          });
+          }, { onConflict: 'profile_id' });
 
         if (candidateError) throw candidateError;
       } else {
         // Create employer record
         const { error: employerError } = await supabase
           .from('employers')
-          .insert({
+          .upsert({
             profile_id: profile.id,
             company_name: companyName,
             industry,
             website_url: websiteUrl,
             description,
-          });
+          }, { onConflict: 'profile_id' });
 
         if (employerError) throw employerError;
       }

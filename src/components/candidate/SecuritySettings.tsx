@@ -366,7 +366,32 @@ export const SecuritySettings = () => {
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction 
                     className="bg-destructive hover:bg-destructive/90"
-                    onClick={() => toast.info('Account deletion requires contacting support')}
+                    onClick={async () => {
+                      try {
+                        const { data: { session } } = await supabase.auth.getSession();
+                        if (!session) { toast.error('Not authenticated'); return; }
+                        const res = await fetch(
+                          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-account`,
+                          {
+                            method: 'POST',
+                            headers: {
+                              Authorization: `Bearer ${session.access_token}`,
+                              'Content-Type': 'application/json',
+                            },
+                          }
+                        );
+                        if (!res.ok) throw new Error('Failed to delete account');
+                        toast.success('Account deleted successfully');
+                        await signOut();
+                        navigate('/');
+                      } catch (err: any) {
+                        toast.error(err.message || 'Failed to delete account');
+                      }
+                    }}
+                  >
+                    I understand, delete my account
+                  </AlertDialogAction>
+                </AlertDialogFooter>
                   >
                     I understand, delete my account
                   </AlertDialogAction>
