@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Briefcase, Bell, Shield, FileText, Sparkles, Loader2, 
-  Eye, Calendar, Star, ChevronRight, User, MessageSquare, Bookmark
+  Eye, Calendar, Star, ChevronRight, User, MessageSquare, Bookmark, Mic
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -29,6 +29,7 @@ import { PlatformNotificationBanner } from '@/components/dashboard/PlatformNotif
 import { SavedJobsSection } from '@/components/candidate/SavedJobsSection';
 import { AIJobMatches } from '@/components/candidate/AIJobMatches';
 import { TaskList } from '@/components/candidate/TaskList';
+import { AudioResumeCard } from '@/components/candidate/AudioResumeCard';
 import CandidateDetail from '@/pages/CandidateDetail';
 
 const CandidateDashboard = () => {
@@ -158,6 +159,7 @@ const CandidateDashboard = () => {
     { icon: FileText, label: 'Tasks', value: 'tasks' },
     { icon: Bookmark, label: 'Saved Jobs', value: 'saved' },
     { icon: FileText, label: 'Resume', value: 'resume' },
+    { icon: Mic, label: 'Audio Resume', value: 'audio-resume' },
     { icon: Sparkles, label: 'AI Resume Builder', value: 'ai-resume' },
     { icon: Bell, label: 'Notifications', value: 'notifications' },
     { icon: User, label: 'Edit Profile', value: 'profile' },
@@ -263,6 +265,8 @@ const CandidateDashboard = () => {
         return null;
       case 'resume':
         return candidate && <ResumeUpload candidate={candidate} onUpdate={fetchCandidate} />;
+      case 'audio-resume':
+        return candidate && <AudioResumeCard candidate={candidate} onUpdate={fetchCandidate} />;
       case 'alerts':
         return candidate && <JobAlertsManager candidateId={candidate.id} />;
       case 'security':
