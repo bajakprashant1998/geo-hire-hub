@@ -3,6 +3,9 @@ import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,61 +13,49 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-interface VerificationEmailRequest {
-  email: string;
-  name: string;
-  userId: string;
-}
-
-function generateToken(): string {
-  const array = new Uint8Array(32);
-  crypto.getRandomValues(array);
-  return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
-}
-
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { email, name, userId }: VerificationEmailRequest = await req.json();
+    const { email, password, options } = await req.json();
 
-    if (!email || !userId) {
-      throw new Error("Missing required fields: email and userId");
+    if (!email || !password) {
+      throw new Error("Missing required fields: email and password");
     }
 
-    // Generate verification token
-    const token = generateToken();
-    
-    // Get Supabase URL from environment
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    
-    // Create Supabase admin client to insert token
-    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
-    
-    // Store token in database
-    const { error: insertError } = await supabaseAdmin
-      .from('email_verification_tokens')
-      .insert({
-        user_id: userId,
-        token: token,
-        email: email,
-        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours
-      });
+    // 1. Create the user using Admin API (silently, no default email)
+    // We set email_confirm: false because we want them to verify
+    const { data: userData, error: createError } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: false,
+      user_metadata: options?.data,
+    });
 
-    if (insertError) {
-      console.error("Error inserting token:", insertError);
-      throw new Error("Failed to create verification token");
-    }
+    if (createError) throw createError;
+    if (!userData.user) throw new Error("Failed to create user");
 
-    // Create verification link
-    const appUrl = Deno.env.get("APP_URL") || "https://hireforjob1.lovable.app";
-    const verificationLink = `${appUrl}/verify-email?token=${token}`;
+    // 2. Generate the verification link
+    // 'signup' type generates a link to verify the email
+    const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+      type: "signup",
+      email,
+      password,
+      options: {
+        redirectTo: options?.emailRedirectTo || "https://hireforjob.com/login",
+      }
+    });
+
+    if (linkError) throw linkError;
+
+    // 3. Send the custom email via Resend
+    const verificationLink = linkData.properties.action_link;
+    const name = options?.data?.full_name || "User";
 
     const emailResponse = await resend.emails.send({
-      from: "Hire for Job <onboarding@resend.dev>",
+      from: "Hire for Job <noreply@hireforjob.com>",
       to: [email],
       subject: "Verify Your Email - Hire for Job",
       html: `
@@ -96,7 +87,7 @@ const handler = async (req: Request): Promise<Response> => {
                   <tr>
                     <td style="padding: 0 40px 30px 40px;">
                       <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 26px; color: #475569;">
-                        Hi ${name || 'there'},
+                        Hi ${name},
                       </p>
                       <p style="margin: 0 0 30px 0; font-size: 16px; line-height: 26px; color: #475569;">
                         Thanks for signing up! Please verify your email address to access all features of your account.
@@ -155,16 +146,17 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log("Verification email sent successfully:", emailResponse);
 
-    return new Response(JSON.stringify({ success: true, ...emailResponse }), {
+    return new Response(JSON.stringify({ success: true, user: userData.user }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
+
   } catch (error: any) {
-    console.error("Error sending verification email:", error);
+    console.error("Error in signup:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       {
-        status: 500,
+        status: 400,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );

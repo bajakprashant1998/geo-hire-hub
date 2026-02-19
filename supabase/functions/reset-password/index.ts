@@ -1,33 +1,49 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
+const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers":
+        "authorization, x-client-info, apikey, content-type",
 };
 
-interface PasswordResetRequest {
-  email: string;
-  name: string;
-  resetLink: string;
-}
-
 const handler = async (req: Request): Promise<Response> => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+    if (req.method === "OPTIONS") {
+        return new Response(null, { headers: corsHeaders });
+    }
 
-  try {
-    const { email, name, resetLink }: PasswordResetRequest = await req.json();
+    try {
+        const { email, options } = await req.json();
 
-    const emailResponse = await resend.emails.send({
-      from: "GeoHire <noreply@hireforjob.com>",
-      to: [email],
-      subject: "Reset Your Password - GeoHire",
-      html: `
+        if (!email) {
+            throw new Error("Missing required field: email");
+        }
+
+        // 1. Generate the recovery link (magic link for password reset)
+        const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+            type: "recovery",
+            email,
+            options: {
+                redirectTo: options?.redirectTo || "https://hireforjob.com/update-password",
+            }
+        });
+
+        if (linkError) throw linkError;
+
+        // 2. Send the custom email via Resend
+        const recoveryLink = linkData.properties.action_link;
+
+        const emailResponse = await resend.emails.send({
+            from: "Hire for Job <noreply@hireforjob.com>",
+            to: [email],
+            subject: "Reset Your Password - Hire for Job",
+            html: `
         <!DOCTYPE html>
         <html>
         <head>
@@ -44,10 +60,10 @@ const handler = async (req: Request): Promise<Response> => {
                   <tr>
                     <td style="padding: 40px 40px 20px 40px; text-align: center;">
                       <div style="width: 64px; height: 64px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 16px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
-                        <span style="color: white; font-size: 28px; font-weight: bold;">G</span>
+                        <span style="color: white; font-size: 28px; font-weight: bold;">H</span>
                       </div>
                       <h1 style="margin: 0; font-size: 28px; font-weight: 700; color: #1e293b;">
-                        Password Reset Request
+                        Reset Password
                       </h1>
                     </td>
                   </tr>
@@ -56,7 +72,7 @@ const handler = async (req: Request): Promise<Response> => {
                   <tr>
                     <td style="padding: 0 40px 30px 40px;">
                       <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 26px; color: #475569;">
-                        Hi ${name || 'there'},
+                        Hi there,
                       </p>
                       <p style="margin: 0 0 30px 0; font-size: 16px; line-height: 26px; color: #475569;">
                         We received a request to reset your password. Click the button below to choose a new password.
@@ -66,8 +82,8 @@ const handler = async (req: Request): Promise<Response> => {
                       <table role="presentation" style="width: 100%; border-collapse: collapse;">
                         <tr>
                           <td align="center">
-                            <a href="${resetLink}" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; border-radius: 12px; box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.4);">
-                              Reset My Password
+                            <a href="${recoveryLink}" style="display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; border-radius: 12px; box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.4);">
+                              Reset Password
                             </a>
                           </td>
                         </tr>
@@ -77,27 +93,19 @@ const handler = async (req: Request): Promise<Response> => {
                         If the button doesn't work, copy and paste this link into your browser:
                       </p>
                       <p style="margin: 10px 0 0 0; font-size: 12px; line-height: 20px; color: #94a3b8; word-break: break-all;">
-                        ${resetLink}
+                        ${recoveryLink}
                       </p>
-                    </td>
-                  </tr>
-                  
-                  <!-- Security Notice -->
-                  <tr>
-                    <td style="padding: 0 40px 30px 40px;">
-                      <div style="padding: 20px; background-color: #fef3c7; border-radius: 12px; border-left: 4px solid #f59e0b;">
-                        <p style="margin: 0; font-size: 14px; line-height: 22px; color: #92400e;">
-                          <strong>Security Notice:</strong> This link will expire in 1 hour. If you didn't request a password reset, please ignore this email or contact support if you're concerned about your account security.
-                        </p>
-                      </div>
                     </td>
                   </tr>
                   
                   <!-- Footer -->
                   <tr>
                     <td style="padding: 30px 40px; background-color: #f8fafc; border-radius: 0 0 16px 16px;">
+                      <p style="margin: 0 0 10px 0; font-size: 14px; color: #64748b; text-align: center;">
+                        This link will expire in 24 hours.
+                      </p>
                       <p style="margin: 0; font-size: 12px; color: #94a3b8; text-align: center;">
-                        This is an automated message from GeoHire. Please do not reply to this email.
+                        If you didn't request a password reset, you can safely ignore this email.
                       </p>
                     </td>
                   </tr>
@@ -108,7 +116,7 @@ const handler = async (req: Request): Promise<Response> => {
                   <tr>
                     <td style="padding: 0 40px; text-align: center;">
                       <p style="margin: 0; font-size: 12px; color: #94a3b8;">
-                        © 2024 GeoHire. All rights reserved.
+                        © ${new Date().getFullYear()} Hire for Job. All rights reserved.
                       </p>
                     </td>
                   </tr>
@@ -119,24 +127,25 @@ const handler = async (req: Request): Promise<Response> => {
         </body>
         </html>
       `,
-    });
+        });
 
-    console.log("Password reset email sent successfully:", emailResponse);
+        console.log("Password reset email sent successfully:", emailResponse);
 
-    return new Response(JSON.stringify(emailResponse), {
-      status: 200,
-      headers: { "Content-Type": "application/json", ...corsHeaders },
-    });
-  } catch (error: any) {
-    console.error("Error sending password reset email:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
-    );
-  }
+        return new Response(JSON.stringify({ success: true }), {
+            status: 200,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+        });
+
+    } catch (error: any) {
+        console.error("Error in reset-password:", error);
+        return new Response(
+            JSON.stringify({ error: error.message }),
+            {
+                status: 400,
+                headers: { "Content-Type": "application/json", ...corsHeaders },
+            }
+        );
+    }
 };
 
 serve(handler);

@@ -159,45 +159,54 @@ const Signup = () => {
     try {
       const fullName = `${firstName} ${lastName}`.trim();
 
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: window.location.origin,
-          data: {
-            full_name: fullName,
-            user_type: userType,
-            phone: `${countryCode}${phone}`,
-            sector,
-            ...(userType === 'employer' ? { organization_name: organizationName } : {}),
+      // Call the Edge Function 'signup' instead of supabase.auth.signUp
+      // This ensures we use the admin API to create user and send CUSTOM email via Resend
+      // bypassing the default Supabase email that needs SMTP config
+      const { data, error } = await supabase.functions.invoke('signup', {
+        body: {
+          email,
+          password,
+          options: {
+            emailRedirectTo: window.location.origin,
+            data: {
+              full_name: fullName,
+              user_type: userType,
+              phone: `${countryCode}${phone}`,
+              sector,
+              ...(userType === 'employer' ? { organization_name: organizationName } : {}),
+            },
           },
         },
       });
 
       if (error) throw error;
+      // Edge function might return data.error if it failed logic but succeeded http
+      if (data?.error) throw new Error(data.error);
+
+      const user = data?.user;
 
       // Update profile with location
-      if (data.user && geolocation.latitude && geolocation.longitude) {
+      if (user && geolocation.latitude && geolocation.longitude) {
         const { error: updateError } = await supabase
           .from('profiles')
           .update({
             latitude: geolocation.latitude,
             longitude: geolocation.longitude,
           })
-          .eq('user_id', data.user.id);
+          .eq('user_id', user.id);
 
         if (updateError) {
           console.error('Failed to update location:', updateError);
         }
       }
 
-      // Supabase will automatically send the verification email via built-in auth
       // Store email for verification page
       sessionStorage.setItem('pendingVerificationEmail', email);
 
-      toast.success('Account created! Please check your email to verify.');
+      toast.success('Account created! Please check your inbox for the verification link.');
       navigate('/verify-email');
     } catch (error: any) {
+      console.error('Signup error:', error);
       toast.error(error.message || 'Signup failed');
     } finally {
       setLoading(false);

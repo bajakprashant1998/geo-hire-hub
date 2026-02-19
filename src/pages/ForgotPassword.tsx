@@ -15,7 +15,7 @@ const ForgotPassword = () => {
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email.trim()) {
       toast.error('Please enter your email address');
       return;
@@ -24,11 +24,17 @@ const ForgotPassword = () => {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/update-password`,
+      const { data, error } = await supabase.functions.invoke('reset-password', {
+        body: {
+          email,
+          options: {
+            redirectTo: `${window.location.origin}/update-password`,
+          },
+        },
       });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       setEmailSent(true);
       toast.success('Password reset email sent!');

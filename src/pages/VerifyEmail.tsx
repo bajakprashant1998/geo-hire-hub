@@ -63,15 +63,18 @@ const VerifyEmail = () => {
     setResending(true);
 
     try {
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
+      // Use edge function to resend verification email
+      const { data, error } = await supabase.functions.invoke('resend-verification', {
+        body: {
+          email: email,
+          options: {
+            emailRedirectTo: `${window.location.origin}/`,
+          },
         },
       });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
       toast.success('Verification email sent!');
       setCountdown(60);
     } catch (error: any) {
@@ -253,21 +256,21 @@ const VerifyEmail = () => {
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ 
+              transition={{
                 type: "spring",
                 stiffness: 200,
                 damping: 15,
-                delay: 0.2 
+                delay: 0.2
               }}
               className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mx-auto relative"
             >
               <Mail className="w-12 h-12 text-primary" />
               <motion.div
-                animate={{ 
+                animate={{
                   scale: [1, 1.2, 1],
                   opacity: [0.5, 0, 0.5]
                 }}
-                transition={{ 
+                transition={{
                   duration: 2,
                   repeat: Infinity,
                   ease: "easeInOut"
