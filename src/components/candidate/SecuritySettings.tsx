@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Shield, Key, Clock, Smartphone, Trash2, AlertTriangle, Loader2, Eye, EyeOff, LogOut } from 'lucide-react';
+import { Shield, Key, Clock, Smartphone, Trash2, AlertTriangle, Loader2, Eye, EyeOff, LogOut, Mail } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -28,6 +28,39 @@ export const SecuritySettings = () => {
   const [loading, setLoading] = useState(false);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [deactivating, setDeactivating] = useState(false);
+  const [emailNotifications, setEmailNotifications] = useState(true);
+  const [loadingEmailPref, setLoadingEmailPref] = useState(false);
+
+  // Load email notification preference
+  useState(() => {
+    if (!user) return;
+    supabase
+      .from('notification_preferences')
+      .select('email_notifications_enabled')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (data) setEmailNotifications(data.email_notifications_enabled);
+      });
+  });
+
+  const handleEmailNotificationToggle = async (enabled: boolean) => {
+    if (!user) return;
+    setLoadingEmailPref(true);
+    setEmailNotifications(enabled);
+    try {
+      const { error } = await supabase
+        .from('notification_preferences')
+        .upsert({ user_id: user.id, email_notifications_enabled: enabled }, { onConflict: 'user_id' });
+      if (error) throw error;
+      toast.success(enabled ? 'Email notifications enabled' : 'Email notifications disabled');
+    } catch {
+      setEmailNotifications(!enabled);
+      toast.error('Failed to update preference');
+    } finally {
+      setLoadingEmailPref(false);
+    }
+  };
 
   const handleChangePassword = async () => {
     if (newPassword !== confirmPassword) {
@@ -88,6 +121,37 @@ export const SecuritySettings = () => {
 
   return (
     <div className="space-y-6">
+      {/* Email Notification Preferences */}
+      <Card className="shadow-google">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Mail className="w-5 h-5 text-primary" />
+            Email Notifications
+          </CardTitle>
+          <CardDescription>Control email notifications for dashboard events</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between p-4 bg-secondary rounded-lg">
+            <div>
+              <p className="font-medium">Email Notifications</p>
+              <p className="text-sm text-muted-foreground">
+                Receive email alerts for new messages, task assignments, and application updates
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Badge variant={emailNotifications ? "default" : "secondary"}>
+                {emailNotifications ? 'Enabled' : 'Disabled'}
+              </Badge>
+              <Switch
+                checked={emailNotifications}
+                onCheckedChange={handleEmailNotificationToggle}
+                disabled={loadingEmailPref}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Password Change */}
       <Card className="shadow-google">
         <CardHeader>

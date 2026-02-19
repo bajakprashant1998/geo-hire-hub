@@ -18,6 +18,8 @@ import { toast } from 'sonner';
 import { useStartConversation } from '@/hooks/useStartConversation';
 import { useAuth } from '@/hooks/useAuth';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
+import { ProfilePDFExport } from '@/components/candidate/ProfilePDFExport';
+import { useRef } from 'react';
 
 interface Education { institution: string; degree: string; field: string; startYear: string; endYear: string; }
 interface WorkExperience { company: string; title: string; startDate: string; endDate: string; isCurrent: boolean; description: string; }
@@ -43,7 +45,8 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
   const { startConversation } = useStartConversation();
   const { user, profile } = useAuth();
   const isEmployerUser = user && profile?.user_type === 'employer';
-  const isOwnProfile = !!propId; // When rendered inline via dashboard, it's always the user's own profile
+  const isOwnProfile = !!propId;
+  const profileContentRef = useRef<HTMLDivElement>(null);
   const [candidate, setCandidate] = useState<CandidateProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
@@ -182,6 +185,7 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
               <ArrowLeft className="w-4 h-4" />Back
             </Button>
             <div className="flex items-center gap-1.5">
+              {isOwnProfile && <ProfilePDFExport targetRef={profileContentRef} fileName={candidate?.full_name || 'profile'} />}
               <Button variant="ghost" size="icon" onClick={handleShare} className="rounded-full w-9 h-9"><Share2 className="w-4 h-4" /></Button>
               {isEmployerUser && !isOwnProfile && (
                 <Button variant="ghost" size="icon" onClick={handleSave} className={`rounded-full w-9 h-9 ${isSaved ? 'text-destructive' : ''}`}>
@@ -268,7 +272,7 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-4 py-6 max-w-5xl">
+      <div ref={profileContentRef} className="container mx-auto px-4 py-6 max-w-5xl">
         {(isEmployerUser || isOwnProfile) ? (
           <div className="grid lg:grid-cols-3 gap-6">
             {/* Main Column */}
@@ -340,7 +344,7 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
                           <div className="flex-1 min-w-0">
                             <h4 className="font-semibold text-foreground text-sm">{edu.institution}</h4>
                             <p className="text-sm text-muted-foreground">{edu.degree} — {edu.field}</p>
-                            <p className="text-xs text-muted-foreground mt-0.5">{edu.startYear} — {edu.endYear || 'Present'}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{String(edu.startYear)} — {edu.endYear ? String(edu.endYear) : 'Present'}</p>
                           </div>
                         </div>
                       ))}
