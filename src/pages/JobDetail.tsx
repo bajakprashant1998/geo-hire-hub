@@ -66,6 +66,7 @@ import { useStartConversation } from '@/hooks/useStartConversation';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { GovernmentJobBadge, GovernmentEmployerBadge } from '@/components/government';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SEOHead } from '@/components/SEOHead';
 
 interface JobDetails {
   id: string;
@@ -201,21 +202,21 @@ const JobDetail = () => {
     }
   }, [resolvedId]);
 
-  // SEO meta tags
-  useEffect(() => {
-    if (job) {
-      document.title = `${job.title} at ${job.employer.company_name} | HireForJob`;
-      const metaDesc = document.querySelector('meta[name="description"]');
-      const desc = `Apply for ${job.title} at ${job.employer.company_name}. ${job.job_type || 'Full-time'}${job.salary_range ? ` | ${job.salary_range}` : ''}${job.job_address ? ` | ${job.job_address}` : ''}`;
-      if (metaDesc) metaDesc.setAttribute('content', desc.slice(0, 160));
-      else {
-        const el = document.createElement('meta');
-        el.name = 'description';
-        el.content = desc.slice(0, 160);
-        document.head.appendChild(el);
-      }
-    }
-  }, [job]);
+  const baseUrl = 'https://hireforjob1.lovable.app';
+  const jobSeoTitle = job ? `${job.title} at ${job.employer.company_name} | HireForJob` : 'Job Details | HireForJob';
+  const jobSeoDesc = job ? `Apply for ${job.title} at ${job.employer.company_name}. ${job.job_type || 'Full-time'}${job.salary_range ? ` | ${job.salary_range}` : ''}${job.job_address ? ` | ${job.job_address}` : ''}` : '';
+  const jobCanonical = job ? `${baseUrl}${window.location.pathname}` : undefined;
+  const jobJsonLd = job ? {
+    '@context': 'https://schema.org',
+    '@type': 'JobPosting',
+    title: job.title,
+    description: job.description || '',
+    hiringOrganization: { '@type': 'Organization', name: job.employer.company_name },
+    employmentType: job.job_type?.toUpperCase().replace(/\s+/g, '_') || 'FULL_TIME',
+    ...(job.salary_range && { baseSalary: { '@type': 'MonetaryAmount', currency: 'INR', value: { '@type': 'QuantitativeValue', value: job.salary_range } } }),
+    datePosted: job.created_at,
+    jobLocation: { '@type': 'Place', address: job.job_address || '' },
+  } : undefined;
 
   const id = resolvedId;
 
@@ -422,6 +423,7 @@ const JobDetail = () => {
 
   return (
     <div className="min-h-screen bg-background pb-28 lg:pb-8">
+      <SEOHead title={jobSeoTitle} description={jobSeoDesc} canonicalUrl={jobCanonical} ogType="article" ogImage={job?.employer.avatar_url || undefined} jsonLd={jobJsonLd} />
       {/* Minimal Top Bar */}
       <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/50">
         <div className="container mx-auto px-4 max-w-4xl flex items-center justify-between h-14">

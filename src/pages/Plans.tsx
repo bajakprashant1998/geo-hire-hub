@@ -7,6 +7,7 @@ import { ArrowLeft, Check, Crown, Zap, Building2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { SEOHead } from '@/components/SEOHead';
 
 interface Plan {
   id: string;
@@ -130,6 +131,7 @@ const Plans = () => {
 
   return (
     <div className="min-h-screen bg-secondary py-12 px-4">
+      <SEOHead title="Pricing Plans | HireForJob" description="Choose the right hiring plan for your business. Compare features and pricing to find the best fit." canonicalUrl="https://hireforjob1.lovable.app/plans" />
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center gap-4 mb-8">
