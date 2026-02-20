@@ -13,6 +13,7 @@ Allow: /
 User-agent: *
 Allow: /
 
+Sitemap: https://www.hireforjob.com/sitemap.xml
 Sitemap: https://pzcecjuxiorqcmbtiipq.supabase.co/functions/v1/sitemap
 
 # SEO-friendly URL structure
