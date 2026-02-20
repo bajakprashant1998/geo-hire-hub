@@ -25,6 +25,7 @@ interface DashboardHeaderProps {
   notificationCount?: number;
   messageCount?: number;
   profileCompleteness?: number;
+  onNotificationClick?: () => void;
 }
 
 export const DashboardHeader = ({
@@ -36,7 +37,8 @@ export const DashboardHeader = ({
   onSignOut,
   notificationCount = 0,
   messageCount = 0,
-  profileCompleteness = 75
+  profileCompleteness = 75,
+  onNotificationClick
 }: DashboardHeaderProps) => {
   const profilePath = type === 'employer' ? '/company-profile' : '/candidate-profile';
   const settingsPath = type === 'employer' ? '/employer-settings' : '/candidate-settings';
@@ -100,7 +102,7 @@ export const DashboardHeader = ({
           </div>
 
           {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative touch-target touch-scale">
+          <Button variant="ghost" size="icon" className="relative touch-target touch-scale" onClick={onNotificationClick}>
             <Bell className="w-5 h-5 text-muted-foreground" />
             {notificationCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-destructive text-white text-[10px] sm:text-xs flex items-center justify-center font-semibold">

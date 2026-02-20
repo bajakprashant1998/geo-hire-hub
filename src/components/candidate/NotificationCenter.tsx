@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
-  Bell, CheckCircle2, AlertCircle, MessageSquare, Briefcase, 
+import {
+  Bell, CheckCircle2, AlertCircle, MessageSquare, Briefcase,
   Eye, Star, X, Check, Loader2, Sparkles, Clock
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,33 +23,33 @@ interface Notification {
 }
 
 const notificationConfig: Record<string, { icon: React.ReactNode; gradient: string; iconBg: string }> = {
-  application_update: { 
-    icon: <Briefcase className="w-4 h-4" />, 
+  application_update: {
+    icon: <Briefcase className="w-4 h-4" />,
     gradient: 'from-blue-500 to-cyan-500',
     iconBg: 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400'
   },
-  message: { 
-    icon: <MessageSquare className="w-4 h-4" />, 
+  message: {
+    icon: <MessageSquare className="w-4 h-4" />,
     gradient: 'from-violet-500 to-purple-500',
     iconBg: 'bg-violet-100 dark:bg-violet-900/50 text-violet-600 dark:text-violet-400'
   },
-  shortlisted: { 
-    icon: <Star className="w-4 h-4" />, 
+  shortlisted: {
+    icon: <Star className="w-4 h-4" />,
     gradient: 'from-amber-500 to-orange-500',
     iconBg: 'bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400'
   },
-  rejected: { 
-    icon: <X className="w-4 h-4" />, 
+  rejected: {
+    icon: <X className="w-4 h-4" />,
     gradient: 'from-rose-500 to-pink-500',
     iconBg: 'bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400'
   },
-  viewed: { 
-    icon: <Eye className="w-4 h-4" />, 
+  viewed: {
+    icon: <Eye className="w-4 h-4" />,
     gradient: 'from-emerald-500 to-teal-500',
     iconBg: 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400'
   },
-  default: { 
-    icon: <Bell className="w-4 h-4" />, 
+  default: {
+    icon: <Bell className="w-4 h-4" />,
     gradient: 'from-gray-500 to-slate-500',
     iconBg: 'bg-muted text-muted-foreground'
   },
@@ -196,7 +196,7 @@ export const NotificationCenter = () => {
             <div className="divide-y divide-border/50">
               {notifications.map((notification) => {
                 const config = notificationConfig[notification.type] || notificationConfig.default;
-                
+
                 return (
                   <div
                     key={notification.id}
@@ -236,8 +236,8 @@ export const NotificationCenter = () => {
                             {formatTime(notification.created_at)}
                           </span>
                           {notification.link && (
-                            <Link 
-                              to={notification.link} 
+                            <Link
+                              to={notification.link === '/candidate-dashboard' ? '/candidate-dashboard?tab=jobs' : notification.link}
                               className="text-xs text-primary hover:underline font-medium"
                               onClick={(e) => e.stopPropagation()}
                             >

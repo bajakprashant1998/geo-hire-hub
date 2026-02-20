@@ -34,8 +34,8 @@ export const ResumeUpload = ({ candidate, onUpdate }: ResumeUploadProps) => {
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('File size must be less than 10MB');
+    if (file.size > 25 * 1024 * 1024) {
+      toast.error('File size must be less than 25MB');
       return;
     }
 
@@ -170,9 +170,9 @@ export const ResumeUpload = ({ candidate, onUpdate }: ResumeUploadProps) => {
                   <Button variant="outline" size="sm" onClick={downloadResume}>
                     <Download className="w-4 h-4" />
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     onClick={handleDelete}
                     disabled={deleting}
                     className="text-destructive hover:text-destructive"
@@ -187,11 +187,11 @@ export const ResumeUpload = ({ candidate, onUpdate }: ResumeUploadProps) => {
               <div className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors">
                 <Upload className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
                 <p className="font-medium mb-1">Upload your resume</p>
-                <p className="text-sm text-muted-foreground">PDF, DOC, or DOCX (max 10MB)</p>
+                <p className="text-sm text-muted-foreground">PDF, DOC, or DOCX (max 25MB)</p>
               </div>
-              <input 
-                type="file" 
-                className="hidden" 
+              <input
+                type="file"
+                className="hidden"
                 accept=".pdf,.doc,.docx"
                 onChange={handleUpload}
                 disabled={uploading}
@@ -214,9 +214,9 @@ export const ResumeUpload = ({ candidate, onUpdate }: ResumeUploadProps) => {
                   Replace Resume
                 </span>
               </Button>
-              <input 
-                type="file" 
-                className="hidden" 
+              <input
+                type="file"
+                className="hidden"
                 accept=".pdf,.doc,.docx"
                 onChange={handleUpload}
                 disabled={uploading}

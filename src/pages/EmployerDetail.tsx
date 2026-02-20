@@ -356,8 +356,8 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
               </Card>
             )}
 
-            {/* Trust Documents - Only visible to Admins and the Employer Owner */}
-            {(isAdmin || isOwnProfile) && (employer.office_photo_url || employer.business_card_url) && (
+            {/* Trust Documents - Visible to everyone */}
+            {(employer.office_photo_url || employer.business_card_url) && (
               <Card>
                 <CardContent className="p-5">
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Verification</h3>

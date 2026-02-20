@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -39,6 +39,7 @@ import { format, isToday, isTomorrow } from 'date-fns';
 
 const CandidateDashboard = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, profile, loading: authLoading, profileLoading, signOut, refreshProfile } = useAuth();
   const [dataLoading, setDataLoading] = useState(true);
   const [candidate, setCandidate] = useState<any>(null);
@@ -91,7 +92,17 @@ const CandidateDashboard = () => {
       return;
     }
     fetchCandidate();
-  }, [user, profile, authLoading, profileLoading]);
+
+    // Check for ?tab= query parameter from notification links
+    const tabParam = searchParams.get('tab');
+    if (tabParam) {
+      handleSectionClick(tabParam);
+      // Clean up the URL to prevent re-triggering
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete('tab');
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [user, profile, authLoading, profileLoading, searchParams]);
 
   const fetchCandidate = async () => {
     if (!profile || !user) return;
@@ -355,6 +366,7 @@ const CandidateDashboard = () => {
             messageCount={stats.unreadMessages}
             notificationCount={stats.unreadNotifications}
             profileCompleteness={completeness}
+            onNotificationClick={() => handleSectionClick('notifications')}
           />
 
           <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto pb-20 md:pb-6">

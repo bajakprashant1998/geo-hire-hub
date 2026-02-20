@@ -493,6 +493,7 @@ const EmployerDashboard = () => {
             onMenuClick={() => setSidebarOpen(true)}
             onSignOut={signOut}
             notificationCount={stats.notificationCount}
+            onNotificationClick={() => handleSectionClick('notifications')}
           />
 
           {/* Main Content */}
