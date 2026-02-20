@@ -41,15 +41,15 @@ interface MessageBubbleProps {
   onRemoveReaction: (messageId: string, emoji: string) => void;
 }
 
-export const MessageBubble = ({ 
-  message, 
-  isOwn, 
-  showAvatar, 
+export const MessageBubble = ({
+  message,
+  isOwn,
+  showAvatar,
   otherUser,
   onAddReaction,
   onRemoveReaction
 }: MessageBubbleProps) => {
-  const getInitials = (name?: string) => 
+  const getInitials = (name?: string) =>
     name?.split(' ').map(n => n[0]).join('').slice(0, 2) || '?';
 
   const formatTime = (dateString: string) => {
@@ -60,8 +60,8 @@ export const MessageBubble = ({
   const formatReadTime = (dateString: string | null | undefined) => {
     if (!dateString) return null;
     const date = new Date(dateString);
-    return date.toLocaleString('en-US', { 
-      hour: 'numeric', 
+    return date.toLocaleString('en-US', {
+      hour: 'numeric',
       minute: '2-digit',
       month: 'short',
       day: 'numeric'
@@ -90,27 +90,30 @@ export const MessageBubble = ({
         </Avatar>
       )}
       {!isOwn && !showAvatar && <div className="w-8 mr-2" />}
-      
+
       <div className="max-w-[75%] md:max-w-[70%]">
         <div
           className={cn(
             "relative px-4 py-2.5 shadow-sm",
             isOwn
-              ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-2xl rounded-br-md'
-              : 'bg-card border border-border/50 rounded-2xl rounded-bl-md'
+              ? 'bg-gradient-to-br from-primary to-primary/90 text-white rounded-2xl rounded-br-md shadow-[0_2px_10px_rgba(59,130,246,0.2)]'
+              : 'bg-card border border-border/50 text-foreground rounded-2xl rounded-bl-md'
           )}
         >
           {/* Subtle inner glow for own messages */}
           {isOwn && (
             <div className="absolute inset-0 rounded-2xl rounded-br-md bg-gradient-to-t from-black/5 to-white/10 pointer-events-none" />
           )}
-          
+
           {message.content !== '📎 Attachment' && (
-            <p className="text-sm whitespace-pre-wrap break-words relative z-10">
+            <p className={cn(
+              "text-sm whitespace-pre-wrap break-words relative z-10",
+              isOwn ? "text-white" : "text-foreground"
+            )}>
               {message.content}
             </p>
           )}
-          
+
           {message.attachments && message.attachments.length > 0 && (
             <div className="space-y-2 relative z-10">
               {message.attachments.map(att => (
@@ -118,14 +121,14 @@ export const MessageBubble = ({
               ))}
             </div>
           )}
-          
+
           <div className={cn(
             "flex items-center gap-1.5 mt-1.5 relative z-10",
             isOwn && 'justify-end'
           )}>
             <p className={cn(
               "text-[10px]",
-              isOwn ? 'text-primary-foreground/60' : 'text-muted-foreground'
+              isOwn ? 'text-white/80' : 'text-muted-foreground'
             )}>
               {formatTime(message.created_at)}
             </p>
@@ -134,7 +137,7 @@ export const MessageBubble = ({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <span className="inline-flex items-center cursor-help">
-                      <CheckCheck className="w-3.5 h-3.5 text-primary-foreground/70" />
+                      <CheckCheck className="w-3.5 h-3.5 text-white/90" />
                     </span>
                   </TooltipTrigger>
                   <TooltipContent side="left" className="text-xs">
@@ -142,12 +145,12 @@ export const MessageBubble = ({
                   </TooltipContent>
                 </Tooltip>
               ) : (
-                <Check className="w-3.5 h-3.5 text-primary-foreground/50" />
+                <Check className="w-3.5 h-3.5 text-white/70" />
               )
             )}
           </div>
         </div>
-        
+
         <EmojiReactions
           reactions={message.reactions || []}
           onAddReaction={(emoji) => onAddReaction(message.id, emoji)}
