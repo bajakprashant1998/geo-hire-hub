@@ -34,7 +34,7 @@ const ProfileSetup = () => {
 
   // Profile photo
   const [avatarUrl, setAvatarUrl] = useState<string>(profile?.avatar_url || '');
-  
+
   // Candidate fields
   const [jobTitle, setJobTitle] = useState('');
   const [experienceYears, setExperienceYears] = useState('0');
@@ -131,7 +131,7 @@ const ProfileSetup = () => {
 
       await refreshProfile();
       toast.success('Profile completed successfully!');
-      navigate(profile?.user_type === 'employer' ? '/employer-dashboard' : '/candidate-dashboard');
+      navigate(profile?.user_type === 'employer' ? '/employer-dashboard' : '/candidate-profile');
     } catch (error: any) {
       toast.error(error.message || 'Failed to complete profile');
     } finally {
@@ -181,19 +181,18 @@ const ProfileSetup = () => {
 
         {/* Location Status */}
         <div
-          className={`p-4 rounded-lg flex items-center gap-3 ${
-            geolocation.latitude
+          className={`p-4 rounded-lg flex items-center gap-3 ${geolocation.latitude
               ? 'bg-success/10 text-success'
               : 'bg-warning/10 text-warning-foreground'
-          }`}
+            }`}
         >
           <MapPin className="w-5 h-5" />
           <span>
             {geolocation.loading
               ? 'Detecting your location...'
               : geolocation.latitude
-              ? 'Location captured - you will appear on the map'
-              : 'Enable location to appear on the map'}
+                ? 'Location captured - you will appear on the map'
+                : 'Enable location to appear on the map'}
           </span>
         </div>
 

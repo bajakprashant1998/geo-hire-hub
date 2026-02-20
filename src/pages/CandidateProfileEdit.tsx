@@ -265,10 +265,15 @@ const CandidateProfileEdit = () => {
                                 <p className="text-muted-foreground">Manage how employers see you</p>
                             </div>
                         </div>
-                        <Button onClick={handleSave} disabled={saving}>
-                            {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                            Save Profile
-                        </Button>
+                        <div className="flex items-center gap-3">
+                            <Button variant="outline" onClick={() => navigate('/candidate-dashboard')} className="hidden sm:flex">
+                                Skip for now
+                            </Button>
+                            <Button onClick={handleSave} disabled={saving}>
+                                {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                                Save Profile
+                            </Button>
+                        </div>
                     </div>
 
                     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">

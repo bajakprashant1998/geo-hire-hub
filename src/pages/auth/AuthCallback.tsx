@@ -85,8 +85,10 @@ const AuthCallback = () => {
       }
 
       if (effectiveProfile?.user_type) {
-        // User has a role, redirect to appropriate dashboard
-        if (effectiveProfile.user_type === 'employer') {
+        // User has a role. Check if their profile is complete
+        if (!effectiveProfile.profile_completed) {
+          navigate('/profile-setup');
+        } else if (effectiveProfile.user_type === 'employer') {
           navigate('/employer-dashboard');
         } else {
           navigate('/candidate-dashboard');

@@ -51,7 +51,7 @@ const Login = () => {
       // Fetch user profile to determine redirect
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('user_type')
+        .select('user_type, profile_completed')
         .eq('user_id', data.user.id)
         .maybeSingle();
 
@@ -68,8 +68,10 @@ const Login = () => {
 
       toast.success('Welcome back!');
 
-      // Redirect based on user type
-      if (profileData?.user_type === 'employer') {
+      // Redirect based on user type and profile completion
+      if (!profileData?.profile_completed) {
+        navigate('/profile-setup');
+      } else if (profileData?.user_type === 'employer') {
         navigate('/employer-dashboard');
       } else {
         navigate('/candidate-dashboard');
