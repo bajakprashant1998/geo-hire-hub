@@ -1,33 +1,41 @@
 import { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
-import { lovable } from '@/integrations/lovable/index';
+import { X, Users, Briefcase, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const GoogleSignInPrompt = () => {
   const [visible, setVisible] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [userType, setUserType] = useState<'candidate' | 'employer'>('candidate');
 
   useEffect(() => {
-    const dismissed = sessionStorage.getItem('google_prompt_dismissed');
-    if (!dismissed) {
-      const timer = setTimeout(() => setVisible(true), 1200);
-      return () => clearTimeout(timer);
-    }
+    const timer = setTimeout(() => setVisible(true), 1200);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleDismiss = () => {
     setVisible(false);
-    sessionStorage.setItem('google_prompt_dismissed', '1');
   };
 
   const handleSignIn = async () => {
-    sessionStorage.setItem('preferred_role', 'candidate');
-    const { error } = await lovable.auth.signInWithOAuth('google', {
-      redirect_uri: window.location.origin,
-      extraParams: { prompt: 'select_account' },
-    });
-    if (error) {
+    setGoogleLoading(true);
+
+    try {
+      sessionStorage.setItem('preferred_role', userType);
+
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: { prompt: 'select_account' },
+        },
+      });
+
+      if (error) throw error;
+    } catch (error) {
       toast.error('Sign in failed. Please try again.');
       console.error('Google sign-in error:', error);
+      setGoogleLoading(false);
     }
   };
 
@@ -57,18 +65,50 @@ const GoogleSignInPrompt = () => {
           </button>
         </div>
 
-        {/* Sign in button area */}
+        {/* Role selection + sign in */}
         <div className="p-4">
+          <div className="flex bg-gray-100 rounded-xl p-1 mb-3">
+            <button
+              type="button"
+              disabled={googleLoading}
+              onClick={() => setUserType('candidate')}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-medium transition-colors ${userType === 'candidate'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+                }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              Job Seeker
+            </button>
+            <button
+              type="button"
+              disabled={googleLoading}
+              onClick={() => setUserType('employer')}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-medium transition-colors ${userType === 'employer'
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+                }`}
+            >
+              <Briefcase className="w-3.5 h-3.5" />
+              Employer
+            </button>
+          </div>
+
           <button
             onClick={handleSignIn}
+            disabled={googleLoading}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors border border-gray-200"
           >
             <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm">
-              G
+              {googleLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'G'}
             </div>
             <div className="text-left">
               <p className="text-sm font-medium text-gray-800">Continue with Google</p>
-              <p className="text-xs text-gray-500">Quick sign in with your Google account</p>
+              <p className="text-xs text-gray-500">
+                {userType === 'candidate'
+                  ? 'Sign in as Job Seeker'
+                  : 'Sign in as Employer'}
+              </p>
             </div>
           </button>
         </div>
