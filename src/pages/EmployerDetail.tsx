@@ -19,6 +19,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { ReportDialog } from '@/components/ReportDialog';
+import { SEOHead } from '@/components/SEOHead';
 
 interface EmployerProfile {
   id: string;
@@ -115,16 +116,18 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
     }
   }, [id]);
 
-  // SEO meta tags
-  useEffect(() => {
-    if (employer) {
-      document.title = `${employer.company_name}${employer.industry ? ` - ${employer.industry}` : ''} | HireForJob`;
-      const desc = `${employer.company_name}${employer.industry ? `, ${employer.industry}` : ''}. ${jobs.length} open positions. View company profile on HireForJob.`;
-      let metaDesc = document.querySelector('meta[name="description"]') as HTMLMetaElement;
-      if (!metaDesc) { metaDesc = document.createElement('meta'); metaDesc.name = 'description'; document.head.appendChild(metaDesc); }
-      metaDesc.content = desc.slice(0, 160);
-    }
-  }, [employer, jobs]);
+  const baseUrl = 'https://hireforjob1.lovable.app';
+  const empSeoTitle = employer ? `${employer.company_name}${employer.industry ? ` - ${employer.industry}` : ''} | HireForJob` : 'Company Profile | HireForJob';
+  const empSeoDesc = employer ? `${employer.company_name}${employer.industry ? `, ${employer.industry}` : ''}. ${jobs.length} open positions. View company profile on HireForJob.` : '';
+  const empCanonical = employer ? `${baseUrl}${window.location.pathname}` : undefined;
+  const empJsonLd = employer ? {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: employer.company_name,
+    description: employer.description || '',
+    ...(employer.website_url && { url: employer.website_url }),
+    ...(employer.avatar_url && { logo: employer.avatar_url }),
+  } : undefined;
 
   const fetchEmployer = async () => {
     try {
@@ -216,6 +219,7 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
 
   return (
     <div className="min-h-screen bg-muted/30 pb-24 lg:pb-8">
+      <SEOHead title={empSeoTitle} description={empSeoDesc} canonicalUrl={empCanonical} ogType="profile" ogImage={employer.avatar_url || undefined} jsonLd={empJsonLd} />
       {/* Top Navigation */}
       <div className="bg-background border-b sticky top-0 z-30">
         <div className="container mx-auto px-4 max-w-5xl">

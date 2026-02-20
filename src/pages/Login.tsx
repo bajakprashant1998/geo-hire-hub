@@ -7,6 +7,7 @@ import { ArrowLeft, Mail, Lock, Eye, EyeOff, MapPin, Loader2, Users, Briefcase }
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
+import { SEOHead } from '@/components/SEOHead';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -105,6 +106,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex">
+      <SEOHead title="Login | HireForJob" description="Sign in to HireForJob to find jobs, manage applications, and connect with employers near you." canonicalUrl="https://hireforjob1.lovable.app/login" />
       {/* Left side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary via-primary/90 to-primary/80 relative overflow-hidden">
         {/* Animated background shapes */}

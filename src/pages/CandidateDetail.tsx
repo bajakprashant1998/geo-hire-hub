@@ -21,6 +21,7 @@ import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { ProfilePDFExport } from '@/components/candidate/ProfilePDFExport';
 import { ReportDialog } from '@/components/ReportDialog';
 import { useRef } from 'react';
+import { SEOHead } from '@/components/SEOHead';
 
 interface Education { institution: string; degree: string; field: string; startYear: string; endYear: string; }
 interface WorkExperience { company: string; title: string; startDate: string; endDate: string; isCurrent: boolean; description: string; }
@@ -118,16 +119,17 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
     if (id) fetchCandidate();
   }, [id]);
 
-  // SEO meta tags
-  useEffect(() => {
-    if (candidate) {
-      document.title = `${candidate.full_name} - ${candidate.job_title} | HireForJob`;
-      const desc = `${candidate.full_name}, ${candidate.job_title}${candidate.experience_years ? ` with ${candidate.experience_years}+ years experience` : ''}. View profile on HireForJob.`;
-      let metaDesc = document.querySelector('meta[name="description"]') as HTMLMetaElement;
-      if (!metaDesc) { metaDesc = document.createElement('meta'); metaDesc.name = 'description'; document.head.appendChild(metaDesc); }
-      metaDesc.content = desc.slice(0, 160);
-    }
-  }, [candidate]);
+  const baseUrl = 'https://hireforjob1.lovable.app';
+  const candSeoTitle = candidate ? `${candidate.full_name} - ${candidate.job_title} | HireForJob` : 'Candidate Profile | HireForJob';
+  const candSeoDesc = candidate ? `${candidate.full_name}, ${candidate.job_title}${candidate.experience_years ? ` with ${candidate.experience_years}+ years experience` : ''}. View profile on HireForJob.` : '';
+  const candCanonical = candidate ? `${baseUrl}${window.location.pathname}` : undefined;
+  const candJsonLd = candidate ? {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: candidate.full_name,
+    jobTitle: candidate.job_title,
+    ...(candidate.bio && { description: candidate.bio }),
+  } : undefined;
 
   const fetchCandidate = async () => {
     try {
@@ -237,6 +239,7 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
 
   return (
     <div className="min-h-screen bg-muted/30 pb-24 lg:pb-8">
+      <SEOHead title={candSeoTitle} description={candSeoDesc} canonicalUrl={candCanonical} ogType="profile" ogImage={candidate.avatar_url || undefined} jsonLd={candJsonLd} />
       {/* Top Navigation */}
       <div className="bg-background border-b sticky top-0 z-30">
         <div className="container mx-auto px-4 max-w-5xl">

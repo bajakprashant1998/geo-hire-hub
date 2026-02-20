@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { SEOHead } from '@/components/SEOHead';
 
 const PrivacyPolicy = () => (
   <div className="min-h-screen bg-background">
+    <SEOHead title="Privacy Policy | HireForJob" description="Learn how HireForJob protects your privacy and handles your personal data on our job search platform." canonicalUrl="https://hireforjob1.lovable.app/privacy" />
     <div className="container mx-auto px-4 py-8 max-w-3xl">
       <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 group">
         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />

@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { SEOHead } from '@/components/SEOHead';
 import { ViewMode, Candidate, Job } from '@/types';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useMapData } from '@/hooks/useMapData';
@@ -81,6 +82,7 @@ const Index = () => {
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-background">
+      <SEOHead title="HireForJob - Find Jobs & Talent Near You" description="Discover jobs and talent on an interactive map. Connect with employers and candidates in your area." canonicalUrl="https://hireforjob1.lovable.app/" ogImage="https://hireforjob1.lovable.app/logo.png" />
       {/* Loading Skeleton */}
       {loading && <MapLoadingSkeleton />}
 

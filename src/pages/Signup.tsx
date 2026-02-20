@@ -28,6 +28,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { motion } from 'framer-motion';
+import { SEOHead } from '@/components/SEOHead';
 
 const SECTORS = [
   'Information Technology',
@@ -210,6 +211,7 @@ const Signup = () => {
 
   return (
     <div className="min-h-screen flex">
+      <SEOHead title="Sign Up | HireForJob" description="Create your HireForJob account. Join as a job seeker or employer to find opportunities and talent near you." canonicalUrl="https://hireforjob1.lovable.app/signup" />
       {/* Left side - Branding */}
       <div className="hidden lg:flex lg:w-5/12 bg-gradient-to-br from-primary via-primary/90 to-primary/80 relative overflow-hidden">
         {/* Animated background shapes */}
