@@ -12,6 +12,7 @@ import { MarkerPreviewSheet } from '@/components/map/MarkerPreviewSheet';
 import BottomNavBar from '@/components/map/BottomNavBar';
 import { WelcomeOverlay } from '@/components/map/WelcomeOverlay';
 import { MobileFAB } from '@/components/map/MobileFAB';
+import GoogleSignInPrompt from '@/components/GoogleSignInPrompt';
 import { StatsBottomSheet } from '@/components/map/StatsBottomSheet';
 import { LeftSidebarPanel } from '@/components/map/LeftSidebarPanel';
 import { Button } from '@/components/ui/button';
@@ -85,6 +86,9 @@ const Index = () => {
       <SEOHead title="HireForJob - Find Jobs & Talent Near You" description="Discover jobs and talent on an interactive map. Connect with employers and candidates in your area." canonicalUrl="https://www.hireforjob.com/" ogImage="https://www.hireforjob.com/logo.png" />
       {/* Loading Skeleton */}
       {loading && <MapLoadingSkeleton />}
+
+      {/* Google Sign-In Prompt for unauthenticated users */}
+      {!user && <GoogleSignInPrompt />}
 
       {/* Desktop Layout: Sidebar + Map */}
       <div className="hidden md:flex h-full">
