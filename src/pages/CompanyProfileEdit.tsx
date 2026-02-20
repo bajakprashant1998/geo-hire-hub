@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -115,8 +115,11 @@ const CompanyProfileEdit = () => {
   const [hiringProcess, setHiringProcess] = useState('');
   const [specializations, setSpecializations] = useState<string[]>([]);
 
+  const initialFetchDone = useRef(false);
+
   useEffect(() => {
-    if (profile) {
+    if (profile && !initialFetchDone.current) {
+      initialFetchDone.current = true;
       fetchEmployerProfile();
     } else if (user === null) {
       // User is not logged in - redirect to login

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -79,20 +79,23 @@ const CandidateProfileEdit = () => {
     const [availabilityStatus, setAvailabilityStatus] = useState('available');
     const [preferredJobTypes, setPreferredJobTypes] = useState<string[]>([]);
 
+    const initialFetchDone = useRef(false);
+
     useEffect(() => {
         if (authLoading || profileLoading) return;
         if (!user) {
             navigate('/login');
             return;
         }
-        if (profile) {
-            fetchCandidateProfile();
-        } else {
+        if (profile && !initialFetchDone.current) {
+            initialFetchDone.current = true;
+            fetchCandidateProfile(true);
+        } else if (!profile) {
             setLoading(false);
         }
     }, [profile, user, authLoading, profileLoading]);
 
-    const fetchCandidateProfile = async () => {
+    const fetchCandidateProfile = async (isInitialLoad = false) => {
         if (!profile) return;
         try {
             const { data, error } = await supabase
@@ -105,50 +108,55 @@ const CandidateProfileEdit = () => {
 
             if (data) {
                 setCandidate(data);
-                setFullName(profile.full_name || '');
-                setAvatarUrl(profile.avatar_url || '');
-                setJobTitle(data.job_title || '');
-                setBio(data.bio || '');
-                setExperienceYears(data.experience_years || 0);
-                setExpectedSalary(data.expected_salary || '');
-                setSkills(data.skills || []);
 
-                // Parse education
-                let parsedEducation: Education[] = [];
-                if (data.education && Array.isArray(data.education)) {
-                    parsedEducation = data.education as unknown as Education[];
+                if (isInitialLoad) {
+                    setFullName(profile.full_name || '');
+                    setAvatarUrl(profile.avatar_url || '');
+                    setJobTitle(data.job_title || '');
+                    setBio(data.bio || '');
+                    setExperienceYears(data.experience_years || 0);
+                    setExpectedSalary(data.expected_salary || '');
+                    setSkills(data.skills || []);
+
+                    // Parse education
+                    let parsedEducation: Education[] = [];
+                    if (data.education && Array.isArray(data.education)) {
+                        parsedEducation = data.education as unknown as Education[];
+                    }
+                    setEducation(parsedEducation);
+
+                    setPortfolioUrls(data.portfolio_urls || []);
+                    setWhatsappNumber((profile as any).whatsapp_number || '');
+
+                    // Enhanced profile fields
+                    setHeadline((data as any).headline || '');
+
+                    let parsedWorkExp: WorkExperience[] = [];
+                    if ((data as any).work_experience && Array.isArray((data as any).work_experience)) {
+                        parsedWorkExp = (data as any).work_experience;
+                    }
+                    setWorkExperience(parsedWorkExp);
+
+                    setCertifications((data as any).certifications || []);
+
+                    let parsedLanguages: Language[] = [];
+                    if ((data as any).languages && Array.isArray((data as any).languages)) {
+                        parsedLanguages = (data as any).languages;
+                    }
+                    setLanguages(parsedLanguages);
+
+                    setSocialLinks((data as any).social_links || {});
+                    setAvailabilityStatus((data as any).availability_status || 'available');
+                    setPreferredJobTypes((data as any).preferred_job_types || []);
                 }
-                setEducation(parsedEducation);
-
-                setPortfolioUrls(data.portfolio_urls || []);
-                setWhatsappNumber((profile as any).whatsapp_number || '');
-
-                // Enhanced profile fields
-                setHeadline((data as any).headline || '');
-
-                let parsedWorkExp: WorkExperience[] = [];
-                if ((data as any).work_experience && Array.isArray((data as any).work_experience)) {
-                    parsedWorkExp = (data as any).work_experience;
-                }
-                setWorkExperience(parsedWorkExp);
-
-                setCertifications((data as any).certifications || []);
-
-                let parsedLanguages: Language[] = [];
-                if ((data as any).languages && Array.isArray((data as any).languages)) {
-                    parsedLanguages = (data as any).languages;
-                }
-                setLanguages(parsedLanguages);
-
-                setSocialLinks((data as any).social_links || {});
-                setAvailabilityStatus((data as any).availability_status || 'available');
-                setPreferredJobTypes((data as any).preferred_job_types || []);
             }
         } catch (error) {
             console.error('Error fetching candidate:', error);
             toast.error('Failed to load profile');
         } finally {
-            setLoading(false);
+            if (isInitialLoad) {
+                setLoading(false);
+            }
         }
     };
 
