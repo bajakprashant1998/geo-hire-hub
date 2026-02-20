@@ -40,6 +40,7 @@ const Login = () => {
     setLoading(true);
 
     try {
+      // We will sign in first to get the user ID securely, then check the profile
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -53,6 +54,17 @@ const Login = () => {
         .select('user_type')
         .eq('user_id', data.user.id)
         .maybeSingle();
+
+      // CROSS-ROLE RESTRICTION CHECK
+      if (profileData && profileData.user_type) {
+        if (profileData.user_type !== userType) {
+          // Role mismatch: Sign out immediately and show error
+          await supabase.auth.signOut();
+          const expectedTab = profileData.user_type === 'employer' ? 'Employer' : 'Job Seeker';
+          toast.error(`This email is registered as an ${expectedTab}. Please switch tabs to log in.`);
+          return;
+        }
+      }
 
       toast.success('Welcome back!');
 

@@ -159,6 +159,10 @@ const Signup = () => {
     try {
       const fullName = `${firstName} ${lastName}`.trim();
 
+      // Check if user already exists first (Optional, but gives better error message)
+      // Since we can't reliably query profiles unauthenticated without RLS issues, 
+      // we'll rely on the edge function returning a clear error if the email is taken.
+
       // Call the Edge Function 'signup' instead of supabase.auth.signUp
       // This ensures we use the admin API to create user and send CUSTOM email via Resend
       // bypassing the default Supabase email that needs SMTP config

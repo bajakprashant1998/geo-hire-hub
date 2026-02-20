@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
@@ -32,54 +33,51 @@ const AuthCallback = () => {
         console.error('Error fetching profile:', profileError);
       }
 
-      // Check for a preferred role set during login/signup flow
+      // CROSS-ROLE RESTRICTION FOR GOOGLE LOGIN
       const preferredRole = sessionStorage.getItem('preferred_role');
       let effectiveProfile = profile;
 
-      if (preferredRole && (preferredRole === 'candidate' || preferredRole === 'employer')) {
-        console.log(`Enforcing preferred role: ${preferredRole}`);
+      if (profile && profile.user_type) {
+        // User already has an established role.
+        if (preferredRole && profile.user_type !== preferredRole) {
+          // They tried to log in via a different role tab.
+          console.warn(`Role mismatch: Registered as ${profile.user_type}, tried to login as ${preferredRole}`);
+          await supabase.auth.signOut();
+          sessionStorage.removeItem('preferred_role');
 
-        // Try to update first (most likely scenario if trigger ran)
-        const { error: updateError } = await supabase
+          const expectedTab = profile.user_type === 'employer' ? 'Employer' : 'Job Seeker';
+          // Use setTimeout to ensure toast fires after potential quick unmounts/redirects
+          setTimeout(() => {
+            toast.error(`This email is registered as an ${expectedTab}. Please switch tabs to log in.`);
+          }, 100);
+
+          navigate('/login');
+          return;
+        }
+
+        // Match or no preferred role, proceed normally
+        sessionStorage.removeItem('preferred_role');
+
+      } else if (preferredRole && (preferredRole === 'candidate' || preferredRole === 'employer')) {
+        // User does NOT have an established role (new Google signup), so we assign the preferred role
+        console.log(`Assigning initial role for new Google user: ${preferredRole}`);
+
+        const fullName = session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User';
+
+        const { error: upsertError } = await supabase
           .from('profiles')
-          .update({ user_type: preferredRole })
-          .eq('user_id', session.user.id);
+          .upsert({
+            user_id: session.user.id,
+            user_type: preferredRole,
+            full_name: fullName,
+          } as any, {
+            onConflict: 'user_id'
+          });
 
-        if (!updateError) {
-          // Update updated successfully
-          if (effectiveProfile) {
-            effectiveProfile.user_type = preferredRole;
-          } else {
-            effectiveProfile = { user_type: preferredRole } as any;
-          }
+        if (upsertError) {
+          console.error('Error assigning initial role:', upsertError);
         } else {
-          // If update failed (likely row doesn't exist), try upsert with more data
-          // We need full_name to satisfy potential constraints if creating a new row
-          // although usually triggers handle this.
-          console.log('Update failed, trying upsert/insert', updateError);
-
-          const fullName = session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User';
-
-          const { error: upsertError } = await supabase
-            .from('profiles')
-            .upsert({
-              user_id: session.user.id,
-              user_type: preferredRole,
-              full_name: fullName,
-              // Add other required fields if known, but full_name is the main one usually
-            } as any, {
-              onConflict: 'user_id'
-            });
-
-          if (upsertError) {
-            console.error('Error forcing role update/insert:', upsertError);
-          } else {
-            if (effectiveProfile) {
-              effectiveProfile.user_type = preferredRole;
-            } else {
-              effectiveProfile = { user_type: preferredRole } as any;
-            }
-          }
+          effectiveProfile = { user_type: preferredRole } as any;
         }
 
         // Clear storage
