@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Upload, X, Image as ImageIcon, Loader2, CheckCircle2 } from 'lucide-react';
@@ -27,6 +27,10 @@ export const DocumentUpload = ({
   const [preview, setPreview] = useState<string | null>(currentUrl);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => {
+    setPreview(currentUrl);
+  }, [currentUrl]);
+
   const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -51,13 +55,13 @@ export const DocumentUpload = ({
       const filePath = `${userId}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('employer-documents')
+        .from('avatars')
         .upload(filePath, file, { upsert: true });
 
       if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('employer-documents')
+        .from('avatars')
         .getPublicUrl(filePath);
 
       setPreview(publicUrl);
@@ -76,10 +80,12 @@ export const DocumentUpload = ({
 
     try {
       // Extract file path from URL
-      const urlParts = preview.split('/employer-documents/');
+      // Make sure we can handle both old employer-documents URLs and new avatars URLs
+      const bucketName = preview.includes('/employer-documents/') ? 'employer-documents' : 'avatars';
+      const urlParts = preview.split(`/${bucketName}/`);
       if (urlParts[1]) {
         await supabase.storage
-          .from('employer-documents')
+          .from(bucketName)
           .remove([urlParts[1]]);
       }
 
@@ -111,20 +117,17 @@ export const DocumentUpload = ({
           {/* Preview or Upload Area */}
           <div
             className={cn(
-              'w-24 h-24 rounded-lg flex items-center justify-center overflow-hidden',
-              preview ? 'bg-cover bg-center' : 'bg-muted cursor-pointer'
+              'w-24 h-24 rounded-lg flex items-center justify-center overflow-hidden shrink-0',
+              preview ? 'border border-border/50 bg-muted/30' : 'bg-muted cursor-pointer'
             )}
-            style={preview ? { backgroundImage: `url(${preview})` } : undefined}
             onClick={() => !preview && inputRef.current?.click()}
           >
-            {!preview && (
-              <div className="text-center">
-                {uploading ? (
-                  <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" />
-                ) : (
-                  <ImageIcon className="w-6 h-6 text-muted-foreground mx-auto" />
-                )}
-              </div>
+            {preview ? (
+              <img src={preview} alt={label} className="w-full h-full object-cover" />
+            ) : uploading ? (
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            ) : (
+              <ImageIcon className="w-6 h-6 text-muted-foreground" />
             )}
           </div>
 

@@ -16,6 +16,7 @@ import {
 import { toast } from 'sonner';
 import { VerificationBadge } from '@/components/employer/VerificationBadge';
 import { useAuth } from '@/hooks/useAuth';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { ReportDialog } from '@/components/ReportDialog';
 
@@ -57,6 +58,7 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
   const [resolvedId, setResolvedId] = useState<string | null>(propId || null);
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isAdmin } = useAdminAuth();
   const isAuthenticated = !!user;
   const isOwnProfile = !!propId;
 
@@ -224,9 +226,9 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
             <div className="flex items-center gap-1.5">
               <Button variant="ghost" size="icon" onClick={handleShare} className="rounded-full w-9 h-9"><Share2 className="w-4 h-4" /></Button>
               {!isOwnProfile && (
-              <Button variant="ghost" size="icon" onClick={handleFollow} className={`rounded-full w-9 h-9 ${isFollowing ? 'text-primary' : ''}`}>
-                <Heart className={`w-4 h-4 ${isFollowing ? 'fill-current' : ''}`} />
-              </Button>
+                <Button variant="ghost" size="icon" onClick={handleFollow} className={`rounded-full w-9 h-9 ${isFollowing ? 'text-primary' : ''}`}>
+                  <Heart className={`w-4 h-4 ${isFollowing ? 'fill-current' : ''}`} />
+                </Button>
               )}
               {!isOwnProfile && <ReportDialog targetId={employer?.id || ''} targetType="employer" />}
             </div>
@@ -291,22 +293,22 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
 
             {/* Desktop CTA */}
             {!isOwnProfile && (
-            <div className="hidden lg:flex flex-col gap-2 shrink-0">
-              {isAuthenticated ? (
-                <>
-                  {employer.whatsapp_number && <WhatsAppButton phoneNumber={employer.whatsapp_number} className="w-full" />}
-                  <Button variant="outline" onClick={handleFollow} className="gap-2">
-                    <Heart className={`w-4 h-4 ${isFollowing ? 'fill-current text-primary' : ''}`} />
-                    {isFollowing ? 'Following' : 'Follow'}
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button onClick={() => navigate('/signup')} className="gap-2"><UserPlus className="w-4 h-4" />Sign Up</Button>
-                  <Button variant="outline" onClick={() => navigate('/login')} className="gap-2"><LogIn className="w-4 h-4" />Sign In</Button>
-                </>
-              )}
-            </div>
+              <div className="hidden lg:flex flex-col gap-2 shrink-0">
+                {isAuthenticated ? (
+                  <>
+                    {employer.whatsapp_number && <WhatsAppButton phoneNumber={employer.whatsapp_number} className="w-full" />}
+                    <Button variant="outline" onClick={handleFollow} className="gap-2">
+                      <Heart className={`w-4 h-4 ${isFollowing ? 'fill-current text-primary' : ''}`} />
+                      {isFollowing ? 'Following' : 'Follow'}
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button onClick={() => navigate('/signup')} className="gap-2"><UserPlus className="w-4 h-4" />Sign Up</Button>
+                    <Button variant="outline" onClick={() => navigate('/login')} className="gap-2"><LogIn className="w-4 h-4" />Sign In</Button>
+                  </>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -354,8 +356,8 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
               </Card>
             )}
 
-            {/* Trust Documents */}
-            {(employer.office_photo_url || employer.business_card_url) && (
+            {/* Trust Documents - Only visible to Admins and the Employer Owner */}
+            {(isAdmin || isOwnProfile) && (employer.office_photo_url || employer.business_card_url) && (
               <Card>
                 <CardContent className="p-5">
                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Verification</h3>
@@ -411,32 +413,32 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
           <div className="lg:col-span-1 space-y-4">
             {/* Contact/Auth Card - hidden when viewing own profile */}
             {!isOwnProfile && (
-            <Card className="overflow-hidden">
-              <div className="bg-primary p-4">
-                <h3 className="text-primary-foreground font-semibold flex items-center gap-2">
-                  <Mail className="w-4 h-4" />Get in Touch
-                </h3>
-              </div>
-              <CardContent className="p-4">
-                {isAuthenticated ? (
-                  <div className="space-y-3">
-                    <p className="text-sm text-muted-foreground">Interested in working here? Reach out directly.</p>
-                    {employer.whatsapp_number && <WhatsAppButton phoneNumber={employer.whatsapp_number} className="w-full" />}
-                    <Separator />
-                    <Button variant="outline" className="w-full gap-2 text-sm" onClick={handleFollow}>
-                      <Heart className={`w-3.5 h-3.5 ${isFollowing ? 'fill-primary text-primary' : ''}`} />{isFollowing ? 'Following' : 'Follow Company'}
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="text-center space-y-3">
-                    <div className="w-12 h-12 mx-auto rounded-2xl bg-muted flex items-center justify-center"><Lock className="w-6 h-6 text-muted-foreground" /></div>
-                    <p className="text-sm text-muted-foreground">Sign in to contact this company</p>
-                    <Button className="w-full gap-2" onClick={() => navigate('/signup')}><UserPlus className="w-4 h-4" />Create Account</Button>
-                    <Button variant="outline" className="w-full gap-2" onClick={() => navigate('/login')}><LogIn className="w-4 h-4" />Sign In</Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+              <Card className="overflow-hidden">
+                <div className="bg-primary p-4">
+                  <h3 className="text-primary-foreground font-semibold flex items-center gap-2">
+                    <Mail className="w-4 h-4" />Get in Touch
+                  </h3>
+                </div>
+                <CardContent className="p-4">
+                  {isAuthenticated ? (
+                    <div className="space-y-3">
+                      <p className="text-sm text-muted-foreground">Interested in working here? Reach out directly.</p>
+                      {employer.whatsapp_number && <WhatsAppButton phoneNumber={employer.whatsapp_number} className="w-full" />}
+                      <Separator />
+                      <Button variant="outline" className="w-full gap-2 text-sm" onClick={handleFollow}>
+                        <Heart className={`w-3.5 h-3.5 ${isFollowing ? 'fill-primary text-primary' : ''}`} />{isFollowing ? 'Following' : 'Follow Company'}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="text-center space-y-3">
+                      <div className="w-12 h-12 mx-auto rounded-2xl bg-muted flex items-center justify-center"><Lock className="w-6 h-6 text-muted-foreground" /></div>
+                      <p className="text-sm text-muted-foreground">Sign in to contact this company</p>
+                      <Button className="w-full gap-2" onClick={() => navigate('/signup')}><UserPlus className="w-4 h-4" />Create Account</Button>
+                      <Button variant="outline" className="w-full gap-2" onClick={() => navigate('/login')}><LogIn className="w-4 h-4" />Sign In</Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             )}
 
             {/* Company Info */}
@@ -493,23 +495,23 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
 
       {/* Mobile Bottom Bar */}
       {!isOwnProfile && (
-      <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-background/95 backdrop-blur-lg border-t p-3 z-50">
-        {isAuthenticated ? (
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={handleFollow} className={`w-11 h-11 rounded-xl shrink-0 ${isFollowing ? 'text-primary border-primary/30' : ''}`}>
-              <Heart className={`w-4 h-4 ${isFollowing ? 'fill-current' : ''}`} />
-            </Button>
-            <Button variant="outline" size="icon" onClick={handleShare} className="w-11 h-11 rounded-xl shrink-0"><Share2 className="w-4 h-4" /></Button>
-            {employer.whatsapp_number && <WhatsAppButton phoneNumber={employer.whatsapp_number} variant="icon" className="shrink-0" />}
-            <Button className="flex-1 h-11 rounded-xl font-medium gap-2"><Mail className="w-4 h-4" />Contact</Button>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => navigate('/login')} className="flex-1 h-11 rounded-xl gap-2"><LogIn className="w-4 h-4" />Sign In</Button>
-            <Button onClick={() => navigate('/signup')} className="flex-1 h-11 rounded-xl font-medium gap-2"><UserPlus className="w-4 h-4" />Sign Up</Button>
-          </div>
-        )}
-      </div>
+        <div className="fixed bottom-0 left-0 right-0 lg:hidden bg-background/95 backdrop-blur-lg border-t p-3 z-50">
+          {isAuthenticated ? (
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="icon" onClick={handleFollow} className={`w-11 h-11 rounded-xl shrink-0 ${isFollowing ? 'text-primary border-primary/30' : ''}`}>
+                <Heart className={`w-4 h-4 ${isFollowing ? 'fill-current' : ''}`} />
+              </Button>
+              <Button variant="outline" size="icon" onClick={handleShare} className="w-11 h-11 rounded-xl shrink-0"><Share2 className="w-4 h-4" /></Button>
+              {employer.whatsapp_number && <WhatsAppButton phoneNumber={employer.whatsapp_number} variant="icon" className="shrink-0" />}
+              <Button className="flex-1 h-11 rounded-xl font-medium gap-2"><Mail className="w-4 h-4" />Contact</Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => navigate('/login')} className="flex-1 h-11 rounded-xl gap-2"><LogIn className="w-4 h-4" />Sign In</Button>
+              <Button onClick={() => navigate('/signup')} className="flex-1 h-11 rounded-xl font-medium gap-2"><UserPlus className="w-4 h-4" />Sign Up</Button>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
