@@ -179,7 +179,13 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
     try { await navigator.share({ title: candidate?.full_name, url: window.location.href }); }
     catch { navigator.clipboard.writeText(window.location.href); toast.success('Link copied!'); }
   };
-  const handleDownloadResume = () => { candidate?.resume_url ? window.open(candidate.resume_url, '_blank') : toast.info('Resume not available'); };
+  const handleDownloadResume = () => {
+    if (!candidate?.resume_url) {
+      toast.info('Resume not available');
+      return;
+    }
+    window.open(`/candidates/${candidate.id}/resume.pdf`, '_blank', 'noopener,noreferrer');
+  };
 
   const getAvailabilityLabel = (s: string | null) => {
     const map: Record<string, string> = { available: 'Available Now', open: 'Open to Work', notice: 'On Notice', employed: 'Employed', not_looking: 'Not Looking' };

@@ -27,6 +27,7 @@ import AIResumeBuilder from "./pages/AIResumeBuilder";
 import PostJob from "./pages/PostJob";
 import Messages from "./pages/Messages";
 import CandidateDetail from "./pages/CandidateDetail";
+import CandidateResumeRedirect from "./pages/CandidateResumeRedirect";
 import EmployerDetail from "./pages/EmployerDetail";
 import JobDetail from "./pages/JobDetail";
 import Plans from "./pages/Plans";
@@ -97,6 +98,7 @@ const App = () => (
               <Route path="/jobs/:country/:state/:city/:slug" element={<JobDetail />} />
 
               {/* Candidates: /candidates/:slug or with location hierarchy */}
+              <Route path="/candidates/:id/resume.pdf" element={<CandidateResumeRedirect />} />
               <Route path="/candidates/:id" element={<CandidateDetail />} />
               <Route path="/candidates/:country/:slug" element={<CandidateDetail />} />
               <Route path="/candidates/:country/:state/:slug" element={<CandidateDetail />} />
