@@ -1,14 +1,14 @@
 import { ViewMode } from '@/types';
 import { Button } from '@/components/ui/button';
-import { 
-  MapPin, 
-  LogIn, 
-  UserPlus, 
-  Users, 
-  Briefcase, 
-  Target, 
-  List, 
-  Building2, 
+import {
+  MapPin,
+  LogIn,
+  UserPlus,
+  Users,
+  Briefcase,
+  Target,
+  List,
+  Building2,
   Landmark,
   Search,
   Navigation,
@@ -30,6 +30,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { LocationBadge } from './LocationBadge';
+import { RadiusFilter } from './RadiusFilter';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { SearchSuggestions, saveRecentSearch } from './SearchSuggestions';
 import { supabase } from '@/integrations/supabase/client';
@@ -148,9 +149,9 @@ export const LeftSidebarPanel = ({
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border">
         <Link to="/" className="flex items-center gap-2.5">
-          <img 
-            src="/logo.png" 
-            alt="Hire for Job" 
+          <img
+            src="/logo.png"
+            alt="Hire for Job"
             className="w-8 h-8 rounded-lg object-contain"
           />
           <span className="font-semibold text-foreground">
@@ -258,6 +259,19 @@ export const LeftSidebarPanel = ({
               I need a Job
             </Button>
           </div>
+
+          <Separator />
+
+          {/* Radius Filter */}
+          <div className="py-1">
+            <RadiusFilter
+              radius={radius}
+              onRadiusChange={onRadiusChange}
+              className="shadow-none border-0 p-0 bg-transparent"
+            />
+          </div>
+
+          <Separator />
 
           {/* Jobs/Candidates Header */}
           <div className="flex items-start gap-3 pt-2">
@@ -380,9 +394,9 @@ export const LeftSidebarPanel = ({
 
           {/* Load More Button */}
           {(mode === 'seeking' ? nearbyJobs : nearbyCandidates)?.length === limit && (
-            <Button 
-              variant="outline" 
-              className="w-full mt-2" 
+            <Button
+              variant="outline"
+              className="w-full mt-2"
               onClick={() => setLimit(l => l + 10)}
             >
               Load More
@@ -410,8 +424,8 @@ export const LeftSidebarPanel = ({
       {/* Sign Out Footer */}
       {user && (
         <div className="p-4 border-t border-border">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={handleSignOut}
             className="w-full justify-start gap-2 h-10 text-destructive hover:text-destructive hover:bg-destructive/10"
           >

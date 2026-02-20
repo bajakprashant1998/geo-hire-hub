@@ -9,8 +9,8 @@ interface RadiusFilterProps {
   className?: string;
 }
 
-export const RadiusFilter = ({ radius, onRadiusChange, maxRadius = 100, className }: RadiusFilterProps) => {
-  const presets = [5, 10, 25, 50, 100];
+export const RadiusFilter = ({ radius, onRadiusChange, maxRadius = 500, className }: RadiusFilterProps) => {
+  const presets = [2, 10, 50, 100, 500];
 
   return (
     <div className={cn("bg-background rounded-xl p-4 shadow-lg border border-border/50", className)}>
@@ -45,12 +45,12 @@ export const RadiusFilter = ({ radius, onRadiusChange, maxRadius = 100, classNam
           value={[radius]}
           onValueChange={(value) => onRadiusChange(value[0])}
           max={maxRadius}
-          min={5}
+          min={2}
           step={5}
           className="w-full"
         />
         <div className="flex justify-between items-center text-xs">
-          <span className="text-muted-foreground">5 km</span>
+          <span className="text-muted-foreground">2 km</span>
           <span className="font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">
             {radius} km
           </span>

@@ -20,7 +20,7 @@ import { toast } from 'sonner';
 const Index = () => {
   const { user, profile } = useAuth();
   const [mode, setMode] = useState<ViewMode>('seeking');
-  const [radius, setRadius] = useState(50);
+  const [radius, setRadius] = useState(10);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Candidate | Job | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
