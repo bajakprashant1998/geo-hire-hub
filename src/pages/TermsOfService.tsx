@@ -5,7 +5,7 @@ import { SEOHead } from '@/components/SEOHead';
 
 const TermsOfService = () => (
   <div className="min-h-screen bg-background">
-    <SEOHead title="Terms of Service | HireForJob" description="Read HireForJob's terms of service governing the use of our job search and recruitment platform." canonicalUrl="https://hireforjob1.lovable.app/terms" />
+    <SEOHead title="Terms of Service | HireForJob" description="Read HireForJob's terms of service governing the use of our job search and recruitment platform." canonicalUrl="https://www.hireforjob.com/terms" />
     <div className="container mx-auto px-4 py-8 max-w-3xl">
       <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-8 group">
         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />

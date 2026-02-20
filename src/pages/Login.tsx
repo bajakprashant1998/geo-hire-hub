@@ -106,7 +106,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex">
-      <SEOHead title="Login | HireForJob" description="Sign in to HireForJob to find jobs, manage applications, and connect with employers near you." canonicalUrl="https://hireforjob1.lovable.app/login" />
+      <SEOHead title="Login | HireForJob" description="Sign in to HireForJob to find jobs, manage applications, and connect with employers near you." canonicalUrl="https://www.hireforjob.com/login" />
       {/* Left side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary via-primary/90 to-primary/80 relative overflow-hidden">
         {/* Animated background shapes */}

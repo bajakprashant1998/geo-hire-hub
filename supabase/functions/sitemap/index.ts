@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   );
 
-  const baseUrl = 'https://hireforjob1.lovable.app';
+  const baseUrl = 'https://www.hireforjob.com';
 
   // Static pages
   const staticPages = ['/', '/login', '/signup', '/terms', '/privacy', '/plans', '/browse-jobs'];

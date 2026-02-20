@@ -116,7 +116,7 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
     }
   }, [id]);
 
-  const baseUrl = 'https://hireforjob1.lovable.app';
+  const baseUrl = 'https://www.hireforjob.com';
   const empSeoTitle = employer ? `${employer.company_name}${employer.industry ? ` - ${employer.industry}` : ''} | HireForJob` : 'Company Profile | HireForJob';
   const empSeoDesc = employer ? `${employer.company_name}${employer.industry ? `, ${employer.industry}` : ''}. ${jobs.length} open positions. View company profile on HireForJob.` : '';
   const empCanonical = employer ? `${baseUrl}${window.location.pathname}` : undefined;
