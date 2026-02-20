@@ -159,33 +159,24 @@ const Signup = () => {
     try {
       const fullName = `${firstName} ${lastName}`.trim();
 
-      // Check if user already exists first (Optional, but gives better error message)
-      // Since we can't reliably query profiles unauthenticated without RLS issues, 
-      // we'll rely on the edge function returning a clear error if the email is taken.
-
-      // Call the Edge Function 'signup' instead of supabase.auth.signUp
-      // This ensures we use the admin API to create user and send CUSTOM email via Resend
-      // bypassing the default Supabase email that needs SMTP config
-      const { data, error } = await supabase.functions.invoke('signup', {
-        body: {
-          email,
-          password,
-          options: {
-            emailRedirectTo: window.location.origin,
-            data: {
-              full_name: fullName,
-              user_type: userType,
-              phone: `${countryCode}${phone}`,
-              sector,
-              ...(userType === 'employer' ? { organization_name: organizationName } : {}),
-            },
+      // We are reverting to standard Supabase auth because the Edge Function
+      // is not deployed on the Lovable-managed Supabase instance.
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: window.location.origin,
+          data: {
+            full_name: fullName,
+            user_type: userType,
+            phone: `${countryCode}${phone}`,
+            sector,
+            ...(userType === 'employer' ? { organization_name: organizationName } : {}),
           },
         },
       });
 
       if (error) throw error;
-      // Edge function might return data.error if it failed logic but succeeded http
-      if (data?.error) throw new Error(data.error);
 
       const user = data?.user;
 
