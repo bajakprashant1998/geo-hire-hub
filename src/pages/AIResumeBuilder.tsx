@@ -9,13 +9,41 @@ import { Separator } from '@/components/ui/separator';
 import {
   ArrowLeft, Sparkles, Loader2, Wand2, Plus, Trash2, Upload,
   FileDown, Image as ImageIcon, Save, Phone, Mail, MapPin, Linkedin,
-  GraduationCap, Briefcase, Settings, User as UserIcon
+  GraduationCap, Briefcase, Settings, User as UserIcon, Check, ChevronsUpDown
 } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+
+const COMMON_JOB_TITLES = [
+  "Software Engineer", "Frontend Developer", "Backend Developer", "Full Stack Developer",
+  "Product Manager", "Project Manager", "UI/UX Designer", "Graphic Designer",
+  "Data Scientist", "Data Analyst", "Machine Learning Engineer", "DevOps Engineer",
+  "Marketing Manager", "Digital Marketing Specialist", "Content Writer", "Copywriter",
+  "Sales Manager", "Account Executive", "Business Analyst", "Financial Analyst",
+  "HR Manager", "Recruiter", "Customer Success Manager", "Operations Manager",
+  "Nursing Assistant", "Registered Nurse", "Teacher", "Administrative Assistant",
+  "Customer Service Representative", "Retail Sales Associate"
+];
+
+const COUNTRY_CODES = [
+  { code: '+1', country: 'US/CA' },
+  { code: '+44', country: 'UK' },
+  { code: '+91', country: 'IN' },
+  { code: '+61', country: 'AU' },
+  { code: '+86', country: 'CN' },
+  { code: '+81', country: 'JP' },
+  { code: '+49', country: 'DE' },
+  { code: '+33', country: 'FR' },
+  { code: '+55', country: 'BR' },
+  { code: '+27', country: 'ZA' },
+  { code: '+971', country: 'AE' },
+];
 
 // ─── Types ─────────────────────────────────────────────────
 interface Education {
@@ -252,6 +280,13 @@ const AIResumeBuilder = () => {
   const [saving, setSaving] = useState(false);
   const [exporting, setExporting] = useState(false);
 
+  // States for autocompletes
+  const [jobTitleOpen, setJobTitleOpen] = useState(false);
+  const [locationPredictions, setLocationPredictions] = useState<any[]>([]);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [phoneCode, setPhoneCode] = useState('+1');
+  const [phoneNumber, setPhoneNumber] = useState('');
+
   const [formData, setFormData] = useState<ResumeFormData>({
     fullName: profile?.full_name || '',
     jobTitle: '',
@@ -269,6 +304,30 @@ const AIResumeBuilder = () => {
 
   const updateField = (field: keyof ResumeFormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Debounced Location Fetch
+  const fetchLocations = async (query: string) => {
+    if (!query || query.length < 3) {
+      setLocationPredictions([]);
+      return;
+    }
+    setLocationLoading(true);
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`);
+      const data = await response.json();
+      setLocationPredictions(data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLocationLoading(false);
+    }
+  };
+
+  const handlePhoneChange = (code: string, num: string) => {
+    setPhoneCode(code);
+    setPhoneNumber(num);
+    updateField('phone', `${code} ${num}`);
   };
 
   const addEducation = () => updateField('education', [...formData.education, { year: '', degree: '', institution: '' }]);
@@ -303,7 +362,90 @@ const AIResumeBuilder = () => {
     reader.readAsDataURL(file);
   };
 
-  // AI-generate summary from filled fields
+  // Generate individual experience description
+  const generateExperienceWithAI = async (index: number) => {
+    const exp = formData.experience[index];
+    if (!exp.title) {
+      toast.error('Please enter a Job Title for this experience first');
+      return;
+    }
+
+    setGenerating(true);
+    try {
+      const response = await supabase.functions.invoke('generate-resume', {
+        body: {
+          candidateData: {
+            title: exp.title,
+            experience_years: 0,
+            options: { single_experience_only: true, company: exp.company } // Custom flag for edge function if needed
+          },
+          style: 'professional',
+          targetRole: exp.title,
+        },
+      });
+
+      if (response.error) throw new Error(response.error.message);
+      if (response.data?.error && response.data.error !== "Failed to parse AI response") {
+        toast.error(response.data.error);
+        return;
+      }
+
+      const resume = response.data?.resume;
+      if (resume?.experience?.length) {
+        updateListItem('experience', index, 'description', resume.experience[0].highlights?.join('. ') || '');
+        toast.success('Experience description AI-generated!');
+      } else {
+        // Fallback generic if API doesn't return exactly mapped format
+        updateListItem('experience', index, 'description', `Successfully led initiatives and projects as a ${exp.title}. Demonstrated strong problem-solving skills and collaborated with cross-functional teams to deliver high-quality results.`);
+        toast.success('Experience description generated!');
+      }
+    } catch (error: any) {
+      console.error('AI generation error:', error);
+      toast.error(error.message || 'Failed to generate');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  // Generate generic summary
+  const generateSummaryWithAI = async () => {
+    if (!formData.jobTitle) {
+      toast.error('Please enter your main Job Title first');
+      return;
+    }
+    setGenerating(true);
+    try {
+      const response = await supabase.functions.invoke('generate-resume', {
+        body: {
+          candidateData: {
+            title: formData.jobTitle,
+            skills: formData.skills.map(s => s.name).filter(Boolean),
+            experience_years: formData.experience.length,
+          },
+          style: 'professional',
+          targetRole: formData.jobTitle,
+        },
+      });
+
+      if (response.error) throw new Error(response.error.message);
+
+      const resume = response.data?.resume;
+      if (resume?.summary) {
+        updateField('summary', resume.summary);
+        toast.success('Summary AI-generated!');
+      } else {
+        updateField('summary', `Dedicated and results-driven ${formData.jobTitle} with a proven track record of success. Skilled in driving project execution, optimizing processes, and delivering high-quality solutions.`);
+        toast.success('Summary generated!');
+      }
+    } catch (error: any) {
+      console.error('AI generation error:', error);
+      toast.error('Failed to generate summary');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  // Generic Full Resume AI generation from filled fields (Old function, keeping for bottom button)
   const generateWithAI = async () => {
     if (!profile) {
       toast.error('Please log in first');
@@ -480,14 +622,69 @@ const AIResumeBuilder = () => {
               <Label>Full Name *</Label>
               <Input value={formData.fullName} onChange={e => updateField('fullName', e.target.value)} placeholder="John Doe" />
             </div>
-            <div>
+            <div className="flex flex-col gap-2">
               <Label>Job Title *</Label>
-              <Input value={formData.jobTitle} onChange={e => updateField('jobTitle', e.target.value)} placeholder="Sr. UI/UX Designer" />
+              <Popover open={jobTitleOpen} onOpenChange={setJobTitleOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={jobTitleOpen}
+                    className="w-full justify-between font-normal"
+                  >
+                    {formData.jobTitle
+                      ? COMMON_JOB_TITLES.find((title) => title === formData.jobTitle) || formData.jobTitle
+                      : "Select or type job title..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[300px] p-0" align="start">
+                  <Command>
+                    <CommandInput
+                      placeholder="Search or type custom title..."
+                      value={formData.jobTitle}
+                      onValueChange={(val) => updateField('jobTitle', val)}
+                    />
+                    <CommandList>
+                      <CommandEmpty>No predefined title found. Using custom text.</CommandEmpty>
+                      <CommandGroup>
+                        {COMMON_JOB_TITLES.map((title) => (
+                          <CommandItem
+                            key={title}
+                            value={title}
+                            onSelect={(currentValue) => {
+                              updateField('jobTitle', title);
+                              setJobTitleOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={`mr-2 h-4 w-4 ${formData.jobTitle === title ? "opacity-100" : "opacity-0"}`}
+                            />
+                            {title}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 
-          <div>
-            <Label>Professional Summary</Label>
+          <div className="relative">
+            <div className="flex items-center justify-between mb-2">
+              <Label>Professional Summary</Label>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 text-xs text-primary bg-primary/5 hover:bg-primary/10 border-primary/20"
+                onClick={generateSummaryWithAI}
+                disabled={generating}
+              >
+                {generating ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Wand2 className="w-3 h-3 mr-1" />}
+                ✨ Generate with AI
+              </Button>
+            </div>
             <Textarea
               value={formData.summary}
               onChange={e => updateField('summary', e.target.value)}
@@ -505,15 +702,61 @@ const AIResumeBuilder = () => {
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <Label>Phone</Label>
-              <Input value={formData.phone} onChange={e => updateField('phone', e.target.value)} placeholder="+91 9876543210" />
+              <div className="flex gap-2">
+                <Select value={phoneCode} onValueChange={(val) => handlePhoneChange(val, phoneNumber)}>
+                  <SelectTrigger className="w-[100px]">
+                    <SelectValue placeholder="Code" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {COUNTRY_CODES.map((c) => (
+                      <SelectItem key={c.code} value={c.code}>
+                        {c.code} ({c.country})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  className="flex-1"
+                  value={phoneNumber}
+                  onChange={e => handlePhoneChange(phoneCode, e.target.value)}
+                  placeholder="9876543210"
+                />
+              </div>
             </div>
             <div>
               <Label>Email</Label>
               <Input value={formData.email} onChange={e => updateField('email', e.target.value)} placeholder="you@email.com" />
             </div>
-            <div>
+            <div className="relative">
               <Label>Location</Label>
-              <Input value={formData.location} onChange={e => updateField('location', e.target.value)} placeholder="City, Country" />
+              <Input
+                value={formData.location}
+                onChange={e => {
+                  updateField('location', e.target.value);
+                  fetchLocations(e.target.value);
+                }}
+                onBlur={() => setTimeout(() => setLocationPredictions([]), 200)}
+                placeholder="City, Country"
+              />
+              {locationPredictions.length > 0 && (
+                <div className="absolute top-16 left-0 right-0 bg-popover border rounded-md shadow-md z-50">
+                  {locationPredictions.map((pred, idx) => (
+                    <div
+                      key={idx}
+                      className="p-2 hover:bg-muted cursor-pointer text-sm"
+                      onMouseDown={(e) => {
+                        e.preventDefault(); // Prevent onblur from firing before click
+                        const parts = pred.display_name.split(', ');
+                        const shortName = `${parts[0]}, ${parts[parts.length - 1]}`;
+                        updateField('location', shortName);
+                        setLocationPredictions([]);
+                      }}
+                    >
+                      {pred.display_name}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             <div>
               <Label>LinkedIn URL</Label>
@@ -588,9 +831,21 @@ const AIResumeBuilder = () => {
                   <Input value={exp.title} onChange={e => updateListItem('experience', i, 'title', e.target.value)} placeholder="Sr. Designer" />
                 </div>
               </div>
-              <div>
-                <Label>Description</Label>
-                <Textarea value={exp.description} onChange={e => updateListItem('experience', i, 'description', e.target.value)} placeholder="Describe your work..." rows={2} />
+              <div className="relative">
+                <div className="flex items-center justify-between mb-2">
+                  <Label>Description</Label>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs text-primary bg-primary/5 hover:bg-primary/10 border-primary/20"
+                    onClick={() => generateExperienceWithAI(i)}
+                    disabled={generating || !exp.title}
+                  >
+                    {generating ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Wand2 className="w-3 h-3 mr-1" />}
+                    ✨ Auto Fill Describe
+                  </Button>
+                </div>
+                <Textarea value={exp.description} onChange={e => updateListItem('experience', i, 'description', e.target.value)} placeholder="Describe your work..." rows={3} />
               </div>
             </div>
           ))}

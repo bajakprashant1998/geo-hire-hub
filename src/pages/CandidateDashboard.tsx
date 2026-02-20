@@ -19,7 +19,7 @@ import { JobMatchCarousel } from '@/components/dashboard/JobMatchCarousel';
 import { ChatModal } from '@/components/messaging/ChatModal';
 
 import { ProfileEditModal } from '@/components/candidate/ProfileEditModal';
-import { ResumeUpload } from '@/components/candidate/ResumeUpload';
+import { ResumeAndDocumentManager } from '@/components/candidate/ResumeAndDocumentManager';
 import { JobActivityTabs } from '@/components/candidate/JobActivityTabs';
 import { NotificationCenter } from '@/components/candidate/NotificationCenter';
 import { JobAlertsManager } from '@/components/candidate/JobAlertsManager';
@@ -211,7 +211,7 @@ const CandidateDashboard = () => {
     { icon: Calendar, label: 'Scheduled Interviews', value: 'interviews' },
     { icon: FileText, label: 'Tasks', value: 'tasks' },
     { icon: Bookmark, label: 'Saved Jobs', value: 'saved' },
-    { icon: FileText, label: 'Resume', value: 'resume' },
+    { icon: FileText, label: 'Resume & Documents', value: 'resume' },
     { icon: Mic, label: 'Audio Resume', value: 'audio-resume' },
     { icon: Sparkles, label: 'AI Resume Builder', value: 'ai-resume' },
     { icon: Bell, label: 'Notifications', value: 'notifications' },
@@ -311,7 +311,7 @@ const CandidateDashboard = () => {
         navigate('/candidate-profile');
         return null;
       case 'resume':
-        return candidate && <ResumeUpload candidate={candidate} onUpdate={fetchCandidate} />;
+        return candidate && <ResumeAndDocumentManager candidate={candidate} onUpdate={fetchCandidate} />;
       case 'audio-resume':
         return candidate && <AudioResumeCard candidate={candidate} onUpdate={fetchCandidate} />;
       case 'alerts':

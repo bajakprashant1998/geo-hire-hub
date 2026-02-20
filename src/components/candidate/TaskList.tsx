@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import {
   Loader2, Calendar, CheckCircle2, Clock, AlertCircle,
-  Building2, FileText, Play, MessageSquare
+  Building2, FileText, Play, MessageSquare, Paperclip, Download
 } from 'lucide-react';
 
 interface TaskListProps {
@@ -26,6 +26,8 @@ interface Task {
   candidate_notes: string | null;
   created_at: string;
   employer_id: string;
+  file_url?: string | null;
+  file_name?: string | null;
   employer_name?: string;
 }
 
@@ -186,6 +188,21 @@ export const TaskList = ({ candidateId }: TaskListProps) => {
 
                     {task.description && (
                       <p className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">{task.description}</p>
+                    )}
+
+                    {task.file_url && task.file_name && (
+                      <div className="mt-2 mb-2 flex items-center gap-2 p-2 bg-muted/30 rounded border border-border/50 w-fit">
+                        <Paperclip className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">{task.file_name}</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs ml-2"
+                          onClick={() => window.open(task.file_url!, '_blank')}
+                        >
+                          <Download className="w-3 h-3 mr-1" /> Download
+                        </Button>
+                      </div>
                     )}
 
                     {/* Notes section */}

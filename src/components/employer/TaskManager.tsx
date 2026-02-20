@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import {
   Plus, Loader2, Calendar, CheckCircle2, Clock, AlertCircle,
-  User, FileText, Trash2
+  User, FileText, Trash2, Paperclip, Download
 } from 'lucide-react';
 
 interface TaskManagerProps {
@@ -30,6 +30,8 @@ interface Task {
   candidate_notes: string | null;
   created_at: string;
   candidate_id: string;
+  file_url?: string | null;
+  file_name?: string | null;
   candidate_name?: string;
   candidate_title?: string;
 }
@@ -57,6 +59,7 @@ export const TaskManager = ({ employerId }: TaskManagerProps) => {
     priority: 'medium',
     due_date: '',
   });
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
     fetchTasks();
@@ -137,6 +140,33 @@ export const TaskManager = ({ employerId }: TaskManagerProps) => {
     }
     setCreating(true);
     try {
+      let file_url = null;
+      let file_name = null;
+
+      if (selectedFile) {
+        // Validate file size (e.g., max 10MB)
+        if (selectedFile.size > 10 * 1024 * 1024) {
+          throw new Error("File size must be less than 10MB");
+        }
+
+        const fileExt = selectedFile.name.split('.').pop();
+        const fileName = `${crypto.randomUUID()}.${fileExt}`;
+        const filePath = `tasks/${employerId}/${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('resumes')
+          .upload(filePath, selectedFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: publicUrlData } = supabase.storage
+          .from('resumes')
+          .getPublicUrl(filePath);
+
+        file_url = publicUrlData.publicUrl;
+        file_name = selectedFile.name;
+      }
+
       const inserts = form.candidate_ids.map(cid => ({
         employer_id: employerId,
         candidate_id: cid,
@@ -144,11 +174,14 @@ export const TaskManager = ({ employerId }: TaskManagerProps) => {
         description: form.description || null,
         priority: form.priority,
         due_date: form.due_date || null,
+        file_url: file_url,
+        file_name: file_name,
       }));
       const { error } = await supabase.from('tasks').insert(inserts);
       if (error) throw error;
       toast.success(`Task assigned to ${form.candidate_ids.length} candidate(s)`);
       setForm({ title: '', description: '', candidate_ids: [], priority: 'medium', due_date: '' });
+      setSelectedFile(null);
       setDialogOpen(false);
       fetchTasks();
     } catch (error: any) {
@@ -284,6 +317,15 @@ export const TaskManager = ({ employerId }: TaskManagerProps) => {
                   <Input type="date" value={form.due_date} onChange={e => setForm({ ...form, due_date: e.target.value })} />
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label>Attachment (Optional)</Label>
+                <Input
+                  type="file"
+                  onChange={e => setSelectedFile(e.target.files?.[0] || null)}
+                  className="cursor-pointer"
+                />
+                <p className="text-xs text-muted-foreground">Max size: 10MB</p>
+              </div>
               <Button onClick={handleCreate} disabled={creating} className="w-full">
                 {creating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
                 Assign Task
@@ -376,6 +418,20 @@ export const TaskManager = ({ employerId }: TaskManagerProps) => {
                         <div className="mt-2 p-2 bg-muted/50 rounded-lg text-sm">
                           <p className="text-xs font-medium text-muted-foreground mb-1">Candidate Notes:</p>
                           <p className="text-foreground">{task.candidate_notes}</p>
+                        </div>
+                      )}
+                      {task.file_url && task.file_name && (
+                        <div className="mt-3 flex items-center gap-2">
+                          <Paperclip className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-sm font-medium">{task.file_name}</span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-7 text-xs ml-2"
+                            onClick={() => window.open(task.file_url!, '_blank')}
+                          >
+                            <Download className="w-3 h-3 mr-1" /> Download
+                          </Button>
                         </div>
                       )}
                     </div>
