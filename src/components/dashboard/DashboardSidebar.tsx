@@ -2,8 +2,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  Home, Briefcase, FileText, Bell, Shield, MessageSquare, 
+import {
+  Home, Briefcase, FileText, Bell, Shield, MessageSquare,
   Settings, LogOut, MapPin, Building2, Plus, Calendar,
   Bookmark, User, ChevronLeft, Users
 } from 'lucide-react';
@@ -46,14 +46,14 @@ export const DashboardSidebar = ({
     <>
       {/* Mobile Overlay */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={onClose}
         />
       )}
 
       {/* Sidebar */}
-      <aside 
+      <aside
         className={cn(
           "fixed top-0 left-0 h-full z-50 w-64 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto",
           isOpen ? "translate-x-0" : "-translate-x-full",
@@ -64,9 +64,9 @@ export const DashboardSidebar = ({
           {/* Logo */}
           <div className="p-5 flex items-center justify-between border-b">
             <Link to="/" className="flex items-center gap-2.5">
-              <img 
-                src="/logo.png" 
-                alt="Hire for Job" 
+              <img
+                src="/logo.png"
+                alt="Hire for Job"
                 className="w-9 h-9 rounded-xl object-contain"
               />
               <div>
@@ -74,9 +74,9 @@ export const DashboardSidebar = ({
                 <p className="text-xs text-muted-foreground capitalize">{type}</p>
               </div>
             </Link>
-            <Button 
-              variant="ghost" 
-              size="icon" 
+            <Button
+              variant="ghost"
+              size="icon"
               className="lg:hidden text-muted-foreground hover:bg-muted"
               onClick={onClose}
             >
@@ -117,7 +117,7 @@ export const DashboardSidebar = ({
                 {item.badge !== undefined && item.badge > 0 && (
                   <span className={cn(
                     "px-2 py-0.5 rounded-full text-xs font-semibold shrink-0",
-                    activeItem === item.value 
+                    activeItem === item.value
                       ? "bg-primary-foreground/20 text-primary-foreground"
                       : "bg-primary/10 text-primary"
                   )}>
@@ -132,8 +132,8 @@ export const DashboardSidebar = ({
           <div className="p-2 sm:p-3 border-t">
             {type === 'candidate' ? (
               <Link to="/" className="block">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full justify-start gap-2 border-primary text-primary hover:bg-primary/10 touch-target-sm touch-scale h-10 sm:h-11"
                 >
                   <Building2 className="w-4 h-4 shrink-0" />
@@ -152,8 +152,8 @@ export const DashboardSidebar = ({
 
           {/* Footer Links */}
           <div className="p-2 sm:p-3 border-t space-y-0.5 sm:space-y-1">
-            <Link 
-              to={type === 'employer' ? '/company-profile' : '/candidate-settings'}
+            <Link
+              to={type === 'employer' ? '/employer-settings' : '/candidate-settings'}
               className="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted active:bg-muted hover:text-foreground transition-all touch-target-sm touch-scale"
             >
               <Settings className="w-5 h-5 shrink-0" />

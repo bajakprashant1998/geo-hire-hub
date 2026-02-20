@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  Briefcase, Bell, Shield, FileText, Sparkles, Loader2, 
+  Briefcase, Bell, Shield, FileText, Sparkles, Loader2,
   Eye, Calendar, Star, ChevronRight, User, MessageSquare, Bookmark, Mic
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -170,6 +170,8 @@ const CandidateDashboard = () => {
       setChatModalOpen(true);
     } else if (value === 'ai-resume') {
       navigate('/ai-resume-builder');
+    } else if (value === 'profile') {
+      navigate('/candidate-profile');
     } else {
       setActiveSection(value);
     }
@@ -295,8 +297,7 @@ const CandidateDashboard = () => {
       case 'interviews':
         return candidate && <InterviewCalendar candidateId={candidate.id} />;
       case 'profile':
-        setEditModalOpen(true);
-        setActiveSection(null);
+        navigate('/candidate-profile');
         return null;
       case 'resume':
         return candidate && <ResumeUpload candidate={candidate} onUpdate={fetchCandidate} />;
@@ -314,7 +315,7 @@ const CandidateDashboard = () => {
         return candidate && <CandidateDetail id={candidate.id} />;
       case 'recommended':
         return candidate && (
-          <RecommendedJobs 
+          <RecommendedJobs
             candidateId={candidate.id}
             skills={candidate.skills || []}
             latitude={profile.latitude}
@@ -359,8 +360,8 @@ const CandidateDashboard = () => {
           <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto pb-20 md:pb-6">
             {activeSection && activeSection !== 'messages' && activeSection !== 'profile' ? (
               <div className="max-w-6xl mx-auto">
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   onClick={() => setActiveSection(null)}
                   className="mb-4 text-muted-foreground hover:text-foreground"
                 >
@@ -382,7 +383,7 @@ const CandidateDashboard = () => {
                     candidate={candidate}
                     profile={profile}
                     onNavigate={handleSectionClick}
-                    onEditProfile={() => setEditModalOpen(true)}
+                    onEditProfile={() => navigate('/candidate-profile')}
                   />
                 )}
                 {completeness < 100 && (
@@ -400,18 +401,18 @@ const CandidateDashboard = () => {
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           className="text-xs sm:text-sm h-8 sm:h-9"
                           onClick={() => setEditModalOpen(true)}
                         >
                           Quick Edit
                         </Button>
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           className="text-xs sm:text-sm h-8 sm:h-9"
-                          onClick={() => navigate('/candidate-settings')}
+                          onClick={() => navigate('/candidate-profile')}
                         >
                           Edit Profile
                         </Button>
@@ -470,9 +471,9 @@ const CandidateDashboard = () => {
                 )}
 
                 {candidate && (
-                  <JobMatchCarousel 
-                    candidateId={candidate.id} 
-                    skills={candidate.skills || []} 
+                  <JobMatchCarousel
+                    candidateId={candidate.id}
+                    skills={candidate.skills || []}
                   />
                 )}
               </div>
@@ -490,9 +491,9 @@ const CandidateDashboard = () => {
           />
         )}
 
-        <ChatModal 
-          isOpen={chatModalOpen} 
-          onClose={() => setChatModalOpen(false)} 
+        <ChatModal
+          isOpen={chatModalOpen}
+          onClose={() => setChatModalOpen(false)}
         />
 
         <DashboardBottomNav

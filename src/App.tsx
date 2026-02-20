@@ -18,10 +18,11 @@ import RoleSelection from "./pages/auth/RoleSelection";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import BrowseJobs from "./pages/BrowseJobs";
-
 import CandidateDashboard from "./pages/CandidateDashboard";
 import CandidateSettings from "./pages/CandidateSettings";
+import CandidateProfileEdit from "./pages/CandidateProfileEdit";
 import EmployerDashboard from "./pages/EmployerDashboard";
+import EmployerSettings from "./pages/EmployerSettings";
 import AIResumeBuilder from "./pages/AIResumeBuilder";
 import PostJob from "./pages/PostJob";
 import Messages from "./pages/Messages";
@@ -111,10 +112,12 @@ const App = () => (
               {/* ==================== CANDIDATE ROUTES ==================== */}
               <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
               <Route path="/candidate-settings" element={<CandidateSettings />} />
+              <Route path="/candidate-profile" element={<CandidateProfileEdit />} />
               <Route path="/ai-resume-builder" element={<AIResumeBuilder />} />
 
               {/* ==================== EMPLOYER ROUTES ==================== */}
               <Route path="/employer-dashboard" element={<EmployerDashboard />} />
+              <Route path="/employer-settings" element={<EmployerSettings />} />
               <Route path="/post-job" element={<PostJob />} />
               <Route path="/edit-job/:jobId" element={<PostJob />} />
               <Route path="/company-profile" element={<CompanyProfileEdit />} />

@@ -35,9 +35,9 @@ export const EmployerHeader = ({
       <div className="h-full px-4 lg:px-6 flex items-center justify-between gap-4">
         {/* Left - Menu Button (Mobile) + Search */}
         <div className="flex items-center gap-4 flex-1">
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="lg:hidden"
             onClick={onMenuClick}
           >
@@ -48,8 +48,8 @@ export const EmployerHeader = ({
           <div className="hidden md:flex items-center flex-1 max-w-md">
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search candidates, jobs..." 
+              <Input
+                placeholder="Search candidates, jobs..."
                 className="pl-10 bg-muted/50 border-0 focus-visible:ring-1"
               />
             </div>
@@ -108,13 +108,13 @@ export const EmployerHeader = ({
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/company-profile" className="flex items-center gap-2 cursor-pointer">
+                <Link to="/employer-settings" className="flex items-center gap-2 cursor-pointer">
                   <Settings className="w-4 h-4" />
                   Settings
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={onSignOut}
                 className="text-destructive focus:text-destructive cursor-pointer"
               >

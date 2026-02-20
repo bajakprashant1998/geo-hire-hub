@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import {
-  MapPin, Briefcase, Building2, Plus, Loader2, Eye, Users, 
+  MapPin, Briefcase, Building2, Plus, Loader2, Eye, Users,
   CheckCircle2, ChevronRight, FileEdit, CreditCard, UserCheck,
   MessageSquare, Calendar, BarChart3, User, Settings, Pencil, Trash2, Shield
 } from 'lucide-react';
@@ -108,7 +108,7 @@ const EmployerDashboard = () => {
 
   const fetchEmployerData = async () => {
     if (!profile || !user) return;
-    
+
     try {
       const { data: employerData } = await supabase
         .from('employers')
@@ -198,7 +198,10 @@ const EmployerDashboard = () => {
     } else if (value === 'company') {
       navigate('/company-profile');
     } else if (value === 'settings') {
-      navigate('/company-profile');
+      navigate('/employer-settings');
+    } else if (value === 'upgrade-plan') {
+      navigate('/plans');
+      return;
     } else {
       setActiveSection(value);
     }
@@ -207,21 +210,21 @@ const EmployerDashboard = () => {
 
   const handleDeleteJob = async () => {
     if (!jobToDelete) return;
-    
+
     setDeletingJob(true);
     try {
       const { error } = await supabase
         .from('jobs')
         .delete()
         .eq('id', jobToDelete.id);
-      
+
       if (error) throw error;
-      
+
       setJobs(jobs.filter(j => j.id !== jobToDelete.id));
       if (selectedJob?.id === jobToDelete.id) {
         setSelectedJob(jobs.find(j => j.id !== jobToDelete.id) || null);
       }
-      
+
       toast.success('Job deleted successfully');
     } catch (error: any) {
       toast.error('Failed to delete job: ' + error.message);
@@ -241,7 +244,8 @@ const EmployerDashboard = () => {
     { icon: BarChart3, label: 'Analytics', value: 'analytics' },
     { icon: Building2, label: 'Company Profile', value: 'company' },
     { icon: Eye, label: 'Public Profile', value: 'public-profile' },
-    { icon: Shield, label: 'Security', value: 'security' }
+    { icon: Shield, label: 'Security', value: 'security' },
+    { icon: CreditCard, label: 'Upgrade Plan', value: 'upgrade-plan' }
   ];
 
   // Show loading while auth is being checked
@@ -331,8 +335,8 @@ const EmployerDashboard = () => {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-lg text-foreground">All Jobs ({jobs.length})</h3>
                 <Link to="/post-job">
-                <Button size="sm">
-                  <Plus className="w-4 h-4 mr-1" /> New
+                  <Button size="sm">
+                    <Plus className="w-4 h-4 mr-1" /> New
                   </Button>
                 </Link>
               </div>
@@ -342,7 +346,7 @@ const EmployerDashboard = () => {
                     <Briefcase className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
                     <p className="text-muted-foreground mb-4">No jobs posted yet</p>
                     <Link to="/post-job">
-                    <Button>Post Your First Job</Button>
+                      <Button>Post Your First Job</Button>
                     </Link>
                   </CardContent>
                 </Card>
@@ -351,11 +355,10 @@ const EmployerDashboard = () => {
                   <Card
                     key={job.id}
                     onClick={() => setSelectedJob(job)}
-                    className={`cursor-pointer transition-all duration-200 ${
-                      selectedJob?.id === job.id 
-                        ? 'ring-2 ring-primary shadow-md' 
-                        : 'hover:shadow-md'
-                    }`}
+                    className={`cursor-pointer transition-all duration-200 ${selectedJob?.id === job.id
+                      ? 'ring-2 ring-primary shadow-md'
+                      : 'hover:shadow-md'
+                      }`}
                   >
                     <CardContent className="p-4">
                       <h4 className="font-semibold truncate mb-2 text-foreground">{job.title}</h4>
@@ -376,7 +379,7 @@ const EmployerDashboard = () => {
               {selectedJob ? (
                 <Card className="shadow-sm border bg-card">
                   <CardHeader className="border-b">
-                     <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
+                    <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
                       <div>
                         <CardTitle className="text-lg sm:text-xl text-foreground">{selectedJob.title}</CardTitle>
                         <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
@@ -400,9 +403,9 @@ const EmployerDashboard = () => {
                             <span className="hidden sm:inline">Edit</span>
                           </Button>
                         </Link>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           className="text-destructive hover:text-destructive hover:bg-destructive/10"
                           onClick={() => setJobToDelete(selectedJob)}
                         >
@@ -496,8 +499,8 @@ const EmployerDashboard = () => {
           <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto pb-20 md:pb-6">
             {activeSection ? (
               <div className="max-w-6xl mx-auto">
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   onClick={() => setActiveSection(null)}
                   className="mb-4 text-muted-foreground hover:text-foreground"
                 >
@@ -563,9 +566,9 @@ const EmployerDashboard = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   <div className="md:col-span-2 lg:col-span-2">
                     {employer && (
-                      <ActiveJobsTable 
-                        employerId={employer.id} 
-                        onManageJobs={() => setActiveSection('jobs')} 
+                      <ActiveJobsTable
+                        employerId={employer.id}
+                        onManageJobs={() => setActiveSection('jobs')}
                       />
                     )}
                   </div>
@@ -579,9 +582,9 @@ const EmployerDashboard = () => {
         </div>
 
         {/* Chat Modal */}
-        <ChatModal 
-          isOpen={chatModalOpen} 
-          onClose={() => setChatModalOpen(false)} 
+        <ChatModal
+          isOpen={chatModalOpen}
+          onClose={() => setChatModalOpen(false)}
         />
 
         {/* Delete Job Confirmation Dialog */}
@@ -590,7 +593,7 @@ const EmployerDashboard = () => {
             <AlertDialogHeader>
               <AlertDialogTitle>Delete Job Posting</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete "{jobToDelete?.title}"? This action cannot be undone. 
+                Are you sure you want to delete "{jobToDelete?.title}"? This action cannot be undone.
                 All associated applications will also be removed.
               </AlertDialogDescription>
             </AlertDialogHeader>

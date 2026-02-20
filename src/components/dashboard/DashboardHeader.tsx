@@ -38,7 +38,8 @@ export const DashboardHeader = ({
   messageCount = 0,
   profileCompleteness = 75
 }: DashboardHeaderProps) => {
-  const settingsPath = type === 'employer' ? '/company-profile' : '/candidate-settings';
+  const profilePath = type === 'employer' ? '/company-profile' : '/candidate-profile';
+  const settingsPath = type === 'employer' ? '/employer-settings' : '/candidate-settings';
   const firstName = userName?.split(' ')[0] || 'User';
   const { theme, setTheme } = useTheme();
   const { t } = useTranslation();
@@ -48,9 +49,9 @@ export const DashboardHeader = ({
       <div className="h-full px-3 sm:px-4 lg:px-6 flex items-center justify-between">
         {/* Left - Menu Button (Mobile) + Welcome Message */}
         <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="lg:hidden touch-target touch-scale shrink-0"
             onClick={onMenuClick}
           >
@@ -76,16 +77,16 @@ export const DashboardHeader = ({
           <div className="hidden sm:flex items-center gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-muted/50">
             <div className="relative w-7 h-7 sm:w-8 sm:h-8">
               <svg className="w-7 h-7 sm:w-8 sm:h-8 -rotate-90">
-                <circle 
-                  cx="50%" cy="50%" r="10" 
-                  fill="none" 
-                  stroke="hsl(var(--border))" 
-                  strokeWidth="3" 
+                <circle
+                  cx="50%" cy="50%" r="10"
+                  fill="none"
+                  stroke="hsl(var(--border))"
+                  strokeWidth="3"
                 />
-                <circle 
-                  cx="50%" cy="50%" r="10" 
-                  fill="none" 
-                  stroke="hsl(var(--primary))" 
+                <circle
+                  cx="50%" cy="50%" r="10"
+                  fill="none"
+                  stroke="hsl(var(--primary))"
                   strokeWidth="3"
                   strokeDasharray={`${profileCompleteness * 0.63} 63`}
                   strokeLinecap="round"
@@ -112,9 +113,9 @@ export const DashboardHeader = ({
           <LanguageSelector className="hidden sm:flex" />
 
           {/* Theme Toggle */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="touch-target touch-scale hidden sm:flex"
             onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
           >
@@ -146,7 +147,7 @@ export const DashboardHeader = ({
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild className="touch-target-sm">
-                <Link to={settingsPath} className="flex items-center gap-2 cursor-pointer">
+                <Link to={profilePath} className="flex items-center gap-2 cursor-pointer">
                   <User className="w-4 h-4" />
                   Profile
                 </Link>
@@ -158,7 +159,7 @@ export const DashboardHeader = ({
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={onSignOut}
                 className="text-destructive focus:text-destructive cursor-pointer touch-target-sm"
               >
