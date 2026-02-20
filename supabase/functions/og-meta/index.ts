@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const BASE_URL = 'https://hireforjob1.lovable.app';
+const BASE_URL = 'https://www.hireforjob.com';
 const SITE_NAME = 'HireForJob';
 const DEFAULT_IMAGE = `${BASE_URL}/logo.png`;
 

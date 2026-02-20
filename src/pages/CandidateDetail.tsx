@@ -119,7 +119,7 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
     if (id) fetchCandidate();
   }, [id]);
 
-  const baseUrl = 'https://hireforjob1.lovable.app';
+  const baseUrl = 'https://www.hireforjob.com';
   const candSeoTitle = candidate ? `${candidate.full_name} - ${candidate.job_title} | HireForJob` : 'Candidate Profile | HireForJob';
   const candSeoDesc = candidate ? `${candidate.full_name}, ${candidate.job_title}${candidate.experience_years ? ` with ${candidate.experience_years}+ years experience` : ''}. View profile on HireForJob.` : '';
   const candCanonical = candidate ? `${baseUrl}${window.location.pathname}` : undefined;

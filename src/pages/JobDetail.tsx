@@ -202,7 +202,7 @@ const JobDetail = () => {
     }
   }, [resolvedId]);
 
-  const baseUrl = 'https://hireforjob1.lovable.app';
+  const baseUrl = 'https://www.hireforjob.com';
   const jobSeoTitle = job ? `${job.title} at ${job.employer.company_name} | HireForJob` : 'Job Details | HireForJob';
   const jobSeoDesc = job ? `Apply for ${job.title} at ${job.employer.company_name}. ${job.job_type || 'Full-time'}${job.salary_range ? ` | ${job.salary_range}` : ''}${job.job_address ? ` | ${job.job_address}` : ''}` : '';
   const jobCanonical = job ? `${baseUrl}${window.location.pathname}` : undefined;
