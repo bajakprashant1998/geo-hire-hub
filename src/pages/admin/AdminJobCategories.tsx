@@ -219,11 +219,12 @@ export default function AdminJobCategories() {
     try {
       const { data, error } = await supabase.functions.invoke('generate-job-description', {
         body: {
-          prompt: `Generate a brief, professional 1-2 sentence description for the job category "${formData.name}". Describe what types of roles and responsibilities fall under this category. Keep it concise and informative. Only return the description text, no quotes or labels.`,
+          jobTitle: formData.name.trim(),
+          jobType: 'Category Description',
         },
       });
       if (error) throw error;
-      const description = data?.description || data?.text || data;
+      const description = data?.description;
       if (typeof description === 'string' && description.trim()) {
         setFormData(prev => ({ ...prev, description: description.trim() }));
         toast.success('Description generated!');
