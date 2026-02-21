@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { GeminiError, generateGeminiChat } from "../_shared/gemini.ts";
+import { GeminiError, generateGeminiChat, extractJSON } from "../_shared/gemini.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,7 +19,7 @@ serve(async (req) => {
 
   try {
     const { candidateId, jobId } = await req.json() as MatchRequest;
-    
+
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -137,22 +137,17 @@ Be realistic and objective. Consider skill relevance, experience level, location
         continue;
       }
 
-      let matchData;
+      let matchData: any;
       try {
-        const jsonMatch = content.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          matchData = JSON.parse(jsonMatch[0]);
-        } else {
-          throw new Error("No JSON in response");
-        }
+        matchData = extractJSON(content);
       } catch {
         // Fallback to basic matching
         const skillOverlap = (candidate.skills || []).filter((s: string) =>
-          (job.skills || []).some((js: string) => 
+          (job.skills || []).some((js: string) =>
             js.toLowerCase().includes(s.toLowerCase()) || s.toLowerCase().includes(js.toLowerCase())
           )
         );
-        
+
         matchData = {
           score: Math.min(100, skillOverlap.length * 15 + 30),
           reasons: ["Skill-based match", "Location considered"],

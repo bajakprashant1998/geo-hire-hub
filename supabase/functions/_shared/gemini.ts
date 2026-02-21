@@ -106,3 +106,19 @@ export async function generateGeminiChat({
     throw error;
   }
 }
+
+export function extractJSON<T>(text: string): T {
+  try {
+    // Try to find a JSON block in the text
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      return JSON.parse(jsonMatch[0]);
+    }
+
+    // Fallback: try parsing the whole thing
+    return JSON.parse(text);
+  } catch (e) {
+    console.error("JSON parse error:", e, "Text:", text);
+    throw new Error("Failed to parse AI response as JSON");
+  }
+}

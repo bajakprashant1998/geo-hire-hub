@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { GeminiError, generateGeminiChat } from "../_shared/gemini.ts";
+import { GeminiError, generateGeminiChat, extractJSON } from "../_shared/gemini.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -82,12 +82,7 @@ Generate ATS-optimized content that showcases their qualifications professionall
     // Parse JSON from the response
     let resumeData;
     try {
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        resumeData = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error("No JSON found in response");
-      }
+      resumeData = extractJSON(content);
     } catch (parseError) {
       console.error("Parse error:", parseError);
       // Fallback structure
