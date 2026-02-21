@@ -36,11 +36,13 @@ interface JobCategory {
   updated_at: string;
 }
 
-const ITEMS_PER_PAGE = 20;
+const ITEMS_PER_PAGE = 50;
 
 export default function AdminJobCategories() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [searchTimeout, setSearchTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -56,39 +58,70 @@ export default function AdminJobCategories() {
     sort_order: 0,
   });
 
-  const { data: categories, isLoading } = useQuery({
-    queryKey: ['admin-job-categories'],
+  // Server-side paginated query
+  const { data: queryResult, isLoading } = useQuery({
+    queryKey: ['admin-job-categories', page, debouncedSearch, statusFilter],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const from = (page - 1) * ITEMS_PER_PAGE;
+      const to = from + ITEMS_PER_PAGE - 1;
+
+      let query = supabase
         .from('job_categories')
-        .select('*')
-        .order('sort_order', { ascending: true });
+        .select('*', { count: 'exact' });
+
+      // Apply search filter
+      if (debouncedSearch.trim()) {
+        query = query.or(`name.ilike.%${debouncedSearch.trim()}%,description.ilike.%${debouncedSearch.trim()}%`);
+      }
+
+      // Apply status filter
+      if (statusFilter === 'active') {
+        query = query.eq('is_active', true);
+      } else if (statusFilter === 'inactive') {
+        query = query.eq('is_active', false);
+      }
+
+      query = query.order('name', { ascending: true }).range(from, to);
+
+      const { data, error, count } = await query;
       if (error) throw error;
-      return data as JobCategory[];
+      return { categories: data as JobCategory[], totalCount: count || 0 };
     },
   });
 
-  // Filtered & paginated categories
-  const filteredCategories = categories?.filter((cat) => {
-    const matchesSearch =
-      cat.name.toLowerCase().includes(search.toLowerCase()) ||
-      cat.description?.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus =
-      statusFilter === 'all' ||
-      (statusFilter === 'active' && cat.is_active) ||
-      (statusFilter === 'inactive' && !cat.is_active);
-    return matchesSearch && matchesStatus;
+  // Separate query for stats (total/active/inactive counts)
+  const { data: stats } = useQuery({
+    queryKey: ['admin-job-categories-stats'],
+    queryFn: async () => {
+      const [totalRes, activeRes] = await Promise.all([
+        supabase.from('job_categories').select('id', { count: 'exact', head: true }),
+        supabase.from('job_categories').select('id', { count: 'exact', head: true }).eq('is_active', true),
+      ]);
+      const total = totalRes.count || 0;
+      const active = activeRes.count || 0;
+      return { total, active, inactive: total - active };
+    },
   });
 
-  const totalPages = Math.ceil((filteredCategories?.length || 0) / ITEMS_PER_PAGE);
-  const paginatedCategories = filteredCategories?.slice(
-    (page - 1) * ITEMS_PER_PAGE,
-    page * ITEMS_PER_PAGE
-  );
+  const categories = queryResult?.categories || [];
+  const totalCount = queryResult?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
 
-  // Reset page when filters change
-  const handleSearchChange = (val: string) => { setSearch(val); setPage(1); };
-  const handleStatusChange = (val: string) => { setStatusFilter(val as any); setPage(1); };
+  // Debounced search
+  const handleSearchChange = (val: string) => {
+    setSearch(val);
+    if (searchTimeout) clearTimeout(searchTimeout);
+    const timeout = setTimeout(() => {
+      setDebouncedSearch(val);
+      setPage(1);
+    }, 400);
+    setSearchTimeout(timeout);
+  };
+
+  const handleStatusChange = (val: string) => {
+    setStatusFilter(val as any);
+    setPage(1);
+  };
 
   const createMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -97,6 +130,7 @@ export default function AdminJobCategories() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-job-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-job-categories-stats'] });
       setDialogOpen(false);
       resetForm();
       toast.success('Category created successfully');
@@ -111,6 +145,7 @@ export default function AdminJobCategories() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-job-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-job-categories-stats'] });
       setDialogOpen(false);
       resetForm();
       toast.success('Category updated successfully');
@@ -125,6 +160,7 @@ export default function AdminJobCategories() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-job-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-job-categories-stats'] });
       setDeleteDialog(null);
       toast.success('Category deleted successfully');
     },
@@ -138,19 +174,20 @@ export default function AdminJobCategories() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-job-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-job-categories-stats'] });
       toast.success('Category status updated');
     },
     onError: (error) => toast.error('Failed to update status: ' + error.message),
   });
 
   const resetForm = () => {
-    setFormData({ name: '', description: '', icon: '', is_active: true, sort_order: categories?.length || 0 });
+    setFormData({ name: '', description: '', icon: '', is_active: true, sort_order: 0 });
     setEditingCategory(null);
   };
 
   const openCreateDialog = () => {
     resetForm();
-    setFormData(prev => ({ ...prev, sort_order: (categories?.length || 0) + 1 }));
+    setFormData(prev => ({ ...prev, sort_order: (stats?.total || 0) + 1 }));
     setDialogOpen(true);
   };
 
@@ -252,7 +289,7 @@ export default function AdminJobCategories() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Categories</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{categories?.length || 0}</div>
+            <div className="text-2xl font-bold">{stats?.total ?? '—'}</div>
           </CardContent>
         </Card>
         <Card>
@@ -260,7 +297,7 @@ export default function AdminJobCategories() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Active</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-primary">{categories?.filter(c => c.is_active).length || 0}</div>
+            <div className="text-2xl font-bold text-primary">{stats?.active ?? '—'}</div>
           </CardContent>
         </Card>
         <Card>
@@ -268,15 +305,15 @@ export default function AdminJobCategories() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Inactive</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-muted-foreground">{categories?.filter(c => !c.is_active).length || 0}</div>
+            <div className="text-2xl font-bold text-muted-foreground">{stats?.inactive ?? '—'}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Showing</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Filtered Results</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{filteredCategories?.length || 0}</div>
+            <div className="text-2xl font-bold">{totalCount}</div>
           </CardContent>
         </Card>
       </div>
@@ -302,13 +339,12 @@ export default function AdminJobCategories() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedCategories?.map((category) => (
+                  {categories.map((category, idx) => (
                     <TableRow key={category.id}>
                       <TableCell>
-                        <div className="flex items-center gap-1 text-muted-foreground">
-                          <GripVertical className="h-4 w-4" />
-                          {category.sort_order}
-                        </div>
+                        <span className="text-muted-foreground text-sm">
+                          {(page - 1) * ITEMS_PER_PAGE + idx + 1}
+                        </span>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -348,7 +384,7 @@ export default function AdminJobCategories() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {paginatedCategories?.length === 0 && (
+                  {categories.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                         No categories found
@@ -362,7 +398,7 @@ export default function AdminJobCategories() {
               {totalPages > 1 && (
                 <div className="flex items-center justify-between p-4 border-t">
                   <p className="text-sm text-muted-foreground">
-                    Showing {((page - 1) * ITEMS_PER_PAGE) + 1}–{Math.min(page * ITEMS_PER_PAGE, filteredCategories?.length || 0)} of {filteredCategories?.length || 0}
+                    Page {page} of {totalPages} ({totalCount.toLocaleString()} total)
                   </p>
                   <div className="flex items-center gap-1">
                     <Button
