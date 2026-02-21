@@ -97,8 +97,6 @@ serve(async (req) => {
     }
 
     let description = "";
-    
-    let description = "";
     try {
       if (isIconRequest) {
         const categoryName = sanitizedTitle.replace('ICON_SUGGEST:', '').trim();
