@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { JobCategorySearch } from '@/components/JobCategorySearch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -156,7 +157,7 @@ export const ProfileEditModal = ({ open, onOpenChange, profile, candidate, onSav
             </div>
             <div className="space-y-2">
               <Label>Job Title</Label>
-              <Input value={jobTitle} onChange={(e) => setJobTitle(e.target.value)} placeholder="e.g., Software Engineer" />
+              <JobCategorySearch value={jobTitle} onChange={setJobTitle} placeholder="e.g., Software Engineer" />
             </div>
           </div>
 

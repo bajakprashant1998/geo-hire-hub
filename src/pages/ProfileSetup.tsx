@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { JobCategorySearch } from '@/components/JobCategorySearch';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -213,13 +214,14 @@ const ProfileSetup = () => {
                   {/* Job Title */}
                   <div className="space-y-2">
                     <Label htmlFor="jobTitle">Job Title / Role *</Label>
-                    <Input
-                      id="jobTitle"
-                      placeholder="e.g., Full Stack Developer, Actor, Designer"
+                    <JobCategorySearch
                       value={jobTitle}
-                      onChange={(e) => setJobTitle(e.target.value)}
-                      required
+                      onChange={setJobTitle}
+                      placeholder="e.g., Full Stack Developer, Actor, Designer"
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Search from 12,000+ job categories
+                    </p>
                   </div>
 
                   {/* Experience */}
