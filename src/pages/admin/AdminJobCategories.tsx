@@ -49,6 +49,7 @@ export default function AdminJobCategories() {
   const [editingCategory, setEditingCategory] = useState<JobCategory | null>(null);
   const [deleteDialog, setDeleteDialog] = useState<JobCategory | null>(null);
   const [generatingDesc, setGeneratingDesc] = useState(false);
+  const [generatingIcon, setGeneratingIcon] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -236,6 +237,35 @@ export default function AdminJobCategories() {
       toast.error('Failed to generate description');
     } finally {
       setGeneratingDesc(false);
+    }
+  };
+
+  const handleGenerateIcon = async () => {
+    if (!formData.name.trim()) { toast.error('Enter a category name first'); return; }
+    if (!formData.description.trim()) { toast.error('Enter or generate a description first'); return; }
+    setGeneratingIcon(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-job-description', {
+        body: {
+          jobTitle: `ICON_SUGGEST: ${formData.name.trim()}`,
+          jobType: `Description: ${formData.description.trim().substring(0, 200)}`,
+        },
+      });
+      if (error) throw error;
+      const rawDescription = data?.description || '';
+      const iconMatch = rawDescription.match(/[a-z][a-z0-9-]*/i);
+      const iconName = iconMatch ? iconMatch[0].toLowerCase().replace(/\s+/g, '-') : '';
+      if (iconName) {
+        setFormData(prev => ({ ...prev, icon: iconName }));
+        toast.success(`Icon suggested: ${iconName}`);
+      } else {
+        toast.error('Could not suggest an icon');
+      }
+    } catch (error: any) {
+      console.error('AI icon generation error:', error);
+      toast.error('Failed to generate icon suggestion');
+    } finally {
+      setGeneratingIcon(false);
     }
   };
 
@@ -489,7 +519,24 @@ export default function AdminJobCategories() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="icon">Icon Name (Lucide)</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="icon">Icon Name (Lucide)</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 text-xs"
+                  onClick={handleGenerateIcon}
+                  disabled={generatingIcon || !formData.name.trim() || !formData.description.trim()}
+                >
+                  {generatingIcon ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-3 w-3" />
+                  )}
+                  {generatingIcon ? 'Suggesting...' : 'AI Icon'}
+                </Button>
+              </div>
               <Input
                 id="icon"
                 value={formData.icon}
