@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.sitemap]
 verify_jwt = false
+
+[functions.bulk-import-categories]
+verify_jwt = false
