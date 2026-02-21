@@ -48,6 +48,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.hireforjob.com/jobs/frontend-developer</loc>
+    <lastmod>2026-02-21</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.hireforjob.com/jobs/seo-specialist</loc>
     <lastmod>2026-02-19</lastmod>
     <changefreq>daily</changefreq>
@@ -108,8 +114,14 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://www.hireforjob.com/companies/my-company-9</loc>
+    <loc>https://www.hireforjob.com/companies/test-company</loc>
     <lastmod>2026-02-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.hireforjob.com/companies/digital-web-solutions</loc>
+    <lastmod>2026-02-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>

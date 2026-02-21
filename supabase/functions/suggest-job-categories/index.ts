@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { GeminiError, generateGeminiChat } from "../_shared/gemini.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -85,9 +86,9 @@ serve(async (req) => {
       }
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      console.error('CRITICAL: LOVABLE_API_KEY not configured');
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) {
+      console.error('CRITICAL: GEMINI_API_KEY not configured');
       return new Response(
         JSON.stringify({ error: "Service temporarily unavailable", suggestions: [] }),
         { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -114,44 +115,39 @@ Input: "nur" → ["Nurse", "Nursing Assistant", "Nurse Practitioner", "Nurse Man
 Input: "ai" → ["AI Engineer", "AI Researcher", "AI Product Manager", "AI Data Scientist", "AI Specialist", "AI Consultant"]
 Input: "car" → ["Car Mechanic", "Cardiac Surgeon", "Career Counselor", "Cargo Handler", "Carpenter", "Caregiver"]`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+    let content = "[]";
+    try {
+      content = await generateGeminiChat({
+        model: "gemini-2.0-flash",
+        temperature: 0.3,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Query: ${sanitizedQuery}${sanitizedContext ? `\nContext: ${sanitizedContext}` : ''}\n\nSuggest job titles.` }
         ],
-        temperature: 0.3,
-      }),
-    });
-
-    if (!response.ok) {
-      if (response.status === 429) {
+      });
+    } catch (error) {
+      if (error instanceof GeminiError && error.status === 429) {
         return new Response(
           JSON.stringify({ error: "Rate limit exceeded. Please try again.", suggestions: [] }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (response.status === 402) {
+      if (error instanceof GeminiError && error.status === 403) {
         return new Response(
           JSON.stringify({ error: "Service temporarily unavailable.", suggestions: [] }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      console.error("AI service error:", response.status);
+      if (error instanceof GeminiError) {
+        console.error("Gemini API error:", error.status, error.body);
+      } else {
+        console.error("AI service error:", error);
+      }
       return new Response(
         JSON.stringify({ error: "Failed to load suggestions. Please try again later.", suggestions: [] }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || "[]";
     
     // Parse the JSON array from the response
     let suggestions: string[] = [];

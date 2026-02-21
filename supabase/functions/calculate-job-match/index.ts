@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { GeminiError, generateGeminiChat } from "../_shared/gemini.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,12 +20,12 @@ serve(async (req) => {
   try {
     const { candidateId, jobId } = await req.json() as MatchRequest;
     
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    if (!GEMINI_API_KEY) {
+      throw new Error("GEMINI_API_KEY is not configured");
     }
 
     const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_ROLE_KEY!);
@@ -113,33 +114,28 @@ ${JSON.stringify(jobProfile, null, 2)}
 
 Be realistic and objective. Consider skill relevance, experience level, location proximity, and job type preferences.`;
 
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-3-flash-preview",
+      let content = "";
+      try {
+        content = await generateGeminiChat({
+          model: "gemini-2.0-flash",
+          temperature: 0.3,
           messages: [
             { role: "system", content: "You are a professional job matching AI. Analyze candidate-job compatibility objectively. Return only valid JSON." },
             { role: "user", content: prompt },
           ],
-          temperature: 0.3,
-        }),
-      });
-
-      if (!response.ok) {
-        if (response.status === 429) {
+        });
+      } catch (error) {
+        if (error instanceof GeminiError && error.status === 429) {
           console.error("Rate limited, skipping remaining jobs");
           break;
         }
-        console.error("AI error for job", job.id, response.status);
+        if (error instanceof GeminiError) {
+          console.error("Gemini API error for job", job.id, error.status, error.body);
+        } else {
+          console.error("AI error for job", job.id, error);
+        }
         continue;
       }
-
-      const aiData = await response.json();
-      const content = aiData.choices?.[0]?.message?.content;
 
       let matchData;
       try {

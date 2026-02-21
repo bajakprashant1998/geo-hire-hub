@@ -362,6 +362,27 @@ const AIResumeBuilder = () => {
     reader.readAsDataURL(file);
   };
 
+  const getEdgeFunctionErrorMessage = async (error: any, fallback = 'Request failed') => {
+    if (!error) return fallback;
+
+    const context = error.context;
+    if (context) {
+      try {
+        const body = await context.json();
+        if (body?.error) return body.error;
+      } catch {
+        try {
+          const text = await context.text();
+          if (text) return text;
+        } catch {
+          // Ignore parsing issues and keep fallback/message.
+        }
+      }
+    }
+
+    return error.message || fallback;
+  };
+
   // Generate individual experience description
   const generateExperienceWithAI = async (index: number) => {
     const exp = formData.experience[index];
@@ -384,7 +405,10 @@ const AIResumeBuilder = () => {
         },
       });
 
-      if (response.error) throw new Error(response.error.message);
+      if (response.error) {
+        const detailedError = await getEdgeFunctionErrorMessage(response.error, 'Failed to generate');
+        throw new Error(detailedError);
+      }
       if (response.data?.error && response.data.error !== "Failed to parse AI response") {
         toast.error(response.data.error);
         return;
@@ -418,16 +442,25 @@ const AIResumeBuilder = () => {
       const response = await supabase.functions.invoke('generate-resume', {
         body: {
           candidateData: {
+            name: formData.fullName || 'Candidate',
             title: formData.jobTitle,
             skills: formData.skills.map(s => s.name).filter(Boolean),
             experience_years: formData.experience.length,
+            bio: formData.summary || 'Not provided',
           },
           style: 'professional',
           targetRole: formData.jobTitle,
         },
       });
 
-      if (response.error) throw new Error(response.error.message);
+      if (response.error) {
+        const detailedError = await getEdgeFunctionErrorMessage(response.error, 'Failed to generate summary');
+        throw new Error(detailedError);
+      }
+      if (response.data?.error) {
+        toast.error(response.data.error);
+        return;
+      }
 
       const resume = response.data?.resume;
       if (resume?.summary) {
@@ -439,7 +472,7 @@ const AIResumeBuilder = () => {
       }
     } catch (error: any) {
       console.error('AI generation error:', error);
-      toast.error('Failed to generate summary');
+      toast.error(error.message || 'Failed to generate summary');
     } finally {
       setGenerating(false);
     }
@@ -468,7 +501,10 @@ const AIResumeBuilder = () => {
         },
       });
 
-      if (response.error) throw new Error(response.error.message);
+      if (response.error) {
+        const detailedError = await getEdgeFunctionErrorMessage(response.error, 'Failed to generate');
+        throw new Error(detailedError);
+      }
       if (response.data?.error) {
         toast.error(response.data.error);
         return;
