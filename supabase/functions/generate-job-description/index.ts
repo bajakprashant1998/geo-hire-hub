@@ -55,11 +55,13 @@ serve(async (req) => {
 
     // Sanitize: remove control characters and excessive whitespace
     const sanitizedTitle = jobTitle.trim().replace(/[\x00-\x1F\x7F]/g, '').replace(/\s+/g, ' ');
+    const isIconRequest = sanitizedTitle.startsWith('ICON_SUGGEST:');
 
-    // Validate length
-    if (sanitizedTitle.length === 0 || sanitizedTitle.length > MAX_JOB_TITLE_LENGTH) {
+    // Validate length (allow longer for icon requests)
+    const maxTitleLen = isIconRequest ? 200 : MAX_JOB_TITLE_LENGTH;
+    if (sanitizedTitle.length === 0 || sanitizedTitle.length > maxTitleLen) {
       return new Response(
-        JSON.stringify({ error: `Job title must be 1-${MAX_JOB_TITLE_LENGTH} characters` }),
+        JSON.stringify({ error: `Job title must be 1-${maxTitleLen} characters` }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -72,10 +74,11 @@ serve(async (req) => {
       );
     }
 
-    // Validate jobType if provided
+    // Validate jobType if provided (allow longer for icon requests)
     let sanitizedJobType = 'Full-time';
     if (jobType) {
-      if (typeof jobType !== 'string' || jobType.length > MAX_JOB_TYPE_LENGTH) {
+      const maxTypeLen = isIconRequest ? 300 : MAX_JOB_TYPE_LENGTH;
+      if (typeof jobType !== 'string' || jobType.length > maxTypeLen) {
         return new Response(
           JSON.stringify({ error: 'Invalid job type' }),
           { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -93,8 +96,7 @@ serve(async (req) => {
       );
     }
 
-    // Check if this is an icon suggestion request
-    const isIconRequest = sanitizedTitle.startsWith('ICON_SUGGEST:');
+    let description = "";
     
     let description = "";
     try {
