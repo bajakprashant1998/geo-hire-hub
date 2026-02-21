@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { JobCategorySearch } from '@/components/JobCategorySearch';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -344,10 +345,9 @@ const CandidateProfileEdit = () => {
                                     <div className="grid md:grid-cols-2 gap-4">
                                         <div className="space-y-2">
                                             <Label htmlFor="jobTitle">Current Job Title *</Label>
-                                            <Input
-                                                id="jobTitle"
+                                            <JobCategorySearch
                                                 value={jobTitle}
-                                                onChange={(e) => setJobTitle(e.target.value)}
+                                                onChange={setJobTitle}
                                                 placeholder="e.g., Software Engineer"
                                             />
                                         </div>
