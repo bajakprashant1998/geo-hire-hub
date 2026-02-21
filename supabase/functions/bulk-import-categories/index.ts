@@ -24,7 +24,6 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabaseAnon = Deno.env.get("SUPABASE_ANON_KEY")!;
 
-    // Verify user is admin
     const userClient = createClient(supabaseUrl, supabaseAnon, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -49,7 +48,165 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { categories } = await req.json();
+    const body = await req.json();
+    const { categories, action, sheet_url } = body;
+
+    // Action: cleanup_from_sheet - fetch CSV from Google Sheet, delete all existing, reimport clean
+    if (action === "cleanup_from_sheet" && sheet_url) {
+      // Fetch the CSV
+      console.log("Fetching CSV from:", sheet_url);
+      const csvResponse = await fetch(sheet_url, { redirect: "follow" });
+      console.log("CSV response status:", csvResponse.status);
+      if (!csvResponse.ok) {
+        const errText = await csvResponse.text();
+        console.error("CSV fetch failed:", errText.substring(0, 200));
+        throw new Error(`Failed to fetch CSV: ${csvResponse.status}`);
+      }
+      const csvText = await csvResponse.text();
+      console.log("CSV length:", csvText.length, "First 200 chars:", csvText.substring(0, 200));
+      
+      // Parse CSV - each line is a category, first line is header
+      const lines = csvText.split("\n");
+      const seen = new Set<string>();
+      const cleanCategories: { name: string; is_active: boolean; sort_order: number }[] = [];
+      let sortOrder = 1;
+
+      for (let i = 1; i < lines.length; i++) { // skip header row
+        // CSV may have quotes and commas - extract first column only
+        let name = lines[i].trim();
+        
+        // Handle quoted CSV fields
+        if (name.startsWith('"')) {
+          const endQuote = name.indexOf('"', 1);
+          if (endQuote > 0) {
+            name = name.substring(1, endQuote);
+          }
+        } else {
+          // Take only the first comma-separated value
+          const commaIdx = name.indexOf(',');
+          if (commaIdx > 0) {
+            name = name.substring(0, commaIdx);
+          }
+        }
+        
+        name = name.trim();
+        if (name.length === 0 || name === '#VALUE!') continue;
+        
+        const key = name.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        cleanCategories.push({ name, is_active: true, sort_order: sortOrder++ });
+      }
+
+      console.log("Parsed", cleanCategories.length, "unique categories from CSV");
+
+      // Delete all existing categories in smaller batches
+      let deleteCount = 0;
+      while (true) {
+        const { data: toDelete, error: fetchErr } = await adminClient
+          .from("job_categories")
+          .select("id")
+          .limit(500);
+        
+        if (fetchErr) {
+          console.error("Fetch for delete error:", fetchErr);
+          throw fetchErr;
+        }
+        if (!toDelete || toDelete.length === 0) break;
+        
+        const ids = toDelete.map((r: any) => r.id);
+        console.log("Deleting batch of", ids.length);
+        const { error: deleteError } = await adminClient
+          .from("job_categories")
+          .delete()
+          .in("id", ids);
+        
+        if (deleteError) {
+          console.error("Delete error:", JSON.stringify(deleteError));
+          throw deleteError;
+        }
+        deleteCount += ids.length;
+      }
+      console.log("Deleted", deleteCount, "old categories");
+
+      // Insert in batches of 200
+      let totalInserted = 0;
+      for (let i = 0; i < cleanCategories.length; i += 200) {
+        const batch = cleanCategories.slice(i, i + 200);
+        const { error: insertError, data: inserted } = await adminClient
+          .from("job_categories")
+          .insert(batch)
+          .select("id");
+
+        if (insertError) {
+          console.error("Batch insert error at offset", i, ":", insertError);
+          throw insertError;
+        }
+        totalInserted += inserted?.length || 0;
+      }
+
+      return new Response(
+        JSON.stringify({
+          action: "cleanup_from_sheet",
+          deleted: deleteCount,
+          inserted: totalInserted,
+          unique_categories: cleanCategories.length,
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Action: cleanup_and_reimport with provided categories array
+    if (action === "cleanup_and_reimport") {
+      if (!Array.isArray(categories) || categories.length === 0) {
+        return new Response(JSON.stringify({ error: "categories array required" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Delete all in batches
+      while (true) {
+        const { data: toDelete } = await adminClient
+          .from("job_categories")
+          .select("id")
+          .limit(1000);
+        if (!toDelete || toDelete.length === 0) break;
+        const ids = toDelete.map((r: any) => r.id);
+        await adminClient.from("job_categories").delete().in("id", ids);
+      }
+
+      const seen = new Set<string>();
+      const cleanCategories: { name: string; is_active: boolean; sort_order: number }[] = [];
+      let sortOrder = 1;
+
+      for (const rawName of categories) {
+        const name = String(rawName).trim();
+        if (name.length === 0) continue;
+        const key = name.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        cleanCategories.push({ name, is_active: true, sort_order: sortOrder++ });
+      }
+
+      let totalInserted = 0;
+      for (let i = 0; i < cleanCategories.length; i += 200) {
+        const batch = cleanCategories.slice(i, i + 200);
+        const { error: insertError, data: inserted } = await adminClient
+          .from("job_categories")
+          .insert(batch)
+          .select("id");
+        if (insertError) throw insertError;
+        totalInserted += inserted?.length || 0;
+      }
+
+      return new Response(
+        JSON.stringify({ action: "cleanup_and_reimport", inserted: totalInserted }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Default: bulk import (skip duplicates)
     if (!Array.isArray(categories) || categories.length === 0) {
       return new Response(JSON.stringify({ error: "categories array required" }), {
         status: 400,
@@ -57,13 +214,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Get existing categories to skip duplicates
-    const { data: existing } = await adminClient
-      .from("job_categories")
-      .select("name");
-    const existingNames = new Set((existing || []).map((c: any) => c.name.toLowerCase()));
+    const existingNames = new Set<string>();
+    let offset = 0;
+    while (true) {
+      const { data: existing } = await adminClient
+        .from("job_categories")
+        .select("name")
+        .range(offset, offset + 999);
+      if (!existing || existing.length === 0) break;
+      for (const c of existing) existingNames.add(c.name.toLowerCase());
+      if (existing.length < 1000) break;
+      offset += 1000;
+    }
 
-    // Get max sort_order
     const { data: maxOrder } = await adminClient
       .from("job_categories")
       .select("sort_order")
@@ -71,11 +234,9 @@ Deno.serve(async (req) => {
       .limit(1);
     let sortOrder = (maxOrder?.[0]?.sort_order || 0) + 1;
 
-    // Filter out duplicates and empty names
     const newCategories = categories
-      .map((name: string) => name.trim())
+      .map((name: string) => String(name).trim())
       .filter((name: string) => name.length > 0 && !existingNames.has(name.toLowerCase()))
-      // Remove duplicate entries within the import itself
       .filter((name: string, index: number, arr: string[]) => 
         arr.findIndex(n => n.toLowerCase() === name.toLowerCase()) === index
       )
@@ -87,33 +248,24 @@ Deno.serve(async (req) => {
 
     if (newCategories.length === 0) {
       return new Response(
-        JSON.stringify({ inserted: 0, skipped: categories.length, message: "All categories already exist" }),
+        JSON.stringify({ inserted: 0, skipped: categories.length }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Insert in batches of 500
     let totalInserted = 0;
-    for (let i = 0; i < newCategories.length; i += 500) {
-      const batch = newCategories.slice(i, i + 500);
+    for (let i = 0; i < newCategories.length; i += 200) {
+      const batch = newCategories.slice(i, i + 200);
       const { error: insertError, data: inserted } = await adminClient
         .from("job_categories")
         .insert(batch)
         .select("id");
-
-      if (insertError) {
-        console.error("Batch insert error:", insertError);
-        throw insertError;
-      }
+      if (insertError) throw insertError;
       totalInserted += inserted?.length || 0;
     }
 
     return new Response(
-      JSON.stringify({
-        inserted: totalInserted,
-        skipped: categories.length - newCategories.length,
-        total: categories.length,
-      }),
+      JSON.stringify({ inserted: totalInserted, skipped: categories.length - newCategories.length }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
