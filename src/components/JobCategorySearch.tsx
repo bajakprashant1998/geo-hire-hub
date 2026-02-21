@@ -241,11 +241,6 @@ export const JobCategorySearch = ({
       return;
     }
 
-    // Cancel any pending request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
     const cacheKey = searchQuery.toLowerCase().trim();
     
     // Check cache first
@@ -257,66 +252,40 @@ export const JobCategorySearch = ({
       return;
     }
 
-    // Check if we're in global rate limit cooldown
-    if (Date.now() < globalRateLimitUntil) {
-      const fallback = getFallbackSuggestions(searchQuery);
-      setSuggestions(fallback);
-      setUsingFallback(true);
-      setIsOpen(true);
-      return;
-    }
-
     setIsLoading(true);
-    abortControllerRef.current = new AbortController();
     
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/suggest-job-categories`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({ query: searchQuery }),
-          signal: abortControllerRef.current.signal,
-        }
-      );
+      // Query job_categories table directly for suggestions
+      const { data, error } = await supabase
+        .from('job_categories')
+        .select('name')
+        .eq('is_active', true)
+        .ilike('name', `%${cacheKey}%`)
+        .order('sort_order', { ascending: true })
+        .limit(8);
 
-      if (response.status === 429 || response.status === 402) {
-        // Rate limited - set global cooldown for 60 seconds
-        globalRateLimitUntil = Date.now() + 60000;
-        const fallback = getFallbackSuggestions(searchQuery);
-        setSuggestions(fallback);
-        setUsingFallback(true);
-        setIsOpen(true);
-        return;
+      if (error) {
+        throw error;
       }
 
-      if (!response.ok) {
-        throw new Error('Request failed');
-      }
-
-      const data = await response.json();
-      
-      if (data.suggestions && data.suggestions.length > 0) {
-        setSuggestions(data.suggestions);
+      if (data && data.length > 0) {
+        const dbSuggestions = data.map((item) => item.name);
+        setSuggestions(dbSuggestions);
         setUsingFallback(false);
         // Cache the result
         suggestionCache.set(cacheKey, {
-          suggestions: data.suggestions,
+          suggestions: dbSuggestions,
           timestamp: Date.now(),
         });
       } else {
+        // Fallback to local categories if no DB results
         const fallback = getFallbackSuggestions(searchQuery);
         setSuggestions(fallback);
         setUsingFallback(fallback.length > 0);
       }
       setIsOpen(true);
     } catch (error: any) {
-      if (error.name === 'AbortError') return;
-      
-      console.error('Failed to fetch suggestions:', error);
+      console.error('Failed to fetch suggestions from DB:', error);
       const fallback = getFallbackSuggestions(searchQuery);
       setSuggestions(fallback);
       setUsingFallback(true);
@@ -351,13 +320,10 @@ export const JobCategorySearch = ({
       }
     }
 
-    // Longer debounce (800ms) to reduce API calls
+    // Shorter debounce since we're querying DB directly
     debounceRef.current = setTimeout(() => {
-      // Only call AI if not rate limited
-      if (Date.now() >= globalRateLimitUntil) {
-        fetchSuggestions(newValue);
-      }
-    }, 800);
+      fetchSuggestions(newValue);
+    }, 300);
   };
 
   const handleSelect = (suggestion: string) => {
