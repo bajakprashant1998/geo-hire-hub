@@ -2,11 +2,13 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Progress } from '@/components/ui/progress';
 import {
   Home, Briefcase, FileText, Bell, Shield, MessageSquare,
   Settings, LogOut, MapPin, Building2, Plus, Calendar,
-  Bookmark, User, ChevronLeft, Users
+  Bookmark, User, ChevronLeft, Users, Sparkles
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface SidebarItem {
   icon: React.ElementType;
@@ -26,6 +28,7 @@ interface DashboardSidebarProps {
   onSignOut: () => void;
   isOpen: boolean;
   onClose: () => void;
+  profileCompleteness?: number;
 }
 
 export const DashboardSidebar = ({
@@ -38,31 +41,35 @@ export const DashboardSidebar = ({
   avatarUrl,
   onSignOut,
   isOpen,
-  onClose
+  onClose,
+  profileCompleteness = 0
 }: DashboardSidebarProps) => {
-  const location = useLocation();
-
   return (
     <>
       {/* Mobile Overlay */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={onClose}
-        />
-      )}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+            onClick={onClose}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 h-full z-50 w-64 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto",
+          "fixed top-0 left-0 h-full z-50 w-72 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto",
           isOpen ? "translate-x-0" : "-translate-x-full",
           "bg-card border-r border-border"
         )}
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="p-5 flex items-center justify-between border-b">
+          <div className="p-4 flex items-center justify-between border-b">
             <Link to="/" className="flex items-center gap-2.5">
               <img
                 src="/logo.png"
@@ -84,57 +91,79 @@ export const DashboardSidebar = ({
             </Button>
           </div>
 
+          {/* User Profile Card */}
+          <div className="p-3 border-b">
+            <div className="rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-3">
+              <div className="flex items-center gap-3">
+                <Avatar className="w-11 h-11 ring-2 ring-primary/30 ring-offset-2 ring-offset-card">
+                  <AvatarImage src={avatarUrl || undefined} />
+                  <AvatarFallback className="bg-primary text-primary-foreground font-bold text-sm">
+                    {userName?.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-sm text-foreground truncate">{userName}</p>
+                  <p className="text-xs text-muted-foreground truncate">{userTitle || 'Job Seeker'}</p>
+                </div>
+              </div>
+              {profileCompleteness > 0 && profileCompleteness < 100 && (
+                <div className="mt-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] text-muted-foreground font-medium">Profile</span>
+                    <span className="text-[10px] font-bold text-primary">{profileCompleteness}%</span>
+                  </div>
+                  <Progress value={profileCompleteness} className="h-1.5" />
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Navigation Items */}
-          <nav className="flex-1 p-2 sm:p-3 space-y-0.5 sm:space-y-1 overflow-y-auto">
+          <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
             {/* Dashboard Home */}
             <button
               onClick={() => onItemClick('home')}
               className={cn(
-                "w-full flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-sm font-medium transition-all duration-200 touch-target-sm touch-scale",
+                "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                 activeItem === null || activeItem === 'home'
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted active:bg-muted hover:text-foreground"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
-              <Home className="w-5 h-5 shrink-0" />
+              <Home className="w-4.5 h-4.5 shrink-0" />
               <span>Dashboard</span>
             </button>
 
-            {/* Dynamic Menu Items */}
-            {items.map((item) => (
-              <button
-                key={item.value}
-                onClick={() => onItemClick(item.value)}
-                className={cn(
-                  "w-full flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-sm font-medium transition-all duration-200 touch-target-sm touch-scale",
-                  activeItem === item.value
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted active:bg-muted hover:text-foreground"
-                )}
-              >
-                <item.icon className="w-5 h-5 shrink-0" />
-                <span className="flex-1 text-left truncate">{item.label}</span>
-                {item.badge !== undefined && item.badge > 0 && (
-                  <span className={cn(
-                    "px-2 py-0.5 rounded-full text-xs font-semibold shrink-0",
-                    activeItem === item.value
-                      ? "bg-primary-foreground/20 text-primary-foreground"
-                      : "bg-primary/10 text-primary"
-                  )}>
-                    {item.badge}
-                  </span>
-                )}
-              </button>
-            ))}
+            {/* Grouped Menu Items */}
+            <div className="pt-1">
+              <p className="px-3 py-1.5 text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-widest">Activity</p>
+              {items.filter(i => ['jobs', 'messages', 'interviews', 'tasks', 'saved'].includes(i.value)).map((item) => (
+                <SidebarButton key={item.value} item={item} activeItem={activeItem} onItemClick={onItemClick} />
+              ))}
+            </div>
+
+            <div className="pt-1">
+              <p className="px-3 py-1.5 text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-widest">Profile</p>
+              {items.filter(i => ['resume', 'audio-resume', 'ai-resume', 'profile', 'public-profile'].includes(i.value)).map((item) => (
+                <SidebarButton key={item.value} item={item} activeItem={activeItem} onItemClick={onItemClick} />
+              ))}
+            </div>
+
+            <div className="pt-1">
+              <p className="px-3 py-1.5 text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-widest">Settings</p>
+              {items.filter(i => ['notifications', 'alerts', 'security'].includes(i.value)).map((item) => (
+                <SidebarButton key={item.value} item={item} activeItem={activeItem} onItemClick={onItemClick} />
+              ))}
+            </div>
           </nav>
 
-          {/* Employer View / Find Jobs Button */}
-          <div className="p-2 sm:p-3 border-t">
+          {/* CTA Button */}
+          <div className="p-3 border-t">
             {type === 'candidate' ? (
               <Link to="/" className="block">
                 <Button
                   variant="outline"
-                  className="w-full justify-start gap-2 border-primary text-primary hover:bg-primary/10 touch-target-sm touch-scale h-10 sm:h-11"
+                  className="w-full justify-start gap-2 border-primary/30 text-primary hover:bg-primary/10 h-10 rounded-xl"
                 >
                   <Building2 className="w-4 h-4 shrink-0" />
                   <span className="truncate">Find Jobs on Map</span>
@@ -142,7 +171,7 @@ export const DashboardSidebar = ({
               </Link>
             ) : (
               <Link to="/post-job" className="block">
-                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 gap-2 touch-target-sm touch-scale h-10 sm:h-11">
+                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 gap-2 h-10 rounded-xl">
                   <Plus className="w-4 h-4 shrink-0" />
                   <span className="truncate">Post New Job</span>
                 </Button>
@@ -150,29 +179,21 @@ export const DashboardSidebar = ({
             )}
           </div>
 
-          {/* Footer Links */}
-          <div className="p-2 sm:p-3 border-t space-y-0.5 sm:space-y-1">
+          {/* Footer */}
+          <div className="p-2 border-t space-y-0.5">
             <Link
               to={type === 'employer' ? '/employer-settings' : '/candidate-settings'}
-              className="flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted active:bg-muted hover:text-foreground transition-all touch-target-sm touch-scale"
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
             >
-              <Settings className="w-5 h-5 shrink-0" />
+              <Settings className="w-4.5 h-4.5 shrink-0" />
               <span>Settings</span>
             </Link>
             <button
               onClick={onSignOut}
-              className="w-full flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 active:bg-destructive/15 transition-all touch-target-sm touch-scale"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10 transition-all"
             >
-              <LogOut className="w-5 h-5 shrink-0" />
+              <LogOut className="w-4.5 h-4.5 shrink-0" />
               <span>Logout</span>
-            </button>
-          </div>
-
-          {/* Collapse Button - Desktop only */}
-          <div className="p-2 sm:p-3 border-t hidden lg:block pb-[env(safe-area-inset-bottom)]">
-            <button className="w-full flex items-center gap-3 px-3 sm:px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-all">
-              <ChevronLeft className="w-5 h-5 shrink-0" />
-              <span>Collapse</span>
             </button>
           </div>
         </div>
@@ -180,3 +201,28 @@ export const DashboardSidebar = ({
     </>
   );
 };
+
+const SidebarButton = ({ item, activeItem, onItemClick }: { item: SidebarItem; activeItem: string | null; onItemClick: (v: string) => void }) => (
+  <button
+    onClick={() => onItemClick(item.value)}
+    className={cn(
+      "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200",
+      activeItem === item.value
+        ? "bg-primary text-primary-foreground shadow-sm"
+        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+    )}
+  >
+    <item.icon className="w-4.5 h-4.5 shrink-0" />
+    <span className="flex-1 text-left truncate">{item.label}</span>
+    {item.badge !== undefined && item.badge > 0 && (
+      <span className={cn(
+        "min-w-5 h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center shrink-0",
+        activeItem === item.value
+          ? "bg-primary-foreground/20 text-primary-foreground"
+          : "bg-destructive text-destructive-foreground"
+      )}>
+        {item.badge > 99 ? '99+' : item.badge}
+      </span>
+    )}
+  </button>
+);
