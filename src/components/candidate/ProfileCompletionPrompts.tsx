@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { X, FileText, Mic, Camera, Wrench, MapPin } from 'lucide-react';
+import { X, FileText, Mic, Camera, Wrench, MapPin, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface ProfileCompletionPromptsProps {
   candidate: any;
@@ -17,6 +19,7 @@ interface Prompt {
   cta: string;
   action: () => void;
   priority: number;
+  color: string;
 }
 
 export const ProfileCompletionPrompts = ({ candidate, profile, onNavigate, onEditProfile }: ProfileCompletionPromptsProps) => {
@@ -42,6 +45,7 @@ export const ProfileCompletionPrompts = ({ candidate, profile, onNavigate, onEdi
       cta: 'Upload Resume',
       action: () => onNavigate('resume'),
       priority: 1,
+      color: 'from-[hsl(217,89%,61%)]/10 to-[hsl(217,89%,61%)]/5 border-[hsl(217,89%,61%)]/20',
     });
   }
 
@@ -53,6 +57,7 @@ export const ProfileCompletionPrompts = ({ candidate, profile, onNavigate, onEdi
       cta: 'Record Audio',
       action: () => onNavigate('audio-resume'),
       priority: 2,
+      color: 'from-[hsl(262,83%,58%)]/10 to-[hsl(262,83%,58%)]/5 border-[hsl(262,83%,58%)]/20',
     });
   }
 
@@ -64,6 +69,7 @@ export const ProfileCompletionPrompts = ({ candidate, profile, onNavigate, onEdi
       cta: 'Add Photo',
       action: onEditProfile,
       priority: 3,
+      color: 'from-[hsl(142,53%,43%)]/10 to-[hsl(142,53%,43%)]/5 border-[hsl(142,53%,43%)]/20',
     });
   }
 
@@ -75,6 +81,7 @@ export const ProfileCompletionPrompts = ({ candidate, profile, onNavigate, onEdi
       cta: 'Add Skills',
       action: onEditProfile,
       priority: 4,
+      color: 'from-[hsl(44,98%,50%)]/10 to-[hsl(44,98%,50%)]/5 border-[hsl(44,98%,50%)]/20',
     });
   }
 
@@ -86,6 +93,7 @@ export const ProfileCompletionPrompts = ({ candidate, profile, onNavigate, onEdi
       cta: 'Set Location',
       action: onEditProfile,
       priority: 5,
+      color: 'from-[hsl(0,84%,60%)]/10 to-[hsl(0,84%,60%)]/5 border-[hsl(0,84%,60%)]/20',
     });
   }
 
@@ -98,27 +106,45 @@ export const ProfileCompletionPrompts = ({ candidate, profile, onNavigate, onEdi
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-      {visiblePrompts.map(prompt => (
-        <Card key={prompt.id} className="border-primary/20 bg-primary/5 relative">
-          <button
-            onClick={() => dismiss(prompt.id)}
-            className="absolute top-2 right-2 p-1 rounded-full hover:bg-muted text-muted-foreground"
+      <AnimatePresence>
+        {visiblePrompts.map((prompt, idx) => (
+          <motion.div
+            key={prompt.id}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ delay: idx * 0.05 }}
           >
-            <X className="w-3.5 h-3.5" />
-          </button>
-          <CardContent className="p-4 flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              <prompt.icon className="w-4.5 h-4.5 text-primary" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm text-foreground leading-snug mb-2">{prompt.message}</p>
-              <Button size="sm" variant="outline" className="h-7 text-xs" onClick={prompt.action}>
-                {prompt.cta}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+            <Card className={cn(
+              "relative overflow-hidden bg-gradient-to-br border group hover:shadow-md transition-shadow",
+              prompt.color
+            )}>
+              <button
+                onClick={() => dismiss(prompt.id)}
+                className="absolute top-2 right-2 p-1 rounded-full hover:bg-muted/50 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity z-10"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+              <CardContent className="p-4 flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-card/80 flex items-center justify-center shrink-0 shadow-sm">
+                  <prompt.icon className="w-5 h-5 text-primary" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm text-foreground font-medium leading-snug mb-2.5">{prompt.message}</p>
+                  <Button 
+                    size="sm" 
+                    className="h-7 text-xs gap-1 rounded-lg" 
+                    onClick={prompt.action}
+                  >
+                    {prompt.cta}
+                    <ChevronRight className="w-3 h-3" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   );
 };

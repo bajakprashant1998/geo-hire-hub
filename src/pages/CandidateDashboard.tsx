@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Briefcase, Bell, Shield, FileText, Sparkles, Loader2,
-  Eye, Calendar, Star, ChevronRight, User, MessageSquare, Bookmark, Mic
+  Eye, Calendar, Star, ChevronRight, User, MessageSquare, Bookmark, Mic,
+  MapPin, TrendingUp, Zap
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -17,7 +18,6 @@ import { MessagesPreview } from '@/components/dashboard/MessagesPreview';
 import { UpcomingInterviewCard } from '@/components/dashboard/UpcomingInterviewCard';
 import { JobMatchCarousel } from '@/components/dashboard/JobMatchCarousel';
 import { ChatModal } from '@/components/messaging/ChatModal';
-
 import { ProfileEditModal } from '@/components/candidate/ProfileEditModal';
 import { ResumeAndDocumentManager } from '@/components/candidate/ResumeAndDocumentManager';
 import { JobActivityTabs } from '@/components/candidate/JobActivityTabs';
@@ -36,6 +36,8 @@ import { ProfileCompletionPrompts } from '@/components/candidate/ProfileCompleti
 import { DashboardBottomNav } from '@/components/dashboard/DashboardBottomNav';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 import { format, isToday, isTomorrow } from 'date-fns';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 const CandidateDashboard = () => {
   const navigate = useNavigate();
@@ -57,7 +59,6 @@ const CandidateDashboard = () => {
     unreadNotifications: 0,
   });
 
-  // Realtime dashboard updates
   const { refreshTrigger } = useRealtimeDashboard({
     userId: user?.id,
     candidateId: candidate?.id,
@@ -93,11 +94,9 @@ const CandidateDashboard = () => {
     }
     fetchCandidate();
 
-    // Check for ?tab= query parameter from notification links
     const tabParam = searchParams.get('tab');
     if (tabParam) {
       handleSectionClick(tabParam);
-      // Clean up the URL to prevent re-triggering
       const newParams = new URLSearchParams(searchParams);
       newParams.delete('tab');
       setSearchParams(newParams, { replace: true });
@@ -133,7 +132,6 @@ const CandidateDashboard = () => {
         .eq('user_id', user.id)
         .eq('is_read', false);
 
-      // Fetch next interview date
       const { data: nextInterview } = await supabase
         .from('interviews')
         .select('scheduled_date')
@@ -146,13 +144,9 @@ const CandidateDashboard = () => {
 
       if (nextInterview?.scheduled_date) {
         const d = new Date(nextInterview.scheduled_date);
-        if (isToday(d)) {
-          setNextInterviewLabel('Next: Today');
-        } else if (isTomorrow(d)) {
-          setNextInterviewLabel('Next: Tomorrow');
-        } else {
-          setNextInterviewLabel(`Next: ${format(d, 'MMM d')}`);
-        }
+        if (isToday(d)) setNextInterviewLabel('Next: Today');
+        else if (isTomorrow(d)) setNextInterviewLabel('Next: Tomorrow');
+        else setNextInterviewLabel(`Next: ${format(d, 'MMM d')}`);
       } else {
         setNextInterviewLabel('None scheduled');
       }
@@ -165,7 +159,6 @@ const CandidateDashboard = () => {
         unreadNotifications: notifCount || 0,
       });
     }
-
     setDataLoading(false);
   };
 
@@ -175,17 +168,11 @@ const CandidateDashboard = () => {
   };
 
   const handleSectionClick = (value: string) => {
-    if (value === 'home') {
-      setActiveSection(null);
-    } else if (value === 'messages') {
-      setChatModalOpen(true);
-    } else if (value === 'ai-resume') {
-      navigate('/ai-resume-builder');
-    } else if (value === 'profile') {
-      navigate('/candidate-profile');
-    } else {
-      setActiveSection(value);
-    }
+    if (value === 'home') setActiveSection(null);
+    else if (value === 'messages') setChatModalOpen(true);
+    else if (value === 'ai-resume') navigate('/ai-resume-builder');
+    else if (value === 'profile') navigate('/candidate-profile');
+    else setActiveSection(value);
     setSidebarOpen(false);
   };
 
@@ -219,6 +206,14 @@ const CandidateDashboard = () => {
     { icon: Eye, label: 'Public Profile', value: 'public-profile' },
     { icon: Sparkles, label: 'Job Alerts', value: 'alerts' },
     { icon: Shield, label: 'Security', value: 'security' }
+  ];
+
+  // Quick action buttons for dashboard home
+  const quickActions = [
+    { icon: MapPin, label: 'Find Jobs', onClick: () => navigate('/'), color: 'bg-[hsl(217,89%,61%)]/10 text-[hsl(217,89%,61%)]' },
+    { icon: FileText, label: 'My Resume', onClick: () => handleSectionClick('resume'), color: 'bg-[hsl(142,53%,43%)]/10 text-[hsl(142,53%,43%)]' },
+    { icon: Sparkles, label: 'AI Match', onClick: () => {}, color: 'bg-[hsl(262,83%,58%)]/10 text-[hsl(262,83%,58%)]' },
+    { icon: Bookmark, label: 'Saved', onClick: () => handleSectionClick('saved'), color: 'bg-[hsl(44,70%,45%)]/10 text-[hsl(44,70%,45%)]' },
   ];
 
   if (authLoading) {
@@ -273,12 +268,8 @@ const CandidateDashboard = () => {
             <h2 className="text-2xl font-bold mb-3 text-foreground">Profile Not Found</h2>
             <p className="text-muted-foreground mb-8">We couldn't load your profile. Please try again or contact support.</p>
             <div className="flex gap-3">
-              <Button onClick={() => refreshProfile()} variant="outline" className="flex-1">
-                Retry
-              </Button>
-              <Button onClick={() => signOut()} variant="destructive" className="flex-1">
-                Sign Out
-              </Button>
+              <Button onClick={() => refreshProfile()} variant="outline" className="flex-1">Retry</Button>
+              <Button onClick={() => signOut()} variant="destructive" className="flex-1">Sign Out</Button>
             </div>
           </CardContent>
         </Card>
@@ -301,40 +292,21 @@ const CandidateDashboard = () => {
 
   const renderSectionContent = () => {
     switch (activeSection) {
-      case 'jobs':
-        return candidate && <JobActivityTabs candidateId={candidate.id} />;
-      case 'saved':
-        return candidate && <SavedJobsSection candidateId={candidate.id} />;
-      case 'interviews':
-        return candidate && <InterviewCalendar candidateId={candidate.id} />;
-      case 'profile':
-        navigate('/candidate-profile');
-        return null;
-      case 'resume':
-        return candidate && <ResumeAndDocumentManager candidate={candidate} onUpdate={fetchCandidate} />;
-      case 'audio-resume':
-        return candidate && <AudioResumeCard candidate={candidate} onUpdate={fetchCandidate} />;
-      case 'alerts':
-        return candidate && <JobAlertsManager candidateId={candidate.id} />;
-      case 'security':
-        return <SecuritySettings />;
-      case 'tasks':
-        return candidate && <TaskList candidateId={candidate.id} />;
-      case 'notifications':
-        return <NotificationCenter />;
-      case 'public-profile':
-        return candidate && <CandidateDetail id={candidate.id} />;
-      case 'recommended':
-        return candidate && (
-          <RecommendedJobs
-            candidateId={candidate.id}
-            skills={candidate.skills || []}
-            latitude={profile.latitude}
-            longitude={profile.longitude}
-          />
-        );
-      default:
-        return null;
+      case 'jobs': return candidate && <JobActivityTabs candidateId={candidate.id} />;
+      case 'saved': return candidate && <SavedJobsSection candidateId={candidate.id} />;
+      case 'interviews': return candidate && <InterviewCalendar candidateId={candidate.id} />;
+      case 'profile': navigate('/candidate-profile'); return null;
+      case 'resume': return candidate && <ResumeAndDocumentManager candidate={candidate} onUpdate={fetchCandidate} />;
+      case 'audio-resume': return candidate && <AudioResumeCard candidate={candidate} onUpdate={fetchCandidate} />;
+      case 'alerts': return candidate && <JobAlertsManager candidateId={candidate.id} />;
+      case 'security': return <SecuritySettings />;
+      case 'tasks': return candidate && <TaskList candidateId={candidate.id} />;
+      case 'notifications': return <NotificationCenter />;
+      case 'public-profile': return candidate && <CandidateDetail id={candidate.id} />;
+      case 'recommended': return candidate && (
+        <RecommendedJobs candidateId={candidate.id} skills={candidate.skills || []} latitude={profile.latitude} longitude={profile.longitude} />
+      );
+      default: return null;
     }
   };
 
@@ -353,6 +325,7 @@ const CandidateDashboard = () => {
           onSignOut={signOut}
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
+          profileCompleteness={completeness}
         />
 
         <div className="flex-1 flex flex-col min-h-screen lg:ml-0 overflow-x-hidden">
@@ -369,23 +342,27 @@ const CandidateDashboard = () => {
             onNotificationClick={() => handleSectionClick('notifications')}
           />
 
-          <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto pb-20 md:pb-6">
+          <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto pb-24 md:pb-6">
             {activeSection && activeSection !== 'messages' && activeSection !== 'profile' ? (
-              <div className="max-w-6xl mx-auto">
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="max-w-6xl mx-auto"
+              >
                 <Button
                   variant="ghost"
                   onClick={() => setActiveSection(null)}
-                  className="mb-4 text-muted-foreground hover:text-foreground"
+                  className="mb-4 text-muted-foreground hover:text-foreground rounded-xl"
                 >
                   <ChevronRight className="w-4 h-4 rotate-180 mr-2" />
                   Back to Dashboard
                 </Button>
-                <Card className="bg-card shadow-sm border">
+                <Card className="bg-card shadow-sm border rounded-2xl">
                   <CardContent className="p-3 sm:p-4 md:p-6">
                     {renderSectionContent()}
                   </CardContent>
                 </Card>
-              </div>
+              </motion.div>
             ) : (
               <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
                 <PlatformNotificationBanner userType="candidate" />
@@ -398,50 +375,61 @@ const CandidateDashboard = () => {
                     onEditProfile={() => navigate('/candidate-profile')}
                   />
                 )}
+
                 {completeness < 100 && (
-                  <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
-                    <CardContent className="p-3 sm:p-4">
-                      <div className="flex items-start gap-2.5 sm:gap-3 mb-3">
-                        <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                          <User className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                    <Card className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/20 rounded-2xl overflow-hidden">
+                      <CardContent className="p-3 sm:p-4">
+                        <div className="flex items-start gap-3 mb-3">
+                          <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+                            <TrendingUp className="w-5 h-5 text-primary" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold text-foreground text-sm sm:text-base">Complete your profile ({completeness}%)</p>
+                            <p className="text-[11px] sm:text-sm text-muted-foreground leading-snug">
+                              Profiles with 80%+ completeness get 3x more views
+                            </p>
+                          </div>
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="font-medium text-foreground text-xs sm:text-base">Complete your profile ({completeness}%)</p>
-                          <p className="text-[11px] sm:text-sm text-muted-foreground leading-snug">
-                            Add more details to attract employers.
-                          </p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button variant="outline" size="sm" className="text-xs sm:text-sm h-9 rounded-xl" onClick={() => setEditModalOpen(true)}>
+                            Quick Edit
+                          </Button>
+                          <Button size="sm" className="text-xs sm:text-sm h-9 rounded-xl" onClick={() => navigate('/candidate-profile')}>
+                            Edit Profile
+                          </Button>
                         </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-xs sm:text-sm h-8 sm:h-9"
-                          onClick={() => setEditModalOpen(true)}
-                        >
-                          Quick Edit
-                        </Button>
-                        <Button
-                          size="sm"
-                          className="text-xs sm:text-sm h-8 sm:h-9"
-                          onClick={() => navigate('/candidate-profile')}
-                        >
-                          Edit Profile
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
                 )}
+
+                {/* Quick Actions - Mobile */}
+                <div className="grid grid-cols-4 gap-2 sm:hidden">
+                  {quickActions.map((action) => (
+                    <button
+                      key={action.label}
+                      onClick={action.onClick}
+                      className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-card border border-border/50 hover:shadow-sm transition-all active:scale-95"
+                    >
+                      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", action.color)}>
+                        <action.icon className="w-5 h-5" />
+                      </div>
+                      <span className="text-[10px] font-medium text-muted-foreground">{action.label}</span>
+                    </button>
+                  ))}
+                </div>
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
                   <DashboardStatCard
                     icon={FileText}
-                    label="Total Applied"
+                    label="Applied"
                     value={stats.applications}
                     subtitle="all time"
                     accentColor="blue"
                     onClick={() => setActiveSection('jobs')}
+                    delay={0}
                   />
                   <DashboardStatCard
                     icon={Eye}
@@ -450,25 +438,28 @@ const CandidateDashboard = () => {
                     subtitle="all time"
                     accentColor="green"
                     onClick={() => setEditModalOpen(true)}
+                    delay={1}
                   />
                   <DashboardStatCard
                     icon={MessageSquare}
-                    label="Unread Messages"
+                    label="Messages"
                     value={stats.unreadMessages}
-                    subtitle={stats.unreadMessages > 0 ? 'new messages' : 'all caught up'}
+                    subtitle={stats.unreadMessages > 0 ? 'unread' : 'all caught up'}
                     accentColor="amber"
                     onClick={() => setChatModalOpen(true)}
+                    delay={2}
                   />
                   <DashboardStatCard
                     icon={Calendar}
-                    label="Upcoming Interviews"
+                    label="Interviews"
                     value={stats.interviews}
                     subtitle={nextInterviewLabel}
                     accentColor="purple"
+                    delay={3}
                   />
                 </div>
 
-                {/* Messages Preview + Interview Card Row */}
+                {/* Messages + Interview */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-6">
                   <div className="lg:col-span-2">
                     <MessagesPreview profileId={profile.id} onOpenChat={() => setChatModalOpen(true)} />
@@ -478,15 +469,10 @@ const CandidateDashboard = () => {
                   </div>
                 </div>
 
-                {candidate && (
-                  <AIJobMatches candidateId={candidate.id} />
-                )}
+                {candidate && <AIJobMatches candidateId={candidate.id} />}
 
                 {candidate && (
-                  <JobMatchCarousel
-                    candidateId={candidate.id}
-                    skills={candidate.skills || []}
-                  />
+                  <JobMatchCarousel candidateId={candidate.id} skills={candidate.skills || []} />
                 )}
               </div>
             )}
@@ -503,16 +489,8 @@ const CandidateDashboard = () => {
           />
         )}
 
-        <ChatModal
-          isOpen={chatModalOpen}
-          onClose={() => setChatModalOpen(false)}
-        />
-
-        <DashboardBottomNav
-          type="candidate"
-          activeItem={activeSection}
-          onItemClick={handleSectionClick}
-        />
+        <ChatModal isOpen={chatModalOpen} onClose={() => setChatModalOpen(false)} />
+        <DashboardBottomNav type="candidate" activeItem={activeSection} onItemClick={handleSectionClick} />
       </div>
     </EmailVerificationGuard>
   );
