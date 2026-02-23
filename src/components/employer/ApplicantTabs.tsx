@@ -266,180 +266,134 @@ export const ApplicantTabs = ({ jobId, employerId }: ApplicantTabsProps) => {
       >
         <Card className="group hover:shadow-md transition-all duration-200 border-border/60">
           <CardContent className="p-4 sm:p-5">
-            <div className="flex gap-3 sm:gap-4">
-              {/* Checkbox */}
-              <div className="flex flex-col items-center gap-3 pt-1">
-                <input
-                  type="checkbox"
-                  checked={selectedApplicants.includes(applicant.id)}
-                  onChange={(e) => {
-                    if (e.target.checked) setSelectedApplicants([...selectedApplicants, applicant.id]);
-                    else setSelectedApplicants(selectedApplicants.filter(id => id !== applicant.id));
-                  }}
-                  className="w-4 h-4 rounded border-input text-primary focus:ring-primary"
-                />
-              </div>
+            {/* Top row: checkbox + avatar + name/meta + actions */}
+            <div className="flex items-start gap-3">
+              <input
+                type="checkbox"
+                checked={selectedApplicants.includes(applicant.id)}
+                onChange={(e) => {
+                  if (e.target.checked) setSelectedApplicants([...selectedApplicants, applicant.id]);
+                  else setSelectedApplicants(selectedApplicants.filter(id => id !== applicant.id));
+                }}
+                className="w-4 h-4 rounded border-input text-primary focus:ring-primary mt-1 shrink-0"
+              />
 
-              {/* Avatar */}
-              <Avatar className="w-12 h-12 sm:w-14 sm:h-14 shrink-0 ring-2 ring-background shadow-sm">
+              <Avatar className="w-11 h-11 shrink-0 ring-2 ring-background shadow-sm">
                 <AvatarImage src={profile?.avatar_url || ''} />
-                <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+                <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs">
                   {initials}
                 </AvatarFallback>
               </Avatar>
 
-              {/* Info + Actions */}
               <div className="flex-1 min-w-0">
-                <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-3">
-                  {/* Candidate Info */}
-                  <div className="min-w-0 flex-1">
-                    <h4 className="font-semibold text-foreground text-base leading-tight">
-                      {profile?.full_name || 'Unknown'}
-                    </h4>
-                    <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground flex-wrap">
-                      <span className="flex items-center gap-1">
-                        <Briefcase className="w-3.5 h-3.5" />
-                        {candidate?.job_title || 'Not specified'}
-                      </span>
-                      <span className="text-border">•</span>
-                      <span>{candidate?.experience_years || 0}y exp</span>
-                      <span className="text-border">•</span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" />
-                        {formatDistanceToNow(new Date(applicant.created_at), { addSuffix: true })}
-                      </span>
-                    </div>
-
-                    {/* Skills */}
-                    {candidate?.skills && candidate.skills.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-2.5">
-                        {candidate.skills.slice(0, 5).map((skill) => (
-                          <Badge
-                            key={skill}
-                            variant="secondary"
-                            className="text-xs font-normal px-2 py-0.5"
-                          >
-                            {skill}
-                          </Badge>
-                        ))}
-                        {candidate.skills.length > 5 && (
-                          <Badge variant="outline" className="text-xs font-normal px-2 py-0.5">
-                            +{candidate.skills.length - 5} more
-                          </Badge>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Notes indicator */}
-                    {applicant.notes && applicant.notes.length > 0 && (
-                      <div className="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground">
-                        <StickyNote className="w-3 h-3" />
-                        {applicant.notes.length} note{applicant.notes.length !== 1 ? 's' : ''}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex items-center gap-1.5 flex-wrap shrink-0">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 gap-1.5 text-xs"
-                      onClick={() => navigate(`/candidates/${candidate?.id}`)}
-                    >
-                      <Eye className="w-3.5 h-3.5" />
-                      View
-                    </Button>
-
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 gap-1.5 text-xs"
-                      onClick={() => startConversation(profile?.user_id)}
-                    >
-                      <Mail className="w-3.5 h-3.5" />
-                      Message
-                    </Button>
-
-                    <Dialog open={noteDialogOpen && selectedApplicant?.id === applicant.id} onOpenChange={(open) => {
-                      setNoteDialogOpen(open);
-                      if (open) setSelectedApplicant(applicant);
-                    }}>
-                      <DialogTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs" onClick={() => setSelectedApplicant(applicant)}>
-                          <StickyNote className="w-3.5 h-3.5" />
-                          Note
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Notes for {profile?.full_name}</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <Textarea
-                            placeholder="Add a private note about this candidate..."
-                            value={newNote}
-                            onChange={(e) => setNewNote(e.target.value)}
-                            rows={4}
-                          />
-                          {applicant.notes && applicant.notes.length > 0 && (
-                            <div className="space-y-2 max-h-40 overflow-y-auto">
-                              <p className="text-sm font-medium text-muted-foreground">Previous Notes</p>
-                              {applicant.notes.map((note) => (
-                                <div key={note.id} className="p-3 bg-muted/50 rounded-lg text-sm border border-border/50">
-                                  <p className="text-foreground">{note.note}</p>
-                                  <p className="text-xs text-muted-foreground mt-1.5">
-                                    {new Date(note.created_at).toLocaleDateString()}
-                                  </p>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          <Button onClick={saveNote} disabled={savingNote || !newNote.trim()} className="w-full">
-                            {savingNote ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                            Save Note
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-
-                    {/* Status actions */}
-                    {(applicant.status === 'pending' || applicant.status === 'reviewed') && (
-                      <>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 gap-1.5 text-xs text-success hover:text-success hover:bg-success/10"
-                          onClick={() => updateStatus(applicant.id, 'shortlisted')}
-                        >
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          Shortlist
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 gap-1.5 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => updateStatus(applicant.id, 'rejected')}
-                        >
-                          <XCircle className="w-3.5 h-3.5" />
-                          Reject
-                        </Button>
-                      </>
-                    )}
-
-                    {applicant.status === 'shortlisted' && (
-                      <Button
-                        size="sm"
-                        className="h-8 gap-1.5 text-xs bg-success hover:bg-success/90 text-success-foreground"
-                        onClick={() => updateStatus(applicant.id, 'hired')}
-                      >
-                        <Trophy className="w-3.5 h-3.5" />
-                        Hire
-                      </Button>
-                    )}
-                  </div>
+                {/* Name + inline meta */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h4 className="font-semibold text-foreground text-sm leading-tight truncate max-w-[180px] sm:max-w-none">
+                    {profile?.full_name || 'Unknown'}
+                  </h4>
+                  <span className="text-xs text-muted-foreground flex items-center gap-1 shrink-0">
+                    <Briefcase className="w-3 h-3" />
+                    {candidate?.job_title || 'N/A'}
+                  </span>
+                  <span className="text-xs text-muted-foreground shrink-0">
+                    {candidate?.experience_years || 0}y exp
+                  </span>
+                  <span className="text-xs text-muted-foreground flex items-center gap-1 shrink-0">
+                    <Clock className="w-3 h-3" />
+                    {formatDistanceToNow(new Date(applicant.created_at), { addSuffix: true })}
+                  </span>
                 </div>
+
+                {/* Skills as inline badges - max 4 visible */}
+                {candidate?.skills && candidate.skills.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {candidate.skills.slice(0, 4).map((skill) => (
+                      <Badge
+                        key={skill}
+                        variant="secondary"
+                        className="text-[10px] font-normal px-1.5 py-0 h-5 max-w-[120px] truncate"
+                      >
+                        {skill}
+                      </Badge>
+                    ))}
+                    {candidate.skills.length > 4 && (
+                      <Badge variant="outline" className="text-[10px] font-normal px-1.5 py-0 h-5">
+                        +{candidate.skills.length - 4}
+                      </Badge>
+                    )}
+                  </div>
+                )}
+
+                {/* Notes indicator */}
+                {applicant.notes && applicant.notes.length > 0 && (
+                  <div className="flex items-center gap-1 mt-1 text-[10px] text-muted-foreground">
+                    <StickyNote className="w-2.5 h-2.5" />
+                    {applicant.notes.length} note{applicant.notes.length !== 1 ? 's' : ''}
+                  </div>
+                )}
               </div>
+            </div>
+
+            {/* Action buttons row */}
+            <div className="flex items-center gap-1 mt-3 ml-[68px] flex-wrap">
+              <Button variant="outline" size="sm" className="h-7 gap-1 text-[11px] px-2" onClick={() => navigate(`/candidates/${candidate?.id}`)}>
+                <Eye className="w-3 h-3" /> View
+              </Button>
+              <Button variant="outline" size="sm" className="h-7 gap-1 text-[11px] px-2" onClick={() => startConversation(profile?.user_id)}>
+                <Mail className="w-3 h-3" /> Message
+              </Button>
+
+              <Dialog open={noteDialogOpen && selectedApplicant?.id === applicant.id} onOpenChange={(open) => {
+                setNoteDialogOpen(open);
+                if (open) setSelectedApplicant(applicant);
+              }}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-7 gap-1 text-[11px] px-2" onClick={() => setSelectedApplicant(applicant)}>
+                    <StickyNote className="w-3 h-3" /> Note
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Notes for {profile?.full_name}</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <Textarea placeholder="Add a private note..." value={newNote} onChange={(e) => setNewNote(e.target.value)} rows={4} />
+                    {applicant.notes && applicant.notes.length > 0 && (
+                      <div className="space-y-2 max-h-40 overflow-y-auto">
+                        <p className="text-sm font-medium text-muted-foreground">Previous Notes</p>
+                        {applicant.notes.map((note) => (
+                          <div key={note.id} className="p-3 bg-muted/50 rounded-lg text-sm border border-border/50">
+                            <p className="text-foreground">{note.note}</p>
+                            <p className="text-xs text-muted-foreground mt-1.5">{new Date(note.created_at).toLocaleDateString()}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <Button onClick={saveNote} disabled={savingNote || !newNote.trim()} className="w-full">
+                      {savingNote ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                      Save Note
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              <div className="flex-1" />
+
+              {(applicant.status === 'pending' || applicant.status === 'reviewed') && (
+                <>
+                  <Button size="sm" variant="ghost" className="h-7 gap-1 text-[11px] px-2 text-success hover:text-success hover:bg-success/10" onClick={() => updateStatus(applicant.id, 'shortlisted')}>
+                    <CheckCircle2 className="w-3 h-3" /> Shortlist
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-7 gap-1 text-[11px] px-2 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => updateStatus(applicant.id, 'rejected')}>
+                    <XCircle className="w-3 h-3" /> Reject
+                  </Button>
+                </>
+              )}
+              {applicant.status === 'shortlisted' && (
+                <Button size="sm" className="h-7 gap-1 text-[11px] px-2 bg-success hover:bg-success/90 text-success-foreground" onClick={() => updateStatus(applicant.id, 'hired')}>
+                  <Trophy className="w-3 h-3" /> Hire
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>
