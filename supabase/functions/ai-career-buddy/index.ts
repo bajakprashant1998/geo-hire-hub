@@ -35,7 +35,7 @@ serve(async (req) => {
     }
     const userId = claimsData.claims.sub;
 
-    const { messages, candidateProfile } = await req.json();
+    const { messages, candidateProfile, siteUrl } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: "Messages array is required" }), {
@@ -81,6 +81,90 @@ serve(async (req) => {
       }
     }
 
+    // ---- Fetch REAL jobs and employers from the platform ----
+    const baseUrl = siteUrl || "https://hireforjob1.lovable.app";
+
+    // Fetch active open jobs with employer info
+    const { data: platformJobs } = await supabase
+      .from("jobs")
+      .select(`
+        id, title, slug, job_type, salary_range, salary_currency, skills,
+        location_city, location_state, location_country, latitude, longitude,
+        category, description, openings, created_at,
+        employers!inner(id, company_name, slug, industry, team_size, location_city, location_country, is_government, verification_status)
+      `)
+      .eq("status", "open")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .limit(100);
+
+    // Build jobs context with links
+    let jobsContext = "";
+    if (platformJobs?.length) {
+      // Calculate distance from candidate if location available
+      const candidateLat = profile?.latitude;
+      const candidateLng = profile?.longitude;
+
+      const jobsWithDistance = platformJobs.map((j: any) => {
+        let distanceKm: number | null = null;
+        if (candidateLat && candidateLng && j.latitude && j.longitude) {
+          const R = 6371;
+          const dLat = ((j.latitude - candidateLat) * Math.PI) / 180;
+          const dLon = ((j.longitude - candidateLng) * Math.PI) / 180;
+          const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos((candidateLat * Math.PI) / 180) *
+            Math.cos((j.latitude * Math.PI) / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+          distanceKm = Math.round(R * c);
+        }
+
+        // Build SEO-friendly job link
+        const pathParts = ['/jobs'];
+        if (j.location_country) pathParts.push(j.location_country.toLowerCase().replace(/\s+/g, '-'));
+        if (j.location_state) pathParts.push(j.location_state.toLowerCase().replace(/\s+/g, '-'));
+        if (j.location_city) pathParts.push(j.location_city.toLowerCase().replace(/\s+/g, '-'));
+        pathParts.push(j.slug || j.id);
+        const jobUrl = `${baseUrl}${pathParts.join('/')}`;
+
+        return { ...j, distanceKm, jobUrl };
+      });
+
+      // Sort by distance if available
+      jobsWithDistance.sort((a: any, b: any) => {
+        if (a.distanceKm !== null && b.distanceKm !== null) return a.distanceKm - b.distanceKm;
+        if (a.distanceKm !== null) return -1;
+        return 1;
+      });
+
+      jobsContext = `\n\nAVAILABLE JOBS ON THE PLATFORM (${jobsWithDistance.length} active jobs):\n${jobsWithDistance.map((j: any) => {
+        const emp = j.employers as any;
+        const distance = j.distanceKm !== null ? `${j.distanceKm} km away` : 'Distance unknown';
+        return `- **${j.title}** at **${emp.company_name}** | ${j.location_city || 'Remote'}, ${j.location_country || ''} | ${j.job_type || 'Full-time'} | Salary: ${j.salary_range || 'Not specified'} | Skills: ${j.skills?.join(', ') || 'Not specified'} | Distance: ${distance} | [Apply Here](${j.jobUrl})`;
+      }).join('\n')}`;
+    }
+
+    // Fetch unique employers
+    const { data: platformEmployers } = await supabase
+      .from("employers")
+      .select("id, company_name, slug, industry, description, team_size, location_city, location_state, location_country, is_government, verification_status, benefits, specializations, website_url")
+      .eq("verification_status", "approved")
+      .limit(100);
+
+    let employersContext = "";
+    if (platformEmployers?.length) {
+      employersContext = `\n\nCOMPANIES ON THE PLATFORM (${platformEmployers.length} verified companies):\n${platformEmployers.map((e: any) => {
+        const pathParts = ['/companies'];
+        if (e.location_country) pathParts.push(e.location_country.toLowerCase().replace(/\s+/g, '-'));
+        if (e.location_state) pathParts.push(e.location_state.toLowerCase().replace(/\s+/g, '-'));
+        if (e.location_city) pathParts.push(e.location_city.toLowerCase().replace(/\s+/g, '-'));
+        pathParts.push(e.slug || e.id);
+        const companyUrl = `${baseUrl}${pathParts.join('/')}`;
+        return `- **${e.company_name}** | ${e.industry || 'Various'} | ${e.location_city || ''}, ${e.location_country || ''} | Team: ${e.team_size || 'N/A'} | ${e.is_government ? 'Government' : 'Private'} | [View Company](${companyUrl})`;
+      }).join('\n')}`;
+    }
+
     // Build profile context
     const profileContext = profile ? `
 CANDIDATE PROFILE:
@@ -109,24 +193,37 @@ ${applicationsContext}
 You have access to the candidate's complete profile:
 ${profileContext}
 
+You also have access to REAL jobs and companies available on the Hire for Job platform:
+${jobsContext}
+${employersContext}
+
 YOUR CAPABILITIES:
-1. **Company Matching**: Analyze skills, experience, location to recommend best-fit companies. Calculate match percentages. Consider: skill match (40%), experience relevance (30%), location fit (20%), salary compatibility (10%).
-2. **Salary Prediction**: Based on skills, experience, location, provide current market ranges, 2-year and 5-year projections. Be specific with numbers.
-3. **Career Path Simulation**: For paths like "stay in role", "switch company", "learn new skill", "change industry" — show salary growth, demand, promotion timeline, risk level.
-4. **Skill Gap Analysis**: Detect missing in-demand skills, suggest learning roadmaps with estimated timelines and career impact.
-5. **Interview Success**: Estimate selection probability for target roles, provide readiness scores and improvement tips.
-6. **Location Intelligence**: Calculate nearby opportunities, remote options, relocation feasibility.
+1. **Company Matching**: When the candidate asks for best companies or where to apply, ONLY recommend companies and jobs that are ACTUALLY AVAILABLE on the platform (listed above). Calculate match percentages based on: skill match (40%), experience relevance (30%), location fit (20%), salary compatibility (10%). Always include the direct link to apply.
+2. **Nearby Jobs**: When asked about nearby jobs, filter the available jobs by distance from the candidate's location. Show the closest ones first with distance in km. Always include the direct apply link.
+3. **Salary Prediction**: Based on skills, experience, location, provide current market ranges, 2-year and 5-year projections. Be specific with numbers.
+4. **Career Path Simulation**: For paths like "stay in role", "switch company", "learn new skill", "change industry" — show salary growth, demand, promotion timeline, risk level.
+5. **Skill Gap Analysis**: Detect missing in-demand skills, suggest learning roadmaps with estimated timelines and career impact.
+6. **Interview Success**: Estimate selection probability for target roles, provide readiness scores and improvement tips.
+7. **Location Intelligence**: Calculate nearby opportunities, remote options, relocation feasibility.
+
+CRITICAL RULES:
+- When recommending jobs or companies, ONLY use the real data provided above from the platform. Do NOT invent or hallucinate company names or job listings.
+- ALWAYS include clickable links in markdown format: [Apply Here](url) or [View Company](url)
+- When showing job recommendations, format them clearly with: Job Title, Company, Location, Distance, Match %, Salary, and Apply Link.
+- If no matching jobs/companies are found on the platform, tell the candidate honestly and suggest they check back later or broaden their search criteria.
+- Sort nearby jobs by distance (closest first) and best-match jobs by match percentage (highest first).
 
 RESPONSE GUIDELINES:
 - Be conversational, warm, and encouraging — like a trusted career mentor
-- Use emojis sparingly but effectively (🎯 💰 📈 🏢 ⭐)
+- Use emojis sparingly but effectively (🎯 💰 📈 🏢 ⭐ 📍)
 - Format responses with clear sections using markdown headers and bullet points
 - Include specific numbers, percentages, and projections when relevant
 - Always end with a follow-up question or suggested next action
-- When recommending companies, include match %, why they match, and what role would suit them
+- When recommending companies, include match %, why they match, distance, and a direct link
 - Keep responses focused and actionable — avoid generic fluff
 - If profile data is missing, gently suggest the candidate complete their profile for better recommendations
-- Use tables for comparisons when helpful (salary ranges, career paths)`;
+- Use tables for comparisons when helpful (salary ranges, career paths)
+- For job/company links, use markdown link syntax: [Company Name](url) or [Apply Now](url)`;
 
     const geminiMessages = [
       { role: "system" as const, content: systemPrompt },
