@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import {
   Briefcase, Bell, Shield, FileText, Sparkles, Loader2,
   Eye, Calendar, Star, ChevronRight, User, MessageSquare, Bookmark, Mic,
-  MapPin, TrendingUp, Zap, DollarSign
+  MapPin, TrendingUp, Zap, DollarSign, Bot
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -33,6 +33,7 @@ import { AIJobMatches } from '@/components/candidate/AIJobMatches';
 import { TaskList } from '@/components/candidate/TaskList';
 import { AudioResumeCard } from '@/components/candidate/AudioResumeCard';
 import { SalaryInsights } from '@/components/candidate/SalaryInsights';
+import { CareerBuddyChat } from '@/components/candidate/CareerBuddyChat';
 import CandidateDetail from '@/pages/CandidateDetail';
 import { ProfileCompletionPrompts } from '@/components/candidate/ProfileCompletionPrompts';
 import { DashboardBottomNav } from '@/components/dashboard/DashboardBottomNav';
@@ -199,7 +200,8 @@ const CandidateDashboard = () => {
     { icon: Eye, label: 'Public Profile', value: 'public-profile' },
     { icon: Sparkles, label: 'Job Alerts', value: 'alerts' },
     { icon: Shield, label: 'Security', value: 'security' },
-    { icon: DollarSign, label: 'Salary Insights', value: 'salary-insights' }
+    { icon: DollarSign, label: 'Salary Insights', value: 'salary-insights' },
+    { icon: Bot, label: 'Talk to My Buddy', value: 'career-buddy' }
   ];
 
   // Quick action buttons for dashboard home
@@ -302,6 +304,7 @@ const CandidateDashboard = () => {
         <RecommendedJobs candidateId={candidate.id} skills={candidate.skills || []} latitude={profile.latitude} longitude={profile.longitude} />
       );
       case 'salary-insights': return <SalaryInsights />;
+      case 'career-buddy': return <CareerBuddyChat />;
       default: return null;
     }
   };
