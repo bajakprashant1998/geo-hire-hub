@@ -18,6 +18,7 @@ import { LeftSidebarPanel } from '@/components/map/LeftSidebarPanel';
 import { Button } from '@/components/ui/button';
 import { Navigation } from 'lucide-react';
 import { toast } from 'sonner';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const Index = () => {
   const { user, profile } = useAuth();
@@ -125,15 +126,19 @@ const Index = () => {
           />
 
           {/* Navigation Button - Desktop */}
-          <Button
-            variant="secondary"
-            size="icon"
-            onClick={handleCenterOnUser}
-            className="absolute bottom-6 right-6 z-10 rounded-full w-12 h-12 shadow-xl hover:shadow-2xl bg-background border border-border/50"
-            title="Center on my location"
-          >
-            <Navigation className="w-5 h-5 text-primary" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="secondary"
+                size="icon"
+                onClick={handleCenterOnUser}
+                className="absolute bottom-6 right-6 z-10 rounded-full w-12 h-12 shadow-xl hover:shadow-2xl bg-background border border-border/50"
+              >
+                <Navigation className="w-5 h-5 text-primary" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Center on my location</TooltipContent>
+          </Tooltip>
         </div>
       </div>
 

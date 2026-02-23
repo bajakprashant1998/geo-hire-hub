@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { GovernmentJobBadge } from '@/components/government';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -103,14 +104,19 @@ export const Sidebar = ({
                   />
                   <span className="font-bold text-lg text-foreground">Hire for Job</span>
                 </Link>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={onClose}
-                  className="h-9 w-9 rounded-full hover:bg-muted"
-                >
-                  <X className="w-5 h-5" />
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={onClose}
+                      className="h-9 w-9 rounded-full hover:bg-muted"
+                    >
+                      <X className="w-5 h-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Close sidebar</TooltipContent>
+                </Tooltip>
               </div>
             </div>
 
@@ -153,23 +159,33 @@ export const Sidebar = ({
               <div className="px-4 py-4 border-b border-border">
                 <p className="text-sm text-muted-foreground mb-3">Sign in to access all features</p>
                 <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex-1 h-9"
-                    onClick={() => handleNavClick('/login')}
-                  >
-                    <LogIn className="w-4 h-4 mr-2" />
-                    Sign In
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    className="flex-1 h-9"
-                    onClick={() => handleNavClick('/signup')}
-                  >
-                    <UserPlus className="w-4 h-4 mr-2" />
-                    Get Started
-                  </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1 h-9"
+                      onClick={() => handleNavClick('/login')}
+                    >
+                      <LogIn className="w-4 h-4 mr-2" />
+                      Sign In
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Sign in to your account</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      size="sm" 
+                      className="flex-1 h-9"
+                      onClick={() => handleNavClick('/signup')}
+                    >
+                      <UserPlus className="w-4 h-4 mr-2" />
+                      Get Started
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Create a new account</TooltipContent>
+                </Tooltip>
                 </div>
               </div>
             )}
@@ -365,14 +381,19 @@ export const Sidebar = ({
             {/* Footer */}
             {user && (
               <div className="p-3 border-t border-border bg-muted/20">
-                <Button 
-                  variant="ghost" 
-                  className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10 h-10"
-                  onClick={handleSignOut}
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign Out
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10 h-10"
+                      onClick={handleSignOut}
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign Out
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Sign out of your account</TooltipContent>
+                </Tooltip>
               </div>
             )}
           </motion.div>

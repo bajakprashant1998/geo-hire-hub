@@ -3,6 +3,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { SearchSuggestions, saveRecentSearch } from './SearchSuggestions';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -112,28 +113,37 @@ export const SearchBar = ({ onSearch, placeholder = 'Search...', className, onLo
 
         <AnimatePresence>
           {query && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              type="button"
-              onClick={handleClear}
-              className="p-1 hover:bg-muted rounded-md transition-colors flex-shrink-0"
-            >
-              <X className="w-4 h-4 text-muted-foreground" />
-            </motion.button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  type="button"
+                  onClick={handleClear}
+                  className="p-1 hover:bg-muted rounded-md transition-colors flex-shrink-0"
+                >
+                  <X className="w-4 h-4 text-muted-foreground" />
+                </motion.button>
+              </TooltipTrigger>
+              <TooltipContent>Clear search</TooltipContent>
+            </Tooltip>
           )}
         </AnimatePresence>
 
         {onLocationClick && (
-          <button
-            type="button"
-            onClick={onLocationClick}
-            className="p-1.5 hover:bg-primary/10 rounded-lg transition-colors flex-shrink-0"
-            title="Use current location"
-          >
-            <Navigation className="w-4 h-4 text-primary" />
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={onLocationClick}
+                className="p-1.5 hover:bg-primary/10 rounded-lg transition-colors flex-shrink-0"
+              >
+                <Navigation className="w-4 h-4 text-primary" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Use current location</TooltipContent>
+          </Tooltip>
         )}
       </form>
 
