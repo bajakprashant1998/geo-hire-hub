@@ -13,6 +13,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -53,24 +54,34 @@ export const Header = ({ mode, onModeChange, onSearch, onMenuClick, userLocation
         <div className="flex items-center justify-between gap-2 mb-2">
           {/* Left */}
           <div className="flex items-center gap-1.5">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onMenuClick}
-              className="h-10 w-10 rounded-xl bg-muted/40 hover:bg-muted border border-border/20"
-            >
-              <Menu className="w-4 h-4" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onMenuClick}
+                  className="h-10 w-10 rounded-xl bg-muted/40 hover:bg-muted border border-border/20"
+                >
+                  <Menu className="w-4 h-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Open sidebar</TooltipContent>
+            </Tooltip>
             
             {/* Mobile Logo + Location */}
             <div className="flex items-center gap-1.5">
-              <Link to="/">
-                <img 
-                  src="/logo.png" 
-                  alt="Hire for Job" 
-                  className="w-8 h-8 rounded-lg object-contain shadow-sm"
-                />
-              </Link>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link to="/">
+                    <img 
+                      src="/logo.png" 
+                      alt="Hire for Job" 
+                      className="w-8 h-8 rounded-lg object-contain shadow-sm"
+                    />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent>Home</TooltipContent>
+              </Tooltip>
               {userLocation && (
                 <LocationBadge 
                   latitude={userLocation.lat} 
@@ -83,15 +94,20 @@ export const Header = ({ mode, onModeChange, onSearch, onMenuClick, userLocation
 
           {/* Right */}
           <div className="flex items-center gap-1.5">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="h-9 w-9 rounded-xl bg-muted/40 hover:bg-muted border border-border/20"
-            >
-              <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-              <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                  className="h-9 w-9 rounded-xl bg-muted/40 hover:bg-muted border border-border/20"
+                >
+                  <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                  <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}</TooltipContent>
+            </Tooltip>
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -139,25 +155,35 @@ export const Header = ({ mode, onModeChange, onSearch, onMenuClick, userLocation
               </DropdownMenu>
             ) : (
               <div className="flex items-center gap-1.5">
-                <Link to="/login">
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-9 w-9 rounded-xl bg-muted/40 hover:bg-muted border border-border/20"
-                  >
-                    <LogIn className="w-4 h-4" />
-                  </Button>
-                </Link>
-                <Link to="/signup">
-                  <Button 
-                    size="sm" 
-                    className="h-9 rounded-xl shadow-sm gap-1 px-3 text-xs font-semibold"
-                  >
-                    <UserPlus className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Get Started</span>
-                    <span className="sm:hidden">Join</span>
-                  </Button>
-                </Link>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link to="/login">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-9 w-9 rounded-xl bg-muted/40 hover:bg-muted border border-border/20"
+                      >
+                        <LogIn className="w-4 h-4" />
+                      </Button>
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>Sign in</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Link to="/signup">
+                      <Button 
+                        size="sm" 
+                        className="h-9 rounded-xl shadow-sm gap-1 px-3 text-xs font-semibold"
+                      >
+                        <UserPlus className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Get Started</span>
+                        <span className="sm:hidden">Join</span>
+                      </Button>
+                    </Link>
+                  </TooltipTrigger>
+                  <TooltipContent>Create an account</TooltipContent>
+                </Tooltip>
               </div>
             )}
           </div>

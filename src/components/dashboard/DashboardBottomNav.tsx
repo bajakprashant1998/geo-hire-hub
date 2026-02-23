@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils';
 import { Home, Briefcase, MessageSquare, User, Plus, Users, Bell } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface NavItem {
   icon: React.ElementType;
@@ -45,34 +46,38 @@ export const DashboardBottomNav = ({ type, activeItem, onItemClick }: DashboardB
         {items.map((item) => {
           const isActive = currentActive === item.value;
           return (
-            <button
-              key={item.value}
-              onClick={() => onItemClick(item.value)}
-              className="flex flex-col items-center justify-center gap-1 flex-1 h-full relative"
-            >
-              {isActive && (
-                <motion.div
-                  layoutId="bottomnav-active"
-                  className="absolute -top-0.5 w-8 h-1 bg-primary rounded-full"
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                />
-              )}
-              <div className={cn(
-                "w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200",
-                isActive ? "bg-primary/10" : "bg-transparent"
-              )}>
-                <item.icon className={cn(
-                  "w-5 h-5 transition-colors",
-                  isActive ? "text-primary" : "text-muted-foreground"
-                )} />
-              </div>
-              <span className={cn(
-                "text-[10px] font-medium transition-colors",
-                isActive ? "text-primary" : "text-muted-foreground"
-              )}>
-                {item.label}
-              </span>
-            </button>
+            <Tooltip key={item.value}>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => onItemClick(item.value)}
+                  className="flex flex-col items-center justify-center gap-1 flex-1 h-full relative"
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="bottomnav-active"
+                      className="absolute -top-0.5 w-8 h-1 bg-primary rounded-full"
+                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                    />
+                  )}
+                  <div className={cn(
+                    "w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200",
+                    isActive ? "bg-primary/10" : "bg-transparent"
+                  )}>
+                    <item.icon className={cn(
+                      "w-5 h-5 transition-colors",
+                      isActive ? "text-primary" : "text-muted-foreground"
+                    )} />
+                  </div>
+                  <span className={cn(
+                    "text-[10px] font-medium transition-colors",
+                    isActive ? "text-primary" : "text-muted-foreground"
+                  )}>
+                    {item.label}
+                  </span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top">{item.label}</TooltipContent>
+            </Tooltip>
           );
         })}
       </div>

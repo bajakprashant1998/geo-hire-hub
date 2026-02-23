@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Menu, Bell, Moon, Sun, User, Settings, LogOut, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTheme } from 'next-themes';
@@ -59,14 +60,19 @@ export const DashboardHeader = ({
       <div className="h-14 sm:h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between">
         {/* Left */}
         <div className="flex items-center gap-3 min-w-0">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden shrink-0 rounded-xl"
-            onClick={onMenuClick}
-          >
-            <Menu className="w-5 h-5" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden shrink-0 rounded-xl"
+                onClick={onMenuClick}
+              >
+                <Menu className="w-5 h-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Open menu</TooltipContent>
+          </Tooltip>
 
           {/* Mobile compact */}
           <h1 className="sm:hidden text-sm font-semibold text-foreground truncate">
@@ -90,97 +96,117 @@ export const DashboardHeader = ({
         {/* Right */}
         <div className="flex items-center gap-1.5 sm:gap-2">
           {/* Profile completeness ring */}
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
-            <div className="relative w-7 h-7">
-              <svg className="w-7 h-7 -rotate-90">
-                <circle cx="50%" cy="50%" r="10" fill="none" stroke="hsl(var(--border))" strokeWidth="2.5" />
-                <circle
-                  cx="50%" cy="50%" r="10" fill="none"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth="2.5"
-                  strokeDasharray={`${profileCompleteness * 0.63} 63`}
-                  strokeLinecap="round"
-                  className="transition-all duration-1000"
-                />
-              </svg>
-              <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-foreground">
-                {profileCompleteness}%
-              </span>
-            </div>
-            <span className="text-xs font-medium text-muted-foreground hidden md:inline">Profile</span>
-          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50 cursor-default">
+                <div className="relative w-7 h-7">
+                  <svg className="w-7 h-7 -rotate-90">
+                    <circle cx="50%" cy="50%" r="10" fill="none" stroke="hsl(var(--border))" strokeWidth="2.5" />
+                    <circle
+                      cx="50%" cy="50%" r="10" fill="none"
+                      stroke="hsl(var(--primary))"
+                      strokeWidth="2.5"
+                      strokeDasharray={`${profileCompleteness * 0.63} 63`}
+                      strokeLinecap="round"
+                      className="transition-all duration-1000"
+                    />
+                  </svg>
+                  <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-foreground">
+                    {profileCompleteness}%
+                  </span>
+                </div>
+                <span className="text-xs font-medium text-muted-foreground hidden md:inline">Profile</span>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>Profile completeness: {profileCompleteness}%</TooltipContent>
+          </Tooltip>
 
           {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative rounded-xl" onClick={onNotificationClick}>
-            <Bell className="w-5 h-5 text-muted-foreground" />
-            {notificationCount > 0 && (
-              <motion.span
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 rounded-full bg-destructive text-white text-[10px] flex items-center justify-center font-bold"
-              >
-                {notificationCount > 9 ? '9+' : notificationCount}
-              </motion.span>
-            )}
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="relative rounded-xl" onClick={onNotificationClick}>
+                <Bell className="w-5 h-5 text-muted-foreground" />
+                {notificationCount > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 rounded-full bg-destructive text-white text-[10px] flex items-center justify-center font-bold"
+                  >
+                    {notificationCount > 9 ? '9+' : notificationCount}
+                  </motion.span>
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Notifications{notificationCount > 0 ? ` (${notificationCount} unread)` : ''}</TooltipContent>
+          </Tooltip>
 
           <LanguageSelector className="hidden sm:flex" />
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-xl hidden sm:flex"
-            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          >
-            {theme === 'dark' ? (
-              <Sun className="w-4.5 h-4.5 text-muted-foreground" />
-            ) : (
-              <Moon className="w-4.5 h-4.5 text-muted-foreground" />
-            )}
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="rounded-xl hidden sm:flex"
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              >
+                {theme === 'dark' ? (
+                  <Sun className="w-4.5 h-4.5 text-muted-foreground" />
+                ) : (
+                  <Moon className="w-4.5 h-4.5 text-muted-foreground" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}</TooltipContent>
+          </Tooltip>
 
           {/* Profile */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <Avatar className="w-8 h-8 ring-2 ring-primary/20 ring-offset-1 ring-offset-card">
-                  <AvatarImage src={avatarUrl || undefined} />
-                  <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-sm">
-                    {userName?.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 rounded-xl">
-              <DropdownMenuLabel>
-                <div>
-                  <p className="font-semibold">{userName}</p>
-                  {userTitle && <p className="text-xs text-muted-foreground font-normal">{userTitle}</p>}
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link to={profilePath} className="flex items-center gap-2 cursor-pointer">
-                  <User className="w-4 h-4" />
-                  Profile
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to={settingsPath} className="flex items-center gap-2 cursor-pointer">
-                  <Settings className="w-4 h-4" />
-                  Settings
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={onSignOut}
-                className="text-destructive focus:text-destructive cursor-pointer"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="rounded-full">
+                    <Avatar className="w-8 h-8 ring-2 ring-primary/20 ring-offset-1 ring-offset-card">
+                      <AvatarImage src={avatarUrl || undefined} />
+                      <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-sm">
+                        {userName?.charAt(0)}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 rounded-xl">
+                  <DropdownMenuLabel>
+                    <div>
+                      <p className="font-semibold">{userName}</p>
+                      {userTitle && <p className="text-xs text-muted-foreground font-normal">{userTitle}</p>}
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to={profilePath} className="flex items-center gap-2 cursor-pointer">
+                      <User className="w-4 h-4" />
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to={settingsPath} className="flex items-center gap-2 cursor-pointer">
+                      <Settings className="w-4 h-4" />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={onSignOut}
+                    className="text-destructive focus:text-destructive cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </TooltipTrigger>
+            <TooltipContent>Your profile</TooltipContent>
+          </Tooltip>
         </div>
       </div>
     </header>

@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Home, Briefcase, FileText, Bell, Shield, MessageSquare,
   Settings, LogOut, MapPin, Building2, Plus, Calendar,
@@ -81,14 +82,19 @@ export const DashboardSidebar = ({
                 <p className="text-xs text-muted-foreground capitalize">{type}</p>
               </div>
             </Link>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden text-muted-foreground hover:bg-muted"
-              onClick={onClose}
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="lg:hidden text-muted-foreground hover:bg-muted"
+                  onClick={onClose}
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Close sidebar</TooltipContent>
+            </Tooltip>
           </div>
 
           {/* User Profile Card */}
@@ -121,18 +127,23 @@ export const DashboardSidebar = ({
           {/* Navigation Items */}
           <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
             {/* Dashboard Home */}
-            <button
-              onClick={() => onItemClick('home')}
-              className={cn(
-                "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
-                activeItem === null || activeItem === 'home'
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              )}
-            >
-              <Home className="w-4.5 h-4.5 shrink-0" />
-              <span>Dashboard</span>
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => onItemClick('home')}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+                    activeItem === null || activeItem === 'home'
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                >
+                  <Home className="w-4.5 h-4.5 shrink-0" />
+                  <span>Dashboard</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Go to dashboard home</TooltipContent>
+            </Tooltip>
 
             {/* Grouped Menu Items */}
             <div className="pt-1">
@@ -160,41 +171,61 @@ export const DashboardSidebar = ({
           {/* CTA Button */}
           <div className="p-3 border-t">
             {type === 'candidate' ? (
-              <Link to="/" className="block">
-                <Button
-                  variant="outline"
-                  className="w-full justify-start gap-2 border-primary/30 text-primary hover:bg-primary/10 h-10 rounded-xl"
-                >
-                  <Building2 className="w-4 h-4 shrink-0" />
-                  <span className="truncate">Find Jobs on Map</span>
-                </Button>
-              </Link>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link to="/" className="block">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start gap-2 border-primary/30 text-primary hover:bg-primary/10 h-10 rounded-xl"
+                    >
+                      <Building2 className="w-4 h-4 shrink-0" />
+                      <span className="truncate">Find Jobs on Map</span>
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">Browse jobs on the map</TooltipContent>
+              </Tooltip>
             ) : (
-              <Link to="/post-job" className="block">
-                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 gap-2 h-10 rounded-xl">
-                  <Plus className="w-4 h-4 shrink-0" />
-                  <span className="truncate">Post New Job</span>
-                </Button>
-              </Link>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link to="/post-job" className="block">
+                    <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 gap-2 h-10 rounded-xl">
+                      <Plus className="w-4 h-4 shrink-0" />
+                      <span className="truncate">Post New Job</span>
+                    </Button>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right">Create a new job posting</TooltipContent>
+              </Tooltip>
             )}
           </div>
 
           {/* Footer */}
           <div className="p-2 border-t space-y-0.5">
-            <Link
-              to={type === 'employer' ? '/employer-settings' : '/candidate-settings'}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
-            >
-              <Settings className="w-4.5 h-4.5 shrink-0" />
-              <span>Settings</span>
-            </Link>
-            <button
-              onClick={onSignOut}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10 transition-all"
-            >
-              <LogOut className="w-4.5 h-4.5 shrink-0" />
-              <span>Logout</span>
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  to={type === 'employer' ? '/employer-settings' : '/candidate-settings'}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
+                >
+                  <Settings className="w-4.5 h-4.5 shrink-0" />
+                  <span>Settings</span>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent side="right">Account settings</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={onSignOut}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/10 transition-all"
+                >
+                  <LogOut className="w-4.5 h-4.5 shrink-0" />
+                  <span>Logout</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Sign out of your account</TooltipContent>
+            </Tooltip>
           </div>
         </div>
       </aside>
@@ -203,26 +234,31 @@ export const DashboardSidebar = ({
 };
 
 const SidebarButton = ({ item, activeItem, onItemClick }: { item: SidebarItem; activeItem: string | null; onItemClick: (v: string) => void }) => (
-  <button
-    onClick={() => onItemClick(item.value)}
-    className={cn(
-      "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200",
-      activeItem === item.value
-        ? "bg-primary text-primary-foreground shadow-sm"
-        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-    )}
-  >
-    <item.icon className="w-4.5 h-4.5 shrink-0" />
-    <span className="flex-1 text-left truncate">{item.label}</span>
-    {item.badge !== undefined && item.badge > 0 && (
-      <span className={cn(
-        "min-w-5 h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center shrink-0",
-        activeItem === item.value
-          ? "bg-primary-foreground/20 text-primary-foreground"
-          : "bg-destructive text-destructive-foreground"
-      )}>
-        {item.badge > 99 ? '99+' : item.badge}
-      </span>
-    )}
-  </button>
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <button
+        onClick={() => onItemClick(item.value)}
+        className={cn(
+          "w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200",
+          activeItem === item.value
+            ? "bg-primary text-primary-foreground shadow-sm"
+            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+        )}
+      >
+        <item.icon className="w-4.5 h-4.5 shrink-0" />
+        <span className="flex-1 text-left truncate">{item.label}</span>
+        {item.badge !== undefined && item.badge > 0 && (
+          <span className={cn(
+            "min-w-5 h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center shrink-0",
+            activeItem === item.value
+              ? "bg-primary-foreground/20 text-primary-foreground"
+              : "bg-destructive text-destructive-foreground"
+          )}>
+            {item.badge > 99 ? '99+' : item.badge}
+          </span>
+        )}
+      </button>
+    </TooltipTrigger>
+    <TooltipContent side="right">{item.label}</TooltipContent>
+  </Tooltip>
 );
