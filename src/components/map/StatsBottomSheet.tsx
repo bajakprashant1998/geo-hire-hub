@@ -69,7 +69,7 @@ export const StatsBottomSheet = ({
         dragElastic={0.15}
         onDragEnd={handleDragEnd}
         className={cn(
-          "bg-card/98 backdrop-blur-2xl border border-border/40",
+          "bg-card border border-border",
           "rounded-2xl shadow-2xl",
           "overflow-hidden"
         )}
@@ -160,12 +160,12 @@ export const StatsBottomSheet = ({
           {/* Quick Category Tags */}
           {mode === 'seeking' && !isExpanded && (
             <div className="flex gap-1.5 mt-2.5">
-              <Badge variant="secondary" className="gap-1 px-2 py-0.5 text-[10px] bg-primary/8 border-primary/10">
-                <Building2 className="w-2.5 h-2.5" />
+              <Badge variant="secondary" className="gap-1 px-2 py-0.5 text-[10px] bg-primary/15 border border-primary/20 text-foreground">
+                <Building2 className="w-2.5 h-2.5 text-primary" />
                 {privateJobCount} Private
               </Badge>
-              <Badge variant="secondary" className="gap-1 px-2 py-0.5 text-[10px] bg-success/8 border-success/10">
-                <Landmark className="w-2.5 h-2.5" />
+              <Badge variant="secondary" className="gap-1 px-2 py-0.5 text-[10px] bg-emerald-500/15 border border-emerald-500/20 text-foreground">
+                <Landmark className="w-2.5 h-2.5 text-emerald-500" />
                 {governmentJobCount} Govt
               </Badge>
             </div>
@@ -182,21 +182,21 @@ export const StatsBottomSheet = ({
               transition={{ duration: 0.25 }}
               className="overflow-hidden"
             >
-              <div className="px-3.5 pb-3.5 space-y-3 border-t border-border/20 pt-3">
+              <div className="px-3.5 pb-3.5 space-y-3 border-t border-border pt-3">
                 {/* Category Breakdown */}
                 {mode === 'seeking' && (
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="flex items-center gap-2.5 p-3 rounded-xl bg-gradient-to-br from-primary/8 to-transparent border border-primary/10">
+                    <div className="flex items-center gap-2.5 p-3 rounded-xl bg-primary/10 border border-primary/20">
                       <Building2 className="w-5 h-5 text-primary" />
                       <div>
-                        <p className="text-base font-bold">{privateJobCount}</p>
+                        <p className="text-base font-bold text-foreground">{privateJobCount}</p>
                         <p className="text-[10px] text-muted-foreground">Private Jobs</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2.5 p-3 rounded-xl bg-gradient-to-br from-success/8 to-transparent border border-success/10">
-                      <Landmark className="w-5 h-5 text-success" />
+                    <div className="flex items-center gap-2.5 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                      <Landmark className="w-5 h-5 text-emerald-500" />
                       <div>
-                        <p className="text-base font-bold">{governmentJobCount}</p>
+                        <p className="text-base font-bold text-foreground">{governmentJobCount}</p>
                         <p className="text-[10px] text-muted-foreground">Govt Jobs</p>
                       </div>
                     </div>
@@ -224,7 +224,7 @@ export const StatsBottomSheet = ({
                           "border active:scale-95",
                           radius === r
                             ? "bg-primary text-primary-foreground border-primary shadow-sm shadow-primary/20"
-                            : "bg-muted/30 text-muted-foreground border-border/20 hover:bg-muted/50"
+                            : "bg-muted text-muted-foreground border-border hover:bg-muted/80"
                         )}
                       >
                         {r}km
@@ -235,7 +235,7 @@ export const StatsBottomSheet = ({
 
                 {/* AI Hint */}
                 {mode === 'seeking' && (
-                  <div className="flex items-center gap-2.5 p-3 rounded-xl bg-gradient-to-r from-warning/8 to-transparent border border-warning/15">
+                  <div className="flex items-center gap-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
                     <div className="p-1.5 rounded-lg bg-warning/10">
                       <Sparkles className="w-4 h-4 text-warning" />
                     </div>
