@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,8 +9,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Menu, Bell, Plus, Search, User, Settings, LogOut, ChevronDown } from 'lucide-react';
+import { Menu, Bell, Moon, Sun, User, Settings, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTheme } from 'next-themes';
+import { LanguageSelector } from '@/components/LanguageSelector';
+import { motion } from 'framer-motion';
 
 interface EmployerHeaderProps {
   companyName: string;
@@ -20,6 +22,7 @@ interface EmployerHeaderProps {
   onMenuClick: () => void;
   onSignOut: () => void;
   notificationCount?: number;
+  profileCompleteness?: number;
   onNotificationClick?: () => void;
 }
 
@@ -30,72 +33,117 @@ export const EmployerHeader = ({
   onMenuClick,
   onSignOut,
   notificationCount = 0,
+  profileCompleteness = 75,
   onNotificationClick
 }: EmployerHeaderProps) => {
+  const firstName = companyName?.split(' ')[0] || 'Company';
+  const { theme, setTheme } = useTheme();
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
+
   return (
-    <header className="sticky top-0 z-30 h-16 bg-card border-b shadow-sm">
-      <div className="h-full px-4 lg:px-6 flex items-center justify-between gap-4">
-        {/* Left - Menu Button (Mobile) + Search */}
-        <div className="flex items-center gap-4 flex-1">
+    <header className="sticky top-0 z-30 bg-card/95 backdrop-blur-md border-b shadow-sm safe-area-pt">
+      <div className="h-14 sm:h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between">
+        {/* Left */}
+        <div className="flex items-center gap-3 min-w-0">
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden"
+            className="lg:hidden shrink-0 rounded-xl"
             onClick={onMenuClick}
           >
             <Menu className="w-5 h-5" />
           </Button>
 
-          {/* Search Bar */}
-          <div className="hidden md:flex items-center flex-1 max-w-md">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search candidates, jobs..."
-                className="pl-10 bg-muted/50 border-0 focus-visible:ring-1"
-              />
-            </div>
-          </div>
+          {/* Mobile compact */}
+          <h1 className="sm:hidden text-sm font-semibold text-foreground truncate">
+            Hi, <span className="text-primary">{firstName}</span> 👋
+          </h1>
+          {/* Desktop */}
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="hidden sm:block min-w-0"
+          >
+            <h1 className="text-base sm:text-lg font-bold text-foreground truncate">
+              {getGreeting()}, <span className="text-primary">{firstName}</span> 👋
+            </h1>
+            <p className="text-xs text-muted-foreground truncate">
+              Manage your hiring pipeline
+            </p>
+          </motion.div>
         </div>
 
-        {/* Right - Post Job, Notifications, Company Profile */}
-        <div className="flex items-center gap-3">
-          {/* Post New Job Button */}
-          <Link to="/post-job">
-            <Button className="bg-primary hover:bg-primary/90 gap-2">
-              <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline">Post New Job</span>
-            </Button>
-          </Link>
+        {/* Right */}
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Profile completeness ring */}
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted/50 border border-border/50">
+            <div className="relative w-7 h-7">
+              <svg className="w-7 h-7 -rotate-90">
+                <circle cx="50%" cy="50%" r="10" fill="none" stroke="hsl(var(--border))" strokeWidth="2.5" />
+                <circle
+                  cx="50%" cy="50%" r="10" fill="none"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth="2.5"
+                  strokeDasharray={`${profileCompleteness * 0.63} 63`}
+                  strokeLinecap="round"
+                  className="transition-all duration-1000"
+                />
+              </svg>
+              <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-foreground">
+                {profileCompleteness}%
+              </span>
+            </div>
+            <span className="text-xs font-medium text-muted-foreground hidden md:inline">Profile</span>
+          </div>
 
           {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative" onClick={onNotificationClick}>
+          <Button variant="ghost" size="icon" className="relative rounded-xl" onClick={onNotificationClick}>
             <Bell className="w-5 h-5 text-muted-foreground" />
             {notificationCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive text-white text-xs flex items-center justify-center font-semibold">
+              <motion.span
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 rounded-full bg-destructive text-white text-[10px] flex items-center justify-center font-bold"
+              >
                 {notificationCount > 9 ? '9+' : notificationCount}
-              </span>
+              </motion.span>
             )}
           </Button>
 
-          {/* Company Profile Dropdown */}
+          <LanguageSelector className="hidden sm:flex" />
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="rounded-xl hidden sm:flex"
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          >
+            {theme === 'dark' ? (
+              <Sun className="w-4.5 h-4.5 text-muted-foreground" />
+            ) : (
+              <Moon className="w-4.5 h-4.5 text-muted-foreground" />
+            )}
+          </Button>
+
+          {/* Profile */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2 px-2">
-                <Avatar className="w-9 h-9 ring-2 ring-border">
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <Avatar className="w-8 h-8 ring-2 ring-primary/20 ring-offset-1 ring-offset-card">
                   <AvatarImage src={avatarUrl || undefined} />
-                  <AvatarFallback className="bg-[hsl(142,53%,43%)] text-white font-semibold">
+                  <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-sm">
                     {companyName?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="hidden sm:block text-left">
-                  <p className="text-sm font-medium text-foreground truncate max-w-[120px]">{companyName}</p>
-                  <p className="text-xs text-muted-foreground">{planName}</p>
-                </div>
-                <ChevronDown className="w-4 h-4 text-muted-foreground hidden sm:block" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-56 rounded-xl">
               <DropdownMenuLabel>
                 <div>
                   <p className="font-semibold">{companyName}</p>
