@@ -45,6 +45,8 @@ const formatMarkdown = (text: string) => {
     .replace(/^### (.*$)/gim, '<h4 class="font-bold text-sm mt-3 mb-1 text-foreground">$1</h4>')
     .replace(/^## (.*$)/gim, '<h3 class="font-bold text-base mt-4 mb-1.5 text-foreground">$1</h3>')
     .replace(/^# (.*$)/gim, '<h2 class="font-bold text-lg mt-4 mb-2 text-foreground">$1</h2>')
+    // Links [text](url) - convert to clickable links with styling
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-primary font-medium underline underline-offset-2 hover:text-primary/80 transition-colors">$1 ↗</a>')
     // Bold
     .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-foreground">$1</strong>')
     // Italic
@@ -147,6 +149,7 @@ export const CareerBuddyChat = () => {
           body: JSON.stringify({
             messages: chatHistory,
             candidateProfile,
+            siteUrl: window.location.origin,
           }),
         }
       );
