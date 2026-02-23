@@ -40,6 +40,9 @@ import { DashboardBottomNav } from '@/components/dashboard/DashboardBottomNav';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { motion } from 'framer-motion';
+import { lazy, Suspense } from 'react';
+
+const AIResumeBuilder = lazy(() => import('@/pages/AIResumeBuilder'));
 import { cn } from '@/lib/utils';
 
 const CandidateDashboard = () => {
@@ -163,7 +166,6 @@ const CandidateDashboard = () => {
 
   const handleSectionClick = (value: string) => {
     if (value === 'messages') { setActiveSection('messages'); }
-    else if (value === 'ai-resume') navigate('/ai-resume-builder');
     else if (value === 'profile') navigate('/candidate-profile');
     else { setActiveSection(value === 'home' ? null : value); }
     setSidebarOpen(false);
@@ -305,6 +307,11 @@ const CandidateDashboard = () => {
       );
       case 'salary-insights': return <SalaryInsights />;
       case 'career-buddy': return <CareerBuddyChat />;
+      case 'ai-resume': return (
+        <Suspense fallback={<div className="flex items-center justify-center p-8"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>}>
+          <AIResumeBuilder embedded />
+        </Suspense>
+      );
       default: return null;
     }
   };
