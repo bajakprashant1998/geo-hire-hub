@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, TrendingUp, X, Search } from 'lucide-react';
+import { Clock, TrendingUp, X, Search, Briefcase, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 const STORAGE_KEY = 'hfj_recent_searches';
 const MAX_RECENT = 5;
@@ -13,14 +14,6 @@ interface SearchSuggestionsProps {
   currentQuery: string;
 }
 
-const trendingSearches = [
-  'Software Developer',
-  'Data Analyst',
-  'Marketing Manager',
-  'React Developer',
-  'Customer Support',
-];
-
 export const SearchSuggestions = ({ 
   isVisible, 
   onSelect, 
@@ -28,6 +21,8 @@ export const SearchSuggestions = ({
   currentQuery 
 }: SearchSuggestionsProps) => {
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [dbSuggestions, setDbSuggestions] = useState<{ title: string; type: 'job' | 'category' }[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -39,6 +34,62 @@ export const SearchSuggestions = ({
       }
     }
   }, [isVisible]);
+
+  // Fetch dynamic suggestions from DB when query changes
+  useEffect(() => {
+    if (!currentQuery || currentQuery.length < 2) {
+      setDbSuggestions([]);
+      return;
+    }
+
+    const timeout = setTimeout(async () => {
+      setLoadingSuggestions(true);
+      try {
+        const [jobsRes, categoriesRes] = await Promise.all([
+          supabase
+            .from('jobs')
+            .select('title')
+            .eq('status', 'open')
+            .eq('is_active', true)
+            .ilike('title', `%${currentQuery}%`)
+            .limit(5),
+          supabase
+            .from('job_categories')
+            .select('name')
+            .eq('is_active', true)
+            .ilike('name', `%${currentQuery}%`)
+            .limit(5),
+        ]);
+
+        const suggestions: { title: string; type: 'job' | 'category' }[] = [];
+        const seen = new Set<string>();
+
+        (jobsRes.data || []).forEach((j) => {
+          const key = j.title.toLowerCase();
+          if (!seen.has(key)) {
+            seen.add(key);
+            suggestions.push({ title: j.title, type: 'job' });
+          }
+        });
+
+        (categoriesRes.data || []).forEach((c) => {
+          const key = c.name.toLowerCase();
+          if (!seen.has(key)) {
+            seen.add(key);
+            suggestions.push({ title: c.name, type: 'category' });
+          }
+        });
+
+        setDbSuggestions(suggestions.slice(0, 8));
+      } catch {
+        setDbSuggestions([]);
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timeout);
+  }, [currentQuery]);
 
   const clearRecent = (e: React.MouseEvent, search: string) => {
     e.stopPropagation();
@@ -52,20 +103,33 @@ export const SearchSuggestions = ({
     localStorage.removeItem(STORAGE_KEY);
   };
 
-  // Filter suggestions based on current query
-  const filteredTrending = currentQuery 
-    ? trendingSearches.filter(s => 
-        s.toLowerCase().includes(currentQuery.toLowerCase())
-      )
-    : trendingSearches;
-
   const filteredRecent = currentQuery
     ? recentSearches.filter(s =>
         s.toLowerCase().includes(currentQuery.toLowerCase())
       )
     : recentSearches;
 
+  const popularSearches = [
+    'Software Developer',
+    'Data Analyst',
+    'Marketing Manager',
+    'React Developer',
+    'Customer Support',
+    'Driver',
+    'Accountant',
+    'Sales Executive',
+  ];
+
+  const filteredPopular = currentQuery 
+    ? popularSearches.filter(s => 
+        s.toLowerCase().includes(currentQuery.toLowerCase())
+      )
+    : popularSearches.slice(0, 6);
+
   if (!isVisible) return null;
+
+  const showDbSuggestions = currentQuery && currentQuery.length >= 2 && dbSuggestions.length > 0;
+  const showPopular = !currentQuery || filteredPopular.length > 0;
 
   return (
     <AnimatePresence>
@@ -81,6 +145,51 @@ export const SearchSuggestions = ({
           "z-50"
         )}
       >
+        {/* DB Suggestions */}
+        {showDbSuggestions && (
+          <div className="p-3 border-b border-border/50">
+            <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground mb-2">
+              <Briefcase className="w-3.5 h-3.5" />
+              <span>Suggestions</span>
+            </div>
+            <div className="space-y-0.5">
+              {dbSuggestions.map((item, index) => (
+                <motion.button
+                  key={`${item.type}-${item.title}`}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.03 }}
+                  onClick={() => onSelect(item.title)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-3 py-2.5",
+                    "rounded-xl hover:bg-muted/50 transition-colors text-left"
+                  )}
+                >
+                  {item.type === 'job' ? (
+                    <Briefcase className="w-4 h-4 text-primary flex-shrink-0" />
+                  ) : (
+                    <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                  )}
+                  <span className="text-sm truncate">{item.title}</span>
+                  <span className="text-[10px] text-muted-foreground ml-auto flex-shrink-0">
+                    {item.type === 'job' ? 'Job' : 'Category'}
+                  </span>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Loading indicator */}
+        {loadingSuggestions && currentQuery.length >= 2 && (
+          <div className="px-4 py-3 border-b border-border/50">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="w-3 h-3 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+              <span>Searching...</span>
+            </div>
+          </div>
+        )}
+
         {/* Recent Searches */}
         {filteredRecent.length > 0 && (
           <div className="p-3 border-b border-border/50">
@@ -126,15 +235,15 @@ export const SearchSuggestions = ({
           </div>
         )}
 
-        {/* Trending Searches */}
-        {filteredTrending.length > 0 && (
+        {/* Popular Searches */}
+        {showPopular && filteredPopular.length > 0 && (
           <div className="p-3">
             <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground mb-2">
               <TrendingUp className="w-3.5 h-3.5" />
               <span>Popular Searches</span>
             </div>
             <div className="flex flex-wrap gap-2">
-              {filteredTrending.map((search, index) => (
+              {filteredPopular.map((search, index) => (
                 <motion.button
                   key={search}
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -155,11 +264,14 @@ export const SearchSuggestions = ({
         )}
 
         {/* No Results */}
-        {filteredRecent.length === 0 && filteredTrending.length === 0 && currentQuery && (
+        {filteredRecent.length === 0 && filteredPopular.length === 0 && !showDbSuggestions && currentQuery && !loadingSuggestions && (
           <div className="p-6 text-center">
             <Search className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
             <p className="text-sm text-muted-foreground">
               No suggestions for "{currentQuery}"
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Press Enter to search anyway
             </p>
           </div>
         )}

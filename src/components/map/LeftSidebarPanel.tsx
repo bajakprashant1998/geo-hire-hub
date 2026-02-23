@@ -263,6 +263,8 @@ export const LeftSidebarPanel = ({
           <SearchBar
             onSearch={onSearchChange}
             placeholder={mode === 'hiring' ? 'Search candidates...' : 'Search jobs...'}
+            resultCount={count}
+            showResultCount={true}
           />
 
           {/* Filters & Radius Toggle */}

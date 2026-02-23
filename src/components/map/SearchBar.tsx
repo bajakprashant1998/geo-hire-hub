@@ -10,9 +10,11 @@ interface SearchBarProps {
   placeholder?: string;
   className?: string;
   onLocationClick?: () => void;
+  resultCount?: number;
+  showResultCount?: boolean;
 }
 
-export const SearchBar = ({ onSearch, placeholder = 'Search...', className, onLocationClick }: SearchBarProps) => {
+export const SearchBar = ({ onSearch, placeholder = 'Search...', className, onLocationClick, resultCount, showResultCount = false }: SearchBarProps) => {
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -146,6 +148,30 @@ export const SearchBar = ({ onSearch, placeholder = 'Search...', className, onLo
           </Tooltip>
         )}
       </form>
+
+      {/* Result count feedback */}
+      <AnimatePresence>
+        {showResultCount && query && !showSuggestions && resultCount !== undefined && (
+          <motion.div
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+            className="absolute top-full left-0 right-0 mt-1.5 px-1"
+          >
+            <div className={cn(
+              "text-xs px-3 py-1.5 rounded-lg",
+              resultCount > 0 
+                ? "text-muted-foreground bg-muted/50" 
+                : "text-destructive bg-destructive/10"
+            )}>
+              {resultCount > 0 
+                ? `${resultCount} result${resultCount !== 1 ? 's' : ''} found`
+                : 'No results found — try a different search'
+              }
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <SearchSuggestions
         isVisible={showSuggestions && isFocused}
