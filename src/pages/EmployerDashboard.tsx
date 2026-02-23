@@ -47,6 +47,7 @@ import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 import { JobExpiryBadge } from '@/components/employer/JobExpiryBadge';
 import { SecuritySettings } from '@/components/candidate/SecuritySettings';
 import { NotificationCenter } from '@/components/candidate/NotificationCenter';
+import { CompanyProfileSection } from '@/components/employer/CompanyProfileSection';
 import { motion } from 'framer-motion';
 
 const EmployerDashboard = () => {
@@ -198,7 +199,7 @@ const EmployerDashboard = () => {
     if (value === 'chat') {
       setActiveSection('chat');
     } else if (value === 'company') {
-      navigate('/company-profile');
+      setActiveSection('company');
     } else if (value === 'settings') {
       navigate('/employer-settings');
     } else if (value === 'upgrade-plan') {
@@ -500,6 +501,8 @@ const EmployerDashboard = () => {
         );
       case 'public-profile':
         return employer && <EmployerDetail id={employer.id} />;
+      case 'company':
+        return <CompanyProfileSection onViewPublicProfile={() => setActiveSection('public-profile')} />;
       case 'notifications':
         return <NotificationCenter />;
       case 'security':

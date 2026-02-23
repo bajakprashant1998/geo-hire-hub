@@ -122,7 +122,7 @@ const App = () => (
               <Route path="/employer-settings" element={<EmployerSettings />} />
               <Route path="/post-job" element={<PostJob />} />
               <Route path="/edit-job/:jobId" element={<PostJob />} />
-              <Route path="/company-profile" element={<CompanyProfileEdit />} />
+              <Route path="/company-profile" element={<Navigate to="/employer-dashboard?tab=company" replace />} />
               <Route path="/video-call/:interviewId" element={<VideoCall />} />
 
               {/* ==================== ADMIN ROUTES ==================== */}
