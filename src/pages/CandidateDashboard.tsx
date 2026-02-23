@@ -18,7 +18,7 @@ import { DashboardStatCard } from '@/components/dashboard/DashboardStatCard';
 import { MessagesPreview } from '@/components/dashboard/MessagesPreview';
 import { UpcomingInterviewCard } from '@/components/dashboard/UpcomingInterviewCard';
 import { JobMatchCarousel } from '@/components/dashboard/JobMatchCarousel';
-import { ChatModal } from '@/components/messaging/ChatModal';
+import { DashboardMessaging } from '@/components/dashboard/DashboardMessaging';
 import { ProfileEditModal } from '@/components/candidate/ProfileEditModal';
 import { ResumeAndDocumentManager } from '@/components/candidate/ResumeAndDocumentManager';
 import { JobActivityTabs } from '@/components/candidate/JobActivityTabs';
@@ -48,7 +48,7 @@ const CandidateDashboard = () => {
   const [dataLoading, setDataLoading] = useState(true);
   const [candidate, setCandidate] = useState<any>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [chatModalOpen, setChatModalOpen] = useState(false);
+  
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileRetryCount, setProfileRetryCount] = useState(0);
   const [nextInterviewLabel, setNextInterviewLabel] = useState('None scheduled');
@@ -161,7 +161,7 @@ const CandidateDashboard = () => {
   };
 
   const handleSectionClick = (value: string) => {
-    if (value === 'messages') { setChatModalOpen(true); }
+    if (value === 'messages') { setActiveSection('messages'); }
     else if (value === 'ai-resume') navigate('/ai-resume-builder');
     else if (value === 'profile') navigate('/candidate-profile');
     else { setActiveSection(value === 'home' ? null : value); }
@@ -295,6 +295,7 @@ const CandidateDashboard = () => {
       case 'alerts': return candidate && <JobAlertsManager candidateId={candidate.id} />;
       case 'security': return <SecuritySettings />;
       case 'tasks': return candidate && <TaskList candidateId={candidate.id} />;
+      case 'messages': return <DashboardMessaging />;
       case 'notifications': return <NotificationCenter />;
       case 'public-profile': return candidate && <CandidateDetail id={candidate.id} />;
       case 'recommended': return candidate && (
@@ -338,7 +339,7 @@ const CandidateDashboard = () => {
           />
 
           <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto pb-24 md:pb-6">
-            {activeSection && activeSection !== 'messages' && activeSection !== 'profile' ? (
+            {activeSection && activeSection !== 'profile' ? (
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -441,7 +442,7 @@ const CandidateDashboard = () => {
                     value={stats.unreadMessages}
                     subtitle={stats.unreadMessages > 0 ? 'unread' : 'all caught up'}
                     accentColor="amber"
-                    onClick={() => setChatModalOpen(true)}
+                    onClick={() => setActiveSection('messages')}
                     delay={2}
                   />
                   <DashboardStatCard
@@ -457,7 +458,7 @@ const CandidateDashboard = () => {
                 {/* Messages + Interview */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-6">
                   <div className="lg:col-span-2">
-                    <MessagesPreview profileId={profile.id} onOpenChat={() => setChatModalOpen(true)} />
+                    <MessagesPreview profileId={profile.id} onOpenChat={() => setActiveSection('messages')} />
                   </div>
                   <div>
                     <UpcomingInterviewCard />
@@ -484,7 +485,7 @@ const CandidateDashboard = () => {
           />
         )}
 
-        <ChatModal isOpen={chatModalOpen} onClose={() => setChatModalOpen(false)} />
+        
         <DashboardBottomNav type="candidate" activeItem={activeSection} onItemClick={handleSectionClick} />
       </div>
     </EmailVerificationGuard>

@@ -29,7 +29,7 @@ import { EmployerHeader } from '@/components/dashboard/EmployerHeader';
 import { DashboardStatCard } from '@/components/dashboard/DashboardStatCard';
 import { ActiveJobsTable } from '@/components/dashboard/ActiveJobsTable';
 import { EmployerInterviewsCard } from '@/components/dashboard/EmployerInterviewsCard';
-import { ChatModal } from '@/components/messaging/ChatModal';
+import { DashboardMessaging } from '@/components/dashboard/DashboardMessaging';
 
 import { PlanUsagePanel } from '@/components/employer/PlanUsagePanel';
 import { JobDraftsSection } from '@/components/employer/JobDraftsSection';
@@ -58,7 +58,7 @@ const EmployerDashboard = () => {
   const [jobs, setJobs] = useState<any[]>([]);
   const [selectedJob, setSelectedJob] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [chatModalOpen, setChatModalOpen] = useState(false);
+  
   const [profileRetryCount, setProfileRetryCount] = useState(0);
   const [planName, setPlanName] = useState('Free Plan');
   const [stats, setStats] = useState({
@@ -196,7 +196,7 @@ const EmployerDashboard = () => {
 
   const handleSectionClick = (value: string) => {
     if (value === 'chat') {
-      setChatModalOpen(true);
+      setActiveSection('chat');
     } else if (value === 'company') {
       navigate('/company-profile');
     } else if (value === 'settings') {
@@ -440,6 +440,8 @@ const EmployerDashboard = () => {
         return employer && <SavedCandidatesSection employerId={employer.id} />;
       case 'drafts':
         return employer && <JobDraftsSection employerId={employer.id} />;
+      case 'chat':
+        return <DashboardMessaging />;
       case 'tasks':
         return employer && <TaskManager employerId={employer.id} />;
       case 'plan':
@@ -615,11 +617,8 @@ const EmployerDashboard = () => {
           </main>
         </div>
 
-        {/* Chat Modal */}
-        <ChatModal
-          isOpen={chatModalOpen}
-          onClose={() => setChatModalOpen(false)}
-        />
+        
+
 
         {/* Delete Job Confirmation Dialog */}
         <AlertDialog open={!!jobToDelete} onOpenChange={() => setJobToDelete(null)}>
