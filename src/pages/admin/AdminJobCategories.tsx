@@ -21,9 +21,12 @@ import {
 } from '@/components/ui/select';
 import {
   Plus, Pencil, Trash2, Tag, GripVertical, Search, Sparkles, Loader2, ChevronLeft, ChevronRight,
+  Filter, FileText, Image, Clock, AlertTriangle,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+
+type SmartFilter = 'none' | 'has_description' | 'no_description' | 'has_icon' | 'no_icon' | 'recent';
 
 interface JobCategory {
   id: string;
@@ -44,6 +47,8 @@ export default function AdminJobCategories() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [searchTimeout, setSearchTimeout] = useState<ReturnType<typeof setTimeout> | null>(null);
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [smartFilter, setSmartFilter] = useState<SmartFilter>('none');
+  const [duplicateWarning, setDuplicateWarning] = useState('');
   const [page, setPage] = useState(1);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<JobCategory | null>(null);
@@ -61,7 +66,7 @@ export default function AdminJobCategories() {
 
   // Server-side paginated query
   const { data: queryResult, isLoading } = useQuery({
-    queryKey: ['admin-job-categories', page, debouncedSearch, statusFilter],
+    queryKey: ['admin-job-categories', page, debouncedSearch, statusFilter, smartFilter],
     queryFn: async () => {
       const from = (page - 1) * ITEMS_PER_PAGE;
       const to = from + ITEMS_PER_PAGE - 1;
@@ -80,6 +85,20 @@ export default function AdminJobCategories() {
         query = query.eq('is_active', true);
       } else if (statusFilter === 'inactive') {
         query = query.eq('is_active', false);
+      }
+
+      // Apply smart filter
+      if (smartFilter === 'has_description') {
+        query = query.not('description', 'is', null).neq('description', '');
+      } else if (smartFilter === 'no_description') {
+        query = query.or('description.is.null,description.eq.');
+      } else if (smartFilter === 'has_icon') {
+        query = query.not('icon', 'is', null).neq('icon', '');
+      } else if (smartFilter === 'no_icon') {
+        query = query.or('icon.is.null,icon.eq.');
+      } else if (smartFilter === 'recent') {
+        const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+        query = query.gte('created_at', sevenDaysAgo);
       }
 
       query = query.order('name', { ascending: true }).range(from, to);
@@ -122,6 +141,26 @@ export default function AdminJobCategories() {
   const handleStatusChange = (val: string) => {
     setStatusFilter(val as any);
     setPage(1);
+  };
+
+  const handleSmartFilterChange = (val: string) => {
+    setSmartFilter(val as SmartFilter);
+    setPage(1);
+  };
+
+  // Check for duplicate category name
+  const checkDuplicate = async (name: string) => {
+    if (!name.trim()) { setDuplicateWarning(''); return; }
+    const { data } = await supabase
+      .from('job_categories')
+      .select('id, name')
+      .ilike('name', name.trim())
+      .limit(1);
+    if (data && data.length > 0 && data[0].id !== editingCategory?.id) {
+      setDuplicateWarning(`"${data[0].name}" already exists`);
+    } else {
+      setDuplicateWarning('');
+    }
   };
 
   const createMutation = useMutation({
@@ -184,6 +223,7 @@ export default function AdminJobCategories() {
   const resetForm = () => {
     setFormData({ name: '', description: '', icon: '', is_active: true, sort_order: 0 });
     setEditingCategory(null);
+    setDuplicateWarning('');
   };
 
   const openCreateDialog = () => {
@@ -194,6 +234,7 @@ export default function AdminJobCategories() {
 
   const openEditDialog = (category: JobCategory) => {
     setEditingCategory(category);
+    setDuplicateWarning('');
     setFormData({
       name: category.name,
       description: category.description || '',
@@ -204,9 +245,23 @@ export default function AdminJobCategories() {
     setDialogOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) { toast.error('Category name is required'); return; }
+    if (duplicateWarning) { toast.error('A category with this name already exists'); return; }
+    
+    // Final server-side duplicate check before submitting
+    const { data: existing } = await supabase
+      .from('job_categories')
+      .select('id')
+      .ilike('name', formData.name.trim())
+      .limit(1);
+    if (existing && existing.length > 0 && existing[0].id !== editingCategory?.id) {
+      toast.error('A category with this name already exists');
+      setDuplicateWarning(`"${formData.name.trim()}" already exists`);
+      return;
+    }
+    
     if (editingCategory) {
       updateMutation.mutate({ id: editingCategory.id, data: formData });
     } else {
@@ -307,11 +362,53 @@ export default function AdminJobCategories() {
             <SelectItem value="inactive">Inactive</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={smartFilter} onValueChange={handleSmartFilterChange}>
+          <SelectTrigger className="w-[180px]">
+            <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
+            <SelectValue placeholder="Smart Filter" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">No Filter</SelectItem>
+            <SelectItem value="has_description">Has Description</SelectItem>
+            <SelectItem value="no_description">Missing Description</SelectItem>
+            <SelectItem value="has_icon">Has Icon</SelectItem>
+            <SelectItem value="no_icon">Missing Icon</SelectItem>
+            <SelectItem value="recent">Added Last 7 Days</SelectItem>
+          </SelectContent>
+        </Select>
         <Button onClick={openCreateDialog} className="gap-2">
           <Plus className="h-4 w-4" />
           Add Category
         </Button>
       </div>
+
+      {/* Active filter indicators */}
+      {(smartFilter !== 'none' || statusFilter !== 'all' || debouncedSearch) && (
+        <div className="flex items-center gap-2 mb-4 flex-wrap">
+          <span className="text-sm text-muted-foreground">Active filters:</span>
+          {debouncedSearch && (
+            <Badge variant="secondary" className="gap-1">
+              Search: "{debouncedSearch}"
+              <button onClick={() => { setSearch(''); setDebouncedSearch(''); }} className="ml-1 hover:text-destructive">×</button>
+            </Badge>
+          )}
+          {statusFilter !== 'all' && (
+            <Badge variant="secondary" className="gap-1">
+              Status: {statusFilter}
+              <button onClick={() => setStatusFilter('all')} className="ml-1 hover:text-destructive">×</button>
+            </Badge>
+          )}
+          {smartFilter !== 'none' && (
+            <Badge variant="secondary" className="gap-1">
+              {smartFilter.replace(/_/g, ' ')}
+              <button onClick={() => setSmartFilter('none')} className="ml-1 hover:text-destructive">×</button>
+            </Badge>
+          )}
+          <Button variant="ghost" size="sm" className="text-xs h-6" onClick={() => { setSearch(''); setDebouncedSearch(''); setStatusFilter('all'); setSmartFilter('none'); }}>
+            Clear all
+          </Button>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
@@ -485,9 +582,19 @@ export default function AdminJobCategories() {
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, name: e.target.value });
+                  checkDuplicate(e.target.value);
+                }}
                 placeholder="e.g., Information Technology"
+                className={duplicateWarning ? 'border-destructive' : ''}
               />
+              {duplicateWarning && (
+                <p className="text-xs text-destructive flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3" />
+                  {duplicateWarning}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
