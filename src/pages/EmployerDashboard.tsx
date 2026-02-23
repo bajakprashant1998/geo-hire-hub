@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useDashboardTab } from '@/hooks/useDashboardTab';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -50,12 +51,12 @@ import { motion } from 'framer-motion';
 
 const EmployerDashboard = () => {
   const navigate = useNavigate();
+  const { activeSection, setActiveSection } = useDashboardTab();
   const { user, profile, loading: authLoading, profileLoading, signOut, refreshProfile } = useAuth();
   const [dataLoading, setDataLoading] = useState(true);
   const [employer, setEmployer] = useState<any>(null);
   const [jobs, setJobs] = useState<any[]>([]);
   const [selectedJob, setSelectedJob] = useState<any>(null);
-  const [activeSection, setActiveSection] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [chatModalOpen, setChatModalOpen] = useState(false);
   const [profileRetryCount, setProfileRetryCount] = useState(0);
@@ -194,9 +195,7 @@ const EmployerDashboard = () => {
   };
 
   const handleSectionClick = (value: string) => {
-    if (value === 'home') {
-      setActiveSection(null);
-    } else if (value === 'chat') {
+    if (value === 'chat') {
       setChatModalOpen(true);
     } else if (value === 'company') {
       navigate('/company-profile');
@@ -206,7 +205,7 @@ const EmployerDashboard = () => {
       navigate('/plans');
       return;
     } else {
-      setActiveSection(value);
+      setActiveSection(value === 'home' ? null : value);
     }
     setSidebarOpen(false);
   };

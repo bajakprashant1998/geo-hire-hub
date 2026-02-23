@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { useDashboardTab } from '@/hooks/useDashboardTab';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -41,11 +42,10 @@ import { cn } from '@/lib/utils';
 
 const CandidateDashboard = () => {
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const { activeSection, setActiveSection } = useDashboardTab();
   const { user, profile, loading: authLoading, profileLoading, signOut, refreshProfile } = useAuth();
   const [dataLoading, setDataLoading] = useState(true);
   const [candidate, setCandidate] = useState<any>(null);
-  const [activeSection, setActiveSection] = useState<string | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [chatModalOpen, setChatModalOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -93,15 +93,7 @@ const CandidateDashboard = () => {
       return;
     }
     fetchCandidate();
-
-    const tabParam = searchParams.get('tab');
-    if (tabParam) {
-      handleSectionClick(tabParam);
-      const newParams = new URLSearchParams(searchParams);
-      newParams.delete('tab');
-      setSearchParams(newParams, { replace: true });
-    }
-  }, [user, profile, authLoading, profileLoading, searchParams]);
+  }, [user, profile, authLoading, profileLoading]);
 
   const fetchCandidate = async () => {
     if (!profile || !user) return;
@@ -168,11 +160,10 @@ const CandidateDashboard = () => {
   };
 
   const handleSectionClick = (value: string) => {
-    if (value === 'home') setActiveSection(null);
-    else if (value === 'messages') setChatModalOpen(true);
+    if (value === 'messages') { setChatModalOpen(true); }
     else if (value === 'ai-resume') navigate('/ai-resume-builder');
     else if (value === 'profile') navigate('/candidate-profile');
-    else setActiveSection(value);
+    else { setActiveSection(value === 'home' ? null : value); }
     setSidebarOpen(false);
   };
 
