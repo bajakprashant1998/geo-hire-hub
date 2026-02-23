@@ -3,6 +3,7 @@ import { ViewMode } from '@/types';
 import { Briefcase, Users, Plus, Search, Sparkles, Zap } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
@@ -78,23 +79,28 @@ export const MobileFAB = ({ mode, className }: MobileFABProps) => {
           )}
         </AnimatePresence>
 
-        <Link to={config.href}>
-          <motion.div
-            whileHover={{ scale: 1.08 }}
-            whileTap={{ scale: 0.92 }}
-            className={cn(
-              "relative h-14 w-14 rounded-2xl shadow-xl",
-              config.color,
-              config.shadowColor,
-              "flex items-center justify-center",
-              "active:scale-95 transition-transform"
-            )}
-          >
-            {/* Glow ring */}
-            <div className={cn("absolute inset-0 rounded-2xl opacity-20 blur-sm", config.color)} />
-            <config.icon className="w-6 h-6 text-white relative z-10" />
-          </motion.div>
-        </Link>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link to={config.href}>
+              <motion.div
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.92 }}
+                className={cn(
+                  "relative h-14 w-14 rounded-2xl shadow-xl",
+                  config.color,
+                  config.shadowColor,
+                  "flex items-center justify-center",
+                  "active:scale-95 transition-transform"
+                )}
+              >
+                {/* Glow ring */}
+                <div className={cn("absolute inset-0 rounded-2xl opacity-20 blur-sm", config.color)} />
+                <config.icon className="w-6 h-6 text-white relative z-10" />
+              </motion.div>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent side="left">{config.label}</TooltipContent>
+        </Tooltip>
       </motion.div>
     </AnimatePresence>
   );
