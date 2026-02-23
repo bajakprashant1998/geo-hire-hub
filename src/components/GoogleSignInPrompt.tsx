@@ -3,6 +3,7 @@ import { X, Users, Briefcase, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { lovable } from '@/integrations/lovable/index';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const GoogleSignInPrompt = () => {
   const [visible, setVisible] = useState(false);
@@ -57,12 +58,17 @@ const GoogleSignInPrompt = () => {
               Sign in with Google
             </span>
           </div>
-          <button
-            onClick={handleDismiss}
-            className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-full hover:bg-muted"
-          >
-            <X size={18} />
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleDismiss}
+                className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-full hover:bg-muted"
+              >
+                <X size={18} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Dismiss</TooltipContent>
+          </Tooltip>
         </div>
 
         {/* Role selection + sign in */}

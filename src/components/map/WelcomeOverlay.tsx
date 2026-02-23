@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { MapPin, Briefcase, Users, X, Sparkles, ArrowRight, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 interface WelcomeOverlayProps {
   onDismiss: () => void;
   onFindJobs: () => void;
@@ -74,9 +75,14 @@ export const WelcomeOverlay = ({
           {/* Content */}
           <motion.div variants={containerVariants} initial="hidden" animate="visible" exit="exit" className="relative w-full max-w-lg z-10" onClick={e => e.stopPropagation()}>
             {/* Close button */}
-            <motion.button variants={itemVariants} onClick={() => handleDismiss(false)} className="absolute -top-2 -right-2 p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors z-20">
-              <X className="w-5 h-5" />
-            </motion.button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <motion.button variants={itemVariants} onClick={() => handleDismiss(false)} className="absolute -top-2 -right-2 p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors z-20">
+                  <X className="w-5 h-5" />
+                </motion.button>
+              </TooltipTrigger>
+              <TooltipContent>Close</TooltipContent>
+            </Tooltip>
 
             {/* Hero Content */}
             <div className="text-center text-white">

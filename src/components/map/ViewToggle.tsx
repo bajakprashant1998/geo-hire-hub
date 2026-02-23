@@ -1,7 +1,8 @@
 import { ViewMode } from '@/types';
 import { Users, Briefcase } from 'lucide-react';
 import { cn } from '@/lib/utils';
- import { motion } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ViewToggleProps {
   mode: ViewMode;
@@ -34,37 +35,47 @@ interface ViewToggleProps {
          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
        />
        
-       <button
-         className={cn(
-           "relative z-10 flex items-center justify-center gap-1.5 font-semibold transition-colors touch-target",
-           isCompact ? "h-9 px-3 text-xs" : "h-10 px-4 text-sm",
-           "rounded-full flex-1",
-           mode === 'hiring' 
-             ? 'text-primary-foreground' 
-             : 'text-muted-foreground hover:text-foreground'
-         )}
-        onClick={() => onModeChange('hiring')}
-      >
-         <Users className={cn(isCompact ? "w-3.5 h-3.5" : "w-4 h-4")} />
-         <span className="hidden sm:inline">I am Hiring</span>
-         <span className="sm:hidden">Hiring</span>
-       </button>
-       
-       <button
-         className={cn(
-           "relative z-10 flex items-center justify-center gap-1.5 font-semibold transition-colors touch-target",
-           isCompact ? "h-9 px-3 text-xs" : "h-10 px-4 text-sm",
-           "rounded-full flex-1",
-           mode === 'seeking' 
-             ? 'text-destructive-foreground' 
-             : 'text-muted-foreground hover:text-foreground'
-         )}
-        onClick={() => onModeChange('seeking')}
-      >
-         <Briefcase className={cn(isCompact ? "w-3.5 h-3.5" : "w-4 h-4")} />
-         <span className="hidden sm:inline">I need a Job</span>
-         <span className="sm:hidden">Jobs</span>
-       </button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              className={cn(
+                "relative z-10 flex items-center justify-center gap-1.5 font-semibold transition-colors touch-target",
+                isCompact ? "h-9 px-3 text-xs" : "h-10 px-4 text-sm",
+                "rounded-full flex-1",
+                mode === 'hiring' 
+                  ? 'text-primary-foreground' 
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+              onClick={() => onModeChange('hiring')}
+            >
+              <Users className={cn(isCompact ? "w-3.5 h-3.5" : "w-4 h-4")} />
+              <span className="hidden sm:inline">I am Hiring</span>
+              <span className="sm:hidden">Hiring</span>
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Find candidates near you</TooltipContent>
+        </Tooltip>
+        
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              className={cn(
+                "relative z-10 flex items-center justify-center gap-1.5 font-semibold transition-colors touch-target",
+                isCompact ? "h-9 px-3 text-xs" : "h-10 px-4 text-sm",
+                "rounded-full flex-1",
+                mode === 'seeking' 
+                  ? 'text-destructive-foreground' 
+                  : 'text-muted-foreground hover:text-foreground'
+              )}
+              onClick={() => onModeChange('seeking')}
+            >
+              <Briefcase className={cn(isCompact ? "w-3.5 h-3.5" : "w-4 h-4")} />
+              <span className="hidden sm:inline">I need a Job</span>
+              <span className="sm:hidden">Jobs</span>
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>Find jobs near you</TooltipContent>
+        </Tooltip>
     </div>
   );
 };

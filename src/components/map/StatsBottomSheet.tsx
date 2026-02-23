@@ -5,6 +5,7 @@ import { Users, Briefcase, ChevronUp, List, Target, Landmark, Building2, Navigat
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface StatsBottomSheetProps {
   mode: ViewMode;
@@ -124,36 +125,51 @@ export const StatsBottomSheet = ({
 
             {/* Actions */}
             <div className="flex items-center gap-1.5 flex-shrink-0">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onCenterOnUser}
-                className="h-9 w-9 rounded-xl bg-muted/40 hover:bg-muted"
-              >
-                <Navigation className="w-4 h-4 text-primary" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="h-9 w-9 rounded-xl bg-muted/40 hover:bg-muted"
-              >
-                <motion.div
-                  animate={{ rotate: isExpanded ? 180 : 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <ChevronUp className="w-4 h-4" />
-                </motion.div>
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                onClick={onToggleSidebar}
-                className="h-9 px-3 gap-1.5 text-xs font-semibold rounded-xl shadow-sm"
-              >
-                <List className="w-3.5 h-3.5" />
-                View List
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={onCenterOnUser}
+                    className="h-9 w-9 rounded-xl bg-muted/40 hover:bg-muted"
+                  >
+                    <Navigation className="w-4 h-4 text-primary" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Center on my location</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="h-9 w-9 rounded-xl bg-muted/40 hover:bg-muted"
+                  >
+                    <motion.div
+                      animate={{ rotate: isExpanded ? 180 : 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <ChevronUp className="w-4 h-4" />
+                    </motion.div>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{isExpanded ? 'Collapse details' : 'Expand details'}</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={onToggleSidebar}
+                    className="h-9 px-3 gap-1.5 text-xs font-semibold rounded-xl shadow-sm"
+                  >
+                    <List className="w-3.5 h-3.5" />
+                    View List
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>View all results as list</TooltipContent>
+              </Tooltip>
             </div>
           </div>
 
