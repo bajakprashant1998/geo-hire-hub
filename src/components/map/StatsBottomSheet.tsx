@@ -57,7 +57,7 @@ export const StatsBottomSheet = ({
 
   return (
     <motion.div
-      className="fixed bottom-16 left-0 right-0 z-[100] md:hidden px-2"
+      className="fixed bottom-[72px] left-0 right-0 z-30 md:hidden px-2.5"
       initial={{ y: 100 }}
       animate={{ y: 0 }}
       transition={{ type: 'spring', damping: 25, stiffness: 300 }}
@@ -109,13 +109,13 @@ export const StatsBottomSheet = ({
                   >
                     {displayedCount}
                   </motion.span>
-                  <span className="text-xs font-medium text-muted-foreground">
+                  <span className="text-xs font-semibold text-foreground/70">
                     {mode === 'hiring' ? 'candidates' : 'jobs'}
                   </span>
                 </div>
                 <div className="flex items-center gap-1 mt-0.5">
-                  <MapPin className="w-2.5 h-2.5 text-muted-foreground/50" />
-                  <span className="text-[10px] text-muted-foreground/70">
+                  <MapPin className="w-2.5 h-2.5 text-muted-foreground" />
+                  <span className="text-[10px] font-medium text-muted-foreground">
                     within {radius}km
                   </span>
                 </div>
