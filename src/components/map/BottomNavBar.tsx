@@ -31,7 +31,7 @@ const BottomNavBar = () => {
       transition={{ type: 'spring', damping: 25, stiffness: 300 }}
       className={cn(
         "fixed bottom-0 left-0 right-0 z-50",
-        "bg-card/98 backdrop-blur-2xl border-t border-border/20",
+        "bg-card backdrop-blur-2xl border-t border-border/40",
         "md:hidden bottom-nav-height",
         "safe-area-pb"
       )}
@@ -76,7 +76,7 @@ const BottomNavBar = () => {
               
               <span className={cn(
                 "text-[10px] transition-all leading-none",
-                item.isActive ? "font-bold text-primary" : "font-medium text-muted-foreground"
+                item.isActive ? "font-bold text-primary" : "font-semibold text-foreground/60"
               )}>
                 {item.label}
               </span>
