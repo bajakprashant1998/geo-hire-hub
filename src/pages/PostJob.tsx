@@ -3,6 +3,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Progress } from '@/components/ui/progress';
 import { 
   ArrowLeft, 
@@ -719,9 +720,11 @@ const PostJob = () => {
         <div className="max-w-6xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
+              <Tooltip><TooltipTrigger asChild>
               <Button variant="ghost" size="icon" onClick={() => navigate('/employer-dashboard')} className="shrink-0">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
+              </TooltipTrigger><TooltipContent>Back to dashboard</TooltipContent></Tooltip>
               <div className="hidden sm:block">
                 <h1 className="text-lg font-semibold">{isEditMode ? 'Edit Job Posting' : 'Create Job Posting'}</h1>
                 {lastAutoSave && !isEditMode && (

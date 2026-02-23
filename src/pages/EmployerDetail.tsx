@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -228,11 +229,15 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
               <ArrowLeft className="w-4 h-4" />Back
             </Button>
             <div className="flex items-center gap-1.5">
+              <Tooltip><TooltipTrigger asChild>
               <Button variant="ghost" size="icon" onClick={handleShare} className="rounded-full w-9 h-9"><Share2 className="w-4 h-4" /></Button>
+              </TooltipTrigger><TooltipContent>Share company</TooltipContent></Tooltip>
               {!isOwnProfile && (
+                <Tooltip><TooltipTrigger asChild>
                 <Button variant="ghost" size="icon" onClick={handleFollow} className={`rounded-full w-9 h-9 ${isFollowing ? 'text-primary' : ''}`}>
                   <Heart className={`w-4 h-4 ${isFollowing ? 'fill-current' : ''}`} />
                 </Button>
+                </TooltipTrigger><TooltipContent>{isFollowing ? 'Unfollow' : 'Follow company'}</TooltipContent></Tooltip>
               )}
               {!isOwnProfile && <ReportDialog targetId={employer?.id || ''} targetType="employer" />}
             </div>

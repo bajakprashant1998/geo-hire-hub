@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -31,9 +32,11 @@ const EmployerSettings = () => {
                     {/* Header */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
+                            <Tooltip><TooltipTrigger asChild>
                             <Button variant="ghost" size="icon" onClick={() => navigate('/employer-dashboard')}>
                                 <ArrowLeft className="w-5 h-5" />
                             </Button>
+                            </TooltipTrigger><TooltipContent>Back to dashboard</TooltipContent></Tooltip>
                             <div>
                                 <h1 className="text-2xl font-bold">Account Settings</h1>
                                 <p className="text-muted-foreground">Manage your account security and preferences</p>

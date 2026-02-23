@@ -1,5 +1,6 @@
 import { ViewMode } from '@/types';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   MapPin, LogIn, UserPlus, Users, Briefcase, Target,
   List, Building2, Landmark, Search, Navigation,
@@ -133,9 +134,11 @@ export const LeftSidebarPanel = ({
           </div>
         </Link>
         {onClose && (
+          <Tooltip><TooltipTrigger asChild>
           <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 rounded-lg">
             <X className="w-4 h-4" />
           </Button>
+          </TooltipTrigger><TooltipContent>Close panel</TooltipContent></Tooltip>
         )}
       </div>
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -148,6 +149,7 @@ export const InterviewCalendar = ({ candidateId }: InterviewCalendarProps) => {
               Interview Calendar
             </CardTitle>
             <div className="flex items-center gap-1">
+              <Tooltip><TooltipTrigger asChild>
               <Button 
                 variant="ghost" 
                 size="icon"
@@ -155,9 +157,11 @@ export const InterviewCalendar = ({ candidateId }: InterviewCalendarProps) => {
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
+              </TooltipTrigger><TooltipContent>Previous month</TooltipContent></Tooltip>
               <span className="font-medium min-w-32 text-center">
                 {format(currentMonth, 'MMMM yyyy')}
               </span>
+              <Tooltip><TooltipTrigger asChild>
               <Button 
                 variant="ghost" 
                 size="icon"
@@ -165,6 +169,7 @@ export const InterviewCalendar = ({ candidateId }: InterviewCalendarProps) => {
               >
                 <ChevronRight className="w-4 h-4" />
               </Button>
+              </TooltipTrigger><TooltipContent>Next month</TooltipContent></Tooltip>
             </div>
           </div>
         </CardHeader>

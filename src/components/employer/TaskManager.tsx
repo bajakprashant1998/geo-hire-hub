@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -436,9 +437,11 @@ export const TaskManager = ({ employerId }: TaskManagerProps) => {
                       )}
                     </div>
                   </div>
+                  <Tooltip><TooltipTrigger asChild>
                   <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive shrink-0" onClick={() => handleDelete(task.id)}>
                     <Trash2 className="w-4 h-4" />
                   </Button>
+                  </TooltipTrigger><TooltipContent>Delete task</TooltipContent></Tooltip>
                 </div>
               </CardContent>
             </Card>
