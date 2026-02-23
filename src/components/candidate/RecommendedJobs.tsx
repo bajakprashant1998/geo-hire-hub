@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +21,7 @@ interface RecommendedJobsProps {
 }
 
 export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: RecommendedJobsProps) => {
+  const queryClient = useQueryClient();
   const [jobs, setJobs] = useState<any[]>([]);
   const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -116,6 +118,7 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
           return next;
         });
         toast.success('Job removed from saved');
+        queryClient.invalidateQueries({ queryKey: ['saved-jobs', candidateId] });
       }
     } else {
       const { error } = await supabase
@@ -125,6 +128,7 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
       if (!error) {
         setSavedJobIds(prev => new Set(prev).add(jobId));
         toast.success('Job saved!');
+        queryClient.invalidateQueries({ queryKey: ['saved-jobs', candidateId] });
       }
     }
   };

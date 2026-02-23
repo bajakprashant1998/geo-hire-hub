@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
@@ -419,6 +420,7 @@ export const MapContainer = ({
   centerTrigger = 0,
 }: MapContainerProps) => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.MarkerClusterGroup | null>(null);
@@ -581,6 +583,7 @@ export const MapContainer = ({
         button.style.background = 'hsl(220, 14%, 96%)';
         button.dataset.saved = 'false';
         toast.success('Job removed from saved');
+        queryClient.invalidateQueries({ queryKey: ['saved-jobs'] });
       } else {
         // Save
         await supabase
@@ -599,6 +602,7 @@ export const MapContainer = ({
         button.style.background = 'hsl(45, 93%, 95%)';
         button.dataset.saved = 'true';
         toast.success('Job saved!');
+        queryClient.invalidateQueries({ queryKey: ['saved-jobs'] });
       }
     } catch (error) {
       console.error('Error saving job:', error);
