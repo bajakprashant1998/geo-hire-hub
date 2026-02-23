@@ -100,69 +100,191 @@ export const SalaryInsights = () => {
     if (!result) return;
     const doc = new jsPDF();
     const sym = result.currencySymbol;
-    let y = 20;
+    const pageW = doc.internal.pageSize.getWidth();
+    const margin = 14;
+    const contentW = pageW - margin * 2;
+    let y = 15;
 
-    doc.setFontSize(20);
-    doc.setTextColor(30, 30, 30);
-    doc.text('Salary Insights Report', 20, y);
-    y += 10;
-    doc.setFontSize(10);
-    doc.setTextColor(120, 120, 120);
-    doc.text(`${jobCategory} • ${location}`, 20, y);
-    y += 5;
-    doc.text(`Generated on ${new Date().toLocaleDateString()}`, 20, y);
-    y += 12;
+    const primary = [59, 130, 246]; // blue-500
+    const primaryLight = [239, 246, 255]; // blue-50
+    const gray50 = [249, 250, 251];
+    const gray200 = [229, 231, 235];
+    const gray500 = [107, 114, 128];
+    const gray700 = [55, 65, 81];
+    const gray900 = [17, 24, 39];
+    const emerald = [16, 185, 129];
+    const amber = [245, 158, 11];
+    const red = [239, 68, 68];
 
-    doc.setDrawColor(220, 220, 220);
-    doc.line(20, y, 190, y);
-    y += 10;
+    const drawRoundedRect = (x: number, ry: number, w: number, h: number, r: number, fill: number[], stroke?: number[]) => {
+      doc.setFillColor(fill[0], fill[1], fill[2]);
+      if (stroke) {
+        doc.setDrawColor(stroke[0], stroke[1], stroke[2]);
+        doc.setLineWidth(0.3);
+      }
+      doc.roundedRect(x, ry, w, h, r, r, stroke ? 'FD' : 'F');
+    };
 
-    doc.setFontSize(14);
-    doc.setTextColor(30, 30, 30);
-    doc.text('Estimated Salary Range', 20, y);
-    y += 8;
-    doc.setFontSize(12);
-    doc.text(`${sym}${result.estimatedRange.min.toLocaleString()} - ${sym}${result.estimatedRange.max.toLocaleString()}`, 20, y);
-    y += 12;
+    const checkPage = (needed: number) => {
+      if (y + needed > doc.internal.pageSize.getHeight() - 15) {
+        doc.addPage();
+        y = 15;
+      }
+    };
 
-    doc.setFontSize(14);
-    doc.text('Experience-wise Breakdown', 20, y);
-    y += 8;
-    doc.setFontSize(10);
-    result.experienceBreakdown.forEach((row) => {
-      doc.text(`${row.level}: ${sym}${row.min.toLocaleString()} - ${sym}${row.max.toLocaleString()}`, 25, y);
-      y += 6;
-    });
-    y += 6;
+    // ── Header Card ──
+    drawRoundedRect(margin, y, contentW, 32, 3, primaryLight, gray200);
+    // Gradient-like left accent
+    doc.setFillColor(primary[0], primary[1], primary[2]);
+    doc.roundedRect(margin, y, 4, 32, 2, 2, 'F');
 
-    doc.setFontSize(14);
-    doc.text(`Market Demand: ${result.marketDemand}`, 20, y);
-    y += 10;
-
-    doc.setFontSize(14);
-    doc.text('Top Paying Cities', 20, y);
-    y += 8;
-    doc.setFontSize(10);
-    result.topPayingCities.forEach((c) => {
-      doc.text(`${c.city}, ${c.country}: ${sym}${c.avgSalary.toLocaleString()}`, 25, y);
-      y += 6;
-    });
-    y += 6;
-
-    doc.setFontSize(14);
-    doc.text('Growth Tips', 20, y);
-    y += 8;
-    doc.setFontSize(10);
-    result.growthTips.forEach((tip) => {
-      const lines = doc.splitTextToSize(`• ${tip}`, 160);
-      doc.text(lines, 25, y);
-      y += lines.length * 5 + 2;
-    });
-
-    y += 8;
+    y += 9;
     doc.setFontSize(8);
-    doc.setTextColor(150, 150, 150);
-    doc.text('Salary estimates are AI-generated based on market trends. Actual salaries may vary.', 20, y);
+    doc.setTextColor(gray500[0], gray500[1], gray500[2]);
+    doc.text('ESTIMATED SALARY RANGE', margin + 10, y);
+    y += 7;
+    doc.setFontSize(18);
+    doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+    doc.text(`${formatSalary(result.estimatedRange.min, sym)} – ${formatSalary(result.estimatedRange.max, sym)}`, margin + 10, y);
+    y += 7;
+    doc.setFontSize(8);
+    doc.setTextColor(gray500[0], gray500[1], gray500[2]);
+    doc.text(`${result.currencyCode} per annum  •  ${jobCategory}  •  ${location}`, margin + 10, y);
+
+    // Date on right
+    doc.setFontSize(7);
+    doc.text(new Date().toLocaleDateString(), pageW - margin - 2, y, { align: 'right' });
+    y += 14;
+
+    // ── Experience Breakdown Card ──
+    checkPage(12 + result.experienceBreakdown.length * 12);
+    const expCardH = 14 + result.experienceBreakdown.length * 12;
+    drawRoundedRect(margin, y, contentW, expCardH, 3, [255, 255, 255], gray200);
+
+    y += 8;
+    doc.setFillColor(primary[0], primary[1], primary[2]);
+    doc.circle(margin + 7, y - 1.5, 2.5, 'F');
+    doc.setFontSize(10);
+    doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+    doc.text('Experience-wise Salary Breakdown', margin + 13, y);
+    y += 6;
+
+    const maxSalary = Math.max(...result.experienceBreakdown.map(r => r.max));
+    result.experienceBreakdown.forEach((row) => {
+      const pct = (row.max / maxSalary) * 100;
+      const barW = contentW - 12;
+
+      doc.setFontSize(8);
+      doc.setTextColor(gray500[0], gray500[1], gray500[2]);
+      doc.text(row.level, margin + 6, y);
+      doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+      doc.text(`${formatSalary(row.min, sym)} – ${formatSalary(row.max, sym)}`, margin + contentW - 6, y, { align: 'right' });
+      y += 3;
+
+      // Progress bar background
+      drawRoundedRect(margin + 6, y, barW, 3, 1.5, gray50);
+      // Progress bar fill
+      const fillW = Math.max(3, (pct / 100) * barW);
+      drawRoundedRect(margin + 6, y, fillW, 3, 1.5, primary);
+      y += 9;
+    });
+    y += 4;
+
+    // ── Market Demand Card ──
+    checkPage(40);
+    drawRoundedRect(margin, y, contentW, 28, 3, [255, 255, 255], gray200);
+    y += 8;
+    doc.setFillColor(primary[0], primary[1], primary[2]);
+    doc.circle(margin + 7, y - 1.5, 2.5, 'F');
+    doc.setFontSize(10);
+    doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+    doc.text('Market Demand', margin + 13, y);
+
+    // Demand badge
+    const demandClr = result.marketDemand?.toLowerCase() === 'high' ? emerald
+      : result.marketDemand?.toLowerCase() === 'medium' ? amber : red;
+    const badgeText = `${result.marketDemand} Demand (${result.marketDemandScore}%)`;
+    const badgeW = doc.getTextWidth(badgeText) + 8;
+    drawRoundedRect(margin + contentW - badgeW - 6, y - 4, badgeW, 7, 2, [demandClr[0], demandClr[1], demandClr[2]]);
+    doc.setFontSize(8);
+    doc.setTextColor(255, 255, 255);
+    doc.text(badgeText, margin + contentW - 6 - badgeW / 2, y, { align: 'center' });
+
+    y += 6;
+    doc.setFontSize(8);
+    doc.setTextColor(gray500[0], gray500[1], gray500[2]);
+    doc.text(`Trend: ${result.industryTrend}`, margin + 6, y);
+    y += 5;
+    const remoteLines = doc.splitTextToSize(result.remoteImpact || '', contentW - 12);
+    doc.text(remoteLines, margin + 6, y);
+    y += remoteLines.length * 4 + 6;
+
+    // ── Top Paying Cities Card ──
+    checkPage(12 + result.topPayingCities.length * 9);
+    const citiesH = 12 + result.topPayingCities.length * 9;
+    drawRoundedRect(margin, y, contentW, citiesH, 3, [255, 255, 255], gray200);
+    y += 8;
+    doc.setFillColor(primary[0], primary[1], primary[2]);
+    doc.circle(margin + 7, y - 1.5, 2.5, 'F');
+    doc.setFontSize(10);
+    doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+    doc.text('Top Paying Cities', margin + 13, y);
+    y += 6;
+
+    result.topPayingCities.forEach((city, i) => {
+      doc.setFontSize(8);
+      // Rank circle
+      if (i === 0) {
+        doc.setFillColor(primary[0], primary[1], primary[2]);
+        doc.setTextColor(255, 255, 255);
+      } else {
+        doc.setFillColor(gray50[0], gray50[1], gray50[2]);
+        doc.setTextColor(gray500[0], gray500[1], gray500[2]);
+      }
+      doc.circle(margin + 9, y - 1, 3, 'F');
+      doc.text(`${i + 1}`, margin + 9, y, { align: 'center' });
+
+      doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+      doc.text(`${city.city}, ${city.country}`, margin + 16, y);
+      doc.setTextColor(gray500[0], gray500[1], gray500[2]);
+      doc.text(`${formatSalary(city.avgSalary, sym)}/yr`, margin + contentW - 6, y, { align: 'right' });
+      y += 7;
+    });
+    y += 6;
+
+    // ── Growth Tips Card ──
+    checkPage(20);
+    let tipsStartY = y;
+    // We'll calculate height after
+    const tipsContentLines: string[][] = result.growthTips.map(tip => doc.splitTextToSize(`${tip}`, contentW - 18));
+    const tipsH = 12 + tipsContentLines.reduce((sum, lines) => sum + lines.length * 4 + 3, 0);
+    checkPage(tipsH);
+    drawRoundedRect(margin, y, contentW, tipsH, 3, [255, 255, 255], gray200);
+    y += 8;
+    doc.setFillColor(primary[0], primary[1], primary[2]);
+    doc.circle(margin + 7, y - 1.5, 2.5, 'F');
+    doc.setFontSize(10);
+    doc.setTextColor(gray900[0], gray900[1], gray900[2]);
+    doc.text('Salary Growth Tips', margin + 13, y);
+    y += 6;
+
+    doc.setFontSize(8);
+    result.growthTips.forEach((tip, i) => {
+      doc.setTextColor(primary[0], primary[1], primary[2]);
+      doc.text('▸', margin + 6, y);
+      doc.setTextColor(gray700[0], gray700[1], gray700[2]);
+      const lines = doc.splitTextToSize(tip, contentW - 18);
+      doc.text(lines, margin + 12, y);
+      y += lines.length * 4 + 3;
+    });
+    y += 6;
+
+    // ── Disclaimer ──
+    checkPage(12);
+    drawRoundedRect(margin, y, contentW, 10, 2, [255, 251, 235], [253, 230, 138]);
+    doc.setFontSize(7);
+    doc.setTextColor(146, 64, 14);
+    doc.text('⚠  Salary estimates are AI-generated based on market trends. Actual salaries may vary.', margin + 5, y + 6);
 
     doc.save(`salary-report-${jobCategory.toLowerCase().replace(/\s+/g, '-')}.pdf`);
     toast.success('PDF downloaded!');
