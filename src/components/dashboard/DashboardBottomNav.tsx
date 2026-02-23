@@ -26,7 +26,8 @@ const employerItems: NavItem[] = [
   { icon: Home, label: 'Home', value: 'home' },
   { icon: Briefcase, label: 'Jobs', value: 'jobs' },
   { icon: MessageSquare, label: 'Chat', value: 'chat' },
-  { icon: Users, label: 'Candidates', value: 'candidates' },
+  { icon: Users, label: 'Applicants', value: 'candidates' },
+  { icon: Bell, label: 'Alerts', value: 'notifications' },
 ];
 
 export const DashboardBottomNav = ({ type, activeItem, onItemClick }: DashboardBottomNavProps) => {

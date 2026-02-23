@@ -137,21 +137,21 @@ export const DashboardSidebar = ({
             {/* Grouped Menu Items */}
             <div className="pt-1">
               <p className="px-3 py-1.5 text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-widest">Activity</p>
-              {items.filter(i => ['jobs', 'messages', 'interviews', 'tasks', 'saved'].includes(i.value)).map((item) => (
+              {items.filter(i => ['jobs', 'messages', 'chat', 'interviews', 'tasks', 'saved', 'recommended', 'candidates', 'drafts'].includes(i.value)).map((item) => (
                 <SidebarButton key={item.value} item={item} activeItem={activeItem} onItemClick={onItemClick} />
               ))}
             </div>
 
             <div className="pt-1">
               <p className="px-3 py-1.5 text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-widest">Profile</p>
-              {items.filter(i => ['resume', 'audio-resume', 'ai-resume', 'profile', 'public-profile'].includes(i.value)).map((item) => (
+              {items.filter(i => ['resume', 'audio-resume', 'ai-resume', 'profile', 'public-profile', 'company', 'analytics'].includes(i.value)).map((item) => (
                 <SidebarButton key={item.value} item={item} activeItem={activeItem} onItemClick={onItemClick} />
               ))}
             </div>
 
             <div className="pt-1">
               <p className="px-3 py-1.5 text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-widest">Settings</p>
-              {items.filter(i => ['notifications', 'alerts', 'security'].includes(i.value)).map((item) => (
+              {items.filter(i => ['notifications', 'alerts', 'security', 'upgrade-plan'].includes(i.value)).map((item) => (
                 <SidebarButton key={item.value} item={item} activeItem={activeItem} onItemClick={onItemClick} />
               ))}
             </div>
