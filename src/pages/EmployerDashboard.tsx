@@ -334,12 +334,13 @@ const EmployerDashboard = () => {
       case 'jobs':
         return (
           <div className="grid lg:grid-cols-3 gap-6">
+            {/* Left: Job List */}
             <div className="lg:col-span-1 space-y-3">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-semibold text-lg text-foreground">All Jobs ({jobs.length})</h3>
                 <Link to="/post-job">
-                  <Button size="sm">
-                    <Plus className="w-4 h-4 mr-1" /> New
+                  <Button size="sm" className="gap-1.5">
+                    <Plus className="w-4 h-4" /> New
                   </Button>
                 </Link>
               </div>
@@ -354,77 +355,114 @@ const EmployerDashboard = () => {
                   </CardContent>
                 </Card>
               ) : (
-                jobs.map((job) => (
-                  <Card
-                    key={job.id}
-                    onClick={() => setSelectedJob(job)}
-                    className={`cursor-pointer transition-all duration-200 ${selectedJob?.id === job.id
-                      ? 'ring-2 ring-primary shadow-md'
-                      : 'hover:shadow-md'
-                      }`}
-                  >
-                    <CardContent className="p-4">
-                      <h4 className="font-semibold truncate mb-2 text-foreground">{job.title}</h4>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${job.is_active ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
-                          {job.is_active ? 'Active' : 'Inactive'}
-                        </span>
-                        <span className="text-sm text-muted-foreground">{job.applications_count} applicants</span>
-                        {job.expires_at && <JobExpiryBadge expiresAt={job.expires_at} />}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+                <div className="space-y-2 max-h-[calc(100vh-280px)] overflow-y-auto pr-1">
+                  {jobs.map((job) => {
+                    const isSelected = selectedJob?.id === job.id;
+                    return (
+                      <motion.div
+                        key={job.id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <Card
+                          onClick={() => setSelectedJob(job)}
+                          className={`cursor-pointer transition-all duration-200 ${
+                            isSelected
+                              ? 'ring-2 ring-primary bg-primary/5 shadow-md'
+                              : 'hover:shadow-md hover:bg-muted/30'
+                          }`}
+                        >
+                          <CardContent className="p-4">
+                            <h4 className="font-semibold text-foreground mb-2 line-clamp-1">{job.title}</h4>
+                            <div className="flex items-center gap-2 flex-wrap text-xs">
+                              <span className={`px-2.5 py-1 rounded-full font-medium ${
+                                job.is_active
+                                  ? 'bg-primary/10 text-primary'
+                                  : 'bg-muted text-muted-foreground'
+                              }`}>
+                                {job.is_active ? 'Active' : 'Inactive'}
+                              </span>
+                              <span className="flex items-center gap-1 text-muted-foreground">
+                                <Users className="w-3.5 h-3.5" />
+                                {job.applications_count} applicants
+                              </span>
+                            </div>
+                            {job.expires_at && (
+                              <div className="mt-2">
+                                <JobExpiryBadge expiresAt={job.expires_at} />
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    );
+                  })}
+                </div>
               )}
             </div>
 
+            {/* Right: Job Detail + Applicants */}
             <div className="lg:col-span-2">
               {selectedJob ? (
-                <Card className="shadow-sm border bg-card">
-                  <CardHeader className="border-b">
-                    <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
-                      <div>
-                        <CardTitle className="text-lg sm:text-xl text-foreground">{selectedJob.title}</CardTitle>
-                        <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
-                          <MapPin className="w-3.5 h-3.5" />
-                          {selectedJob.job_address || 'Location not set'}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${selectedJob.is_active ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
-                          {selectedJob.is_active ? 'Active' : 'Inactive'}
-                        </span>
-                        <Link to={`/jobs/${selectedJob.id}`}>
-                          <Button variant="outline" size="sm">
-                            <Eye className="w-4 h-4 sm:mr-1" />
-                            <span className="hidden sm:inline">View</span>
+                <motion.div
+                  key={selectedJob.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25 }}
+                >
+                  <Card className="shadow-sm border bg-card">
+                    <CardHeader className="border-b bg-muted/20">
+                      <div className="flex flex-col sm:flex-row items-start justify-between gap-3">
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-2">
+                            <CardTitle className="text-lg sm:text-xl text-foreground">{selectedJob.title}</CardTitle>
+                            <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+                              selectedJob.is_active
+                                ? 'bg-primary/10 text-primary'
+                                : 'bg-muted text-muted-foreground'
+                            }`}>
+                              {selectedJob.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                            <MapPin className="w-3.5 h-3.5 shrink-0" />
+                            {selectedJob.job_address || 'Location not set'}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Link to={`/jobs/${selectedJob.id}`}>
+                            <Button variant="outline" size="sm" className="gap-1.5">
+                              <Eye className="w-4 h-4" />
+                              <span className="hidden sm:inline">View</span>
+                            </Button>
+                          </Link>
+                          <Link to={`/edit-job/${selectedJob.id}`}>
+                            <Button variant="outline" size="sm" className="gap-1.5">
+                              <Pencil className="w-4 h-4" />
+                              <span className="hidden sm:inline">Edit</span>
+                            </Button>
+                          </Link>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-1.5 text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
+                            onClick={() => setJobToDelete(selectedJob)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span className="hidden sm:inline">Delete</span>
                           </Button>
-                        </Link>
-                        <Link to={`/edit-job/${selectedJob.id}`}>
-                          <Button variant="outline" size="sm">
-                            <Pencil className="w-4 h-4 sm:mr-1" />
-                            <span className="hidden sm:inline">Edit</span>
-                          </Button>
-                        </Link>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => setJobToDelete(selectedJob)}
-                        >
-                          <Trash2 className="w-4 h-4 sm:mr-1" />
-                          <span className="hidden sm:inline">Delete</span>
-                        </Button>
+                        </div>
                       </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-6">
-                    <h4 className="font-semibold mb-4 flex items-center gap-2 text-foreground">
-                      <Users className="w-4 h-4" /> Applicants
-                    </h4>
-                    {employer && <ApplicantTabs jobId={selectedJob.id} employerId={employer.id} />}
-                  </CardContent>
-                </Card>
+                    </CardHeader>
+                    <CardContent className="p-4 sm:p-6">
+                      <h4 className="font-semibold mb-4 flex items-center gap-2 text-foreground text-base">
+                        <Users className="w-5 h-5 text-primary" /> Applicants
+                      </h4>
+                      {employer && <ApplicantTabs jobId={selectedJob.id} employerId={employer.id} />}
+                    </CardContent>
+                  </Card>
+                </motion.div>
               ) : (
                 <Card className="shadow-sm border bg-card">
                   <CardContent className="p-12 text-center">
