@@ -26,6 +26,7 @@ interface MapContainerProps {
   onMarkerClick: (data: Candidate | Job) => void;
   selectedItem: Candidate | Job | null;
   isEmployer?: boolean;
+  centerTrigger?: number;
 }
 
 // Custom marker icons with animation support
@@ -415,6 +416,7 @@ export const MapContainer = ({
   onMarkerClick,
   selectedItem,
   isEmployer = false,
+  centerTrigger = 0,
 }: MapContainerProps) => {
   const navigate = useNavigate();
   const mapRef = useRef<L.Map | null>(null);
@@ -927,6 +929,12 @@ export const MapContainer = ({
       }
     }
   }, [selectedItem]);
+
+  // Center on user location when centerTrigger changes
+  useEffect(() => {
+    if (!mapRef.current || !userLocation || centerTrigger === 0) return;
+    mapRef.current.setView([userLocation.lat, userLocation.lng], 14, { animate: true });
+  }, [centerTrigger]);
 
   return (
     <>

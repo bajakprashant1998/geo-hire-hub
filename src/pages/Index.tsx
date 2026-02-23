@@ -29,6 +29,7 @@ const Index = () => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showWelcome, setShowWelcome] = useState(!user);
+  const [centerTrigger, setCenterTrigger] = useState(0);
 
   const geolocation = useGeolocation();
   const userLocation = useMemo(() => {
@@ -79,6 +80,7 @@ const Index = () => {
       toast.error('Unable to get your location. Please enable location services.');
       return;
     }
+    setCenterTrigger(prev => prev + 1);
     toast.success('Centered on your location');
   };
 
@@ -123,6 +125,7 @@ const Index = () => {
             onMarkerClick={handleMarkerClick}
             selectedItem={selectedItem}
             isEmployer={profile?.user_type === 'employer'}
+            centerTrigger={centerTrigger}
           />
 
           {/* Navigation Button - Desktop */}
@@ -155,6 +158,7 @@ const Index = () => {
             onMarkerClick={handleMarkerClick}
             selectedItem={selectedItem}
             isEmployer={profile?.user_type === 'employer'}
+            centerTrigger={centerTrigger}
           />
         </div>
 
