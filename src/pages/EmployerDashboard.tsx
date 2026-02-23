@@ -18,7 +18,7 @@ import {
   MapPin, Briefcase, Building2, Plus, Loader2, Eye, Users,
   CheckCircle2, ChevronRight, FileEdit, CreditCard, UserCheck,
   MessageSquare, Calendar, BarChart3, User, Settings, Pencil, Trash2, Shield,
-  Sparkles, Bell
+  Sparkles, Bell, Filter
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -34,6 +34,7 @@ import { DashboardMessaging } from '@/components/dashboard/DashboardMessaging';
 import { PlanUsagePanel } from '@/components/employer/PlanUsagePanel';
 import { JobDraftsSection } from '@/components/employer/JobDraftsSection';
 import { SavedCandidatesSection } from '@/components/employer/SavedCandidatesSection';
+import { CandidateFilterTool } from '@/components/employer/CandidateFilterTool';
 import { ApplicantTabs } from '@/components/employer/ApplicantTabs';
 import { InterviewScheduler } from '@/components/employer/InterviewScheduler';
 import { JobAnalyticsDashboard } from '@/components/employer/JobAnalyticsDashboard';
@@ -239,7 +240,7 @@ const EmployerDashboard = () => {
 
   const sidebarItems = [
     { icon: Briefcase, label: 'Job Postings', value: 'jobs', badge: stats.activeJobs },
-    { icon: Users, label: 'Applicants', value: 'candidates', badge: stats.totalApplications },
+    { icon: Filter, label: 'Candidate Finder', value: 'candidates', badge: stats.totalApplications },
     { icon: FileEdit, label: 'Drafts', value: 'drafts' },
     { icon: Users, label: 'Tasks', value: 'tasks' },
     { icon: MessageSquare, label: 'Messages', value: 'chat' },
@@ -476,7 +477,7 @@ const EmployerDashboard = () => {
           </div>
         );
       case 'candidates':
-        return employer && <SavedCandidatesSection employerId={employer.id} />;
+        return employer && <CandidateFilterTool employerId={employer.id} />;
       case 'drafts':
         return employer && <JobDraftsSection employerId={employer.id} />;
       case 'chat':
