@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +26,7 @@ const statusConfig: Record<string, { color: string; icon: React.ReactNode; label
 };
 
 export const JobActivityTabs = ({ candidateId }: JobActivityTabsProps) => {
+  const queryClient = useQueryClient();
   const [applications, setApplications] = useState<any[]>([]);
   const [savedJobs, setSavedJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,6 +80,7 @@ export const JobActivityTabs = ({ candidateId }: JobActivityTabsProps) => {
       if (error) throw error;
 
       setSavedJobs(savedJobs.filter(sj => sj.id !== savedJobId));
+      queryClient.invalidateQueries({ queryKey: ['saved-jobs', candidateId] });
       toast.success('Job removed from saved');
     } catch (error) {
       toast.error('Failed to remove job');

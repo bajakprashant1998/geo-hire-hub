@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Bookmark, MapPin, DollarSign, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
@@ -23,6 +24,7 @@ interface JobMatchCarouselProps {
 }
 
 export const JobMatchCarousel = ({ candidateId, skills }: JobMatchCarouselProps) => {
+  const queryClient = useQueryClient();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [scrollPosition, setScrollPosition] = useState(0);
@@ -95,6 +97,7 @@ export const JobMatchCarousel = ({ candidateId, skills }: JobMatchCarouselProps)
       await supabase.from('saved_jobs').insert({ job_id: jobId, candidate_id: candidateId });
     }
     setJobs(jobs.map(j => j.id === jobId ? { ...j, is_saved: !isSaved } : j));
+    queryClient.invalidateQueries({ queryKey: ['saved-jobs', candidateId] });
   };
 
   const scroll = (direction: 'left' | 'right') => {
