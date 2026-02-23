@@ -1,6 +1,6 @@
 import { Progress } from '@/components/ui/progress';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, Users, Eye, Zap, CheckCircle, AlertCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { TrendingUp, Users, Eye, Zap, CheckCircle, AlertCircle, Target } from 'lucide-react';
 
 interface PerformanceInsightsPanelProps {
   title: string;
@@ -9,171 +9,115 @@ interface PerformanceInsightsPanelProps {
   salaryMin: string;
   salaryMax: string;
   location: string;
+  benefits?: string[];
 }
 
 export const PerformanceInsightsPanel = ({
-  title,
-  description,
-  skills,
-  salaryMin,
-  salaryMax,
-  location,
+  title, description, skills, salaryMin, salaryMax, location, benefits = [],
 }: PerformanceInsightsPanelProps) => {
-  // Calculate job reach score based on completeness
   const calculateReachScore = () => {
     let score = 0;
-    if (title.length > 3) score += 20;
-    if (description.length > 50) score += 25;
-    if (skills.length >= 3) score += 20;
+    if (title.length > 3) score += 15;
+    if (description.length > 50) score += 20;
+    if (description.length > 200) score += 5;
+    if (skills.length >= 3) score += 15;
+    if (skills.length >= 5) score += 5;
     if (salaryMin || salaryMax) score += 15;
-    if (location) score += 20;
+    if (location) score += 15;
+    if (benefits.length >= 3) score += 10;
     return Math.min(score, 100);
   };
 
   const reachScore = calculateReachScore();
 
-  // Get salary insight
   const getSalaryInsight = () => {
-    const min = parseInt(salaryMin) || 0;
     const max = parseInt(salaryMax) || 0;
-
-    if (!min && !max) {
-      return {
-        status: 'missing',
-        message: 'Add salary to attract more candidates',
-        color: 'text-warning',
-      };
-    }
-
-    if (max > 0 && max < 15000) {
-      return {
-        status: 'low',
-        message: 'Below market average. Consider increasing for better reach.',
-        color: 'text-warning',
-      };
-    }
-
-    if (max >= 25000) {
-      return {
-        status: 'competitive',
-        message: 'Competitive salary! Expect high-quality applicants.',
-        color: 'text-success',
-      };
-    }
-
-    return {
-      status: 'average',
-      message: 'Market average salary range.',
-      color: 'text-muted-foreground',
-    };
+    if (!parseInt(salaryMin) && !max) return { message: 'Add salary to attract candidates', color: 'text-warning', icon: '💰' };
+    if (max > 0 && max < 15000) return { message: 'Below market average', color: 'text-warning', icon: '📉' };
+    if (max >= 25000) return { message: 'Competitive salary!', color: 'text-success', icon: '🎯' };
+    return { message: 'Market average range', color: 'text-muted-foreground', icon: '📊' };
   };
 
   const salaryInsight = getSalaryInsight();
 
-  // Checklist items
   const checklist = [
-    { label: 'Job title added', done: title.length > 3 },
+    { label: 'Job title', done: title.length > 3 },
     { label: 'Description (50+ chars)', done: description.length >= 50 },
-    { label: 'At least 3 skills', done: skills.length >= 3 },
-    { label: 'Salary range specified', done: !!(salaryMin || salaryMax) },
-    { label: 'Location selected', done: !!location },
+    { label: '3+ skills', done: skills.length >= 3 },
+    { label: 'Salary range', done: !!(salaryMin || salaryMax) },
+    { label: 'Location', done: !!location },
   ];
 
-  const getReachColor = () => {
-    if (reachScore >= 80) return 'bg-success';
-    if (reachScore >= 50) return 'bg-warning';
-    return 'bg-destructive';
-  };
-
-  const getReachLabel = () => {
-    if (reachScore >= 80) return 'Excellent Reach';
-    if (reachScore >= 50) return 'Good Reach';
-    return 'Low Reach';
-  };
-
   return (
-    <div className="space-y-4">
-      <Card className="shadow-google-lg sticky top-4">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Zap className="w-4 h-4 text-primary" />
-            Performance Insights Hub
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Job Reach Meter */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Eye className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Job Reach Meter</span>
-              </div>
-              <span className="text-sm font-semibold">{reachScore}%</span>
-            </div>
-            <Progress value={reachScore} className={`h-2 ${getReachColor()}`} />
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-muted-foreground">Based on your inputs</span>
-              <span className={reachScore >= 80 ? 'text-success' : reachScore >= 50 ? 'text-warning' : 'text-destructive'}>
-                {getReachLabel()}
-              </span>
-            </div>
-          </div>
+    <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+      {/* Header */}
+      <div className="p-4 border-b bg-gradient-to-r from-primary/5 to-transparent">
+        <h3 className="text-sm font-bold flex items-center gap-2">
+          <Zap className="w-4 h-4 text-primary" />
+          Insights Hub
+        </h3>
+      </div>
 
-          {/* Estimated Views */}
-          <div className="p-3 rounded-lg bg-muted/50 border">
-            <div className="flex items-center gap-2 mb-1">
-              <Users className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium">Estimated Views</span>
-            </div>
-            <p className="text-2xl font-bold">
-              {reachScore >= 80 ? '500+' : reachScore >= 50 ? '200-500' : '50-200'}
-            </p>
-            <p className="text-xs text-muted-foreground">In first 7 days</p>
+      <div className="p-4 space-y-5">
+        {/* Reach Score */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="flex items-center gap-1.5">
+              <Target className="w-3.5 h-3.5 text-muted-foreground" />
+              Job Reach
+            </span>
+            <span className="font-bold">{reachScore}%</span>
           </div>
+          <Progress value={reachScore} className="h-2" />
+          <Badge variant="outline" className={`text-xs ${
+            reachScore >= 80 ? 'border-success/40 text-success' :
+            reachScore >= 50 ? 'border-warning/40 text-warning' :
+            'border-destructive/40 text-destructive'
+          }`}>
+            {reachScore >= 80 ? '🚀 Excellent' : reachScore >= 50 ? '📈 Good' : '📉 Low'}
+          </Badge>
+        </div>
 
-          {/* Salary Trend */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-medium">Salary Insight</span>
-            </div>
-            <div className={`text-sm ${salaryInsight.color}`}>
-              {salaryInsight.message}
-            </div>
-            {title && (
-              <p className="text-xs text-muted-foreground">
-                Market range for {title || 'this role'}: ₹15,000 - ₹35,000/month
-              </p>
-            )}
+        {/* Estimated Views */}
+        <div className="p-3 rounded-lg bg-muted/50">
+          <div className="flex items-center gap-2 mb-1">
+            <Eye className="w-3.5 h-3.5 text-primary" />
+            <span className="text-xs font-medium">Est. Views (7 days)</span>
           </div>
+          <p className="text-xl font-bold">
+            {reachScore >= 80 ? '500+' : reachScore >= 50 ? '200-500' : '50-200'}
+          </p>
+        </div>
 
-          {/* Completion Checklist */}
-          <div className="space-y-2">
-            <span className="text-sm font-medium">Quick Checklist</span>
-            <div className="space-y-1.5">
-              {checklist.map((item, index) => (
-                <div key={index} className="flex items-center gap-2 text-sm">
-                  {item.done ? (
-                    <CheckCircle className="w-4 h-4 text-success" />
-                  ) : (
-                    <AlertCircle className="w-4 h-4 text-muted-foreground" />
-                  )}
-                  <span className={item.done ? 'text-foreground' : 'text-muted-foreground'}>
-                    {item.label}
-                  </span>
-                </div>
-              ))}
-            </div>
+        {/* Salary Insight */}
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-xs">
+            <TrendingUp className="w-3.5 h-3.5 text-muted-foreground" />
+            <span className="font-medium">Salary Insight</span>
           </div>
+          <p className={`text-xs ${salaryInsight.color}`}>
+            {salaryInsight.icon} {salaryInsight.message}
+          </p>
+        </div>
 
-          {/* Tips */}
-          <div className="p-3 rounded-lg bg-primary/5 border border-primary/20">
-            <p className="text-xs text-muted-foreground">
-              <strong className="text-foreground">💡 Tip:</strong> Jobs with complete details get 3x more applications. Add at least 5 relevant skills for best results.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+        {/* Checklist */}
+        <div className="space-y-1.5">
+          <span className="text-xs font-medium">Quick Check</span>
+          {checklist.map((item, i) => (
+            <div key={i} className="flex items-center gap-2 text-xs">
+              {item.done ? <CheckCircle className="w-3.5 h-3.5 text-success" /> : <AlertCircle className="w-3.5 h-3.5 text-muted-foreground/40" />}
+              <span className={item.done ? 'text-foreground' : 'text-muted-foreground'}>{item.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Tip */}
+        <div className="p-3 rounded-lg bg-primary/5 border border-primary/10">
+          <p className="text-xs text-muted-foreground">
+            <strong className="text-foreground">💡 Pro tip:</strong> Adding 5+ skills and benefits gets 3× more applications.
+          </p>
+        </div>
+      </div>
     </div>
   );
 };

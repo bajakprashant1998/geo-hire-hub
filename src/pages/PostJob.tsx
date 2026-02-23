@@ -95,6 +95,7 @@ const PostJob = () => {
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [address, setAddress] = useState('');
   const [openings, setOpenings] = useState('1');
+  const [workMode, setWorkMode] = useState<'onsite' | 'remote' | 'hybrid'>('onsite');
 
   // Section 2: Candidate Requirements
   const [experienceType, setExperienceType] = useState<'Any' | 'Fresher Only' | 'Experienced Only'>('Any');
@@ -115,6 +116,7 @@ const PostJob = () => {
   const [languages, setLanguages] = useState<string[]>([]);
   const [certifications, setCertifications] = useState('');
   const [additionalNotes, setAdditionalNotes] = useState('');
+  const [benefits, setBenefits] = useState<string[]>([]);
 
   // Section 3: Timings
   const [shiftType, setShiftType] = useState('Day Shift');
@@ -200,6 +202,7 @@ const PostJob = () => {
           if (draft.coordinates) setCoordinates(draft.coordinates);
           if (draft.address) setAddress(draft.address);
           if (draft.openings) setOpenings(draft.openings);
+          if (draft.workMode) setWorkMode(draft.workMode);
           if (draft.experienceType) setExperienceType(draft.experienceType);
           if (draft.minExperience) setMinExperience(draft.minExperience);
           if (draft.maxExperience) setMaxExperience(draft.maxExperience);
@@ -215,6 +218,7 @@ const PostJob = () => {
           if (draft.languages) setLanguages(draft.languages);
           if (draft.certifications) setCertifications(draft.certifications);
           if (draft.additionalNotes) setAdditionalNotes(draft.additionalNotes);
+          if (draft.benefits) setBenefits(draft.benefits);
           if (draft.shiftType) setShiftType(draft.shiftType);
           if (draft.startTime) setStartTime(draft.startTime);
           if (draft.endTime) setEndTime(draft.endTime);
@@ -365,11 +369,11 @@ const PostJob = () => {
 
     try {
       const draftData = {
-        title, jobType, coordinates, address, openings,
+        title, jobType, coordinates, address, openings, workMode,
         experienceType, minExperience, maxExperience,
         salaryMin, salaryMax, hasBonus, description, skills,
         gender, ageMin, ageMax, education, languages,
-        certifications, additionalNotes,
+        certifications, additionalNotes, benefits,
         shiftType, startTime, endTime, workDays,
         interviewTime, interviewDays,
         contactPerson, phoneNumber, email, contactRole,
@@ -441,11 +445,11 @@ const PostJob = () => {
     setSavingDraft(true);
     try {
       const draftData = {
-        title, jobType, coordinates, address, openings,
+        title, jobType, coordinates, address, openings, workMode,
         experienceType, minExperience, maxExperience,
         salaryMin, salaryMax, hasBonus, description, skills,
         gender, ageMin, ageMax, education, languages,
-        certifications, additionalNotes,
+        certifications, additionalNotes, benefits,
         shiftType, startTime, endTime, workDays,
         interviewTime, interviewDays,
         contactPerson, phoneNumber, email, contactRole,
@@ -487,7 +491,7 @@ const PostJob = () => {
           toast.error('Please enter a job title');
           return false;
         }
-        if (!coordinates) {
+        if (workMode !== 'remote' && !coordinates) {
           toast.error('Please select a job location on the map');
           return false;
         }
@@ -568,9 +572,9 @@ const PostJob = () => {
       const currency = getCurrencyByCode(salaryCurrency);
       const formattedSalary = `${currency.symbol}${salaryMin || '0'} - ${currency.symbol}${salaryMax || salaryMin} /month`;
 
-      // Use coordinates from map picker
-      const latitude = coordinates!.lat;
-      const longitude = coordinates!.lng;
+      // Use coordinates from map picker or default for remote
+      const latitude = workMode === 'remote' ? 0 : coordinates!.lat;
+      const longitude = workMode === 'remote' ? 0 : coordinates!.lng;
 
       const jobData = {
         employer_id: employerId,
@@ -861,6 +865,8 @@ const PostJob = () => {
                           jobCategory={jobCategory}
                           setJobCategory={setJobCategory}
                           isGovernmentEmployer={isGovernmentEmployer}
+                          workMode={workMode}
+                          setWorkMode={setWorkMode}
                         />
                       )}
 
@@ -901,6 +907,8 @@ const PostJob = () => {
                           title={title}
                           salaryCurrency={salaryCurrency}
                           setSalaryCurrency={setSalaryCurrency}
+                          benefits={benefits}
+                          setBenefits={setBenefits}
                         />
                       )}
 
@@ -978,6 +986,8 @@ const PostJob = () => {
                           organizationSize={organizationSize}
                           hiringUrgency={hiringUrgency}
                           isVerified={isVerified}
+                          workMode={workMode}
+                          benefits={benefits}
                         />
                       )}
                     </motion.div>
