@@ -48,7 +48,7 @@ export const EmployerHeader = ({
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-card/95 backdrop-blur-md border-b shadow-sm safe-area-pt">
+    <header className="sticky top-0 z-30 bg-card/80 backdrop-blur-2xl border-b border-border/50 shadow-[0_1px_20px_hsl(var(--primary)/0.05)] safe-area-pt">
       <div className="h-14 sm:h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between">
         {/* Left */}
         <div className="flex items-center gap-3 min-w-0">

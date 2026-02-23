@@ -515,7 +515,7 @@ const EmployerDashboard = () => {
 
   return (
     <EmailVerificationGuard fallbackMessage="Please verify your email to access your employer dashboard.">
-      <div className="min-h-screen bg-secondary flex">
+      <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/80 flex">
         {/* Onboarding Tour */}
         {user && <OnboardingTour userId={user.id} type="employer" />}
         {/* Sidebar */}
@@ -559,7 +559,7 @@ const EmployerDashboard = () => {
                   <ChevronRight className="w-4 h-4 rotate-180 mr-2" />
                   Back to Dashboard
                 </Button>
-                <Card className="bg-card shadow-sm border">
+                <Card className="bg-card/70 backdrop-blur-xl shadow-lg border border-border/50">
                   <CardContent className="p-3 sm:p-4 md:p-6">
                     {renderSectionContent()}
                   </CardContent>
@@ -576,18 +576,18 @@ const EmployerDashboard = () => {
                 {/* Mobile Quick Actions */}
                 <div className="grid grid-cols-4 gap-2 sm:hidden">
                   {[
-                    { icon: Plus, label: 'Post Job', action: () => navigate('/post-job'), color: 'text-[hsl(217,89%,61%)]', bg: 'bg-[hsl(217,89%,61%)]/10' },
-                    { icon: Users, label: 'Candidates', action: () => setActiveSection('candidates'), color: 'text-[hsl(142,53%,43%)]', bg: 'bg-[hsl(142,53%,43%)]/10' },
-                    { icon: BarChart3, label: 'Analytics', action: () => setActiveSection('analytics'), color: 'text-[hsl(262,83%,58%)]', bg: 'bg-[hsl(262,83%,58%)]/10' },
-                    { icon: Calendar, label: 'Interviews', action: () => setActiveSection('interviews'), color: 'text-[hsl(44,70%,45%)]', bg: 'bg-[hsl(44,98%,50%)]/10' },
+                    { icon: Plus, label: 'Post Job', action: () => navigate('/post-job'), color: 'text-[hsl(217,89%,61%)]', bg: 'bg-[hsl(217,89%,61%)]/10', glow: 'shadow-[0_4px_20px_hsl(217,89%,61%,0.1)]' },
+                    { icon: Users, label: 'Candidates', action: () => setActiveSection('candidates'), color: 'text-[hsl(142,53%,43%)]', bg: 'bg-[hsl(142,53%,43%)]/10', glow: 'shadow-[0_4px_20px_hsl(142,53%,43%,0.1)]' },
+                    { icon: BarChart3, label: 'Analytics', action: () => setActiveSection('analytics'), color: 'text-[hsl(262,83%,58%)]', bg: 'bg-[hsl(262,83%,58%)]/10', glow: 'shadow-[0_4px_20px_hsl(262,83%,58%,0.1)]' },
+                    { icon: Calendar, label: 'Interviews', action: () => setActiveSection('interviews'), color: 'text-[hsl(44,70%,45%)]', bg: 'bg-[hsl(44,98%,50%)]/10', glow: 'shadow-[0_4px_20px_hsl(44,98%,50%,0.1)]' },
                   ].map((item, i) => (
                     <motion.button
                       key={item.label}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.05 }}
+                      initial={{ opacity: 0, y: 16, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ delay: i * 0.06, type: 'spring', stiffness: 140 }}
                       onClick={item.action}
-                      className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-card border border-border/50 hover:shadow-md transition-all active:scale-95"
+                      className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-card/70 backdrop-blur-xl border border-border/50 hover:shadow-lg transition-all active:scale-95 ${item.glow}`}
                     >
                       <div className={`w-10 h-10 rounded-xl ${item.bg} flex items-center justify-center`}>
                         <item.icon className={`w-5 h-5 ${item.color}`} />
@@ -639,7 +639,7 @@ const EmployerDashboard = () => {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: 0.3 }}
+                  transition={{ duration: 0.5, delay: 0.3, type: 'spring', stiffness: 100 }}
                   className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
                 >
                   <div className="md:col-span-2 lg:col-span-2">
