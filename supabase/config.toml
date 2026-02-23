@@ -35,3 +35,9 @@ verify_jwt = false
 
 [functions.ai-location-suggest]
 verify_jwt = false
+
+[functions.ai-career-buddy]
+verify_jwt = false
+
+[functions.ai-candidate-insights]
+verify_jwt = false
