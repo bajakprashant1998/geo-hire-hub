@@ -156,7 +156,7 @@ export const SearchBar = ({ onSearch, placeholder = 'Search...', className, onLo
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -5 }}
-            className="absolute top-full left-0 right-0 mt-1.5 px-1"
+            className="absolute top-full left-0 right-0 mt-1.5 px-1 z-50"
           >
             <div className={cn(
               "text-xs px-3 py-1.5 rounded-lg",
