@@ -89,10 +89,10 @@ const formatMarkdown = (text: string) => {
     // Horizontal rule
     .replace(/^---$/gim, '<hr class="my-4 border-border/40" />')
     // Bullet points
-    .replace(/^- (.*$)/gim, '<li class="ml-1 pl-2 text-[13px] leading-[1.7] text-foreground/90 relative before:content-[\'•\'] before:absolute before:-left-3 before:text-primary before:font-bold">$1</li>')
-    .replace(/^• (.*$)/gim, '<li class="ml-1 pl-2 text-[13px] leading-[1.7] text-foreground/90 relative before:content-[\'•\'] before:absolute before:-left-3 before:text-primary before:font-bold">$1</li>')
+    .replace(/^- (.*$)/gim, '<li class="ml-1 pl-2 text-[13px] leading-[1.7] text-foreground relative before:content-[\'•\'] before:absolute before:-left-3 before:text-primary before:font-bold">$1</li>')
+    .replace(/^• (.*$)/gim, '<li class="ml-1 pl-2 text-[13px] leading-[1.7] text-foreground relative before:content-[\'•\'] before:absolute before:-left-3 before:text-primary before:font-bold">$1</li>')
     // Numbered lists
-    .replace(/^\d+\. (.*$)/gim, '<li class="ml-1 pl-2 text-[13px] leading-[1.7] list-decimal text-foreground/90">$1</li>')
+    .replace(/^\d+\. (.*$)/gim, '<li class="ml-1 pl-2 text-[13px] leading-[1.7] list-decimal text-foreground">$1</li>')
     // Line breaks
     .replace(/\n\n/g, '</p><p class="mt-2.5">')
     .replace(/\n/g, '<br/>');
@@ -415,19 +415,19 @@ export const CareerBuddyChat = () => {
                   "max-w-[88%] rounded-2xl transition-all",
                   message.role === 'user'
                     ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-br-lg px-5 py-3 shadow-md shadow-primary/15"
-                    : "bg-card border border-border/60 rounded-bl-lg px-5 py-4 shadow-sm"
+                    : "bg-muted/50 border border-border rounded-bl-lg px-5 py-4 shadow-sm"
                 )}>
                   {message.role === 'assistant' ? (
                     <div
                       className={cn(
-                        "text-[13.5px] leading-[1.75] text-foreground/90",
+                        "text-[13.5px] leading-[1.75] text-foreground",
                         "[&_h2]:text-foreground [&_h3]:text-foreground [&_h4]:text-foreground [&_h5]:text-foreground",
                         "[&_strong]:text-foreground [&_strong]:font-semibold",
                         "[&_a]:no-underline",
                         "[&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_table]:rounded-xl [&_table]:overflow-hidden [&_table]:border [&_table]:border-border/40",
                         "[&_pre]:my-3",
-                        "[&_p]:text-[13.5px] [&_p]:leading-[1.75]",
-                        "[&_ul]:list-none [&_ol]:pl-5",
+                        "[&_p]:text-foreground [&_p]:text-[13.5px] [&_p]:leading-[1.75]",
+                        "[&_li]:text-foreground [&_ul]:list-none [&_ol]:pl-5",
                         "[&_hr]:my-4 [&_hr]:border-border/40"
                       )}
                       dangerouslySetInnerHTML={{ __html: formatMarkdown(message.content) }}
