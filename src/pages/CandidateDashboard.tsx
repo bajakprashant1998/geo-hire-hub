@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import {
   Briefcase, Bell, Shield, FileText, Sparkles, Loader2,
   Eye, Calendar, Star, ChevronRight, User, MessageSquare, Bookmark, Mic,
-  MapPin, TrendingUp, Zap
+  MapPin, TrendingUp, Zap, DollarSign
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -32,6 +32,7 @@ import { SavedJobsSection } from '@/components/candidate/SavedJobsSection';
 import { AIJobMatches } from '@/components/candidate/AIJobMatches';
 import { TaskList } from '@/components/candidate/TaskList';
 import { AudioResumeCard } from '@/components/candidate/AudioResumeCard';
+import { SalaryInsights } from '@/components/candidate/SalaryInsights';
 import CandidateDetail from '@/pages/CandidateDetail';
 import { ProfileCompletionPrompts } from '@/components/candidate/ProfileCompletionPrompts';
 import { DashboardBottomNav } from '@/components/dashboard/DashboardBottomNav';
@@ -197,7 +198,8 @@ const CandidateDashboard = () => {
     { icon: User, label: 'Edit Profile', value: 'profile' },
     { icon: Eye, label: 'Public Profile', value: 'public-profile' },
     { icon: Sparkles, label: 'Job Alerts', value: 'alerts' },
-    { icon: Shield, label: 'Security', value: 'security' }
+    { icon: Shield, label: 'Security', value: 'security' },
+    { icon: DollarSign, label: 'Salary Insights', value: 'salary-insights' }
   ];
 
   // Quick action buttons for dashboard home
@@ -298,6 +300,7 @@ const CandidateDashboard = () => {
       case 'recommended': return candidate && (
         <RecommendedJobs candidateId={candidate.id} skills={candidate.skills || []} latitude={profile.latitude} longitude={profile.longitude} />
       );
+      case 'salary-insights': return <SalaryInsights />;
       default: return null;
     }
   };
