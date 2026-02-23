@@ -3,9 +3,21 @@ import { Link } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Paperclip, Smile, Mic, Send, Video, Phone } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Paperclip, Smile, Mic, Send, Video, Phone, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
 
 interface Message {
   id: string;
@@ -33,6 +45,9 @@ export const MessagesPreview = ({ profileId, onOpenChat }: MessagesPreviewProps)
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingConvId, setDeletingConvId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchConversations();
@@ -70,7 +85,6 @@ export const MessagesPreview = ({ profileId, onOpenChat }: MessagesPreviewProps)
             .limit(1)
             .maybeSingle();
 
-          // Try to get employer company name
           const { data: employerData } = await supabase
             .from('employers')
             .select('company_name')
@@ -103,9 +117,35 @@ export const MessagesPreview = ({ profileId, onOpenChat }: MessagesPreviewProps)
       .select('*')
       .eq('conversation_id', conversationId)
       .order('created_at', { ascending: true })
-      .limit(5);
+      .limit(50);
 
     setMessages(data || []);
+  };
+
+  const handleDeleteChat = async () => {
+    if (!deletingConvId) return;
+    setDeleting(true);
+    try {
+      // Delete all messages first
+      await supabase.from('messages').delete().eq('conversation_id', deletingConvId);
+      // Then delete conversation
+      const { error } = await supabase.from('conversations').delete().eq('id', deletingConvId);
+      if (error) throw error;
+
+      toast.success('Chat deleted successfully');
+      // Remove from local state
+      setConversations(prev => prev.filter(c => c.id !== deletingConvId));
+      if (selectedConversation?.id === deletingConvId) {
+        setSelectedConversation(null);
+        setMessages([]);
+      }
+    } catch (error: any) {
+      toast.error('Failed to delete chat: ' + error.message);
+    } finally {
+      setDeleting(false);
+      setDeleteDialogOpen(false);
+      setDeletingConvId(null);
+    }
   };
 
   if (loading) {
@@ -134,11 +174,11 @@ export const MessagesPreview = ({ profileId, onOpenChat }: MessagesPreviewProps)
   }
 
   return (
-    <div className="bg-card rounded-xl shadow-sm border overflow-hidden">
+    <div className="bg-card rounded-xl shadow-sm border overflow-hidden flex flex-col" style={{ maxHeight: '500px' }}>
       {/* Conversation Header */}
       {selectedConversation && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border-b gap-3">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border-b gap-3 shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
             <Avatar className="w-10 h-10 shrink-0">
               <AvatarImage src={selectedConversation.participant_avatar || undefined} />
               <AvatarFallback className="bg-primary/10 text-primary font-semibold">
@@ -150,53 +190,67 @@ export const MessagesPreview = ({ profileId, onOpenChat }: MessagesPreviewProps)
               <p className="text-xs text-muted-foreground truncate">{selectedConversation.participant_title}</p>
             </div>
           </div>
-          {/* Mobile-optimized action buttons */}
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <Button 
               variant="outline" 
               size="sm" 
-              className="flex-1 sm:flex-none gap-1.5 text-success border-success hover:bg-success/10 touch-target-sm touch-scale text-xs sm:text-sm px-2 sm:px-3"
+              className="flex-1 sm:flex-none gap-1.5 text-success border-success hover:bg-success/10 text-xs sm:text-sm px-2 sm:px-3"
             >
               <Phone className="w-4 h-4 shrink-0" />
-              <span className="hidden sm:inline">Connect on WhatsApp</span>
-              <span className="sm:hidden">WhatsApp</span>
+              <span className="hidden sm:inline">WhatsApp</span>
             </Button>
             <Button 
               variant="outline" 
               size="sm" 
-              className="flex-1 sm:flex-none gap-1.5 text-primary border-primary hover:bg-primary/10 touch-target-sm touch-scale text-xs sm:text-sm px-2 sm:px-3"
+              className="flex-1 sm:flex-none gap-1.5 text-primary border-primary hover:bg-primary/10 text-xs sm:text-sm px-2 sm:px-3"
             >
               <Video className="w-4 h-4 shrink-0" />
-              <span className="hidden sm:inline">Start Video Interview</span>
-              <span className="sm:hidden">Video</span>
+              <span className="hidden sm:inline">Video</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-destructive border-destructive hover:bg-destructive/10 text-xs sm:text-sm px-2 sm:px-3"
+              onClick={() => {
+                setDeletingConvId(selectedConversation.id);
+                setDeleteDialogOpen(true);
+              }}
+            >
+              <Trash2 className="w-4 h-4 shrink-0" />
+              <span className="hidden sm:inline">Delete</span>
             </Button>
           </div>
         </div>
       )}
 
-      {/* Messages Area */}
-      <div className="h-44 sm:h-52 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 bg-muted/30">
-        {messages.map((message) => {
-          const isOwn = message.sender_id === profileId;
-          return (
-            <div key={message.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[70%] rounded-2xl px-4 py-2.5 ${
-                isOwn 
-                  ? 'bg-primary text-primary-foreground rounded-br-md' 
-                  : 'bg-card border shadow-sm rounded-bl-md'
-              }`}>
-                <p className="text-sm">{message.content}</p>
-                <p className={`text-xs mt-1 ${isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-                  {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
-                </p>
+      {/* Messages Area - scrollable */}
+      <ScrollArea className="flex-1 min-h-0">
+        <div className="p-3 sm:p-4 space-y-3 sm:space-y-4 bg-muted/30">
+          {messages.map((message) => {
+            const isOwn = message.sender_id === profileId;
+            return (
+              <div key={message.id} className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[70%] rounded-2xl px-4 py-2.5 ${
+                  isOwn 
+                    ? 'bg-primary text-primary-foreground rounded-br-md' 
+                    : 'bg-card border shadow-sm rounded-bl-md'
+                }`}>
+                  <p className="text-sm">{message.content}</p>
+                  <p className={`text-xs mt-1 ${isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                    {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
+                  </p>
+                </div>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+          {messages.length === 0 && (
+            <p className="text-center text-muted-foreground text-sm py-8">No messages yet</p>
+          )}
+        </div>
+      </ScrollArea>
 
       {/* Input Area */}
-      <div className="p-3 sm:p-4 border-t bg-card">
+      <div className="p-3 sm:p-4 border-t bg-card shrink-0">
         <div className="flex items-center gap-2 sm:gap-3">
           <Button variant="ghost" size="icon" className="text-muted-foreground">
             <Paperclip className="w-5 h-5" />
@@ -220,6 +274,28 @@ export const MessagesPreview = ({ profileId, onOpenChat }: MessagesPreviewProps)
           </Button>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Chat</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this conversation and all its messages. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteChat}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
