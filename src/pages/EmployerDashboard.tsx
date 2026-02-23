@@ -16,7 +16,8 @@ import { toast } from 'sonner';
 import {
   MapPin, Briefcase, Building2, Plus, Loader2, Eye, Users,
   CheckCircle2, ChevronRight, FileEdit, CreditCard, UserCheck,
-  MessageSquare, Calendar, BarChart3, User, Settings, Pencil, Trash2, Shield
+  MessageSquare, Calendar, BarChart3, User, Settings, Pencil, Trash2, Shield,
+  Sparkles
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -44,6 +45,7 @@ import { DashboardBottomNav } from '@/components/dashboard/DashboardBottomNav';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 import { JobExpiryBadge } from '@/components/employer/JobExpiryBadge';
 import { SecuritySettings } from '@/components/candidate/SecuritySettings';
+import { motion } from 'framer-motion';
 
 const EmployerDashboard = () => {
   const navigate = useNavigate();
@@ -481,6 +483,7 @@ const EmployerDashboard = () => {
           onSignOut={signOut}
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
+          profileCompleteness={employer?.profile_completeness || 0}
         />
 
         {/* Main Content Area */}
@@ -493,6 +496,7 @@ const EmployerDashboard = () => {
             onMenuClick={() => setSidebarOpen(true)}
             onSignOut={signOut}
             notificationCount={stats.notificationCount}
+            profileCompleteness={employer?.profile_completeness || 0}
             onNotificationClick={() => handleSectionClick('notifications')}
           />
 
@@ -522,11 +526,28 @@ const EmployerDashboard = () => {
                   <EmployerProfileCompletionPrompts employer={employer} jobCount={jobs.length} />
                 )}
 
-                <div>
-                  <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
-                    Welcome back, {employer?.company_name || 'Company'}!
-                  </h1>
-                  <p className="text-muted-foreground mt-1">Here's what's happening with your job postings today.</p>
+                {/* Mobile Quick Actions */}
+                <div className="grid grid-cols-4 gap-2 sm:hidden">
+                  {[
+                    { icon: Plus, label: 'Post Job', action: () => navigate('/post-job'), color: 'text-[hsl(217,89%,61%)]', bg: 'bg-[hsl(217,89%,61%)]/10' },
+                    { icon: Users, label: 'Candidates', action: () => setActiveSection('candidates'), color: 'text-[hsl(142,53%,43%)]', bg: 'bg-[hsl(142,53%,43%)]/10' },
+                    { icon: BarChart3, label: 'Analytics', action: () => setActiveSection('analytics'), color: 'text-[hsl(262,83%,58%)]', bg: 'bg-[hsl(262,83%,58%)]/10' },
+                    { icon: Calendar, label: 'Interviews', action: () => setActiveSection('interviews'), color: 'text-[hsl(44,70%,45%)]', bg: 'bg-[hsl(44,98%,50%)]/10' },
+                  ].map((item, i) => (
+                    <motion.button
+                      key={item.label}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      onClick={item.action}
+                      className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-card border border-border/50 hover:shadow-md transition-all active:scale-95"
+                    >
+                      <div className={`w-10 h-10 rounded-xl ${item.bg} flex items-center justify-center`}>
+                        <item.icon className={`w-5 h-5 ${item.color}`} />
+                      </div>
+                      <span className="text-[10px] font-medium text-muted-foreground">{item.label}</span>
+                    </motion.button>
+                  ))}
                 </div>
 
                 {/* Stats Grid */}
@@ -538,6 +559,7 @@ const EmployerDashboard = () => {
                     subtitle="currently open"
                     accentColor="blue"
                     onClick={() => setActiveSection('jobs')}
+                    delay={0}
                   />
                   <DashboardStatCard
                     icon={Users}
@@ -546,6 +568,7 @@ const EmployerDashboard = () => {
                     subtitle="across all jobs"
                     accentColor="amber"
                     onClick={() => setActiveSection('jobs')}
+                    delay={1}
                   />
                   <DashboardStatCard
                     icon={Calendar}
@@ -553,18 +576,25 @@ const EmployerDashboard = () => {
                     value={stats.scheduledInterviews}
                     subtitle="upcoming"
                     accentColor="green"
+                    delay={2}
                   />
                   <DashboardStatCard
                     icon={Eye}
                     label="Profile Views"
-                    value={stats.profileViews.toLocaleString()}
+                    value={stats.profileViews}
                     subtitle="all time"
                     accentColor="purple"
+                    delay={3}
                   />
                 </div>
 
                 {/* Active Jobs Table + Interviews */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.3 }}
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+                >
                   <div className="md:col-span-2 lg:col-span-2">
                     {employer && (
                       <ActiveJobsTable
@@ -576,7 +606,7 @@ const EmployerDashboard = () => {
                   <div className="md:col-span-2 lg:col-span-1">
                     {employer && <EmployerInterviewsCard employerId={employer.id} />}
                   </div>
-                </div>
+                </motion.div>
               </div>
             )}
           </main>

@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { X, FileText, Camera, CreditCard, Briefcase } from 'lucide-react';
+import { X, FileText, Camera, CreditCard, Briefcase, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface EmployerProfileCompletionPromptsProps {
   employer: any;
@@ -16,6 +17,9 @@ interface Prompt {
   cta: string;
   action: () => void;
   priority: number;
+  gradient: string;
+  iconBg: string;
+  iconColor: string;
 }
 
 export const EmployerProfileCompletionPrompts = ({ employer, jobCount }: EmployerProfileCompletionPromptsProps) => {
@@ -42,6 +46,9 @@ export const EmployerProfileCompletionPrompts = ({ employer, jobCount }: Employe
       cta: 'Add Description',
       action: () => navigate('/company-profile'),
       priority: 1,
+      gradient: 'from-[hsl(217,89%,61%)]/10 to-[hsl(217,89%,61%)]/5',
+      iconBg: 'bg-[hsl(217,89%,61%)]/15',
+      iconColor: 'text-[hsl(217,89%,61%)]',
     });
   }
 
@@ -53,6 +60,9 @@ export const EmployerProfileCompletionPrompts = ({ employer, jobCount }: Employe
       cta: 'Upload Photo',
       action: () => navigate('/company-profile'),
       priority: 2,
+      gradient: 'from-[hsl(142,53%,43%)]/10 to-[hsl(142,53%,43%)]/5',
+      iconBg: 'bg-[hsl(142,53%,43%)]/15',
+      iconColor: 'text-[hsl(142,53%,43%)]',
     });
   }
 
@@ -64,6 +74,9 @@ export const EmployerProfileCompletionPrompts = ({ employer, jobCount }: Employe
       cta: 'Add Tax ID',
       action: () => navigate('/company-profile'),
       priority: 3,
+      gradient: 'from-[hsl(262,83%,58%)]/10 to-[hsl(262,83%,58%)]/5',
+      iconBg: 'bg-[hsl(262,83%,58%)]/15',
+      iconColor: 'text-[hsl(262,83%,58%)]',
     });
   }
 
@@ -75,6 +88,9 @@ export const EmployerProfileCompletionPrompts = ({ employer, jobCount }: Employe
       cta: 'Post Job',
       action: () => navigate('/post-job'),
       priority: 4,
+      gradient: 'from-[hsl(44,98%,50%)]/10 to-[hsl(44,98%,50%)]/5',
+      iconBg: 'bg-[hsl(44,98%,50%)]/15',
+      iconColor: 'text-[hsl(44,70%,45%)]',
     });
   }
 
@@ -87,27 +103,50 @@ export const EmployerProfileCompletionPrompts = ({ employer, jobCount }: Employe
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-      {visiblePrompts.map(prompt => (
-        <Card key={prompt.id} className="border-primary/20 bg-primary/5 relative">
-          <button
-            onClick={() => dismiss(prompt.id)}
-            className="absolute top-2 right-2 p-1 rounded-full hover:bg-muted text-muted-foreground"
+      <AnimatePresence mode="popLayout">
+        {visiblePrompts.map((prompt, index) => (
+          <motion.div
+            key={prompt.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3, delay: index * 0.1 }}
+            className="group relative"
           >
-            <X className="w-3.5 h-3.5" />
-          </button>
-          <CardContent className="p-4 flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              <prompt.icon className="w-4.5 h-4.5 text-primary" />
+            <div className={cn(
+              "rounded-2xl border border-border/50 p-4 bg-gradient-to-br transition-all duration-300 hover:shadow-md",
+              prompt.gradient
+            )}>
+              <button
+                onClick={() => dismiss(prompt.id)}
+                className="absolute top-2.5 right-2.5 p-1 rounded-full hover:bg-muted text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+              <div className="flex items-start gap-3">
+                <div className={cn(
+                  "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                  prompt.iconBg
+                )}>
+                  <prompt.icon className={cn("w-5 h-5", prompt.iconColor)} />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm text-foreground leading-snug mb-2.5 font-medium">{prompt.message}</p>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 text-xs px-2 text-primary hover:text-primary hover:bg-primary/10 gap-1"
+                    onClick={prompt.action}
+                  >
+                    {prompt.cta}
+                    <ChevronRight className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </div>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-sm text-foreground leading-snug mb-2">{prompt.message}</p>
-              <Button size="sm" variant="outline" className="h-7 text-xs" onClick={prompt.action}>
-                {prompt.cta}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   );
 };
