@@ -29,3 +29,9 @@ verify_jwt = false
 
 [functions.bulk-import-categories]
 verify_jwt = false
+
+[functions.salary-insights]
+verify_jwt = false
+
+[functions.ai-location-suggest]
+verify_jwt = false

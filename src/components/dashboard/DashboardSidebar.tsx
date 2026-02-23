@@ -162,7 +162,7 @@ export const DashboardSidebar = ({
 
             <div className="pt-1">
               <p className="px-3 py-1.5 text-[10px] font-semibold text-muted-foreground/70 uppercase tracking-widest">Settings</p>
-              {items.filter(i => ['notifications', 'alerts', 'security', 'upgrade-plan'].includes(i.value)).map((item) => (
+              {items.filter(i => ['notifications', 'alerts', 'security', 'upgrade-plan', 'salary-insights'].includes(i.value)).map((item) => (
                 <SidebarButton key={item.value} item={item} activeItem={activeItem} onItemClick={onItemClick} />
               ))}
             </div>
