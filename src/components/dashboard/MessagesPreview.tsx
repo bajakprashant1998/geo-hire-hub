@@ -158,15 +158,15 @@ export const MessagesPreview = ({ profileId, onOpenChat }: MessagesPreviewProps)
 
   if (conversations.length === 0) {
     return (
-      <div className="bg-card rounded-xl shadow-sm border p-4 sm:p-6">
+      <div className="bg-card/70 backdrop-blur-xl rounded-2xl shadow-lg border border-border/40 p-4 sm:p-6">
         <div className="text-center py-8 sm:py-12">
-          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-primary/10 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-lg shadow-primary/10">
             <Send className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
           </div>
           <h3 className="text-base sm:text-lg font-semibold text-foreground mb-1.5 sm:mb-2">No Messages Yet</h3>
           <p className="text-muted-foreground text-xs sm:text-sm mb-3 sm:mb-4 px-2">Start applying to jobs to connect with employers</p>
           <Link to="/">
-            <Button variant="outline" size="sm">Browse Jobs</Button>
+            <Button variant="outline" size="sm" className="rounded-xl">Browse Jobs</Button>
           </Link>
         </div>
       </div>
@@ -174,7 +174,7 @@ export const MessagesPreview = ({ profileId, onOpenChat }: MessagesPreviewProps)
   }
 
   return (
-    <div className="bg-card rounded-xl shadow-sm border overflow-hidden flex flex-col" style={{ maxHeight: '500px' }}>
+    <div className="bg-card/70 backdrop-blur-xl rounded-2xl shadow-lg border border-border/40 overflow-hidden flex flex-col" style={{ maxHeight: '500px' }}>
       {/* Conversation Header */}
       {selectedConversation && (
         <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border-b gap-3 shrink-0">
