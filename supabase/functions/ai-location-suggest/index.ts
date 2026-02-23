@@ -38,19 +38,73 @@ serve(async (req) => {
           },
         ],
         temperature: 0.1,
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "suggest_locations",
+              description: "Return up to 5 city location suggestions",
+              parameters: {
+                type: "object",
+                properties: {
+                  suggestions: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        city: { type: "string" },
+                        state: { type: "string" },
+                        country: { type: "string" },
+                      },
+                      required: ["city", "state", "country"],
+                      additionalProperties: false,
+                    },
+                  },
+                },
+                required: ["suggestions"],
+                additionalProperties: false,
+              },
+            },
+          },
+        ],
+        tool_choice: { type: "function", function: { name: "suggest_locations" } },
       }),
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error("AI gateway error:", response.status, errorText);
+      
       if (response.status === 429) {
-        return new Response(JSON.stringify({ suggestions: [], error: "Rate limited" }), {
+        return new Response(JSON.stringify({ suggestions: [], error: "Rate limited, please try again later." }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      throw new Error("AI gateway error");
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ suggestions: [], error: "Payment required." }), {
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      throw new Error(`AI gateway error: ${response.status}`);
     }
 
     const data = await response.json();
+    
+    // Try tool call response first
+    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+    if (toolCall?.function?.arguments) {
+      try {
+        const parsed = JSON.parse(toolCall.function.arguments);
+        const suggestions = parsed.suggestions || [];
+        return new Response(JSON.stringify({ suggestions: suggestions.slice(0, 5) }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      } catch (parseErr) {
+        console.error("Tool call parse error:", parseErr);
+      }
+    }
+
+    // Fallback to content parsing
     const content = data.choices?.[0]?.message?.content || "[]";
     const jsonMatch = content.match(/\[[\s\S]*\]/);
     const suggestions = jsonMatch ? JSON.parse(jsonMatch[0]) : [];
