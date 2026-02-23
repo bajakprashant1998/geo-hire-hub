@@ -52,36 +52,40 @@ export const DashboardStatCard = ({
 
   const colorClasses = {
     blue: {
-      gradient: 'from-[hsl(217,89%,61%)]/15 to-[hsl(217,89%,61%)]/5',
-      border: 'border-[hsl(217,89%,61%)]/30',
+      gradient: 'from-[hsl(217,89%,61%)]/20 via-[hsl(217,89%,61%)]/8 to-transparent',
+      border: 'border-[hsl(217,89%,61%)]/20',
       icon: 'text-[hsl(217,89%,61%)]',
       bg: 'bg-[hsl(217,89%,61%)]/10',
-      glow: 'shadow-[0_0_20px_hsl(217,89%,61%,0.1)]',
+      glow: 'shadow-[0_4px_30px_hsl(217,89%,61%,0.12)]',
       ring: 'ring-[hsl(217,89%,61%)]/20',
+      dot: 'bg-[hsl(217,89%,61%)]',
     },
     green: {
-      gradient: 'from-[hsl(142,53%,43%)]/15 to-[hsl(142,53%,43%)]/5',
-      border: 'border-[hsl(142,53%,43%)]/30',
+      gradient: 'from-[hsl(142,53%,43%)]/20 via-[hsl(142,53%,43%)]/8 to-transparent',
+      border: 'border-[hsl(142,53%,43%)]/20',
       icon: 'text-[hsl(142,53%,43%)]',
       bg: 'bg-[hsl(142,53%,43%)]/10',
-      glow: 'shadow-[0_0_20px_hsl(142,53%,43%,0.1)]',
+      glow: 'shadow-[0_4px_30px_hsl(142,53%,43%,0.12)]',
       ring: 'ring-[hsl(142,53%,43%)]/20',
+      dot: 'bg-[hsl(142,53%,43%)]',
     },
     amber: {
-      gradient: 'from-[hsl(44,98%,50%)]/15 to-[hsl(44,98%,50%)]/5',
-      border: 'border-[hsl(44,98%,50%)]/30',
+      gradient: 'from-[hsl(44,98%,50%)]/20 via-[hsl(44,98%,50%)]/8 to-transparent',
+      border: 'border-[hsl(44,98%,50%)]/20',
       icon: 'text-[hsl(44,70%,45%)]',
       bg: 'bg-[hsl(44,98%,50%)]/10',
-      glow: 'shadow-[0_0_20px_hsl(44,98%,50%,0.1)]',
+      glow: 'shadow-[0_4px_30px_hsl(44,98%,50%,0.12)]',
       ring: 'ring-[hsl(44,98%,50%)]/20',
+      dot: 'bg-[hsl(44,98%,50%)]',
     },
     purple: {
-      gradient: 'from-[hsl(262,83%,58%)]/15 to-[hsl(262,83%,58%)]/5',
-      border: 'border-[hsl(262,83%,58%)]/30',
+      gradient: 'from-[hsl(262,83%,58%)]/20 via-[hsl(262,83%,58%)]/8 to-transparent',
+      border: 'border-[hsl(262,83%,58%)]/20',
       icon: 'text-[hsl(262,83%,58%)]',
       bg: 'bg-[hsl(262,83%,58%)]/10',
-      glow: 'shadow-[0_0_20px_hsl(262,83%,58%,0.1)]',
+      glow: 'shadow-[0_4px_30px_hsl(262,83%,58%,0.12)]',
       ring: 'ring-[hsl(262,83%,58%)]/20',
+      dot: 'bg-[hsl(262,83%,58%)]',
     }
   };
 
@@ -89,38 +93,49 @@ export const DashboardStatCard = ({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: delay * 0.1 }}
+      initial={{ opacity: 0, y: 24, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.5, delay: delay * 0.1, type: 'spring', stiffness: 120 }}
       onClick={onClick}
       className={cn(
-        "relative bg-card rounded-2xl border shadow-sm transition-all duration-300 p-3 sm:p-5 overflow-hidden group",
-        "hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.98]",
+        "relative rounded-2xl border transition-all duration-300 p-4 sm:p-5 overflow-hidden group",
+        "bg-card/70 backdrop-blur-xl",
+        "hover:shadow-xl hover:-translate-y-1 active:scale-[0.97]",
         colors.border,
         colors.glow,
         onClick && "cursor-pointer"
       )}
     >
-      {/* Gradient background */}
+      {/* Glassmorphism gradient overlay */}
       <div className={cn(
-        "absolute inset-0 bg-gradient-to-br opacity-50 group-hover:opacity-80 transition-opacity",
+        "absolute inset-0 bg-gradient-to-br opacity-60 group-hover:opacity-100 transition-opacity duration-500",
         colors.gradient
       )} />
       
-      <div className="relative flex items-start justify-between gap-1">
+      {/* Decorative blur orb */}
+      <div className={cn(
+        "absolute -top-8 -right-8 w-24 h-24 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-500",
+        colors.bg
+      )} />
+      
+      <div className="relative flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <p className="text-[10px] sm:text-xs text-muted-foreground font-medium leading-tight uppercase tracking-wider">{label}</p>
-          <p className="text-2xl sm:text-4xl font-bold text-foreground mt-1 sm:mt-2 tabular-nums">{displayValue}</p>
+          <div className="flex items-center gap-1.5 mb-1">
+            <div className={cn("w-1.5 h-1.5 rounded-full", colors.dot)} />
+            <p className="text-[10px] sm:text-xs text-muted-foreground font-medium uppercase tracking-wider">{label}</p>
+          </div>
+          <p className="text-3xl sm:text-4xl font-extrabold text-foreground mt-1.5 tabular-nums tracking-tight">{displayValue}</p>
           {subtitle && (
-            <p className={cn("text-[9px] sm:text-xs mt-1 sm:mt-1.5 font-medium", colors.icon)}>{subtitle}</p>
+            <p className={cn("text-[10px] sm:text-xs mt-1.5 font-medium", colors.icon)}>{subtitle}</p>
           )}
         </div>
         <div className={cn(
-          "w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0 ring-1 transition-transform group-hover:scale-110",
-          colors.bg,
+          "w-11 h-11 sm:w-13 sm:h-13 rounded-2xl flex items-center justify-center shrink-0",
+          "bg-card/80 backdrop-blur-sm ring-1 transition-all duration-300",
+          "group-hover:scale-110 group-hover:shadow-lg",
           colors.ring
         )}>
-          <Icon className={cn("w-4 h-4 sm:w-5 sm:h-5", colors.icon)} />
+          <Icon className={cn("w-5 h-5 sm:w-6 sm:h-6", colors.icon)} />
         </div>
       </div>
     </motion.div>

@@ -208,10 +208,10 @@ const CandidateDashboard = () => {
 
   // Quick action buttons for dashboard home
   const quickActions = [
-    { icon: MapPin, label: 'Find Jobs', onClick: () => navigate('/'), color: 'bg-[hsl(217,89%,61%)]/10 text-[hsl(217,89%,61%)]' },
-    { icon: FileText, label: 'My Resume', onClick: () => handleSectionClick('resume'), color: 'bg-[hsl(142,53%,43%)]/10 text-[hsl(142,53%,43%)]' },
-    { icon: Sparkles, label: 'AI Match', onClick: () => {}, color: 'bg-[hsl(262,83%,58%)]/10 text-[hsl(262,83%,58%)]' },
-    { icon: Bookmark, label: 'Saved', onClick: () => handleSectionClick('saved'), color: 'bg-[hsl(44,70%,45%)]/10 text-[hsl(44,70%,45%)]' },
+    { icon: MapPin, label: 'Find Jobs', onClick: () => navigate('/'), color: 'from-primary/20 to-primary/5 text-primary border-primary/15' },
+    { icon: FileText, label: 'My Resume', onClick: () => handleSectionClick('resume'), color: 'from-success/20 to-success/5 text-success border-success/15' },
+    { icon: Sparkles, label: 'AI Match', onClick: () => handleSectionClick('ai-resume'), color: 'from-[hsl(262,83%,58%)]/20 to-[hsl(262,83%,58%)]/5 text-[hsl(262,83%,58%)] border-[hsl(262,83%,58%)]/15' },
+    { icon: Bookmark, label: 'Saved', onClick: () => handleSectionClick('saved'), color: 'from-warning/20 to-warning/5 text-warning-foreground border-warning/15' },
   ];
 
   if (authLoading) {
@@ -318,7 +318,7 @@ const CandidateDashboard = () => {
 
   return (
     <EmailVerificationGuard fallbackMessage="Please verify your email to access your dashboard.">
-      <div className="min-h-screen bg-secondary flex overflow-x-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/80 flex overflow-x-hidden">
         {user && <OnboardingTour userId={user.id} type="candidate" />}
         <DashboardSidebar
           type="candidate"
@@ -353,21 +353,22 @@ const CandidateDashboard = () => {
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
+                transition={{ type: 'spring', stiffness: 100, damping: 20 }}
                 className="max-w-6xl mx-auto"
               >
                 <Button
                   variant="ghost"
                   onClick={() => setActiveSection(null)}
-                  className="mb-4 text-muted-foreground hover:text-foreground rounded-xl"
+                  className="mb-4 text-muted-foreground hover:text-foreground rounded-xl gap-2 backdrop-blur-sm"
                 >
-                  <ChevronRight className="w-4 h-4 rotate-180 mr-2" />
+                  <ChevronRight className="w-4 h-4 rotate-180" />
                   Back to Dashboard
                 </Button>
-                <Card className="bg-card shadow-sm border rounded-2xl">
-                  <CardContent className="p-3 sm:p-4 md:p-6">
+                <div className="bg-card/70 backdrop-blur-xl shadow-lg border border-border/40 rounded-2xl overflow-hidden">
+                  <div className="p-3 sm:p-4 md:p-6">
                     {renderSectionContent()}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </motion.div>
             ) : (
               <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
@@ -384,45 +385,48 @@ const CandidateDashboard = () => {
 
                 {completeness < 100 && (
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                    <Card className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/20 rounded-2xl overflow-hidden">
-                      <CardContent className="p-3 sm:p-4">
-                        <div className="flex items-start gap-3 mb-3">
-                          <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
-                            <TrendingUp className="w-5 h-5 text-primary" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="font-semibold text-foreground text-sm sm:text-base">Complete your profile ({completeness}%)</p>
-                            <p className="text-[11px] sm:text-sm text-muted-foreground leading-snug">
-                              Profiles with 80%+ completeness get 3x more views
-                            </p>
-                          </div>
+                    <div className="bg-gradient-to-r from-primary/12 via-primary/5 to-transparent backdrop-blur-xl border border-primary/15 rounded-2xl overflow-hidden p-3 sm:p-4">
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-xl bg-primary/15 backdrop-blur-sm flex items-center justify-center shrink-0 shadow-lg shadow-primary/10">
+                          <TrendingUp className="w-5 h-5 text-primary" />
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <Button variant="outline" size="sm" className="text-xs sm:text-sm h-9 rounded-xl" onClick={() => setEditModalOpen(true)}>
-                            Quick Edit
-                          </Button>
-                          <Button size="sm" className="text-xs sm:text-sm h-9 rounded-xl" onClick={() => navigate('/candidate-profile')}>
-                            Edit Profile
-                          </Button>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-foreground text-sm sm:text-base">Complete your profile ({completeness}%)</p>
+                          <p className="text-[11px] sm:text-sm text-muted-foreground leading-snug">
+                            Profiles with 80%+ completeness get 3x more views
+                          </p>
                         </div>
-                      </CardContent>
-                    </Card>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button variant="outline" size="sm" className="text-xs sm:text-sm h-9 rounded-xl backdrop-blur-sm border-border/50" onClick={() => setEditModalOpen(true)}>
+                          Quick Edit
+                        </Button>
+                        <Button size="sm" className="text-xs sm:text-sm h-9 rounded-xl bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/20" onClick={() => navigate('/candidate-profile')}>
+                          Edit Profile
+                        </Button>
+                      </div>
+                    </div>
                   </motion.div>
                 )}
 
                 {/* Quick Actions - Mobile */}
                 <div className="grid grid-cols-4 gap-2 sm:hidden">
-                  {quickActions.map((action) => (
-                    <button
+                  {quickActions.map((action, i) => (
+                    <motion.button
                       key={action.label}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.05 }}
                       onClick={action.onClick}
-                      className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-card border border-border/50 hover:shadow-sm transition-all active:scale-95"
+                      className={cn(
+                        "flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-gradient-to-br backdrop-blur-xl border",
+                        "hover:shadow-md transition-all active:scale-95",
+                        action.color
+                      )}
                     >
-                      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", action.color)}>
-                        <action.icon className="w-5 h-5" />
-                      </div>
-                      <span className="text-[10px] font-medium text-muted-foreground">{action.label}</span>
-                    </button>
+                      <action.icon className="w-5 h-5" />
+                      <span className="text-[10px] font-semibold">{action.label}</span>
+                    </motion.button>
                   ))}
                 </div>
 
