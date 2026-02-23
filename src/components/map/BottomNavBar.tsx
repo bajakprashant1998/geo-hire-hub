@@ -3,6 +3,7 @@ import { Map, Briefcase, MessageSquare, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 const BottomNavBar = () => {
   const navigate = useNavigate();
@@ -40,47 +41,51 @@ const BottomNavBar = () => {
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
-            <button
-              key={item.label}
-              onClick={() => navigate(item.path)}
-              className={cn(
-                "relative flex flex-col items-center justify-center flex-1 h-full gap-0.5",
-                "transition-all duration-200 active:scale-95",
-                item.isActive ? "text-primary" : "text-muted-foreground"
-              )}
-            >
-              {/* Active indicator dot */}
-              {item.isActive && (
-                <motion.div
-                  layoutId="nav-active-dot"
-                  className="absolute top-1.5 w-1 h-1 rounded-full bg-primary"
-                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                />
-              )}
-              
-              <motion.div
-                animate={{ 
-                  y: item.isActive ? -1 : 0,
-                }}
-                transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                className={cn(
-                  "p-1.5 rounded-xl transition-colors",
-                  item.isActive && "bg-primary/10"
-                )}
-              >
-                <Icon className={cn(
-                  "w-5 h-5 transition-colors",
-                  item.isActive ? "text-primary" : "text-muted-foreground"
-                )} />
-              </motion.div>
-              
-              <span className={cn(
-                "text-[10px] transition-all leading-none",
-                item.isActive ? "font-bold text-primary" : "font-semibold text-foreground/60"
-              )}>
-                {item.label}
-              </span>
-            </button>
+            <Tooltip key={item.label}>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => navigate(item.path)}
+                  className={cn(
+                    "relative flex flex-col items-center justify-center flex-1 h-full gap-0.5",
+                    "transition-all duration-200 active:scale-95",
+                    item.isActive ? "text-primary" : "text-muted-foreground"
+                  )}
+                >
+                  {/* Active indicator dot */}
+                  {item.isActive && (
+                    <motion.div
+                      layoutId="nav-active-dot"
+                      className="absolute top-1.5 w-1 h-1 rounded-full bg-primary"
+                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                    />
+                  )}
+                  
+                  <motion.div
+                    animate={{ 
+                      y: item.isActive ? -1 : 0,
+                    }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                    className={cn(
+                      "p-1.5 rounded-xl transition-colors",
+                      item.isActive && "bg-primary/10"
+                    )}
+                  >
+                    <Icon className={cn(
+                      "w-5 h-5 transition-colors",
+                      item.isActive ? "text-primary" : "text-muted-foreground"
+                    )} />
+                  </motion.div>
+                  
+                  <span className={cn(
+                    "text-[10px] transition-all leading-none",
+                    item.isActive ? "font-bold text-primary" : "font-semibold text-foreground/60"
+                  )}>
+                    {item.label}
+                  </span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top">{item.label}</TooltipContent>
+            </Tooltip>
           );
         })}
       </div>

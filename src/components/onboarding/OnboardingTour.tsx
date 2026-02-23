@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Card, CardContent } from '@/components/ui/card';
 import { X, ChevronRight, Sparkles } from 'lucide-react';
 
@@ -75,9 +76,11 @@ export const OnboardingTour = ({ userId, type }: OnboardingTourProps) => {
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-primary" />
               </div>
+              <Tooltip><TooltipTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8 -mt-1 -mr-2" onClick={handleComplete}>
                 <X className="w-4 h-4" />
               </Button>
+              </TooltipTrigger><TooltipContent>Skip tour</TooltipContent></Tooltip>
             </div>
 
             <h3 className="text-lg font-bold text-foreground mb-2">{step.title}</h3>

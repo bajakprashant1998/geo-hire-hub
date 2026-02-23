@@ -1,6 +1,7 @@
 import { ViewMode } from '@/types';
 import { RadiusFilter } from './RadiusFilter';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { List, Navigation, Users, Briefcase, Landmark, Building2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -151,15 +152,16 @@ export const FloatingControls = ({
         transition={{ delay: 0.4, type: 'spring' }}
         className="absolute bottom-28 md:bottom-28 right-4 z-[100]"
       >
+        <Tooltip><TooltipTrigger asChild>
         <Button
           variant="secondary"
           size="icon"
           onClick={onCenterOnUser}
           className="glass-morphism rounded-full w-12 h-12 md:w-14 md:h-14 shadow-xl hover:shadow-2xl touch-target touch-scale border-border/30"
-          title="Center on my location"
         >
           <Navigation className="w-5 h-5 md:w-6 md:h-6 text-primary" />
         </Button>
+        </TooltipTrigger><TooltipContent>Center on my location</TooltipContent></Tooltip>
       </motion.div>
     </>
   );

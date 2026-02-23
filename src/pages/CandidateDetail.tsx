@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -255,11 +256,15 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
             </Button>
             <div className="flex items-center gap-1.5">
               {isOwnProfile && <ProfilePDFExport targetRef={profileContentRef} fileName={candidate?.full_name || 'profile'} />}
+              <Tooltip><TooltipTrigger asChild>
               <Button variant="ghost" size="icon" onClick={handleShare} className="rounded-full w-9 h-9"><Share2 className="w-4 h-4" /></Button>
+              </TooltipTrigger><TooltipContent>Share profile</TooltipContent></Tooltip>
               {isEmployerUser && !isOwnProfile && (
+                <Tooltip><TooltipTrigger asChild>
                 <Button variant="ghost" size="icon" onClick={handleSave} className={`rounded-full w-9 h-9 ${isSaved ? 'text-destructive' : ''}`}>
                   <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
                 </Button>
+                </TooltipTrigger><TooltipContent>{isSaved ? 'Remove from saved' : 'Save candidate'}</TooltipContent></Tooltip>
               )}
               {isEmployerUser && !isOwnProfile && <ReportDialog targetId={candidate?.id || ''} targetType="employer" />}
             </div>

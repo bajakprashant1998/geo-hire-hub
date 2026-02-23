@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -431,12 +432,16 @@ const JobDetail = () => {
             <ArrowLeft className="w-4 h-4" /> Back
           </Button>
           <div className="flex items-center gap-1">
+            <Tooltip><TooltipTrigger asChild>
             <Button variant="ghost" size="icon" onClick={handleSave} className={`rounded-full ${isSaved ? 'text-destructive' : 'text-muted-foreground'}`}>
               <Heart className={`w-5 h-5 ${isSaved ? 'fill-current' : ''}`} />
             </Button>
+            </TooltipTrigger><TooltipContent>{isSaved ? 'Remove from saved' : 'Save job'}</TooltipContent></Tooltip>
+            <Tooltip><TooltipTrigger asChild>
             <Button variant="ghost" size="icon" onClick={handleShare} className="rounded-full text-muted-foreground">
               <Share2 className="w-5 h-5" />
             </Button>
+            </TooltipTrigger><TooltipContent>Share</TooltipContent></Tooltip>
             <ReportDialog targetId={id || ''} targetType="job" />
           </div>
         </div>
