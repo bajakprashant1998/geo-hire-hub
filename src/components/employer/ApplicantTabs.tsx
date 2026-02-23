@@ -18,15 +18,18 @@ import {
   XCircle,
   Trophy,
   Mail,
-  MessageSquare,
   StickyNote,
   Eye,
   Loader2,
+  Briefcase,
+  Clock,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { formatDistanceToNow } from 'date-fns';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Applicant {
   id: string;
@@ -53,10 +56,10 @@ interface ApplicantTabsProps {
 }
 
 const statusConfig = {
-  pending: { label: 'New', icon: Users, color: 'bg-primary/10 text-primary' },
-  shortlisted: { label: 'Shortlisted', icon: CheckCircle2, color: 'bg-success/10 text-success' },
-  rejected: { label: 'Rejected', icon: XCircle, color: 'bg-destructive/10 text-destructive' },
-  hired: { label: 'Hired', icon: Trophy, color: 'bg-warning/10 text-warning' },
+  pending: { label: 'New', icon: Users, color: 'text-primary' },
+  shortlisted: { label: 'Shortlisted', icon: CheckCircle2, color: 'text-success' },
+  rejected: { label: 'Rejected', icon: XCircle, color: 'text-destructive' },
+  hired: { label: 'Hired', icon: Trophy, color: 'text-warning' },
 };
 
 export const ApplicantTabs = ({ jobId, employerId }: ApplicantTabsProps) => {
@@ -99,7 +102,6 @@ export const ApplicantTabs = ({ jobId, employerId }: ApplicantTabsProps) => {
 
       if (error) throw error;
 
-      // Fetch notes for each application
       const applicantsWithNotes = await Promise.all(
         (data || []).map(async (app) => {
           const { data: notes } = await supabase
@@ -107,7 +109,6 @@ export const ApplicantTabs = ({ jobId, employerId }: ApplicantTabsProps) => {
             .select('id, note, created_at')
             .eq('application_id', app.id)
             .order('created_at', { ascending: false });
-          
           return { ...app, notes: notes || [] };
         })
       );
@@ -150,7 +151,7 @@ export const ApplicantTabs = ({ jobId, employerId }: ApplicantTabsProps) => {
 
       if (error) throw error;
 
-      setApplicants(prev => prev.map(app => 
+      setApplicants(prev => prev.map(app =>
         selectedApplicants.includes(app.id) ? { ...app, status } : app
       ));
       setSelectedApplicants([]);
@@ -186,7 +187,6 @@ export const ApplicantTabs = ({ jobId, employerId }: ApplicantTabsProps) => {
             : app
         )
       );
-      
       setNewNote('');
       setNoteDialogOpen(false);
       toast.success('Note saved');
@@ -244,152 +244,208 @@ export const ApplicantTabs = ({ jobId, employerId }: ApplicantTabsProps) => {
     return a.status === activeTab;
   });
 
-  const renderApplicantCard = (applicant: Applicant) => (
-    <Card key={applicant.id} className="shadow-google">
-      <CardContent className="p-4">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          {/* Applicant Info */}
-          <div className="flex items-center gap-4">
-            <input 
-              type="checkbox" 
-              checked={selectedApplicants.includes(applicant.id)}
-              onChange={(e) => {
-                if (e.target.checked) setSelectedApplicants([...selectedApplicants, applicant.id]);
-                else setSelectedApplicants(selectedApplicants.filter(id => id !== applicant.id));
-              }}
-              className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
-            />
-            <Avatar className="w-12 h-12">
-              <AvatarImage src={applicant.candidates?.profiles?.avatar_url || ''} />
-              <AvatarFallback>
-                <Users className="w-6 h-6 text-muted-foreground" />
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <h4 className="font-medium">{applicant.candidates?.profiles?.full_name || 'Unknown'}</h4>
-              <p className="text-sm text-muted-foreground">
-                {applicant.candidates?.job_title} • {applicant.candidates?.experience_years}y exp
-              </p>
-              <div className="flex flex-wrap gap-1 mt-1">
-                {applicant.candidates?.skills?.slice(0, 3).map((skill) => (
-                  <Badge key={skill} variant="secondary" className="text-xs">
-                    {skill}
-                  </Badge>
-                ))}
+  const toggleSelectAll = () => {
+    if (selectedApplicants.length === filteredApplicants.length) {
+      setSelectedApplicants([]);
+    } else {
+      setSelectedApplicants(filteredApplicants.map(a => a.id));
+    }
+  };
+
+  const renderApplicantCard = (applicant: Applicant, index: number) => {
+    const candidate = applicant.candidates;
+    const profile = candidate?.profiles;
+    const initials = (profile?.full_name || 'U').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+
+    return (
+      <motion.div
+        key={applicant.id}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.04 }}
+      >
+        <Card className="group hover:shadow-md transition-all duration-200 border-border/60">
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex gap-3 sm:gap-4">
+              {/* Checkbox */}
+              <div className="flex flex-col items-center gap-3 pt-1">
+                <input
+                  type="checkbox"
+                  checked={selectedApplicants.includes(applicant.id)}
+                  onChange={(e) => {
+                    if (e.target.checked) setSelectedApplicants([...selectedApplicants, applicant.id]);
+                    else setSelectedApplicants(selectedApplicants.filter(id => id !== applicant.id));
+                  }}
+                  className="w-4 h-4 rounded border-input text-primary focus:ring-primary"
+                />
               </div>
-              {applicant.notes && applicant.notes.length > 0 && (
-                <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-                  <StickyNote className="w-3 h-3" />
-                  {applicant.notes.length} note{applicant.notes.length !== 1 ? 's' : ''}
-                </div>
-              )}
-            </div>
-          </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* View Profile */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(`/candidates/${applicant.candidates?.id}`)}
-            >
-              <Eye className="w-4 h-4 mr-1" />
-              View
-            </Button>
+              {/* Avatar */}
+              <Avatar className="w-12 h-12 sm:w-14 sm:h-14 shrink-0 ring-2 ring-background shadow-sm">
+                <AvatarImage src={profile?.avatar_url || ''} />
+                <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
 
-            {/* Message */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => startConversation(applicant.candidates?.profiles?.user_id)}
-            >
-              <Mail className="w-4 h-4 mr-1" />
-              Message
-            </Button>
-
-            {/* Add Note */}
-            <Dialog open={noteDialogOpen && selectedApplicant?.id === applicant.id} onOpenChange={(open) => {
-              setNoteDialogOpen(open);
-              if (open) setSelectedApplicant(applicant);
-            }}>
-              <DialogTrigger asChild>
-                <Button variant="ghost" size="sm" onClick={() => setSelectedApplicant(applicant)}>
-                  <StickyNote className="w-4 h-4 mr-1" />
-                  Note
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add Private Note</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4">
-                  <Textarea
-                    placeholder="Add a private note about this candidate..."
-                    value={newNote}
-                    onChange={(e) => setNewNote(e.target.value)}
-                    rows={4}
-                  />
-                  {applicant.notes && applicant.notes.length > 0 && (
-                    <div className="space-y-2 max-h-40 overflow-y-auto">
-                      <p className="text-sm font-medium">Previous Notes:</p>
-                      {applicant.notes.map((note) => (
-                        <div key={note.id} className="p-2 bg-muted rounded text-sm">
-                          <p>{note.note}</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {new Date(note.created_at).toLocaleDateString()}
-                          </p>
-                        </div>
-                      ))}
+              {/* Info + Actions */}
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-3">
+                  {/* Candidate Info */}
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-semibold text-foreground text-base leading-tight">
+                      {profile?.full_name || 'Unknown'}
+                    </h4>
+                    <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground flex-wrap">
+                      <span className="flex items-center gap-1">
+                        <Briefcase className="w-3.5 h-3.5" />
+                        {candidate?.job_title || 'Not specified'}
+                      </span>
+                      <span className="text-border">•</span>
+                      <span>{candidate?.experience_years || 0}y exp</span>
+                      <span className="text-border">•</span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5" />
+                        {formatDistanceToNow(new Date(applicant.created_at), { addSuffix: true })}
+                      </span>
                     </div>
-                  )}
-                  <Button onClick={saveNote} disabled={savingNote || !newNote.trim()}>
-                    {savingNote ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                    Save Note
-                  </Button>
+
+                    {/* Skills */}
+                    {candidate?.skills && candidate.skills.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-2.5">
+                        {candidate.skills.slice(0, 5).map((skill) => (
+                          <Badge
+                            key={skill}
+                            variant="secondary"
+                            className="text-xs font-normal px-2 py-0.5"
+                          >
+                            {skill}
+                          </Badge>
+                        ))}
+                        {candidate.skills.length > 5 && (
+                          <Badge variant="outline" className="text-xs font-normal px-2 py-0.5">
+                            +{candidate.skills.length - 5} more
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Notes indicator */}
+                    {applicant.notes && applicant.notes.length > 0 && (
+                      <div className="flex items-center gap-1.5 mt-2 text-xs text-muted-foreground">
+                        <StickyNote className="w-3 h-3" />
+                        {applicant.notes.length} note{applicant.notes.length !== 1 ? 's' : ''}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-1.5 flex-wrap shrink-0">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 gap-1.5 text-xs"
+                      onClick={() => navigate(`/candidates/${candidate?.id}`)}
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      View
+                    </Button>
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 gap-1.5 text-xs"
+                      onClick={() => startConversation(profile?.user_id)}
+                    >
+                      <Mail className="w-3.5 h-3.5" />
+                      Message
+                    </Button>
+
+                    <Dialog open={noteDialogOpen && selectedApplicant?.id === applicant.id} onOpenChange={(open) => {
+                      setNoteDialogOpen(open);
+                      if (open) setSelectedApplicant(applicant);
+                    }}>
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 gap-1.5 text-xs" onClick={() => setSelectedApplicant(applicant)}>
+                          <StickyNote className="w-3.5 h-3.5" />
+                          Note
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Notes for {profile?.full_name}</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <Textarea
+                            placeholder="Add a private note about this candidate..."
+                            value={newNote}
+                            onChange={(e) => setNewNote(e.target.value)}
+                            rows={4}
+                          />
+                          {applicant.notes && applicant.notes.length > 0 && (
+                            <div className="space-y-2 max-h-40 overflow-y-auto">
+                              <p className="text-sm font-medium text-muted-foreground">Previous Notes</p>
+                              {applicant.notes.map((note) => (
+                                <div key={note.id} className="p-3 bg-muted/50 rounded-lg text-sm border border-border/50">
+                                  <p className="text-foreground">{note.note}</p>
+                                  <p className="text-xs text-muted-foreground mt-1.5">
+                                    {new Date(note.created_at).toLocaleDateString()}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          <Button onClick={saveNote} disabled={savingNote || !newNote.trim()} className="w-full">
+                            {savingNote ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                            Save Note
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+
+                    {/* Status actions */}
+                    {(applicant.status === 'pending' || applicant.status === 'reviewed') && (
+                      <>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 gap-1.5 text-xs text-success hover:text-success hover:bg-success/10"
+                          onClick={() => updateStatus(applicant.id, 'shortlisted')}
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          Shortlist
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 gap-1.5 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => updateStatus(applicant.id, 'rejected')}
+                        >
+                          <XCircle className="w-3.5 h-3.5" />
+                          Reject
+                        </Button>
+                      </>
+                    )}
+
+                    {applicant.status === 'shortlisted' && (
+                      <Button
+                        size="sm"
+                        className="h-8 gap-1.5 text-xs bg-success hover:bg-success/90 text-success-foreground"
+                        onClick={() => updateStatus(applicant.id, 'hired')}
+                      >
+                        <Trophy className="w-3.5 h-3.5" />
+                        Hire
+                      </Button>
+                    )}
+                  </div>
                 </div>
-              </DialogContent>
-            </Dialog>
-
-            {/* Status Actions */}
-            {(applicant.status === 'pending' || applicant.status === 'reviewed') && (
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-success"
-                  onClick={() => updateStatus(applicant.id, 'shortlisted')}
-                >
-                  <CheckCircle2 className="w-4 h-4 mr-1" />
-                  Shortlist
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-destructive"
-                  onClick={() => updateStatus(applicant.id, 'rejected')}
-                >
-                  <XCircle className="w-4 h-4 mr-1" />
-                  Reject
-                </Button>
-              </>
-            )}
-
-            {applicant.status === 'shortlisted' && (
-              <Button
-                size="sm"
-                className="bg-success hover:bg-success/90"
-                onClick={() => updateStatus(applicant.id, 'hired')}
-              >
-                <Trophy className="w-4 h-4 mr-1" />
-                Hire
-              </Button>
-            )}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  };
 
   if (loading) {
     return (
@@ -402,16 +458,20 @@ export const ApplicantTabs = ({ jobId, employerId }: ApplicantTabsProps) => {
   }
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab}>
-      <TabsList className="grid grid-cols-4 w-full">
+    <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setSelectedApplicants([]); }}>
+      <TabsList className="grid grid-cols-4 w-full h-11 bg-muted/50">
         {Object.entries(statusConfig).map(([status, config]) => (
-          <TabsTrigger key={status} value={status} className="relative">
-            <config.icon className="w-4 h-4 mr-1" />
+          <TabsTrigger
+            key={status}
+            value={status}
+            className="relative gap-1.5 data-[state=active]:shadow-sm text-xs sm:text-sm"
+          >
+            <config.icon className={`w-4 h-4 ${config.color}`} />
             <span className="hidden sm:inline">{config.label}</span>
             {counts[status as keyof typeof counts] > 0 && (
-              <Badge 
-                variant="secondary" 
-                className="ml-1 h-5 min-w-[20px] px-1.5"
+              <Badge
+                variant="secondary"
+                className="ml-1 h-5 min-w-[20px] px-1.5 text-[10px] font-semibold"
               >
                 {counts[status as keyof typeof counts]}
               </Badge>
@@ -421,22 +481,65 @@ export const ApplicantTabs = ({ jobId, employerId }: ApplicantTabsProps) => {
       </TabsList>
 
       {Object.keys(statusConfig).map((status) => (
-        <TabsContent key={status} value={status} className="mt-4 space-y-4">
-          {selectedApplicants.length > 0 && (
-            <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg mb-4">
-              <span className="text-sm font-medium ml-2">{selectedApplicants.length} selected</span>
-              <div className="flex-1" />
-              <Button size="sm" variant="outline" onClick={() => handleBulkAction('shortlisted')} disabled={bulkActionLoading}>Shortlist</Button>
-              <Button size="sm" variant="outline" className="text-destructive" onClick={() => handleBulkAction('rejected')} disabled={bulkActionLoading}>Reject</Button>
+        <TabsContent key={status} value={status} className="mt-4 space-y-3">
+          {/* Bulk actions bar */}
+          <AnimatePresence>
+            {selectedApplicants.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="flex items-center gap-2 p-3 bg-primary/5 border border-primary/20 rounded-lg mb-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedApplicants.length === filteredApplicants.length}
+                    onChange={toggleSelectAll}
+                    className="w-4 h-4 rounded"
+                  />
+                  <span className="text-sm font-medium text-foreground">{selectedApplicants.length} selected</span>
+                  <div className="flex-1" />
+                  {activeTab === 'pending' && (
+                    <>
+                      <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5" onClick={() => handleBulkAction('shortlisted')} disabled={bulkActionLoading}>
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Shortlist
+                      </Button>
+                      <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5 text-destructive border-destructive/30" onClick={() => handleBulkAction('rejected')} disabled={bulkActionLoading}>
+                        <XCircle className="w-3.5 h-3.5" /> Reject
+                      </Button>
+                    </>
+                  )}
+                  {activeTab === 'shortlisted' && (
+                    <Button size="sm" className="h-8 text-xs gap-1.5 bg-success hover:bg-success/90" onClick={() => handleBulkAction('hired')} disabled={bulkActionLoading}>
+                      <Trophy className="w-3.5 h-3.5" /> Hire All
+                    </Button>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Select all toggle when there are applicants */}
+          {filteredApplicants.length > 1 && selectedApplicants.length === 0 && (
+            <div className="flex items-center gap-2 px-1">
+              <button
+                onClick={toggleSelectAll}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Select all ({filteredApplicants.length})
+              </button>
             </div>
           )}
+
           {filteredApplicants.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No {statusConfig[status as keyof typeof statusConfig].label.toLowerCase()} applicants</p>
+            <div className="text-center py-12 text-muted-foreground">
+              <Users className="w-14 h-14 mx-auto mb-4 opacity-30" />
+              <p className="font-medium">No {statusConfig[status as keyof typeof statusConfig].label.toLowerCase()} applicants</p>
+              <p className="text-sm mt-1 opacity-70">Applications will appear here when candidates apply</p>
             </div>
           ) : (
-            filteredApplicants.map(renderApplicantCard)
+            filteredApplicants.map((applicant, index) => renderApplicantCard(applicant, index))
           )}
         </TabsContent>
       ))}
