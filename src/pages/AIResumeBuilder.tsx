@@ -270,7 +270,7 @@ const ResumeTemplate = ({ data, innerRef }: { data: ResumeFormData; innerRef: Re
 };
 
 // ─── Main Page ─────────────────────────────────────────────
-const AIResumeBuilder = () => {
+const AIResumeBuilder = ({ embedded = false }: { embedded?: boolean }) => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const resumeRef = useRef<HTMLDivElement>(null);
@@ -974,6 +974,14 @@ const AIResumeBuilder = () => {
       </div>
     </div>
   );
+
+  if (embedded) {
+    return (
+      <div>
+        {step === 'form' ? renderForm() : renderPreview()}
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-secondary">
