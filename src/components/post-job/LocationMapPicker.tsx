@@ -2,8 +2,9 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { MapPin, Search, Loader2, Navigation, Layers } from 'lucide-react';
+import { MapPin, Search, Loader2, Navigation, Layers, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -14,11 +15,10 @@ interface LocationMapPickerProps {
   setAddress: (address: string) => void;
 }
 
-interface LocationSuggestion {
-  place_id: number;
-  display_name: string;
-  lat: string;
-  lon: string;
+interface AISuggestion {
+  city: string;
+  state: string;
+  country: string;
 }
 
 export const LocationMapPicker = ({
@@ -37,7 +37,7 @@ export const LocationMapPicker = ({
   const [searching, setSearching] = useState(false);
   const [locating, setLocating] = useState(false);
   const [isSatellite, setIsSatellite] = useState(false);
-  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
+  const [aiSuggestions, setAiSuggestions] = useState<AISuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
@@ -59,7 +59,6 @@ export const LocationMapPicker = ({
       maxZoom: 19,
     }).addTo(map);
 
-    // Click to place marker
     map.on('click', async (e) => {
       const { lat, lng } = e.latlng;
       updateMarker(map, lat, lng);
@@ -69,7 +68,6 @@ export const LocationMapPicker = ({
 
     mapRef.current = map;
 
-    // If we have initial coordinates, place the marker
     if (coordinates) {
       updateMarker(map, coordinates.lat, coordinates.lng);
     }
@@ -80,31 +78,32 @@ export const LocationMapPicker = ({
     };
   }, []);
 
-  // Debounced autocomplete search
-  const fetchSuggestions = useCallback(async (query: string) => {
-    if (query.length < 3) {
-      setSuggestions([]);
+  // AI-powered location suggestions
+  const fetchAISuggestions = useCallback(async (query: string) => {
+    if (query.length < 2) {
+      setAiSuggestions([]);
       setShowSuggestions(false);
       return;
     }
 
     setLoadingSuggestions(true);
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&accept-language=en&addressdetails=1`,
-        { headers: { 'User-Agent': 'HireForJob/1.0' } }
-      );
-      const data = await response.json();
-      setSuggestions(data);
-      setShowSuggestions(data.length > 0);
+      const { data, error } = await supabase.functions.invoke('ai-location-suggest', {
+        body: { query },
+      });
+
+      if (error) throw error;
+
+      const suggestions = data?.suggestions || [];
+      setAiSuggestions(suggestions);
+      setShowSuggestions(suggestions.length > 0);
     } catch (error) {
-      console.error('Autocomplete failed:', error);
-      setSuggestions([]);
+      console.error('AI location suggest failed:', error);
+      setAiSuggestions([]);
     } finally {
       setLoadingSuggestions(false);
     }
   }, []);
-
   // Handle search input change with debouncing
   const handleSearchInputChange = (value: string) => {
     setSearchQuery(value);
@@ -116,25 +115,37 @@ export const LocationMapPicker = ({
     
     // Set new timeout for debounced search
     debounceRef.current = setTimeout(() => {
-      fetchSuggestions(value);
+      fetchAISuggestions(value);
     }, 300);
   };
 
-  // Handle suggestion selection
-  const handleSelectSuggestion = (suggestion: LocationSuggestion) => {
-    const latitude = parseFloat(suggestion.lat);
-    const longitude = parseFloat(suggestion.lon);
-
-    setCoordinates({ lat: latitude, lng: longitude });
-    setAddress(suggestion.display_name);
+  // Handle AI suggestion selection — geocode to get coordinates
+  const handleSelectSuggestion = async (suggestion: AISuggestion) => {
+    const locationStr = [suggestion.city, suggestion.state, suggestion.country].filter(Boolean).join(', ');
     setSearchQuery('');
-    setSuggestions([]);
+    setAiSuggestions([]);
     setShowSuggestions(false);
+    setAddress(locationStr);
 
-    if (mapRef.current) {
-      updateMarker(mapRef.current, latitude, longitude);
+    // Geocode the selected AI suggestion to get coordinates
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationStr)}&format=json&limit=1&accept-language=en`,
+        { headers: { 'User-Agent': 'HireForJob/1.0' } }
+      );
+      const data = await response.json();
+      if (data.length > 0) {
+        const latitude = parseFloat(data[0].lat);
+        const longitude = parseFloat(data[0].lon);
+        setCoordinates({ lat: latitude, lng: longitude });
+        if (mapRef.current) {
+          updateMarker(mapRef.current, latitude, longitude);
+        }
+      }
+    } catch (error) {
+      console.error('Geocoding AI suggestion failed:', error);
     }
-    
+
     toast.success('Location selected!');
   };
 
@@ -307,7 +318,7 @@ export const LocationMapPicker = ({
             placeholder="Search for a city, area or address..."
             value={searchQuery}
             onChange={(e) => handleSearchInputChange(e.target.value)}
-            onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+            onFocus={() => aiSuggestions.length > 0 && setShowSuggestions(true)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
@@ -320,29 +331,38 @@ export const LocationMapPicker = ({
             className="pl-9"
           />
           
-          {/* Autocomplete Dropdown */}
+          {/* AI-Powered Autocomplete Dropdown */}
           {showSuggestions && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-card border rounded-lg shadow-lg z-50 max-h-[200px] overflow-y-auto">
+            <div className="absolute top-full left-0 right-0 mt-1 bg-card border rounded-lg shadow-lg z-50 max-h-[250px] overflow-y-auto">
+              <div className="px-3 py-1.5 border-b bg-muted/50 flex items-center gap-1.5">
+                <Sparkles className="w-3 h-3 text-primary" />
+                <span className="text-[10px] font-medium text-primary">AI-powered suggestions</span>
+              </div>
               {loadingSuggestions ? (
                 <div className="p-3 text-center text-sm text-muted-foreground">
                   <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
-                  Searching...
+                  Finding locations...
                 </div>
-              ) : suggestions.length > 0 ? (
-                suggestions.map((suggestion) => (
+              ) : aiSuggestions.length > 0 ? (
+                aiSuggestions.map((suggestion, idx) => (
                   <button
-                    key={suggestion.place_id}
+                    key={`${suggestion.city}-${suggestion.state}-${idx}`}
                     type="button"
                     onClick={() => handleSelectSuggestion(suggestion)}
                     className="w-full text-left px-3 py-2.5 hover:bg-muted transition-colors flex items-start gap-2 border-b last:border-b-0"
                   >
                     <MapPin className="w-4 h-4 text-destructive mt-0.5 shrink-0" />
-                    <span className="text-sm line-clamp-2">{suggestion.display_name}</span>
+                    <div>
+                      <span className="text-sm font-medium">{suggestion.city}</span>
+                      <span className="text-xs text-muted-foreground block">
+                        {[suggestion.state, suggestion.country].filter(Boolean).join(', ')}
+                      </span>
+                    </div>
                   </button>
                 ))
               ) : (
                 <div className="p-3 text-center text-sm text-muted-foreground">
-                  No results found
+                  No locations found
                 </div>
               )}
             </div>
