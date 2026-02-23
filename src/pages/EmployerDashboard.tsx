@@ -17,7 +17,7 @@ import {
   MapPin, Briefcase, Building2, Plus, Loader2, Eye, Users,
   CheckCircle2, ChevronRight, FileEdit, CreditCard, UserCheck,
   MessageSquare, Calendar, BarChart3, User, Settings, Pencil, Trash2, Shield,
-  Sparkles
+  Sparkles, Bell
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -45,6 +45,7 @@ import { DashboardBottomNav } from '@/components/dashboard/DashboardBottomNav';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 import { JobExpiryBadge } from '@/components/employer/JobExpiryBadge';
 import { SecuritySettings } from '@/components/candidate/SecuritySettings';
+import { NotificationCenter } from '@/components/candidate/NotificationCenter';
 import { motion } from 'framer-motion';
 
 const EmployerDashboard = () => {
@@ -238,14 +239,15 @@ const EmployerDashboard = () => {
 
   const sidebarItems = [
     { icon: Briefcase, label: 'Job Postings', value: 'jobs', badge: stats.activeJobs },
-    { icon: Users, label: 'Candidates', value: 'candidates' },
+    { icon: Users, label: 'Applicants', value: 'candidates', badge: stats.totalApplications },
     { icon: FileEdit, label: 'Drafts', value: 'drafts' },
     { icon: Users, label: 'Tasks', value: 'tasks' },
-    { icon: MessageSquare, label: 'Chat', value: 'chat' },
-    { icon: Calendar, label: 'Interviews', value: 'interviews' },
+    { icon: MessageSquare, label: 'Messages', value: 'chat' },
+    { icon: Calendar, label: 'Interviews', value: 'interviews', badge: stats.scheduledInterviews },
     { icon: BarChart3, label: 'Analytics', value: 'analytics' },
     { icon: Building2, label: 'Company Profile', value: 'company' },
     { icon: Eye, label: 'Public Profile', value: 'public-profile' },
+    { icon: Bell, label: 'Notifications', value: 'notifications', badge: stats.notificationCount },
     { icon: Shield, label: 'Security', value: 'security' },
     { icon: CreditCard, label: 'Upgrade Plan', value: 'upgrade-plan' }
   ];
@@ -459,6 +461,8 @@ const EmployerDashboard = () => {
         );
       case 'public-profile':
         return employer && <EmployerDetail id={employer.id} />;
+      case 'notifications':
+        return <NotificationCenter />;
       case 'security':
         return <SecuritySettings />;
       default:
