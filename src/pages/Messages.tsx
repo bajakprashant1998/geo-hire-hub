@@ -6,7 +6,17 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { ArrowLeft, Send, User, MessageCircle, Search, Check, CheckCheck, Clock } from 'lucide-react';
+import { ArrowLeft, Send, User, MessageCircle, Search, Check, CheckCheck, Clock, Trash2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { usePresence } from '@/hooks/usePresence';
@@ -65,10 +75,34 @@ const Messages = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sending, setSending] = useState(false);
   const [pendingAttachment, setPendingAttachment] = useState<{ file: File; localPreview?: string } | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingConvId, setDeletingConvId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastTypingRef = useRef<boolean>(false);
+
+  const handleDeleteConversation = async () => {
+    if (!deletingConvId || !user) return;
+    setDeleting(true);
+    try {
+      await supabase.from('messages').delete().eq('conversation_id', deletingConvId);
+      const { error } = await supabase.from('conversations').delete().eq('id', deletingConvId);
+      if (error) throw error;
+      toast.success('Chat deleted successfully');
+      setConversations(prev => prev.filter(c => c.id !== deletingConvId));
+      if (conversationId === deletingConvId) {
+        navigate('/messages');
+      }
+    } catch (error: any) {
+      toast.error('Failed to delete chat: ' + error.message);
+    } finally {
+      setDeleting(false);
+      setDeleteDialogOpen(false);
+      setDeletingConvId(null);
+    }
+  };
 
   // Presence hook for online status and typing
   const { isOnline, isTyping, setTyping } = usePresence(conversationId);
@@ -518,6 +552,18 @@ const Messages = () => {
                         {conv.otherProfile?.user_type}
                       </Badge>
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="shrink-0 text-muted-foreground hover:text-destructive"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeletingConvId(conv.id);
+                        setDeleteDialogOpen(true);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
                 </motion.button>
               ))}
@@ -561,6 +607,19 @@ const Messages = () => {
                 className="hidden sm:flex"
               >
                 View Profile
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-muted-foreground hover:text-destructive"
+                onClick={() => {
+                  if (activeConversation) {
+                    setDeletingConvId(activeConversation.id);
+                    setDeleteDialogOpen(true);
+                  }
+                }}
+              >
+                <Trash2 className="w-5 h-5" />
               </Button>
             </div>
 
@@ -742,6 +801,28 @@ const Messages = () => {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Chat</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this conversation and all its messages. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConversation}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
