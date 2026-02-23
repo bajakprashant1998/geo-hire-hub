@@ -98,9 +98,9 @@ const formatMarkdown = (text: string) => {
     .replace(/\n/g, '<br/>');
 
   // Wrap lists
-  html = html.replace(/((?:<li class="ml-1 pl-2 text-\[13px\] leading-\[1\.7\] text-foreground\/90 relative before:content-\[\'•\'\].*?<\/li>(?:<br\/>)?)+)/g,
+  html = html.replace(/((?:<li class="ml-1 pl-2 text-\[13px\] leading-\[1\.7\] text-foreground relative before:content-\[\'•\'\].*?<\/li>(?:<br\/>)?)+)/g,
     '<ul class="space-y-1 my-2.5 ml-4">$1</ul>');
-  html = html.replace(/((?:<li class="ml-1 pl-2 text-\[13px\] leading-\[1\.7\] list-decimal.*?<\/li>(?:<br\/>)?)+)/g,
+  html = html.replace(/((?:<li class="ml-1 pl-2 text-\[13px\] leading-\[1\.7\] list-decimal text-foreground.*?<\/li>(?:<br\/>)?)+)/g,
     '<ol class="space-y-1 my-2.5 ml-5 list-decimal">$1</ol>');
 
   // Tables
@@ -111,7 +111,7 @@ const formatMarkdown = (text: string) => {
     const tag = isHeader ? 'th' : 'td';
     const cls = isHeader
       ? 'px-3 py-2 text-[11px] font-semibold text-foreground bg-muted/60 border-b border-border/60 text-left'
-      : 'px-3 py-2 text-[12px] text-foreground/80 border-b border-border/30';
+      : 'px-3 py-2 text-[12px] text-foreground border-b border-border/30';
     const cellHtml = cells.map(c => `<${tag} class="${cls}">${c.trim()}</${tag}>`).join('');
     return `<tr class="hover:bg-muted/30 transition-colors">${cellHtml}</tr>`;
   });
@@ -415,7 +415,7 @@ export const CareerBuddyChat = () => {
                   "max-w-[88%] rounded-2xl transition-all",
                   message.role === 'user'
                     ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-br-lg px-5 py-3 shadow-md shadow-primary/15"
-                    : "bg-muted/50 border border-border rounded-bl-lg px-5 py-4 shadow-sm"
+                    : "bg-secondary border border-border rounded-bl-lg px-5 py-4 shadow-sm"
                 )}>
                   {message.role === 'assistant' ? (
                     <div
