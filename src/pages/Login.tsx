@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { ArrowLeft, Mail, Lock, Eye, EyeOff, MapPin, Loader2, Users, Briefcase } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { lovable } from '@/integrations/lovable/index';
 import { motion } from 'framer-motion';
 import { SEOHead } from '@/components/SEOHead';
 
@@ -90,10 +91,10 @@ const Login = () => {
       // Store the selected role to apply it after callback
       sessionStorage.setItem('preferred_role', userType);
 
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+      const { error } = await lovable.auth.signInWithOAuth('google', {
+        redirect_uri: `${window.location.origin}/auth/callback`,
+        extraParams: {
+          prompt: 'select_account',
         },
       });
 
