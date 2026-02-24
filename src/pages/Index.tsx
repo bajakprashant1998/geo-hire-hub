@@ -13,8 +13,10 @@ import BottomNavBar from '@/components/map/BottomNavBar';
 import { WelcomeOverlay } from '@/components/map/WelcomeOverlay';
 import { MobileFAB } from '@/components/map/MobileFAB';
 import GoogleSignInPrompt from '@/components/GoogleSignInPrompt';
-import { StatsBottomSheet } from '@/components/map/StatsBottomSheet';
 import { LeftSidebarPanel } from '@/components/map/LeftSidebarPanel';
+import { QuickFilterChips } from '@/components/map/QuickFilterChips';
+import { FloatingControls } from '@/components/map/FloatingControls';
+import { NearbyAvatarRow } from '@/components/map/NearbyAvatarRow';
 import { Button } from '@/components/ui/button';
 import { Navigation } from 'lucide-react';
 import { toast } from 'sonner';
@@ -175,18 +177,36 @@ const Index = () => {
             />
           </div>
 
-          {/* Stats Bottom Sheet - Mobile only */}
+          {/* Filter Chips */}
           <div className="pointer-events-auto">
-            <StatsBottomSheet
+            <QuickFilterChips
               mode={mode}
-              candidateCount={candidates.length}
+              onModeChange={handleModeChange}
               jobCount={jobs.length}
+              candidateCount={candidates.length}
               governmentJobCount={jobCounts.government}
               privateJobCount={jobCounts.private}
+            />
+          </div>
+
+          {/* Right-side Floating Controls */}
+          <div className="pointer-events-auto">
+            <FloatingControls
+              onCenterOnUser={handleCenterOnUser}
+              onToggleSidebar={() => setSidebarOpen(true)}
               radius={radius}
               onRadiusChange={setRadius}
-              onToggleSidebar={() => setSidebarOpen(true)}
-              onCenterOnUser={handleCenterOnUser}
+            />
+          </div>
+
+          {/* Nearby Avatar Row */}
+          <div className="pointer-events-auto">
+            <NearbyAvatarRow
+              mode={mode}
+              candidates={candidates}
+              jobs={jobs}
+              onSelect={handleSelectFromSidebar}
+              onViewAll={() => setSidebarOpen(true)}
             />
           </div>
         </div>

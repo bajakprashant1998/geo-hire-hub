@@ -1,168 +1,68 @@
-import { ViewMode } from '@/types';
-import { RadiusFilter } from './RadiusFilter';
-import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { List, Navigation, Users, Briefcase, Landmark, Building2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Navigation, List, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useState, useEffect } from 'react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface FloatingControlsProps {
-  mode: ViewMode;
+  onCenterOnUser: () => void;
+  onToggleSidebar: () => void;
   radius: number;
   onRadiusChange: (radius: number) => void;
-  onToggleSidebar: () => void;
-  onCenterOnUser: () => void;
-  candidateCount: number;
-  jobCount: number;
-  governmentJobCount?: number;
-  privateJobCount?: number;
 }
 
 export const FloatingControls = ({
-  mode,
-  radius,
-  onRadiusChange,
-  onToggleSidebar,
-  onCenterOnUser,
-  candidateCount,
-  jobCount,
-  governmentJobCount = 0,
-  privateJobCount = 0,
+  onCenterOnUser, onToggleSidebar, radius, onRadiusChange,
 }: FloatingControlsProps) => {
-  const [displayedCount, setDisplayedCount] = useState(0);
-  const count = mode === 'hiring' ? candidateCount : jobCount;
-  const Icon = mode === 'hiring' ? Users : Briefcase;
+  const radiusCycle = [5, 10, 50, 100, 500];
 
-  // Animated counter
-  useEffect(() => {
-    const duration = 400;
-    const steps = 15;
-    const increment = count / steps;
-    let current = 0;
-    
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= count) {
-        setDisplayedCount(count);
-        clearInterval(timer);
-      } else {
-        setDisplayedCount(Math.floor(current));
-      }
-    }, duration / steps);
+  const cycleRadius = () => {
+    const currentIndex = radiusCycle.indexOf(radius);
+    const nextIndex = (currentIndex + 1) % radiusCycle.length;
+    onRadiusChange(radiusCycle[nextIndex]);
+  };
 
-    return () => clearInterval(timer);
-  }, [count]);
+  const buttons = [
+    { icon: Navigation, tooltip: 'My location', onClick: onCenterOnUser, highlight: true, label: undefined },
+    { icon: Target, tooltip: `${radius}km radius`, onClick: cycleRadius, highlight: false, label: `${radius}` },
+    { icon: List, tooltip: 'View list', onClick: onToggleSidebar, highlight: false, label: undefined },
+  ];
 
   return (
-    <>
-      {/* Radius filter - Desktop & Tablet only */}
-      <div className="absolute bottom-28 left-4 z-[100] hidden md:block">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <RadiusFilter radius={radius} onRadiusChange={onRadiusChange} />
-        </motion.div>
-      </div>
-
-      {/* Stats Card - Desktop only */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[100] hidden md:block"
-      >
-        <div className="glass-morphism rounded-2xl px-5 py-4 shadow-2xl">
-          <div className="flex items-center gap-6">
-            {/* Main Stat */}
-            <div className="flex items-center gap-3">
-              <div className={cn(
-                "p-3 rounded-xl",
-                mode === 'hiring' ? 'bg-primary/10' : 'bg-destructive/10'
-              )}>
-                <Icon className={cn(
-                  "w-6 h-6",
-                  mode === 'hiring' ? 'text-primary' : 'text-destructive'
-                )} />
-              </div>
-              <div>
-                <div className="flex items-baseline gap-2">
-                  <motion.span 
-                    key={displayedCount}
-                    initial={{ opacity: 0, y: -5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={cn(
-                      "text-3xl font-bold tabular-nums",
-                      mode === 'hiring' ? 'text-primary' : 'text-destructive'
-                    )}
-                  >
-                    {displayedCount}
-                  </motion.span>
-                  <span className="text-sm text-muted-foreground">
-                    {mode === 'hiring' ? 'candidates' : 'jobs'} nearby
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground/70">
-                  within {radius}km of your location
-                </p>
-              </div>
-            </div>
-
-            {/* Divider */}
-            <div className="w-px h-12 bg-border/50" />
-
-            {/* Category Breakdown - Jobs only */}
-            {mode === 'seeking' && (
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10">
-                  <Building2 className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-semibold text-primary">{privateJobCount}</span>
-                  <span className="text-xs text-muted-foreground">Private</span>
-                </div>
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-success/10">
-                  <Landmark className="w-4 h-4 text-success" />
-                  <span className="text-sm font-semibold text-success">{governmentJobCount}</span>
-                  <span className="text-xs text-muted-foreground">Govt</span>
-                </div>
-              </div>
-            )}
-
-            {/* Divider */}
-            <div className="w-px h-12 bg-border/50" />
-
-            {/* View List Button */}
-            <Button 
-              variant="outline" 
-              onClick={onToggleSidebar}
-              className="h-11 px-4 rounded-xl gap-2 hover:bg-muted touch-target touch-scale"
+    <motion.div
+      initial={{ opacity: 0, x: 20 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: 0.4, duration: 0.3 }}
+      className="absolute right-3 top-1/2 -translate-y-1/2 z-[90] flex flex-col gap-2.5"
+    >
+      {buttons.map((btn, i) => (
+        <Tooltip key={btn.tooltip}>
+          <TooltipTrigger asChild>
+            <motion.button
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 + i * 0.08 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={btn.onClick}
+              className={cn(
+                "w-11 h-11 rounded-full flex items-center justify-center",
+                "bg-card/90 backdrop-blur-md border border-border/40 shadow-xl",
+                "active:bg-muted transition-colors",
+                btn.highlight && "ring-2 ring-primary/30"
+              )}
             >
-              <List className="w-4 h-4" />
-              <span>View List</span>
-            </Button>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Navigation Button - Always visible */}
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.4, type: 'spring' }}
-        className="absolute bottom-28 md:bottom-28 right-4 z-[100]"
-      >
-        <Tooltip><TooltipTrigger asChild>
-        <Button
-          variant="secondary"
-          size="icon"
-          onClick={onCenterOnUser}
-          className="glass-morphism rounded-full w-12 h-12 md:w-14 md:h-14 shadow-xl hover:shadow-2xl touch-target touch-scale border-border/30"
-        >
-          <Navigation className="w-5 h-5 md:w-6 md:h-6 text-primary" />
-        </Button>
-        </TooltipTrigger><TooltipContent>Center on my location</TooltipContent></Tooltip>
-      </motion.div>
-    </>
+              {btn.label ? (
+                <span className="text-[10px] font-bold text-foreground">{btn.label}</span>
+              ) : (
+                <btn.icon className={cn(
+                  "w-5 h-5",
+                  btn.highlight ? "text-primary" : "text-foreground"
+                )} />
+              )}
+            </motion.button>
+          </TooltipTrigger>
+          <TooltipContent side="left">{btn.tooltip}</TooltipContent>
+        </Tooltip>
+      ))}
+    </motion.div>
   );
 };
