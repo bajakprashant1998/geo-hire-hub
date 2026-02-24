@@ -1,85 +1,83 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Briefcase, Clock, Building2, Landmark } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { ViewMode } from '@/types';
-
-export type FilterValue = 'all' | '5km' | '10km' | '25km' | 'remote' | 'fulltime' | 'parttime' | 'government';
+import { Briefcase, Users, Landmark, Building2, Sparkles } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface QuickFilterChipsProps {
   mode: ViewMode;
-  activeFilters: FilterValue[];
-  onFilterChange: (filters: FilterValue[]) => void;
-  className?: string;
+  onModeChange: (mode: ViewMode) => void;
+  jobCount: number;
+  candidateCount: number;
+  governmentJobCount: number;
+  privateJobCount: number;
 }
 
-const jobFilters = [
-  { id: 'all' as FilterValue, label: 'All', icon: Briefcase },
-  { id: '5km' as FilterValue, label: 'Within 5km', icon: MapPin },
-  { id: '10km' as FilterValue, label: 'Within 10km', icon: MapPin },
-  { id: 'remote' as FilterValue, label: 'Remote', icon: Building2 },
-  { id: 'fulltime' as FilterValue, label: 'Full-time', icon: Clock },
-  { id: 'parttime' as FilterValue, label: 'Part-time', icon: Clock },
-  { id: 'government' as FilterValue, label: 'Government', icon: Landmark },
-];
-
-const candidateFilters = [
-  { id: 'all' as FilterValue, label: 'All', icon: Briefcase },
-  { id: '5km' as FilterValue, label: 'Within 5km', icon: MapPin },
-  { id: '10km' as FilterValue, label: 'Within 10km', icon: MapPin },
-  { id: '25km' as FilterValue, label: 'Within 25km', icon: MapPin },
-];
-
-export const QuickFilterChips = ({ 
-  mode, 
-  activeFilters, 
-  onFilterChange,
-  className 
+export const QuickFilterChips = ({
+  mode, onModeChange, jobCount, candidateCount, governmentJobCount, privateJobCount,
 }: QuickFilterChipsProps) => {
-  const filters = mode === 'seeking' ? jobFilters : candidateFilters;
-
-  const handleFilterClick = (filterId: FilterValue) => {
-    if (filterId === 'all') {
-      onFilterChange(['all']);
-    } else {
-      const newFilters = activeFilters.includes(filterId)
-        ? activeFilters.filter(f => f !== filterId)
-        : [...activeFilters.filter(f => f !== 'all'), filterId];
-      
-      onFilterChange(newFilters.length === 0 ? ['all'] : newFilters);
-    }
-  };
+  const chips = [
+    {
+      icon: Briefcase,
+      label: `${jobCount} Jobs`,
+      active: mode === 'seeking',
+      onClick: () => onModeChange('seeking'),
+    },
+    {
+      icon: Users,
+      label: `${candidateCount} Talent`,
+      active: mode === 'hiring',
+      onClick: () => onModeChange('hiring'),
+    },
+    {
+      icon: Landmark,
+      label: `${governmentJobCount} Govt`,
+      active: false,
+      onClick: () => onModeChange('seeking'),
+    },
+    {
+      icon: Building2,
+      label: `${privateJobCount} Private`,
+      active: false,
+      onClick: () => onModeChange('seeking'),
+    },
+    {
+      icon: Sparkles,
+      label: 'AI Match',
+      active: false,
+      onClick: () => {},
+    },
+  ];
 
   return (
-    <div className={cn("flex gap-2 overflow-x-auto pb-1 scrollbar-hide", className)}>
-      {filters.map((filter, index) => {
-        const isActive = activeFilters.includes(filter.id);
-        const Icon = filter.icon;
-
-        return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2, duration: 0.3 }}
+      className="absolute top-[56px] left-0 right-0 z-[99] safe-area-pt px-3"
+    >
+      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+        {chips.map((chip, i) => (
           <motion.button
-            key={filter.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-            onClick={() => handleFilterClick(filter.id)}
+            key={chip.label}
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1 * i + 0.2 }}
+            onClick={chip.onClick}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium whitespace-nowrap",
-              "transition-all duration-200 touch-target-sm touch-scale",
-              "border backdrop-blur-sm",
-              isActive
-                ? mode === 'seeking'
-                  ? "bg-destructive text-destructive-foreground border-destructive shadow-md"
-                  : "bg-primary text-primary-foreground border-primary shadow-md"
-                : "bg-card/80 text-muted-foreground border-border/50 hover:bg-card hover:text-foreground hover:border-border"
+              "flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap",
+              "shadow-lg backdrop-blur-md transition-all duration-200 active:scale-95",
+              "border",
+              chip.active
+                ? "bg-primary text-primary-foreground border-primary shadow-primary/25"
+                : "bg-card/90 text-foreground border-border/40 hover:bg-card"
             )}
           >
-            <Icon className="w-3.5 h-3.5" />
-            <span>{filter.label}</span>
+            <chip.icon className="w-3.5 h-3.5" />
+            {chip.label}
           </motion.button>
-        );
-      })}
-    </div>
+        ))}
+      </div>
+    </motion.div>
   );
 };
 
