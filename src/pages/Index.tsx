@@ -196,6 +196,8 @@ const Index = () => {
               onToggleSidebar={() => setSidebarOpen(true)}
               radius={radius}
               onRadiusChange={setRadius}
+              onSearch={setSearchQuery}
+              searchQuery={searchQuery}
             />
           </div>
 
