@@ -204,6 +204,8 @@ export type Database = {
       }
       candidates: {
         Row: {
+          achievements: string[] | null
+          address_line: string | null
           audio_resume_created_at: string | null
           audio_resume_text: string | null
           audio_resume_tone: string | null
@@ -213,30 +215,58 @@ export type Database = {
           blocked_at: string | null
           blocked_by: string | null
           blocked_reason: string | null
+          career_objective: string | null
           certifications: string[] | null
+          city: string | null
+          country: string | null
+          cover_letter_default: string | null
           created_at: string | null
+          current_company: string | null
+          current_salary: string | null
+          date_of_birth: string | null
+          disability_status: string | null
+          driving_license: boolean | null
           education: Json | null
           expected_salary: string | null
           experience_years: number | null
+          gender: string | null
           headline: string | null
+          hobbies: string[] | null
           id: string
+          industry_preference: string[] | null
           is_blocked: boolean | null
           job_title: string
           languages: Json | null
+          marital_status: string | null
+          military_veteran: boolean | null
+          nationality: string | null
+          notice_period: string | null
+          pincode: string | null
           portfolio_urls: string[] | null
           preferred_job_types: string[] | null
           preferred_locations: string[] | null
           profile_id: string
+          projects: Json | null
+          references_available: boolean | null
+          remote_preference: string | null
           resume_filename: string | null
           resume_uploaded_at: string | null
           resume_url: string | null
           resume_visibility: string | null
+          salary_currency: string | null
           skills: string[] | null
           social_links: Json | null
+          state: string | null
+          strengths: string[] | null
           updated_at: string | null
+          video_intro_url: string | null
+          willing_to_relocate: boolean | null
+          work_authorization: string | null
           work_experience: Json | null
         }
         Insert: {
+          achievements?: string[] | null
+          address_line?: string | null
           audio_resume_created_at?: string | null
           audio_resume_text?: string | null
           audio_resume_tone?: string | null
@@ -246,30 +276,58 @@ export type Database = {
           blocked_at?: string | null
           blocked_by?: string | null
           blocked_reason?: string | null
+          career_objective?: string | null
           certifications?: string[] | null
+          city?: string | null
+          country?: string | null
+          cover_letter_default?: string | null
           created_at?: string | null
+          current_company?: string | null
+          current_salary?: string | null
+          date_of_birth?: string | null
+          disability_status?: string | null
+          driving_license?: boolean | null
           education?: Json | null
           expected_salary?: string | null
           experience_years?: number | null
+          gender?: string | null
           headline?: string | null
+          hobbies?: string[] | null
           id?: string
+          industry_preference?: string[] | null
           is_blocked?: boolean | null
           job_title: string
           languages?: Json | null
+          marital_status?: string | null
+          military_veteran?: boolean | null
+          nationality?: string | null
+          notice_period?: string | null
+          pincode?: string | null
           portfolio_urls?: string[] | null
           preferred_job_types?: string[] | null
           preferred_locations?: string[] | null
           profile_id: string
+          projects?: Json | null
+          references_available?: boolean | null
+          remote_preference?: string | null
           resume_filename?: string | null
           resume_uploaded_at?: string | null
           resume_url?: string | null
           resume_visibility?: string | null
+          salary_currency?: string | null
           skills?: string[] | null
           social_links?: Json | null
+          state?: string | null
+          strengths?: string[] | null
           updated_at?: string | null
+          video_intro_url?: string | null
+          willing_to_relocate?: boolean | null
+          work_authorization?: string | null
           work_experience?: Json | null
         }
         Update: {
+          achievements?: string[] | null
+          address_line?: string | null
           audio_resume_created_at?: string | null
           audio_resume_text?: string | null
           audio_resume_tone?: string | null
@@ -279,27 +337,53 @@ export type Database = {
           blocked_at?: string | null
           blocked_by?: string | null
           blocked_reason?: string | null
+          career_objective?: string | null
           certifications?: string[] | null
+          city?: string | null
+          country?: string | null
+          cover_letter_default?: string | null
           created_at?: string | null
+          current_company?: string | null
+          current_salary?: string | null
+          date_of_birth?: string | null
+          disability_status?: string | null
+          driving_license?: boolean | null
           education?: Json | null
           expected_salary?: string | null
           experience_years?: number | null
+          gender?: string | null
           headline?: string | null
+          hobbies?: string[] | null
           id?: string
+          industry_preference?: string[] | null
           is_blocked?: boolean | null
           job_title?: string
           languages?: Json | null
+          marital_status?: string | null
+          military_veteran?: boolean | null
+          nationality?: string | null
+          notice_period?: string | null
+          pincode?: string | null
           portfolio_urls?: string[] | null
           preferred_job_types?: string[] | null
           preferred_locations?: string[] | null
           profile_id?: string
+          projects?: Json | null
+          references_available?: boolean | null
+          remote_preference?: string | null
           resume_filename?: string | null
           resume_uploaded_at?: string | null
           resume_url?: string | null
           resume_visibility?: string | null
+          salary_currency?: string | null
           skills?: string[] | null
           social_links?: Json | null
+          state?: string | null
+          strengths?: string[] | null
           updated_at?: string | null
+          video_intro_url?: string | null
+          willing_to_relocate?: boolean | null
+          work_authorization?: string | null
           work_experience?: Json | null
         }
         Relationships: [
