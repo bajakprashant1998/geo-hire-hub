@@ -1,148 +1,149 @@
 
 
-# Fix 7 Remaining Issues + Add 6 Feature Suggestions
+# Auto Apply Job Feature - Implementation Plan
 
-## Part 1: Fix Remaining Issues
+## Overview
 
-### Issue 1 - Employer Notification Count Hardcoded (line 473)
-`notificationCount={0}` is hardcoded in `EmployerDashboard.tsx`.
-
-**Fix**: Fetch unread notification count from the `notifications` table in `fetchEmployerData()`, store it in state, and pass the real value to `EmployerHeader`.
-
-**File**: `src/pages/EmployerDashboard.tsx`
-- Add `notificationCount` to the stats state (default `0`)
-- In `fetchEmployerData`, query `notifications` where `user_id = user.id AND is_read = false`
-- Replace `notificationCount={0}` with `notificationCount={stats.notificationCount}`
+This feature adds an AI-powered automatic job application system to the Candidate Dashboard. Candidates configure preferences and a match threshold, and the system automatically applies to matching jobs via a backend function triggered on-demand (with future cron capability). It leverages the existing Gemini-based `calculate-job-match` edge function and `job_matches` table.
 
 ---
 
-### Issue 2 - SecuritySettings useState Side Effect (line 35)
-`useState(() => { ... })` is used to run an async fetch -- this is incorrect. `useState` initializers should be synchronous and return the initial value.
+## Architecture
 
-**Fix**: Replace `useState(() => { ... })` with `useEffect(() => { ... }, [user])`.
-
-**File**: `src/components/candidate/SecuritySettings.tsx`
-
----
-
-### Issue 3 - Dashboard Stat Subtitles Are Fake Multipliers
-Both dashboards use computed fake subtitles like `+${Math.floor(stats.applications * 0.2)} this week` and `"-3% vs last week"`.
-
-**Fix**: Remove fake growth numbers and show simple, honest subtitles:
-- "Total Applied" -> subtitle: "all time"
-- "Profile Views" -> subtitle: "all time" 
-- "Total Applications" -> subtitle: "across all jobs"
-- "Scheduled Interviews" -> subtitle: "upcoming"
-- Employer "Profile Views" -> subtitle: "total job views"
-
-**Files**: `src/pages/CandidateDashboard.tsx`, `src/pages/EmployerDashboard.tsx`
-
----
-
-### Issue 4 - Employer "Profile Views" Shows job view_count, Not Actual Profile Views
-`stats.profileViews` is set to `totalViews` which is `jobsWithCounts.reduce(sum + job.view_count)` -- that's job views, not employer profile views.
-
-**Fix**: Query `profile_views` table for the employer's profile ID instead.
-
-**File**: `src/pages/EmployerDashboard.tsx` -- in `fetchEmployerData`, replace the `totalViews` calculation with a real `profile_views` count query.
-
----
-
-### Issue 5 - `text-white` Used Directly (line 258)
-`text-white` is hardcoded in the employer login prompt card instead of `text-primary-foreground`.
-
-**Fix**: Replace `text-white` with `text-primary-foreground`.
-
-**File**: `src/pages/EmployerDashboard.tsx`
-
----
-
-### Issue 6 - `shadow-google` Class Usage
-`shadow-google` is used across many candidate components. This is actually defined in `tailwind.config.ts` as a custom shadow, so it IS part of the design system. No change needed -- this is a false positive. Keeping as-is.
-
----
-
-### Issue 7 - Hardcoded "Enterprise Plan" Label (line 469)
-`planName="Enterprise Plan"` is hardcoded instead of fetching the real plan name.
-
-**Fix**: Fetch the employer's active subscription plan name from `employer_subscriptions` joined with `employer_plans`, and pass it to `EmployerHeader`.
-
-**File**: `src/pages/EmployerDashboard.tsx`
-- Add `planName` to state (default `"Free Plan"`)
-- In `fetchEmployerData`, query `employer_subscriptions` with `employer_plans` join
-- Pass real `planName` to `EmployerHeader`
-
----
-
-## Part 2: New Feature Suggestions
-
-### Feature 1 - Employer Security Settings
-Currently only candidates have security settings (password change, 2FA placeholder, delete account). Employers have no equivalent.
-
-**Fix**: Add a "Security" sidebar item to the employer dashboard that renders the existing `SecuritySettings` component (it's generic enough to work for both roles).
-
-**File**: `src/pages/EmployerDashboard.tsx`
-- Add `{ icon: Shield, label: 'Security', value: 'security' }` to `sidebarItems`
-- Add `case 'security': return <SecuritySettings />;` to `renderSectionContent`
-
----
-
-### Feature 2 - "Back to Dashboard" Link on Browse Jobs
-When a logged-in user visits `/browse-jobs`, there's no easy way back to their dashboard.
-
-**Fix**: Add a contextual "Back to Dashboard" button at the top of the BrowseJobs page when the user is authenticated.
-
-**File**: `src/pages/BrowseJobs.tsx`
-
----
-
-### Feature 3 - Real "Next Interview" Subtitle
-The candidate dashboard shows "Next: Tomorrow" as a hardcoded subtitle for upcoming interviews.
-
-**Fix**: Query the next scheduled interview date and display the actual date or relative time (e.g., "Next: Feb 21").
-
-**File**: `src/pages/CandidateDashboard.tsx`
-- In `fetchCandidate`, query `interviews` for the next scheduled interview
-- Compute subtitle based on actual date
-
----
-
-### Feature 4 - Candidate "Unread Messages" Subtitle Fix
-Shows `${Math.min(2, stats.unreadMessages)} urgent` which is meaningless.
-
-**Fix**: Change to a simple subtitle like "new messages" or "all read".
-
-**File**: `src/pages/CandidateDashboard.tsx`
-
----
-
-### Feature 5 - Email Change in Security Settings
-Users currently cannot change their email address.
-
-**Fix**: Add an "Update Email" section to `SecuritySettings.tsx` that calls `supabase.auth.updateUser({ email: newEmail })`.
-
-**File**: `src/components/candidate/SecuritySettings.tsx`
-
----
-
-### Feature 6 - WhatsApp Button Verification
-Ensure WhatsApp button works on candidate/employer detail pages by verifying the `whatsapp_number` field is being fetched and passed correctly.
-
-**Files**: `src/pages/CandidateDetail.tsx`, `src/pages/EmployerDetail.tsx` -- verify data flow, no changes expected if already correct.
+```text
+┌─────────────────────────────────────────────────┐
+│  Candidate Dashboard                            │
+│  ┌───────────────────────────────────────────┐  │
+│  │  AutoApplyManager (new component)         │  │
+│  │  - Enable/Disable toggle                  │  │
+│  │  - Preferences form                       │  │
+│  │  - Match threshold slider (50-95%)        │  │
+│  │  - Daily limit selector                   │  │
+│  │  - AI cover letter toggle                 │  │
+│  │  - Application history panel              │  │
+│  └───────────────────────────────────────────┘  │
+└──────────────────────┬──────────────────────────┘
+                       │ invoke
+          ┌────────────▼────────────────┐
+          │  Edge Function:             │
+          │  auto-apply-jobs            │
+          │  - Fetch candidate prefs    │
+          │  - Scan open jobs           │
+          │  - AI match scoring         │
+          │  - Filter by threshold      │
+          │  - Apply + AI cover letter  │
+          │  - Notify candidate         │
+          └─────────────────────────────┘
+```
 
 ---
 
 ## Technical Details
 
-### File Change Summary
+### 1. Database Migration
 
-| Action | File | Changes |
-|--------|------|---------|
-| Edit | `src/pages/EmployerDashboard.tsx` | Fix notification count, profile views, plan name, text-white, stat subtitles, add security sidebar item |
-| Edit | `src/components/candidate/SecuritySettings.tsx` | Fix useState side effect -> useEffect, add email change section |
-| Edit | `src/pages/CandidateDashboard.tsx` | Fix stat subtitles, fetch real next interview date |
-| Edit | `src/pages/BrowseJobs.tsx` | Add "Back to Dashboard" link for logged-in users |
+**New table: `auto_apply_preferences`**
+- `id` UUID PK
+- `candidate_id` UUID FK → candidates(id), UNIQUE
+- `is_enabled` boolean DEFAULT false
+- `match_threshold` integer DEFAULT 70 (50-95)
+- `preferred_titles` text[] DEFAULT '{}'
+- `focus_skills` text[] DEFAULT '{}'
+- `preferred_locations` text[] DEFAULT '{}'
+- `remote_only` boolean DEFAULT false
+- `min_salary` text
+- `salary_currency` text DEFAULT 'INR'
+- `company_size_preference` text[] DEFAULT '{}'
+- `industry_preference` text[] DEFAULT '{}'
+- `experience_level` text
+- `daily_limit` integer DEFAULT 5
+- `generate_cover_letter` boolean DEFAULT true
+- `location_radius` text DEFAULT 'city' (values: '10km', 'city', 'remote_only', 'relocate')
+- `excluded_companies` text[] DEFAULT '{}'
+- `created_at`, `updated_at` timestamps
 
-### No Database Changes Required
-All fixes use existing tables (`notifications`, `profile_views`, `employer_subscriptions`, `employer_plans`, `interviews`).
+**New table: `auto_apply_logs`**
+- `id` UUID PK
+- `candidate_id` UUID FK → candidates(id)
+- `job_id` UUID FK → jobs(id)
+- `match_score` integer
+- `cover_letter` text
+- `application_id` UUID FK → applications(id)
+- `status` text DEFAULT 'applied' (applied, skipped, failed, undone)
+- `skip_reason` text
+- `created_at` timestamp
+
+**RLS policies:**
+- Both tables: candidates can CRUD only their own rows (matching `candidate_id` via `get_current_user_candidate_id()`)
+
+### 2. Edge Function: `auto-apply-jobs`
+
+**Location:** `supabase/functions/auto-apply-jobs/index.ts`
+
+**Logic flow:**
+1. Receive `candidateId` from request body
+2. Fetch candidate's `auto_apply_preferences` — if not enabled, return early
+3. Fetch candidate profile data (skills, experience, location, resume)
+4. Query open jobs not already applied to, not in excluded companies
+5. For each job (up to daily limit minus today's auto-applies):
+   - Use existing `generateGeminiChat` to calculate match score
+   - If score >= threshold:
+     - Optionally generate AI cover letter via Gemini
+     - Insert into `applications` table
+     - Log to `auto_apply_logs`
+     - Create notification for candidate
+6. Return summary of applications made
+
+**Safety controls:**
+- Daily limit check (count today's auto_apply_logs)
+- Skip already-applied jobs
+- Skip excluded/blacklisted companies
+- Salary floor enforcement
+
+### 3. Frontend Component: `AutoApplyManager`
+
+**Location:** `src/components/candidate/AutoApplyManager.tsx`
+
+**Sections:**
+- **Header:** Toggle switch (Enable/Disable Auto Apply) with status indicator
+- **Preferences Form:** Job titles (tag input), skills focus, locations, remote toggle, min salary, company size, industry, experience level
+- **Controls:** Match threshold slider (50-95%), daily limit selector (1-10), AI cover letter toggle, location radius select
+- **Run Now Button:** Manually trigger the auto-apply edge function
+- **Application History:** Table/list of auto-applied jobs with match score, company, date, status, and undo button (within 5 min)
+
+### 4. Dashboard Integration
+
+- Add sidebar item: `{ icon: Zap, label: 'Auto Apply', value: 'auto-apply' }`
+- Add case in `renderSectionContent`: `case 'auto-apply': return candidate && <AutoApplyManager candidateId={candidate.id} />`
+
+### 5. Config Update
+
+Add to `supabase/config.toml`:
+```toml
+[functions.auto-apply-jobs]
+verify_jwt = false
+```
+
+---
+
+## Files to Create/Edit
+
+| File | Action |
+|------|--------|
+| `supabase/migrations/xxx.sql` | Create `auto_apply_preferences` + `auto_apply_logs` tables with RLS |
+| `supabase/functions/auto-apply-jobs/index.ts` | New edge function |
+| `src/components/candidate/AutoApplyManager.tsx` | New UI component |
+| `src/pages/CandidateDashboard.tsx` | Add sidebar item + render case |
+| `supabase/config.toml` | Add function config (auto-updated) |
+
+---
+
+## Safety and Anti-Spam Measures
+
+- Hard daily limit (configurable 1-10, default 5)
+- Exclude already-applied jobs via `applications` table check
+- Exclude companies in `excluded_companies` array
+- Minimum salary enforcement
+- 5-minute undo window (sets `auto_apply_logs.status = 'undone'` and deletes the application)
+- Candidate must have a resume uploaded to enable auto-apply
 
