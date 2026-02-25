@@ -49,7 +49,11 @@ interface Education {
     endYear: string;
 }
 
-const CandidateProfileEdit = () => {
+interface CandidateProfileEditProps {
+    embedded?: boolean;
+}
+
+const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) => {
     const navigate = useNavigate();
     const { user, profile, refreshProfile, loading: authLoading, profileLoading } = useAuth();
 
@@ -247,292 +251,304 @@ const CandidateProfileEdit = () => {
 
     if (loading || authLoading || profileLoading) {
         return (
-            <div className="min-h-screen bg-secondary flex items-center justify-center">
+            <div className={embedded ? "flex items-center justify-center p-8" : "min-h-screen bg-secondary flex items-center justify-center"}>
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
         );
     }
 
+    const profileContent = (
+        <div className={embedded ? "space-y-6" : "max-w-4xl mx-auto space-y-6"}>
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                    {!embedded && (
+                        <Tooltip><TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" onClick={() => navigate('/candidate-dashboard')}>
+                            <ArrowLeft className="w-5 h-5" />
+                        </Button>
+                        </TooltipTrigger><TooltipContent>Back to dashboard</TooltipContent></Tooltip>
+                    )}
+                    <div>
+                        <h1 className={embedded ? "text-xl font-bold" : "text-2xl font-bold"}>Edit Profile</h1>
+                        <p className="text-muted-foreground text-sm">Manage how employers see you</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-3">
+                    {!embedded && (
+                        <Button variant="outline" onClick={() => navigate('/candidate-dashboard')} className="hidden sm:flex">
+                            Skip for now
+                        </Button>
+                    )}
+                    <Button onClick={handleSave} disabled={saving}>
+                        {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+                        Save Profile
+                    </Button>
+                </div>
+            </div>
+
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+                <TabsList className="grid grid-cols-3 w-full">
+                    <TabsTrigger value="profile" className="gap-2">
+                        <User className="w-4 h-4" />
+                        <span className="hidden sm:inline">Profile Basics</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="career" className="gap-2">
+                        <Target className="w-4 h-4" />
+                        <span className="hidden sm:inline">Career History</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="resume" className="gap-2">
+                        <FileText className="w-4 h-4" />
+                        <span className="hidden sm:inline">Resume Files</span>
+                    </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="profile" className="space-y-6">
+                    <Card className="shadow-google">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <User className="w-5 h-5 text-primary" />
+                                Personal Information
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="flex flex-col md:flex-row items-center gap-6 p-4 bg-secondary/50 rounded-lg">
+                                {user && (
+                                    <PhotoUpload
+                                        userId={user.id}
+                                        currentPhotoUrl={avatarUrl}
+                                        onPhotoUploaded={setAvatarUrl}
+                                        size="lg"
+                                    />
+                                )}
+                                <div className="text-center md:text-left">
+                                    <h3 className="font-semibold">Profile Photo</h3>
+                                    <p className="text-sm text-muted-foreground">
+                                        Upload a professional photo. Recommended: Square image (1:1 ratio), at least 200x200px.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <Separator />
+
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="fullName">Full Name *</Label>
+                                    <Input
+                                        id="fullName"
+                                        value={fullName}
+                                        onChange={(e) => setFullName(e.target.value)}
+                                        placeholder="Your full name"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="whatsapp">WhatsApp Number</Label>
+                                    <Input
+                                        id="whatsapp"
+                                        value={whatsappNumber}
+                                        onChange={(e) => setWhatsappNumber(e.target.value)}
+                                        placeholder="e.g., 919876543210"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="jobTitle">Current Job Title *</Label>
+                                    <JobCategorySearch
+                                        value={jobTitle}
+                                        onChange={setJobTitle}
+                                        placeholder="e.g., Software Engineer"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="headline">Professional Headline</Label>
+                                    <Input
+                                        id="headline"
+                                        value={headline}
+                                        onChange={(e) => setHeadline(e.target.value)}
+                                        placeholder="e.g., Senior Full Stack Developer | React & Node.js"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="bio">About / Summary</Label>
+                                <Textarea
+                                    id="bio"
+                                    value={bio}
+                                    onChange={(e) => setBio(e.target.value)}
+                                    placeholder="Write a brief summary about yourself..."
+                                    rows={4}
+                                />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="shadow-google">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <Briefcase className="w-5 h-5 text-primary" />
+                                Skills
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="flex gap-2">
+                                <Input
+                                    value={skillInput}
+                                    onChange={(e) => setSkillInput(e.target.value)}
+                                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
+                                    placeholder="Add a skill..."
+                                />
+                                <Button type="button" onClick={addSkill} variant="outline">
+                                    <Plus className="w-4 h-4" />
+                                </Button>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {skills.map((skill, index) => (
+                                    <Badge key={index} variant="secondary" className="gap-1 py-1.5 px-3">
+                                        {skill}
+                                        <X
+                                            className="w-3 h-3 cursor-pointer hover:text-destructive ml-1"
+                                            onClick={() => removeSkill(skill)}
+                                        />
+                                    </Badge>
+                                ))}
+                                {skills.length === 0 && (
+                                    <p className="text-sm text-muted-foreground">No skills added yet</p>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <SocialLinksSection
+                        links={socialLinks}
+                        onChange={setSocialLinks}
+                        showGithub={true}
+                    />
+                </TabsContent>
+
+                <TabsContent value="career" className="space-y-6">
+                    <AvailabilitySection
+                        status={availabilityStatus}
+                        onChange={setAvailabilityStatus}
+                    />
+
+                    <WorkExperienceSection
+                        experiences={workExperience}
+                        onChange={setWorkExperience}
+                    />
+
+                    <Card className="shadow-google">
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="flex items-center gap-2">
+                                    <GraduationCap className="w-5 h-5 text-primary" />
+                                    Education
+                                </CardTitle>
+                                <Button type="button" onClick={addEducation} variant="outline" size="sm">
+                                    <Plus className="w-4 h-4 mr-1" /> Add
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {education.length === 0 ? (
+                                <p className="text-sm text-muted-foreground text-center py-4">
+                                    No education added yet.
+                                </p>
+                            ) : (
+                                education.map((edu, index) => (
+                                    <div key={index} className="p-4 border rounded-lg space-y-3 relative">
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="icon"
+                                            className="absolute top-2 right-2 h-6 w-6"
+                                            onClick={() => removeEducation(index)}
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </Button>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <Input
+                                                placeholder="Institution"
+                                                value={edu.institution}
+                                                onChange={(e) => updateEducation(index, 'institution', e.target.value)}
+                                            />
+                                            <Input
+                                                placeholder="Degree"
+                                                value={edu.degree}
+                                                onChange={(e) => updateEducation(index, 'degree', e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                            <Input
+                                                placeholder="Field of Study"
+                                                value={edu.field}
+                                                onChange={(e) => updateEducation(index, 'field', e.target.value)}
+                                            />
+                                            <Input
+                                                placeholder="Start Year"
+                                                value={edu.startYear}
+                                                onChange={(e) => updateEducation(index, 'startYear', e.target.value)}
+                                            />
+                                            <Input
+                                                placeholder="End Year"
+                                                value={edu.endYear}
+                                                onChange={(e) => updateEducation(index, 'endYear', e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    <CertificationsSection
+                        certifications={certifications}
+                        onChange={setCertifications}
+                    />
+
+                    <LanguagesSection
+                        languages={languages}
+                        onChange={setLanguages}
+                    />
+                </TabsContent>
+
+                <TabsContent value="resume" className="space-y-6">
+                    {candidate && (
+                        <>
+                            <Card className="shadow-google">
+                                <CardContent className="p-6">
+                                    <ResumeUpload
+                                        candidate={candidate}
+                                        onUpdate={fetchCandidateProfile}
+                                    />
+                                </CardContent>
+                            </Card>
+
+                            <Card className="shadow-google">
+                                <CardContent className="p-6">
+                                    <AudioResumeCard
+                                        candidate={candidate}
+                                        onUpdate={fetchCandidateProfile}
+                                    />
+                                </CardContent>
+                            </Card>
+                        </>
+                    )}
+                </TabsContent>
+            </Tabs>
+        </div>
+    );
+
+    if (embedded) {
+        return profileContent;
+    }
+
     return (
         <EmailVerificationGuard fallbackMessage="Please verify your email to edit your profile.">
             <div className="min-h-screen bg-secondary py-8 px-4">
-                <div className="max-w-4xl mx-auto space-y-6">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                            <Tooltip><TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" onClick={() => navigate('/candidate-dashboard')}>
-                                <ArrowLeft className="w-5 h-5" />
-                            </Button>
-                            </TooltipTrigger><TooltipContent>Back to dashboard</TooltipContent></Tooltip>
-                            <div>
-                                <h1 className="text-2xl font-bold">Public Profile</h1>
-                                <p className="text-muted-foreground">Manage how employers see you</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <Button variant="outline" onClick={() => navigate('/candidate-dashboard')} className="hidden sm:flex">
-                                Skip for now
-                            </Button>
-                            <Button onClick={handleSave} disabled={saving}>
-                                {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                                Save Profile
-                            </Button>
-                        </div>
-                    </div>
-
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-                        <TabsList className="grid grid-cols-3 w-full">
-                            <TabsTrigger value="profile" className="gap-2">
-                                <User className="w-4 h-4" />
-                                <span className="hidden sm:inline">Profile Basics</span>
-                            </TabsTrigger>
-                            <TabsTrigger value="career" className="gap-2">
-                                <Target className="w-4 h-4" />
-                                <span className="hidden sm:inline">Career History</span>
-                            </TabsTrigger>
-                            <TabsTrigger value="resume" className="gap-2">
-                                <FileText className="w-4 h-4" />
-                                <span className="hidden sm:inline">Resume Files</span>
-                            </TabsTrigger>
-                        </TabsList>
-
-                        <TabsContent value="profile" className="space-y-6">
-                            <Card className="shadow-google">
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">
-                                        <User className="w-5 h-5 text-primary" />
-                                        Personal Information
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-6">
-                                    <div className="flex flex-col md:flex-row items-center gap-6 p-4 bg-secondary/50 rounded-lg">
-                                        {user && (
-                                            <PhotoUpload
-                                                userId={user.id}
-                                                currentPhotoUrl={avatarUrl}
-                                                onPhotoUploaded={setAvatarUrl}
-                                                size="lg"
-                                            />
-                                        )}
-                                        <div className="text-center md:text-left">
-                                            <h3 className="font-semibold">Profile Photo</h3>
-                                            <p className="text-sm text-muted-foreground">
-                                                Upload a professional photo. Recommended: Square image (1:1 ratio), at least 200x200px.
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <Separator />
-
-                                    <div className="grid md:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="fullName">Full Name *</Label>
-                                            <Input
-                                                id="fullName"
-                                                value={fullName}
-                                                onChange={(e) => setFullName(e.target.value)}
-                                                placeholder="Your full name"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="whatsapp">WhatsApp Number</Label>
-                                            <Input
-                                                id="whatsapp"
-                                                value={whatsappNumber}
-                                                onChange={(e) => setWhatsappNumber(e.target.value)}
-                                                placeholder="e.g., 919876543210"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="grid md:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="jobTitle">Current Job Title *</Label>
-                                            <JobCategorySearch
-                                                value={jobTitle}
-                                                onChange={setJobTitle}
-                                                placeholder="e.g., Software Engineer"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="headline">Professional Headline</Label>
-                                            <Input
-                                                id="headline"
-                                                value={headline}
-                                                onChange={(e) => setHeadline(e.target.value)}
-                                                placeholder="e.g., Senior Full Stack Developer | React & Node.js"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <Label htmlFor="bio">About / Summary</Label>
-                                        <Textarea
-                                            id="bio"
-                                            value={bio}
-                                            onChange={(e) => setBio(e.target.value)}
-                                            placeholder="Write a brief summary about yourself..."
-                                            rows={4}
-                                        />
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            <Card className="shadow-google">
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">
-                                        <Briefcase className="w-5 h-5 text-primary" />
-                                        Skills
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    <div className="flex gap-2">
-                                        <Input
-                                            value={skillInput}
-                                            onChange={(e) => setSkillInput(e.target.value)}
-                                            onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
-                                            placeholder="Add a skill..."
-                                        />
-                                        <Button type="button" onClick={addSkill} variant="outline">
-                                            <Plus className="w-4 h-4" />
-                                        </Button>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        {skills.map((skill, index) => (
-                                            <Badge key={index} variant="secondary" className="gap-1 py-1.5 px-3">
-                                                {skill}
-                                                <X
-                                                    className="w-3 h-3 cursor-pointer hover:text-destructive ml-1"
-                                                    onClick={() => removeSkill(skill)}
-                                                />
-                                            </Badge>
-                                        ))}
-                                        {skills.length === 0 && (
-                                            <p className="text-sm text-muted-foreground">No skills added yet</p>
-                                        )}
-                                    </div>
-                                </CardContent>
-                            </Card>
-
-                            <SocialLinksSection
-                                links={socialLinks}
-                                onChange={setSocialLinks}
-                                showGithub={true}
-                            />
-                        </TabsContent>
-
-                        <TabsContent value="career" className="space-y-6">
-                            <AvailabilitySection
-                                status={availabilityStatus}
-                                onChange={setAvailabilityStatus}
-                            />
-
-                            <WorkExperienceSection
-                                experiences={workExperience}
-                                onChange={setWorkExperience}
-                            />
-
-                            <Card className="shadow-google">
-                                <CardHeader>
-                                    <div className="flex items-center justify-between">
-                                        <CardTitle className="flex items-center gap-2">
-                                            <GraduationCap className="w-5 h-5 text-primary" />
-                                            Education
-                                        </CardTitle>
-                                        <Button type="button" onClick={addEducation} variant="outline" size="sm">
-                                            <Plus className="w-4 h-4 mr-1" /> Add
-                                        </Button>
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="space-y-4">
-                                    {education.length === 0 ? (
-                                        <p className="text-sm text-muted-foreground text-center py-4">
-                                            No education added yet.
-                                        </p>
-                                    ) : (
-                                        education.map((edu, index) => (
-                                            <div key={index} className="p-4 border rounded-lg space-y-3 relative">
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="absolute top-2 right-2 h-6 w-6"
-                                                    onClick={() => removeEducation(index)}
-                                                >
-                                                    <X className="w-4 h-4" />
-                                                </Button>
-
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                    <Input
-                                                        placeholder="Institution"
-                                                        value={edu.institution}
-                                                        onChange={(e) => updateEducation(index, 'institution', e.target.value)}
-                                                    />
-                                                    <Input
-                                                        placeholder="Degree"
-                                                        value={edu.degree}
-                                                        onChange={(e) => updateEducation(index, 'degree', e.target.value)}
-                                                    />
-                                                </div>
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                                    <Input
-                                                        placeholder="Field of Study"
-                                                        value={edu.field}
-                                                        onChange={(e) => updateEducation(index, 'field', e.target.value)}
-                                                    />
-                                                    <Input
-                                                        placeholder="Start Year"
-                                                        value={edu.startYear}
-                                                        onChange={(e) => updateEducation(index, 'startYear', e.target.value)}
-                                                    />
-                                                    <Input
-                                                        placeholder="End Year"
-                                                        value={edu.endYear}
-                                                        onChange={(e) => updateEducation(index, 'endYear', e.target.value)}
-                                                    />
-                                                </div>
-                                            </div>
-                                        ))
-                                    )}
-                                </CardContent>
-                            </Card>
-
-                            <CertificationsSection
-                                certifications={certifications}
-                                onChange={setCertifications}
-                            />
-
-                            <LanguagesSection
-                                languages={languages}
-                                onChange={setLanguages}
-                            />
-                        </TabsContent>
-
-                        <TabsContent value="resume" className="space-y-6">
-                            {candidate && (
-                                <>
-                                    <Card className="shadow-google">
-                                        <CardContent className="p-6">
-                                            <ResumeUpload
-                                                candidate={candidate}
-                                                onUpdate={fetchCandidateProfile}
-                                            />
-                                        </CardContent>
-                                    </Card>
-
-                                    <Card className="shadow-google">
-                                        <CardContent className="p-6">
-                                            <AudioResumeCard
-                                                candidate={candidate}
-                                                onUpdate={fetchCandidateProfile}
-                                            />
-                                        </CardContent>
-                                    </Card>
-                                </>
-                            )}
-                        </TabsContent>
-                    </Tabs>
-                </div>
+                {profileContent}
             </div>
         </EmailVerificationGuard>
     );

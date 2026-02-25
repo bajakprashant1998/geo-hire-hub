@@ -35,6 +35,7 @@ import { AudioResumeCard } from '@/components/candidate/AudioResumeCard';
 import { SalaryInsights } from '@/components/candidate/SalaryInsights';
 import { CareerBuddyChat } from '@/components/candidate/CareerBuddyChat';
 import CandidateDetail from '@/pages/CandidateDetail';
+import CandidateProfileEdit from '@/pages/CandidateProfileEdit';
 import { ProfileCompletionPrompts } from '@/components/candidate/ProfileCompletionPrompts';
 import { DashboardBottomNav } from '@/components/dashboard/DashboardBottomNav';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
@@ -166,7 +167,6 @@ const CandidateDashboard = () => {
 
   const handleSectionClick = (value: string) => {
     if (value === 'messages') { setActiveSection('messages'); }
-    else if (value === 'profile') navigate('/candidate-profile');
     else { setActiveSection(value === 'home' ? null : value); }
     setSidebarOpen(false);
   };
@@ -293,7 +293,7 @@ const CandidateDashboard = () => {
       case 'jobs': return candidate && <JobActivityTabs candidateId={candidate.id} />;
       case 'saved': return candidate && <SavedJobsSection candidateId={candidate.id} />;
       case 'interviews': return candidate && <InterviewCalendar candidateId={candidate.id} />;
-      case 'profile': navigate('/candidate-profile'); return null;
+      case 'profile': return <CandidateProfileEdit embedded />;
       case 'resume': return candidate && <ResumeAndDocumentManager candidate={candidate} onUpdate={fetchCandidate} />;
       case 'audio-resume': return candidate && <AudioResumeCard candidate={candidate} onUpdate={fetchCandidate} />;
       case 'alerts': return candidate && <JobAlertsManager candidateId={candidate.id} />;
@@ -349,7 +349,7 @@ const CandidateDashboard = () => {
           />
 
           <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto pb-24 md:pb-6">
-            {activeSection && activeSection !== 'profile' ? (
+            {activeSection ? (
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -379,7 +379,7 @@ const CandidateDashboard = () => {
                     candidate={candidate}
                     profile={profile}
                     onNavigate={handleSectionClick}
-                    onEditProfile={() => navigate('/candidate-profile')}
+                    onEditProfile={() => handleSectionClick('profile')}
                   />
                 )}
 
