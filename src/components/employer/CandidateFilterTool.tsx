@@ -1035,132 +1035,171 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                         </div>
                       )}
 
-                      <CardContent className={cn("p-4", isTopPick && "pt-6")}>
-                        <div className="flex items-start gap-3">
+                      <CardContent className={cn("p-3 sm:p-4", isTopPick && "pt-5 sm:pt-6")}>
+                        {/* Top row: checkbox + avatar + info */}
+                        <div className="flex items-start gap-2 sm:gap-3">
                           <Checkbox
                             checked={isSelected}
                             onCheckedChange={(checked) => {
                               if (checked) setSelectedIds([...selectedIds, candidate.applicationId || '']);
                               else setSelectedIds(selectedIds.filter(id => id !== candidate.applicationId));
                             }}
-                            className="mt-1"
+                            className="mt-1.5 sm:mt-1 shrink-0"
                           />
 
                           {/* Avatar with score ring */}
                           <div className="relative shrink-0">
                             <Avatar
-                              className={cn("w-12 h-12 ring-2 cursor-pointer shadow-sm hover:shadow-md transition-shadow", getScoreRingColor(candidate.matchScore))}
+                              className={cn("w-10 h-10 sm:w-12 sm:h-12 ring-2 cursor-pointer shadow-sm hover:shadow-md transition-shadow", getScoreRingColor(candidate.matchScore))}
                               onClick={() => setSelectedCandidate(candidate)}
                             >
                               <AvatarImage src={candidate.avatarUrl || ''} />
-                              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs">{initials}</AvatarFallback>
+                              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-[10px] sm:text-xs">{initials}</AvatarFallback>
                             </Avatar>
-                            <div className={cn("absolute -bottom-1 -right-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full border-2 border-card shadow-sm", getScoreColor(candidate.matchScore))}>
+                            <div className={cn("absolute -bottom-1 -right-1 text-[8px] sm:text-[9px] font-bold px-1 sm:px-1.5 py-0.5 rounded-full border-2 border-card shadow-sm", getScoreColor(candidate.matchScore))}>
                               {candidate.matchScore}%
                             </div>
                           </div>
 
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
+                            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                               <h4
-                                className="font-semibold text-foreground text-sm leading-tight cursor-pointer hover:text-primary transition-colors truncate"
+                                className="font-semibold text-foreground text-xs sm:text-sm leading-tight cursor-pointer hover:text-primary transition-colors truncate max-w-[140px] sm:max-w-none"
                                 onClick={() => setSelectedCandidate(candidate)}
                               >
                                 {candidate.fullName}
                               </h4>
                               {getStatusBadge(candidate.applicationStatus || 'pending')}
-                              <span className={cn("inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border", getScoreColor(candidate.matchScore))}>
+                              <span className={cn("hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border", getScoreColor(candidate.matchScore))}>
                                 <Sparkles className="w-3 h-3" />
                                 {candidate.matchScore}% match
                               </span>
                             </div>
 
-                            <div className="flex items-center gap-3 mt-1.5 text-xs text-muted-foreground flex-wrap">
+                            {/* Mobile match badge - separate row */}
+                            <span className={cn("sm:hidden inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full border mt-1", getScoreColor(candidate.matchScore))}>
+                              <Sparkles className="w-2.5 h-2.5" />
+                              {candidate.matchScore}% match
+                            </span>
+
+                            <div className="flex items-center gap-2 sm:gap-3 mt-1 sm:mt-1.5 text-[10px] sm:text-xs text-muted-foreground flex-wrap">
                               <span className="flex items-center gap-1">
-                                <Briefcase className="w-3 h-3" /> {candidate.jobTitle}
+                                <Briefcase className="w-3 h-3 shrink-0" /> <span className="truncate max-w-[80px] sm:max-w-none">{candidate.jobTitle}</span>
                               </span>
                               <span className="font-medium">{candidate.experienceYears}y exp</span>
-                              {candidate.locationCity && (
-                                <span className="flex items-center gap-1">
-                                  <MapPin className="w-3 h-3" /> {candidate.locationCity}
-                                </span>
-                              )}
                               {candidate.appliedAt && (
                                 <span className="flex items-center gap-1">
-                                  <Clock className="w-3 h-3" /> {formatDistanceToNow(new Date(candidate.appliedAt), { addSuffix: true })}
+                                  <Clock className="w-3 h-3 shrink-0" /> {formatDistanceToNow(new Date(candidate.appliedAt), { addSuffix: true })}
                                 </span>
                               )}
                             </div>
 
                             {candidate.skills.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mt-2">
+                              <div className="flex flex-wrap gap-1 mt-1.5 sm:mt-2">
                                 {candidate.skills.slice(0, 4).map(skill => (
-                                  <Badge key={skill} variant="secondary" className="text-[10px] font-normal px-1.5 py-0 h-5 max-w-[100px] truncate rounded-lg">
+                                  <Badge key={skill} variant="secondary" className="text-[9px] sm:text-[10px] font-normal px-1.5 py-0 h-[18px] sm:h-5 max-w-[80px] sm:max-w-[100px] truncate rounded-lg">
                                     {skill}
                                   </Badge>
                                 ))}
                                 {candidate.skills.length > 4 && (
-                                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-5 rounded-lg">+{candidate.skills.length - 4}</Badge>
+                                  <Badge variant="outline" className="text-[9px] sm:text-[10px] px-1.5 py-0 h-[18px] sm:h-5 rounded-lg">+{candidate.skills.length - 4}</Badge>
                                 )}
                               </div>
                             )}
 
                             {candidate.jobTitle_applied && (
-                              <p className="text-[10px] text-muted-foreground mt-1.5">
+                              <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-1 sm:mt-1.5">
                                 Applied for: <span className="font-medium text-foreground">{candidate.jobTitle_applied}</span>
                               </p>
                             )}
                           </div>
 
-                          {/* Quick Actions */}
-                          <div className="flex flex-col gap-1.5 shrink-0">
+                          {/* Desktop Quick Actions - hidden on mobile */}
+                          <div className="hidden sm:flex flex-col gap-1.5 shrink-0">
                             <Button variant="outline" size="sm" className="h-8 text-[11px] px-3 gap-1.5 rounded-xl hover:bg-primary/5 hover:border-primary/30 hover:text-primary transition-all" onClick={() => navigate(`/candidates/${candidate.candidateId}`)}>
                               <Eye className="w-3.5 h-3.5" /> View
                             </Button>
                             <Button variant="outline" size="sm" className="h-8 text-[11px] px-3 gap-1.5 rounded-xl transition-all" onClick={() => startConversation(candidate.userId, candidate.jobId || undefined)}>
                               <Mail className="w-3.5 h-3.5" /> Msg
                             </Button>
-                            {/* WhatsApp Button */}
-                            <div className="relative">
-                              {candidate.whatsappNumber ? (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-8 text-[11px] px-3 gap-1.5 rounded-xl w-full bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] border-[#25D366]/40 hover:border-[#25D366] transition-all"
-                                  onClick={() => window.open(`https://wa.me/${candidate.whatsappNumber}`, '_blank')}
-                                >
+                            {/* WhatsApp Button - Desktop */}
+                            {candidate.whatsappNumber ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 text-[11px] px-3 gap-1.5 rounded-xl w-full bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] border-[#25D366]/40 hover:border-[#25D366] transition-all"
+                                onClick={() => window.open(`https://wa.me/${candidate.whatsappNumber}`, '_blank')}
+                              >
+                                <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="currentColor">
+                                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                                </svg>
+                                WhatsApp
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-8 text-[11px] px-3 gap-1.5 rounded-xl w-full opacity-60 cursor-not-allowed border-border/50 text-muted-foreground relative overflow-hidden"
+                                disabled
+                                title="WhatsApp not available"
+                              >
+                                <div className="relative">
                                   <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="currentColor">
                                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
                                   </svg>
-                                  WhatsApp
-                                </Button>
-                              ) : (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-8 text-[11px] px-3 gap-1.5 rounded-xl w-full opacity-60 cursor-not-allowed border-border/50 text-muted-foreground relative overflow-hidden"
-                                  disabled
-                                  title="WhatsApp not available"
-                                >
-                                  <div className="relative">
-                                    <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="currentColor">
-                                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-                                    </svg>
-                                    {/* Red diagonal line */}
-                                    <div className="absolute -inset-0.5 flex items-center justify-center">
-                                      <div className="w-5 h-[2px] bg-destructive rounded-full rotate-[-45deg]" />
-                                    </div>
+                                  <div className="absolute -inset-0.5 flex items-center justify-center">
+                                    <div className="w-5 h-[2px] bg-destructive rounded-full rotate-[-45deg]" />
                                   </div>
-                                  WhatsApp
-                                </Button>
-                              )}
-                            </div>
+                                </div>
+                                WhatsApp
+                              </Button>
+                            )}
                             {(candidate.applicationStatus === 'pending' || candidate.applicationStatus === 'reviewed') && (
                               <Button size="sm" variant="ghost" className="h-8 text-[11px] px-3 gap-1.5 text-success hover:bg-success/10 rounded-xl transition-all" onClick={() => updateStatus(candidate.applicationId || '', 'shortlisted')}>
                                 <CheckCircle2 className="w-3.5 h-3.5" /> Shortlist
                               </Button>
                             )}
                           </div>
+                        </div>
+
+                        {/* Mobile Quick Actions - horizontal row below content */}
+                        <div className="flex sm:hidden items-center gap-1.5 mt-2.5 pt-2.5 border-t border-border/30">
+                          <Button variant="outline" size="sm" className="flex-1 h-8 text-[10px] px-2 gap-1 rounded-xl" onClick={() => navigate(`/candidates/${candidate.candidateId}`)}>
+                            <Eye className="w-3 h-3" /> View
+                          </Button>
+                          <Button variant="outline" size="sm" className="flex-1 h-8 text-[10px] px-2 gap-1 rounded-xl" onClick={() => startConversation(candidate.userId, candidate.jobId || undefined)}>
+                            <Mail className="w-3 h-3" /> Msg
+                          </Button>
+                          {candidate.whatsappNumber ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="flex-1 h-8 text-[10px] px-2 gap-1 rounded-xl bg-[#25D366]/10 text-[#25D366] border-[#25D366]/40"
+                              onClick={() => window.open(`https://wa.me/${candidate.whatsappNumber}`, '_blank')}
+                            >
+                              <svg viewBox="0 0 24 24" className="w-3 h-3" fill="currentColor">
+                                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                              </svg>
+                              WA
+                            </Button>
+                          ) : (
+                            <Button variant="outline" size="sm" className="flex-1 h-8 text-[10px] px-2 gap-1 rounded-xl opacity-50" disabled>
+                              <div className="relative">
+                                <svg viewBox="0 0 24 24" className="w-3 h-3" fill="currentColor">
+                                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                                </svg>
+                                <div className="absolute -inset-0.5 flex items-center justify-center">
+                                  <div className="w-4 h-[1.5px] bg-destructive rounded-full rotate-[-45deg]" />
+                                </div>
+                              </div>
+                              WA
+                            </Button>
+                          )}
+                          {(candidate.applicationStatus === 'pending' || candidate.applicationStatus === 'reviewed') && (
+                            <Button size="sm" variant="ghost" className="h-8 text-[10px] px-2 gap-1 text-success rounded-xl" onClick={() => updateStatus(candidate.applicationId || '', 'shortlisted')}>
+                              <CheckCircle2 className="w-3 h-3" /> Shortlist
+                            </Button>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
