@@ -504,29 +504,43 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
       </FilterSection>
 
       <FilterSection label="Experience" icon={Briefcase}>
-        <div className="px-1">
-          <div className="flex justify-between text-[11px] text-muted-foreground mb-2">
-            <span>{filters.experienceRange[0]} years</span>
-            <span>{filters.experienceRange[1]} years</span>
+        <div className="px-2">
+          <div className="flex justify-between text-[11px] text-muted-foreground mb-3">
+            <span className="font-semibold text-foreground bg-primary/10 px-2 py-0.5 rounded-md">{filters.experienceRange[0]}y</span>
+            <span className="text-[10px]">Experience Range</span>
+            <span className="font-semibold text-foreground bg-primary/10 px-2 py-0.5 rounded-md">{filters.experienceRange[1]}y</span>
           </div>
           <Slider value={filters.experienceRange} onValueChange={(v) => setFilters(prev => ({ ...prev, experienceRange: v as [number, number] }))} min={0} max={30} step={1} />
+          <div className="flex justify-between text-[9px] text-muted-foreground/60 mt-1.5 px-0.5">
+            <span>0</span>
+            <span>10</span>
+            <span>20</span>
+            <span>30</span>
+          </div>
         </div>
       </FilterSection>
 
       <FilterSection label="Match Score" icon={Target}>
-        <div className="px-1">
-          <div className="flex items-center justify-between mb-2">
+        <div className="px-2">
+          <div className="flex items-center justify-between mb-3">
             <span className="text-[11px] text-muted-foreground">Minimum</span>
             <span className={cn(
-              "text-xs font-bold px-2 py-0.5 rounded-full",
-              filters.matchScoreMin >= 80 ? "bg-success/10 text-success" :
-              filters.matchScoreMin >= 50 ? "bg-primary/10 text-primary" :
+              "text-xs font-bold px-2.5 py-1 rounded-lg transition-all duration-200",
+              filters.matchScoreMin >= 80 ? "bg-success/15 text-success" :
+              filters.matchScoreMin >= 50 ? "bg-primary/15 text-primary" :
               "bg-muted text-muted-foreground"
             )}>
               {filters.matchScoreMin}%
             </span>
           </div>
           <Slider value={[filters.matchScoreMin]} onValueChange={(v) => setFilters(prev => ({ ...prev, matchScoreMin: v[0] }))} min={0} max={100} step={5} />
+          <div className="flex justify-between text-[9px] text-muted-foreground/60 mt-1.5 px-0.5">
+            <span>0%</span>
+            <span>25%</span>
+            <span>50%</span>
+            <span>75%</span>
+            <span>100%</span>
+          </div>
         </div>
       </FilterSection>
 
