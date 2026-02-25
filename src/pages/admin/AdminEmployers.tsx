@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
+import { StatsCard } from '@/components/admin/StatsCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,7 +35,9 @@ import {
 import { 
   CheckCircle, 
   XCircle, 
-  Ban, 
+  Ban,
+  Clock,
+  ShieldCheck, 
   Eye, 
   Search,
   Building2,
@@ -179,8 +182,22 @@ export default function AdminEmployers() {
     emp.profile?.full_name?.toLowerCase().includes(search.toLowerCase())
   );
 
+  // Stats
+  const totalCount = data?.total || 0;
+  const pendingCount = employers?.filter(e => e.verification_status === 'pending').length || 0;
+  const approvedCount = employers?.filter(e => e.verification_status === 'approved').length || 0;
+  const suspendedCount = employers?.filter(e => e.is_suspended).length || 0;
+
   return (
     <AdminLayout title="Employer Management">
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+        <StatsCard title="Total Employers" value={totalCount} icon={Building2} />
+        <StatsCard title="Pending" value={pendingCount} icon={Clock} variant="warning" />
+        <StatsCard title="Approved" value={approvedCount} icon={ShieldCheck} variant="success" />
+        <StatsCard title="Suspended" value={suspendedCount} icon={Ban} variant="destructive" />
+      </div>
+
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1">
@@ -207,7 +224,7 @@ export default function AdminEmployers() {
       </div>
 
       {/* Employers Table */}
-      <Card>
+      <Card className="rounded-xl border-border/40 bg-card/80 backdrop-blur-sm">
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-6 space-y-4">
