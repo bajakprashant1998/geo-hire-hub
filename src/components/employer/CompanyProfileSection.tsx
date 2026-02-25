@@ -43,7 +43,6 @@ import { LogoUpload } from '@/components/employer/LogoUpload';
 import {
   SocialLinksSection,
   CompanyBenefitsSection,
-  CompanyCultureSection,
   type SocialLinks,
 } from '@/components/profile';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -504,11 +503,37 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
                     </div>
                   </div>
                   <div className="grid md:grid-cols-2 gap-4">
-                    <CompanyCultureSection
-                      culture="" hiringProcess="" teamSize={teamSize} foundingYear={foundingYear}
-                      onCultureChange={() => {}} onHiringProcessChange={() => {}}
-                      onTeamSizeChange={setTeamSize} onFoundingYearChange={setFoundingYear}
-                    />
+                    <div className="space-y-2">
+                      <Label className="flex items-center gap-2">
+                        <Users className="w-4 h-4 text-muted-foreground" />
+                        Team Size
+                      </Label>
+                      <Select value={teamSize} onValueChange={setTeamSize}>
+                        <SelectTrigger><SelectValue placeholder="Select team size" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1-10">1-10 employees</SelectItem>
+                          <SelectItem value="11-50">11-50 employees</SelectItem>
+                          <SelectItem value="51-200">51-200 employees</SelectItem>
+                          <SelectItem value="201-500">201-500 employees</SelectItem>
+                          <SelectItem value="501-1000">501-1000 employees</SelectItem>
+                          <SelectItem value="1000+">1000+ employees</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Year Founded</Label>
+                      <Select
+                        value={foundingYear?.toString() || ''}
+                        onValueChange={(val) => setFoundingYear(val ? parseInt(val) : null)}
+                      >
+                        <SelectTrigger><SelectValue placeholder="Select year" /></SelectTrigger>
+                        <SelectContent className="max-h-60">
+                          {Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i).map((year) => (
+                            <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label>Company Description *</Label>
