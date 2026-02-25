@@ -675,7 +675,7 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
   const avgScore = candidates.length > 0 ? Math.round(candidates.reduce((s, c) => s + c.matchScore, 0) / candidates.length) : 0;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4 sm:space-y-5 pb-20 sm:pb-0">
       {/* AI Insights Banner */}
       <AnimatePresence>
         {showAiPanel && (
@@ -688,72 +688,72 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
             <Card className="border-primary/15 bg-gradient-to-br from-primary/[0.03] via-background to-primary/[0.05] overflow-hidden relative backdrop-blur-sm rounded-2xl shadow-sm">
               <button
                 onClick={() => setShowAiPanel(false)}
-                className="absolute top-3 right-3 text-muted-foreground hover:text-foreground z-10 p-1 rounded-lg hover:bg-muted/50 transition-colors"
+                className="absolute top-2 right-2 sm:top-3 sm:right-3 text-muted-foreground hover:text-foreground z-10 p-1.5 rounded-lg hover:bg-muted/50 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
-              <CardContent className="p-4 sm:p-5">
-                <div className="flex items-center gap-2.5 mb-4">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-md shadow-primary/20">
-                    <Brain className="w-4.5 h-4.5 text-primary-foreground" />
+              <CardContent className="p-3 sm:p-5">
+                <div className="flex items-center gap-2 sm:gap-2.5 mb-3 sm:mb-4">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-md shadow-primary/20 shrink-0">
+                    <Brain className="w-4 h-4 text-primary-foreground" />
                   </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-foreground">AI Hiring Assistant</h3>
-                    <p className="text-[10px] text-muted-foreground">Powered by Gemini</p>
+                  <div className="min-w-0">
+                    <h3 className="text-xs sm:text-sm font-bold text-foreground">AI Hiring Assistant</h3>
+                    <p className="text-[9px] sm:text-[10px] text-muted-foreground">Powered by Gemini</p>
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="ml-auto h-8 text-[11px] gap-1.5 text-primary hover:bg-primary/5 rounded-xl"
+                    className="ml-auto h-7 sm:h-8 text-[10px] sm:text-[11px] gap-1 sm:gap-1.5 text-primary hover:bg-primary/5 rounded-xl px-2 sm:px-3 shrink-0"
                     onClick={() => { setAiInsights(null); fetchAIInsights(); }}
                     disabled={aiLoading}
                   >
-                    <RefreshCw className={cn("w-3.5 h-3.5", aiLoading && "animate-spin")} />
-                    Refresh
+                    <RefreshCw className={cn("w-3 h-3 sm:w-3.5 sm:h-3.5", aiLoading && "animate-spin")} />
+                    <span className="hidden sm:inline">Refresh</span>
                   </Button>
                 </div>
 
                 {aiLoading ? (
-                  <div className="flex items-center gap-3 text-sm text-muted-foreground py-4">
+                  <div className="flex items-center gap-3 text-xs sm:text-sm text-muted-foreground py-3 sm:py-4">
                     <div className="relative">
                       <Loader2 className="w-5 h-5 animate-spin text-primary" />
                       <div className="absolute inset-0 w-5 h-5 rounded-full bg-primary/10 animate-ping" />
                     </div>
-                    Analyzing your candidate pool...
+                    Analyzing candidates...
                   </div>
                 ) : aiInsights ? (
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
                     {aiInsights.topPick && (
-                      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.05 }} className="p-3.5 rounded-2xl bg-success/5 border border-success/15 hover:bg-success/8 transition-colors">
-                        <div className="flex items-center gap-1.5 mb-2">
-                          <Trophy className="w-3.5 h-3.5 text-success" />
-                          <span className="text-[10px] font-bold text-success uppercase tracking-wider">Top Pick</span>
+                      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.05 }} className="p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-success/5 border border-success/15 hover:bg-success/8 transition-colors">
+                        <div className="flex items-center gap-1 sm:gap-1.5 mb-1 sm:mb-2">
+                          <Trophy className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-success" />
+                          <span className="text-[9px] sm:text-[10px] font-bold text-success uppercase tracking-wider">Top Pick</span>
                         </div>
-                        <p className="text-xs font-semibold text-foreground">{aiInsights.topPick.name}</p>
-                        <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2">{aiInsights.topPick.reason}</p>
+                        <p className="text-[11px] sm:text-xs font-semibold text-foreground truncate">{aiInsights.topPick.name}</p>
+                        <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-0.5 sm:mt-1 line-clamp-2">{aiInsights.topPick.reason}</p>
                       </motion.div>
                     )}
-                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }} className="p-3.5 rounded-2xl bg-primary/5 border border-primary/15 hover:bg-primary/8 transition-colors">
-                      <div className="flex items-center gap-1.5 mb-2">
-                        <BarChart3 className="w-3.5 h-3.5 text-primary" />
-                        <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Pool Quality</span>
+                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }} className="p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-primary/5 border border-primary/15 hover:bg-primary/8 transition-colors">
+                      <div className="flex items-center gap-1 sm:gap-1.5 mb-1 sm:mb-2">
+                        <BarChart3 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
+                        <span className="text-[9px] sm:text-[10px] font-bold text-primary uppercase tracking-wider">Quality</span>
                       </div>
-                      <p className="text-[11px] text-muted-foreground line-clamp-3">{aiInsights.poolSummary}</p>
+                      <p className="text-[10px] sm:text-[11px] text-muted-foreground line-clamp-2 sm:line-clamp-3">{aiInsights.poolSummary}</p>
                     </motion.div>
-                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.15 }} className="p-3.5 rounded-2xl bg-warning/5 border border-warning/15 hover:bg-warning/8 transition-colors">
-                      <div className="flex items-center gap-1.5 mb-2">
-                        <Lightbulb className="w-3.5 h-3.5 text-warning" />
-                        <span className="text-[10px] font-bold text-warning-foreground uppercase tracking-wider">Tip</span>
+                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.15 }} className="p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-warning/5 border border-warning/15 hover:bg-warning/8 transition-colors">
+                      <div className="flex items-center gap-1 sm:gap-1.5 mb-1 sm:mb-2">
+                        <Lightbulb className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-warning" />
+                        <span className="text-[9px] sm:text-[10px] font-bold text-warning-foreground uppercase tracking-wider">Tip</span>
                       </div>
-                      <p className="text-[11px] text-muted-foreground line-clamp-3">{aiInsights.actionTip}</p>
+                      <p className="text-[10px] sm:text-[11px] text-muted-foreground line-clamp-2 sm:line-clamp-3">{aiInsights.actionTip}</p>
                     </motion.div>
                     {aiInsights.skillGap && (
-                      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }} className="p-3.5 rounded-2xl bg-destructive/5 border border-destructive/15 hover:bg-destructive/8 transition-colors">
-                        <div className="flex items-center gap-1.5 mb-2">
-                          <AlertTriangle className="w-3.5 h-3.5 text-destructive" />
-                          <span className="text-[10px] font-bold text-destructive uppercase tracking-wider">Skill Gap</span>
+                      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }} className="p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-destructive/5 border border-destructive/15 hover:bg-destructive/8 transition-colors">
+                        <div className="flex items-center gap-1 sm:gap-1.5 mb-1 sm:mb-2">
+                          <AlertTriangle className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-destructive" />
+                          <span className="text-[9px] sm:text-[10px] font-bold text-destructive uppercase tracking-wider">Gap</span>
                         </div>
-                        <p className="text-[11px] text-muted-foreground line-clamp-3">{aiInsights.skillGap}</p>
+                        <p className="text-[10px] sm:text-[11px] text-muted-foreground line-clamp-2 sm:line-clamp-3">{aiInsights.skillGap}</p>
                       </motion.div>
                     )}
                   </div>
@@ -775,22 +775,22 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
       )}
 
       {/* Header Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
         {[
-          { label: 'Total Candidates', value: candidates.length, icon: Users, gradient: 'from-primary/10 to-primary/5', iconBg: 'bg-primary/15 text-primary' },
-          { label: 'Avg Match Score', value: `${avgScore}%`, icon: Target, gradient: 'from-success/10 to-success/5', iconBg: 'bg-success/15 text-success' },
+          { label: 'Candidates', value: candidates.length, icon: Users, gradient: 'from-primary/10 to-primary/5', iconBg: 'bg-primary/15 text-primary' },
+          { label: 'Avg Match', value: `${avgScore}%`, icon: Target, gradient: 'from-success/10 to-success/5', iconBg: 'bg-success/15 text-success' },
           { label: 'Shortlisted', value: pipelineCounts['shortlisted'] || 0, icon: CheckCircle2, gradient: 'from-success/10 to-success/5', iconBg: 'bg-success/15 text-success' },
           { label: 'Top Matches', value: candidates.filter(c => c.matchScore >= 80).length, icon: Sparkles, gradient: 'from-warning/10 to-warning/5', iconBg: 'bg-warning/15 text-warning' },
         ].map((stat, i) => (
           <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-            <Card className={cn("border-border/40 bg-gradient-to-br hover:shadow-md transition-all duration-200 rounded-2xl hover:scale-[1.02]", stat.gradient)}>
-              <CardContent className="p-3.5 flex items-center gap-3">
-                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm", stat.iconBg)}>
-                  <stat.icon className="w-5 h-5" />
+            <Card className={cn("border-border/40 bg-gradient-to-br hover:shadow-md transition-all duration-200 rounded-xl sm:rounded-2xl hover:scale-[1.02]", stat.gradient)}>
+              <CardContent className="p-2.5 sm:p-3.5 flex items-center gap-2 sm:gap-3">
+                <div className={cn("w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center shrink-0 shadow-sm", stat.iconBg)}>
+                  <stat.icon className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xl font-bold text-foreground leading-tight">{stat.value}</p>
-                  <p className="text-[10px] text-muted-foreground truncate">{stat.label}</p>
+                  <p className="text-base sm:text-xl font-bold text-foreground leading-tight">{stat.value}</p>
+                  <p className="text-[9px] sm:text-[10px] text-muted-foreground leading-tight">{stat.label}</p>
                 </div>
               </CardContent>
             </Card>
@@ -798,38 +798,41 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
         ))}
       </div>
 
-      {/* Pipeline Tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
-        {PIPELINE_STATUSES.map((status, i) => {
-          const count = pipelineCounts[status.value] || 0;
-          const isActive = filters.pipelineStatus === status.value;
-          return (
-            <motion.button
-              key={status.value}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: i * 0.03 }}
-              onClick={() => setFilters(prev => ({ ...prev, pipelineStatus: status.value }))}
-              className={cn(
-                "flex items-center gap-1.5 px-4 py-2.5 rounded-2xl text-xs font-medium whitespace-nowrap transition-all duration-200 shrink-0 border",
-                isActive
-                  ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 border-primary scale-[1.02]"
-                  : "bg-card border-border/50 text-muted-foreground hover:text-foreground hover:border-border hover:bg-muted/50 hover:shadow-sm"
-              )}
-            >
-              <status.icon className={cn("w-3.5 h-3.5", !isActive && status.color)} />
-              {status.label}
-              {count > 0 && (
-                <span className={cn(
-                  "text-[10px] px-1.5 py-0.5 rounded-full font-bold min-w-[20px] text-center",
-                  isActive ? "bg-primary-foreground/20" : "bg-muted"
-                )}>
-                  {count}
-                </span>
-              )}
-            </motion.button>
-          );
-        })}
+      {/* Pipeline Tabs - horizontally scrollable on mobile */}
+      <div className="-mx-3 sm:mx-0 px-3 sm:px-0">
+        <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
+          {PIPELINE_STATUSES.map((status, i) => {
+            const count = pipelineCounts[status.value] || 0;
+            const isActive = filters.pipelineStatus === status.value;
+            return (
+              <motion.button
+                key={status.value}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.03 }}
+                onClick={() => setFilters(prev => ({ ...prev, pipelineStatus: status.value }))}
+                className={cn(
+                  "flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-[11px] sm:text-xs font-medium whitespace-nowrap transition-all duration-200 shrink-0 border",
+                  isActive
+                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 border-primary scale-[1.02]"
+                    : "bg-card border-border/50 text-muted-foreground hover:text-foreground hover:border-border hover:bg-muted/50"
+                )}
+              >
+                <status.icon className={cn("w-3 h-3 sm:w-3.5 sm:h-3.5", !isActive && status.color)} />
+                <span className="hidden sm:inline">{status.label}</span>
+                <span className="sm:hidden">{status.label.slice(0, 4)}{status.label.length > 4 ? '.' : ''}</span>
+                {count > 0 && (
+                  <span className={cn(
+                    "text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 rounded-full font-bold min-w-[18px] sm:min-w-[20px] text-center",
+                    isActive ? "bg-primary-foreground/20" : "bg-muted"
+                  )}>
+                    {count}
+                  </span>
+                )}
+              </motion.button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Active Filter Chips Bar */}
@@ -894,14 +897,14 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
         {/* Main Content */}
         <div className="lg:col-span-3 space-y-3">
           {/* Search + Sort + Mobile Filter */}
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="relative flex-1 min-w-0">
+              <Search className="absolute left-3 sm:left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Search candidates by name, title, or skills..."
+                placeholder="Search candidates..."
                 value={filters.search}
                 onChange={e => setFilters(prev => ({ ...prev, search: e.target.value }))}
-                className="pl-10 h-11 rounded-2xl bg-muted/30 border-border/50 focus:bg-card focus:shadow-sm transition-all"
+                className="pl-9 sm:pl-10 h-10 sm:h-11 rounded-xl sm:rounded-2xl bg-muted/30 border-border/50 focus:bg-card focus:shadow-sm transition-all text-sm"
               />
               {filters.search && (
                 <button onClick={() => setFilters(prev => ({ ...prev, search: '' }))} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5">
@@ -914,9 +917,9 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
               const [f, d] = v.split('-') as [SortField, SortDir];
               setSortField(f); setSortDir(d);
             }}>
-              <SelectTrigger className="w-[160px] h-11 text-xs shrink-0 rounded-2xl border-border/50">
-                <ArrowUpDown className="w-3.5 h-3.5 mr-1.5" />
-                <SelectValue />
+              <SelectTrigger className="w-10 sm:w-[160px] h-10 sm:h-11 text-xs shrink-0 rounded-xl sm:rounded-2xl border-border/50 px-2.5 sm:px-3">
+                <ArrowUpDown className="w-4 h-4 sm:w-3.5 sm:h-3.5 sm:mr-1.5 shrink-0" />
+                <span className="hidden sm:inline"><SelectValue /></span>
               </SelectTrigger>
               <SelectContent className="rounded-xl">
                 <SelectItem value="matchScore-desc">Best Match</SelectItem>
@@ -931,18 +934,18 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
 
             <Sheet open={mobileFilterOpen} onOpenChange={setMobileFilterOpen}>
               <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="lg:hidden h-11 w-11 shrink-0 relative rounded-2xl border-border/50">
+                <Button variant="outline" size="icon" className="lg:hidden h-10 w-10 sm:h-11 sm:w-11 shrink-0 relative rounded-xl sm:rounded-2xl border-border/50">
                   <Filter className="w-4 h-4" />
                   {activeFilterCount > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center shadow-sm">
+                    <span className="absolute -top-1 -right-1 w-4.5 h-4.5 rounded-full bg-primary text-primary-foreground text-[8px] sm:text-[9px] font-bold flex items-center justify-center shadow-sm">
                       {activeFilterCount}
                     </span>
                   )}
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-[320px] overflow-y-auto">
+              <SheetContent side="bottom" className="rounded-t-2xl max-h-[85vh] overflow-y-auto sm:max-w-none">
                 <SheetHeader><SheetTitle className="text-sm flex items-center gap-2"><SlidersHorizontal className="w-4 h-4 text-primary" /> Filters</SheetTitle></SheetHeader>
-                <div className="mt-4"><FilterPanel /></div>
+                <div className="mt-4 pb-6"><FilterPanel /></div>
               </SheetContent>
             </Sheet>
           </div>
@@ -951,7 +954,7 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
           <AnimatePresence>
             {selectedIds.length > 0 && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-                <div className="flex items-center gap-2.5 p-3.5 bg-primary/5 border border-primary/15 rounded-2xl backdrop-blur-sm">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-2.5 p-2.5 sm:p-3.5 bg-primary/5 border border-primary/15 rounded-xl sm:rounded-2xl backdrop-blur-sm">
                   <Checkbox
                     checked={selectedIds.length === filteredCandidates.length}
                     onCheckedChange={() => {
@@ -959,17 +962,19 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                       else setSelectedIds(filteredCandidates.map(c => c.applicationId || '').filter(Boolean));
                     }}
                   />
-                  <span className="text-sm font-semibold text-foreground">{selectedIds.length} selected</span>
+                  <span className="text-xs sm:text-sm font-semibold text-foreground">{selectedIds.length} selected</span>
                   <div className="flex-1" />
-                  <Button size="sm" variant="outline" className="h-8 text-xs gap-1 rounded-xl" onClick={() => handleBulkAction('shortlisted')} disabled={bulkLoading}>
-                    <CheckCircle2 className="w-3.5 h-3.5" /> Shortlist
-                  </Button>
-                  <Button size="sm" variant="outline" className="h-8 text-xs gap-1 text-destructive border-destructive/30 rounded-xl" onClick={() => handleBulkAction('rejected')} disabled={bulkLoading}>
-                    <XCircle className="w-3.5 h-3.5" /> Reject
-                  </Button>
-                  <Button size="sm" className="h-8 text-xs gap-1 bg-success hover:bg-success/90 text-success-foreground rounded-xl" onClick={() => handleBulkAction('hired')} disabled={bulkLoading}>
-                    <Trophy className="w-3.5 h-3.5" /> Hire
-                  </Button>
+                  <div className="flex gap-1.5">
+                    <Button size="sm" variant="outline" className="h-7 sm:h-8 text-[10px] sm:text-xs gap-1 rounded-lg sm:rounded-xl px-2 sm:px-3" onClick={() => handleBulkAction('shortlisted')} disabled={bulkLoading}>
+                      <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> <span className="hidden sm:inline">Shortlist</span>
+                    </Button>
+                    <Button size="sm" variant="outline" className="h-7 sm:h-8 text-[10px] sm:text-xs gap-1 text-destructive border-destructive/30 rounded-lg sm:rounded-xl px-2 sm:px-3" onClick={() => handleBulkAction('rejected')} disabled={bulkLoading}>
+                      <XCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> <span className="hidden sm:inline">Reject</span>
+                    </Button>
+                    <Button size="sm" className="h-7 sm:h-8 text-[10px] sm:text-xs gap-1 bg-success hover:bg-success/90 text-success-foreground rounded-lg sm:rounded-xl px-2 sm:px-3" onClick={() => handleBulkAction('hired')} disabled={bulkLoading}>
+                      <Trophy className="w-3 h-3 sm:w-3.5 sm:h-3.5" /> <span className="hidden sm:inline">Hire</span>
+                    </Button>
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -1035,7 +1040,7 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                         </div>
                       )}
 
-                      <CardContent className={cn("p-3 sm:p-4", isTopPick && "pt-5 sm:pt-6")}>
+                      <CardContent className={cn("p-2.5 sm:p-4", isTopPick && "pt-4 sm:pt-6")}>
                         {/* Top row: checkbox + avatar + info */}
                         <div className="flex items-start gap-2 sm:gap-3">
                           <Checkbox
@@ -1044,72 +1049,62 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                               if (checked) setSelectedIds([...selectedIds, candidate.applicationId || '']);
                               else setSelectedIds(selectedIds.filter(id => id !== candidate.applicationId));
                             }}
-                            className="mt-1.5 sm:mt-1 shrink-0"
+                            className="mt-1 shrink-0"
                           />
 
                           {/* Avatar with score ring */}
-                          <div className="relative shrink-0">
+                          <div className="relative shrink-0" onClick={() => setSelectedCandidate(candidate)}>
                             <Avatar
                               className={cn("w-10 h-10 sm:w-12 sm:h-12 ring-2 cursor-pointer shadow-sm hover:shadow-md transition-shadow", getScoreRingColor(candidate.matchScore))}
-                              onClick={() => setSelectedCandidate(candidate)}
                             >
                               <AvatarImage src={candidate.avatarUrl || ''} />
                               <AvatarFallback className="bg-primary/10 text-primary font-semibold text-[10px] sm:text-xs">{initials}</AvatarFallback>
                             </Avatar>
-                            <div className={cn("absolute -bottom-1 -right-1 text-[8px] sm:text-[9px] font-bold px-1 sm:px-1.5 py-0.5 rounded-full border-2 border-card shadow-sm", getScoreColor(candidate.matchScore))}>
+                            <div className={cn("absolute -bottom-1 -right-1 text-[8px] font-bold px-1 py-0.5 rounded-full border-2 border-card shadow-sm", getScoreColor(candidate.matchScore))}>
                               {candidate.matchScore}%
                             </div>
                           </div>
 
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                            <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                               <h4
-                                className="font-semibold text-foreground text-xs sm:text-sm leading-tight cursor-pointer hover:text-primary transition-colors truncate max-w-[140px] sm:max-w-none"
+                                className="font-semibold text-foreground text-xs sm:text-sm leading-tight cursor-pointer hover:text-primary transition-colors truncate max-w-[120px] sm:max-w-none"
                                 onClick={() => setSelectedCandidate(candidate)}
                               >
                                 {candidate.fullName}
                               </h4>
                               {getStatusBadge(candidate.applicationStatus || 'pending')}
-                              <span className={cn("hidden sm:inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border", getScoreColor(candidate.matchScore))}>
-                                <Sparkles className="w-3 h-3" />
-                                {candidate.matchScore}% match
-                              </span>
                             </div>
 
-                            {/* Mobile match badge - separate row */}
-                            <span className={cn("sm:hidden inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full border mt-1", getScoreColor(candidate.matchScore))}>
-                              <Sparkles className="w-2.5 h-2.5" />
-                              {candidate.matchScore}% match
-                            </span>
-
-                            <div className="flex items-center gap-2 sm:gap-3 mt-1 sm:mt-1.5 text-[10px] sm:text-xs text-muted-foreground flex-wrap">
-                              <span className="flex items-center gap-1">
-                                <Briefcase className="w-3 h-3 shrink-0" /> <span className="truncate max-w-[80px] sm:max-w-none">{candidate.jobTitle}</span>
+                            <div className="flex items-center gap-1.5 sm:gap-3 mt-1 text-[10px] sm:text-xs text-muted-foreground flex-wrap">
+                              <span className="flex items-center gap-0.5 sm:gap-1">
+                                <Briefcase className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0" /> 
+                                <span className="truncate max-w-[70px] sm:max-w-none">{candidate.jobTitle}</span>
                               </span>
-                              <span className="font-medium">{candidate.experienceYears}y exp</span>
+                              <span className="font-medium">{candidate.experienceYears}y</span>
                               {candidate.appliedAt && (
-                                <span className="flex items-center gap-1">
+                                <span className="hidden sm:flex items-center gap-1">
                                   <Clock className="w-3 h-3 shrink-0" /> {formatDistanceToNow(new Date(candidate.appliedAt), { addSuffix: true })}
                                 </span>
                               )}
                             </div>
 
                             {candidate.skills.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mt-1.5 sm:mt-2">
-                                {candidate.skills.slice(0, 4).map(skill => (
-                                  <Badge key={skill} variant="secondary" className="text-[9px] sm:text-[10px] font-normal px-1.5 py-0 h-[18px] sm:h-5 max-w-[80px] sm:max-w-[100px] truncate rounded-lg">
+                              <div className="flex flex-wrap gap-1 mt-1.5">
+                                {candidate.skills.slice(0, 3).map(skill => (
+                                  <Badge key={skill} variant="secondary" className="text-[8px] sm:text-[10px] font-normal px-1 sm:px-1.5 py-0 h-4 sm:h-5 max-w-[60px] sm:max-w-[100px] truncate rounded-md sm:rounded-lg">
                                     {skill}
                                   </Badge>
                                 ))}
-                                {candidate.skills.length > 4 && (
-                                  <Badge variant="outline" className="text-[9px] sm:text-[10px] px-1.5 py-0 h-[18px] sm:h-5 rounded-lg">+{candidate.skills.length - 4}</Badge>
+                                {candidate.skills.length > 3 && (
+                                  <Badge variant="outline" className="text-[8px] sm:text-[10px] px-1 sm:px-1.5 py-0 h-4 sm:h-5 rounded-md sm:rounded-lg">+{candidate.skills.length - 3}</Badge>
                                 )}
                               </div>
                             )}
 
                             {candidate.jobTitle_applied && (
-                              <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-1 sm:mt-1.5">
-                                Applied for: <span className="font-medium text-foreground">{candidate.jobTitle_applied}</span>
+                              <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-1 truncate">
+                                For: <span className="font-medium text-foreground">{candidate.jobTitle_applied}</span>
                               </p>
                             )}
                           </div>
@@ -1162,41 +1157,28 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                           </div>
                         </div>
 
-                        {/* Mobile Quick Actions - horizontal row below content */}
-                        <div className="flex sm:hidden items-center gap-1.5 mt-2.5 pt-2.5 border-t border-border/30">
-                          <Button variant="outline" size="sm" className="flex-1 h-8 text-[10px] px-2 gap-1 rounded-xl" onClick={() => navigate(`/candidates/${candidate.candidateId}`)}>
+                        {/* Mobile Quick Actions - compact icon buttons */}
+                        <div className="flex sm:hidden items-center gap-1 mt-2 pt-2 border-t border-border/20">
+                          <Button variant="outline" size="sm" className="flex-1 h-7 text-[9px] px-1.5 gap-0.5 rounded-lg" onClick={() => navigate(`/candidates/${candidate.candidateId}`)}>
                             <Eye className="w-3 h-3" /> View
                           </Button>
-                          <Button variant="outline" size="sm" className="flex-1 h-8 text-[10px] px-2 gap-1 rounded-xl" onClick={() => startConversation(candidate.userId, candidate.jobId || undefined)}>
+                          <Button variant="outline" size="sm" className="flex-1 h-7 text-[9px] px-1.5 gap-0.5 rounded-lg" onClick={() => startConversation(candidate.userId, candidate.jobId || undefined)}>
                             <Mail className="w-3 h-3" /> Msg
                           </Button>
-                          {candidate.whatsappNumber ? (
+                          {candidate.whatsappNumber && (
                             <Button
                               variant="outline"
                               size="sm"
-                              className="flex-1 h-8 text-[10px] px-2 gap-1 rounded-xl bg-[#25D366]/10 text-[#25D366] border-[#25D366]/40"
+                              className="h-7 w-7 p-0 rounded-lg bg-[#25D366]/10 text-[#25D366] border-[#25D366]/40"
                               onClick={() => window.open(`https://wa.me/${candidate.whatsappNumber}`, '_blank')}
                             >
                               <svg viewBox="0 0 24 24" className="w-3 h-3" fill="currentColor">
                                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
                               </svg>
-                              WA
-                            </Button>
-                          ) : (
-                            <Button variant="outline" size="sm" className="flex-1 h-8 text-[10px] px-2 gap-1 rounded-xl opacity-50" disabled>
-                              <div className="relative">
-                                <svg viewBox="0 0 24 24" className="w-3 h-3" fill="currentColor">
-                                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-                                </svg>
-                                <div className="absolute -inset-0.5 flex items-center justify-center">
-                                  <div className="w-4 h-[1.5px] bg-destructive rounded-full rotate-[-45deg]" />
-                                </div>
-                              </div>
-                              WA
                             </Button>
                           )}
                           {(candidate.applicationStatus === 'pending' || candidate.applicationStatus === 'reviewed') && (
-                            <Button size="sm" variant="ghost" className="h-8 text-[10px] px-2 gap-1 text-success rounded-xl" onClick={() => updateStatus(candidate.applicationId || '', 'shortlisted')}>
+                            <Button size="sm" variant="ghost" className="flex-1 h-7 text-[9px] px-1.5 gap-0.5 text-success rounded-lg" onClick={() => updateStatus(candidate.applicationId || '', 'shortlisted')}>
                               <CheckCircle2 className="w-3 h-3" /> Shortlist
                             </Button>
                           )}
@@ -1213,7 +1195,7 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
 
       {/* Candidate Detail Dialog */}
       <Dialog open={!!selectedCandidate} onOpenChange={(open) => { if (!open) setSelectedCandidate(null); }}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl mx-2 sm:mx-auto p-4 sm:p-6">
           {selectedCandidate && (
             <>
               <DialogHeader>
