@@ -563,27 +563,49 @@ export type Database = {
       }
       employers: {
         Row: {
+          assessment_types: string[] | null
+          avg_salary_range: string | null
+          awards_recognition: string[] | null
           benefits: string[] | null
+          bonus_structure: string | null
           business_card_url: string | null
+          career_growth_paths: string | null
+          careers_page_url: string | null
           company_name: string
+          company_values: string[] | null
           country_code: string | null
           created_at: string | null
           culture_description: string | null
           description: string | null
+          diversity_policies: string | null
+          education_preference: string | null
+          employee_retention_rate: string | null
           founding_year: number | null
+          fresher_hiring: boolean | null
           government_domain_verified: boolean | null
           government_email_domain: string | null
           hiring_process: string | null
+          hiring_timeline: string | null
+          hr_contact_email: string | null
           id: string
           industry: string | null
+          internship_available: boolean | null
+          interview_rounds_count: number | null
           is_government: boolean | null
           is_suspended: boolean | null
+          key_skills_hiring: string[] | null
+          learning_budget: string | null
           location_city: string | null
           location_country: string | null
           location_state: string | null
+          office_locations: string[] | null
           office_photo_url: string | null
+          paid_leaves_policy: string | null
+          preferred_certifications: string[] | null
           profile_completeness: number | null
           profile_id: string
+          promotion_frequency: string | null
+          relocation_support: boolean | null
           slug: string | null
           social_links: Json | null
           specializations: string[] | null
@@ -593,35 +615,61 @@ export type Database = {
           tax_id: string | null
           tax_type: string | null
           team_size: string | null
+          tech_stack: string[] | null
           terms_accepted_at: string | null
           updated_at: string | null
           verification_notes: string | null
           verification_status: string | null
           verified_at: string | null
           website_url: string | null
+          work_culture_type: string | null
+          work_environment: string | null
+          work_life_balance_rating: number | null
         }
         Insert: {
+          assessment_types?: string[] | null
+          avg_salary_range?: string | null
+          awards_recognition?: string[] | null
           benefits?: string[] | null
+          bonus_structure?: string | null
           business_card_url?: string | null
+          career_growth_paths?: string | null
+          careers_page_url?: string | null
           company_name: string
+          company_values?: string[] | null
           country_code?: string | null
           created_at?: string | null
           culture_description?: string | null
           description?: string | null
+          diversity_policies?: string | null
+          education_preference?: string | null
+          employee_retention_rate?: string | null
           founding_year?: number | null
+          fresher_hiring?: boolean | null
           government_domain_verified?: boolean | null
           government_email_domain?: string | null
           hiring_process?: string | null
+          hiring_timeline?: string | null
+          hr_contact_email?: string | null
           id?: string
           industry?: string | null
+          internship_available?: boolean | null
+          interview_rounds_count?: number | null
           is_government?: boolean | null
           is_suspended?: boolean | null
+          key_skills_hiring?: string[] | null
+          learning_budget?: string | null
           location_city?: string | null
           location_country?: string | null
           location_state?: string | null
+          office_locations?: string[] | null
           office_photo_url?: string | null
+          paid_leaves_policy?: string | null
+          preferred_certifications?: string[] | null
           profile_completeness?: number | null
           profile_id: string
+          promotion_frequency?: string | null
+          relocation_support?: boolean | null
           slug?: string | null
           social_links?: Json | null
           specializations?: string[] | null
@@ -631,35 +679,61 @@ export type Database = {
           tax_id?: string | null
           tax_type?: string | null
           team_size?: string | null
+          tech_stack?: string[] | null
           terms_accepted_at?: string | null
           updated_at?: string | null
           verification_notes?: string | null
           verification_status?: string | null
           verified_at?: string | null
           website_url?: string | null
+          work_culture_type?: string | null
+          work_environment?: string | null
+          work_life_balance_rating?: number | null
         }
         Update: {
+          assessment_types?: string[] | null
+          avg_salary_range?: string | null
+          awards_recognition?: string[] | null
           benefits?: string[] | null
+          bonus_structure?: string | null
           business_card_url?: string | null
+          career_growth_paths?: string | null
+          careers_page_url?: string | null
           company_name?: string
+          company_values?: string[] | null
           country_code?: string | null
           created_at?: string | null
           culture_description?: string | null
           description?: string | null
+          diversity_policies?: string | null
+          education_preference?: string | null
+          employee_retention_rate?: string | null
           founding_year?: number | null
+          fresher_hiring?: boolean | null
           government_domain_verified?: boolean | null
           government_email_domain?: string | null
           hiring_process?: string | null
+          hiring_timeline?: string | null
+          hr_contact_email?: string | null
           id?: string
           industry?: string | null
+          internship_available?: boolean | null
+          interview_rounds_count?: number | null
           is_government?: boolean | null
           is_suspended?: boolean | null
+          key_skills_hiring?: string[] | null
+          learning_budget?: string | null
           location_city?: string | null
           location_country?: string | null
           location_state?: string | null
+          office_locations?: string[] | null
           office_photo_url?: string | null
+          paid_leaves_policy?: string | null
+          preferred_certifications?: string[] | null
           profile_completeness?: number | null
           profile_id?: string
+          promotion_frequency?: string | null
+          relocation_support?: boolean | null
           slug?: string | null
           social_links?: Json | null
           specializations?: string[] | null
@@ -669,12 +743,16 @@ export type Database = {
           tax_id?: string | null
           tax_type?: string | null
           team_size?: string | null
+          tech_stack?: string[] | null
           terms_accepted_at?: string | null
           updated_at?: string | null
           verification_notes?: string | null
           verification_status?: string | null
           verified_at?: string | null
           website_url?: string | null
+          work_culture_type?: string | null
+          work_environment?: string | null
+          work_life_balance_rating?: number | null
         }
         Relationships: [
           {
