@@ -43,6 +43,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useStartConversation } from '@/hooks/useStartConversation';
 import { cn } from '@/lib/utils';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface CandidateWithMatch {
   id: string;
@@ -798,41 +799,43 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
         ))}
       </div>
 
-      {/* Pipeline Tabs - horizontally scrollable on mobile */}
-      <div className="-mx-3 sm:mx-0 px-3 sm:px-0">
-        <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
-          {PIPELINE_STATUSES.map((status, i) => {
-            const count = pipelineCounts[status.value] || 0;
-            const isActive = filters.pipelineStatus === status.value;
-            return (
-              <motion.button
-                key={status.value}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.03 }}
-                onClick={() => setFilters(prev => ({ ...prev, pipelineStatus: status.value }))}
-                className={cn(
-                  "flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl text-[11px] sm:text-xs font-medium whitespace-nowrap transition-all duration-200 shrink-0 border",
-                  isActive
-                    ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 border-primary scale-[1.02]"
-                    : "bg-card border-border/50 text-muted-foreground hover:text-foreground hover:border-border hover:bg-muted/50"
-                )}
-              >
-                <status.icon className={cn("w-3 h-3 sm:w-3.5 sm:h-3.5", !isActive && status.color)} />
-                <span className="hidden sm:inline">{status.label}</span>
-                <span className="sm:hidden">{status.label.slice(0, 4)}{status.label.length > 4 ? '.' : ''}</span>
-                {count > 0 && (
-                  <span className={cn(
-                    "text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 rounded-full font-bold min-w-[18px] sm:min-w-[20px] text-center",
-                    isActive ? "bg-primary-foreground/20" : "bg-muted"
-                  )}>
-                    {count}
-                  </span>
-                )}
-              </motion.button>
-            );
-          })}
-        </div>
+      {/* Pipeline Tabs - icon-only squares on mobile, full labels on sm+ */}
+      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+        {PIPELINE_STATUSES.map((status, i) => {
+          const count = pipelineCounts[status.value] || 0;
+          const isActive = filters.pipelineStatus === status.value;
+          return (
+            <Tooltip key={status.value}>
+              <TooltipTrigger asChild>
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: i * 0.03 }}
+                  onClick={() => setFilters(prev => ({ ...prev, pipelineStatus: status.value }))}
+                  className={cn(
+                    "relative flex items-center justify-center transition-all duration-200 border",
+                    "w-10 h-10 rounded-xl sm:w-auto sm:h-auto sm:rounded-2xl sm:px-4 sm:py-2.5 sm:gap-1.5",
+                    isActive
+                      ? "bg-primary text-primary-foreground shadow-md shadow-primary/20 border-primary"
+                      : "bg-card border-border/50 text-muted-foreground hover:text-foreground hover:border-border hover:bg-muted/50"
+                  )}
+                >
+                  <status.icon className={cn("w-4 h-4 sm:w-3.5 sm:h-3.5", !isActive && status.color)} />
+                  <span className="hidden sm:inline text-xs font-medium">{status.label}</span>
+                  {count > 0 && (
+                    <span className={cn(
+                      "absolute -top-1.5 -right-1.5 sm:static sm:top-auto sm:right-auto text-[8px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 rounded-full font-bold min-w-[16px] sm:min-w-[20px] text-center leading-none",
+                      isActive ? "bg-primary-foreground/20 sm:bg-primary-foreground/20" : "bg-primary text-primary-foreground sm:bg-muted sm:text-muted-foreground"
+                    )}>
+                      {count}
+                    </span>
+                  )}
+                </motion.button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="sm:hidden">{status.label} ({count})</TooltipContent>
+            </Tooltip>
+          );
+        })}
       </div>
 
       {/* Active Filter Chips Bar */}
@@ -1158,18 +1161,18 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                         </div>
 
                         {/* Mobile Quick Actions */}
-                        <div className="flex sm:hidden items-center gap-1.5 mt-2 pt-2 border-t border-border/20">
-                          <Button variant="outline" size="sm" className="h-8 text-[10px] px-2.5 gap-1 rounded-lg flex-1" onClick={() => navigate(`/candidates/${candidate.candidateId}`)}>
-                            <Eye className="w-3 h-3 shrink-0" /> View
+                        <div className="flex sm:hidden items-center gap-2 mt-2 pt-2 border-t border-border/20">
+                          <Button variant="outline" size="sm" className="h-9 text-[11px] px-3 gap-1.5 rounded-xl flex-1" onClick={() => navigate(`/candidates/${candidate.candidateId}`)}>
+                            <Eye className="w-3.5 h-3.5 shrink-0" /> View
                           </Button>
-                          <Button variant="outline" size="sm" className="h-8 text-[10px] px-2.5 gap-1 rounded-lg flex-1" onClick={() => startConversation(candidate.userId, candidate.jobId || undefined)}>
-                            <Mail className="w-3 h-3 shrink-0" /> Msg
+                          <Button variant="outline" size="sm" className="h-9 text-[11px] px-3 gap-1.5 rounded-xl flex-1" onClick={() => startConversation(candidate.userId, candidate.jobId || undefined)}>
+                            <Mail className="w-3.5 h-3.5 shrink-0" /> Msg
                           </Button>
                           <Button
                             variant="outline"
-                            size="sm"
+                            size="icon"
                             className={cn(
-                              "h-8 text-[10px] px-2.5 gap-1 rounded-lg flex-1",
+                              "h-9 w-9 rounded-xl shrink-0",
                               candidate.whatsappNumber
                                 ? "bg-[#25D366]/10 text-[#25D366] border-[#25D366]/40"
                                 : "opacity-40"
@@ -1177,16 +1180,10 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                             disabled={!candidate.whatsappNumber}
                             onClick={() => candidate.whatsappNumber && window.open(`https://wa.me/${candidate.whatsappNumber}`, '_blank')}
                           >
-                            <svg viewBox="0 0 24 24" className="w-3 h-3 shrink-0" fill="currentColor">
+                            <svg viewBox="0 0 24 24" className="w-4 h-4 shrink-0" fill="currentColor">
                               <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
                             </svg>
-                            WA
                           </Button>
-                          {(candidate.applicationStatus === 'pending' || candidate.applicationStatus === 'reviewed') && (
-                            <Button size="sm" className="h-8 text-[10px] px-2.5 gap-1 bg-success/10 text-success hover:bg-success/20 border border-success/20 rounded-lg flex-1" onClick={() => updateStatus(candidate.applicationId || '', 'shortlisted')}>
-                              <CheckCircle2 className="w-3 h-3 shrink-0" /> Save
-                            </Button>
-                          )}
                         </div>
                       </CardContent>
                     </Card>
