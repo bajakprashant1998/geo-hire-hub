@@ -20,7 +20,7 @@ export interface JobRadarFilters {
 export const defaultFilters: JobRadarFilters = {
   keyword: '',
   locationCity: '',
-  radiusKm: 50,
+  radiusKm: 100,
   remoteOnly: false,
   hybridOnly: false,
   minSalary: 0,
@@ -321,7 +321,7 @@ export function useJobRadar(
       jobs = jobs.filter(j => j.createdAt && (now - new Date(j.createdAt).getTime()) <= days * 86400000);
     }
     if (filters.activelyHiring) {
-      jobs = jobs.filter(j => j.hiringUrgency === 'urgent' || j.hiringUrgency === 'high');
+      jobs = jobs.filter(j => j.hiringUrgency && ['urgent', 'high', 'immediately'].includes(j.hiringUrgency.toLowerCase()));
     }
     if (filters.verifiedOnly) {
       jobs = jobs.filter(j => j.companyVerified);
