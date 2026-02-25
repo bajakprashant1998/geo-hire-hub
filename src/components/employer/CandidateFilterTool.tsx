@@ -143,6 +143,16 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
   const [allSkills, setAllSkills] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState('');
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+
+  // Local slider state for smooth dragging (avoids re-rendering candidate list on every tick)
+  const [localExperienceRange, setLocalExperienceRange] = useState<[number, number]>(defaultFilters.experienceRange);
+  const [localMatchScoreMin, setLocalMatchScoreMin] = useState(defaultFilters.matchScoreMin);
+
+  // Sync local slider state when filters change externally (e.g. clear all)
+  useEffect(() => {
+    setLocalExperienceRange(filters.experienceRange);
+    setLocalMatchScoreMin(filters.matchScoreMin);
+  }, [filters.experienceRange[0], filters.experienceRange[1], filters.matchScoreMin]);
   
   // AI state
   const [aiInsights, setAiInsights] = useState<AIInsights | null>(null);
@@ -506,11 +516,16 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
       <FilterSection label="Experience" icon={Briefcase}>
         <div className="px-2">
           <div className="flex justify-between text-[11px] text-muted-foreground mb-3">
-            <span className="font-semibold text-foreground bg-primary/10 px-2 py-0.5 rounded-md">{filters.experienceRange[0]}y</span>
+            <span className="font-semibold text-foreground bg-primary/10 px-2 py-0.5 rounded-md">{localExperienceRange[0]}y</span>
             <span className="text-[10px]">Experience Range</span>
-            <span className="font-semibold text-foreground bg-primary/10 px-2 py-0.5 rounded-md">{filters.experienceRange[1]}y</span>
+            <span className="font-semibold text-foreground bg-primary/10 px-2 py-0.5 rounded-md">{localExperienceRange[1]}y</span>
           </div>
-          <Slider value={filters.experienceRange} onValueChange={(v) => setFilters(prev => ({ ...prev, experienceRange: v as [number, number] }))} min={0} max={30} step={1} />
+          <Slider
+            value={localExperienceRange}
+            onValueChange={(v) => setLocalExperienceRange(v as [number, number])}
+            onValueCommit={(v) => setFilters(prev => ({ ...prev, experienceRange: v as [number, number] }))}
+            min={0} max={30} step={1}
+          />
           <div className="flex justify-between text-[9px] text-muted-foreground/60 mt-1.5 px-0.5">
             <span>0</span>
             <span>10</span>
@@ -526,14 +541,19 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
             <span className="text-[11px] text-muted-foreground">Minimum</span>
             <span className={cn(
               "text-xs font-bold px-2.5 py-1 rounded-lg transition-all duration-200",
-              filters.matchScoreMin >= 80 ? "bg-success/15 text-success" :
-              filters.matchScoreMin >= 50 ? "bg-primary/15 text-primary" :
+              localMatchScoreMin >= 80 ? "bg-success/15 text-success" :
+              localMatchScoreMin >= 50 ? "bg-primary/15 text-primary" :
               "bg-muted text-muted-foreground"
             )}>
-              {filters.matchScoreMin}%
+              {localMatchScoreMin}%
             </span>
           </div>
-          <Slider value={[filters.matchScoreMin]} onValueChange={(v) => setFilters(prev => ({ ...prev, matchScoreMin: v[0] }))} min={0} max={100} step={5} />
+          <Slider
+            value={[localMatchScoreMin]}
+            onValueChange={(v) => setLocalMatchScoreMin(v[0])}
+            onValueCommit={(v) => setFilters(prev => ({ ...prev, matchScoreMin: v[0] }))}
+            min={0} max={100} step={5}
+          />
           <div className="flex justify-between text-[9px] text-muted-foreground/60 mt-1.5 px-0.5">
             <span>0%</span>
             <span>25%</span>
