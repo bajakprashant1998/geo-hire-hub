@@ -13,6 +13,8 @@ import {
   Users, Mail, Heart, Share2, ExternalLink, ShieldCheck,
   Image as ImageIcon, CheckCircle2,
   Clock, FileText, Lock, LogIn, UserPlus, Award, Zap,
+  Code, GraduationCap, TrendingUp, DollarSign, Laptop,
+  Star, BookOpen, Shield,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { VerificationBadge } from '@/components/employer/VerificationBadge';
@@ -41,6 +43,39 @@ interface EmployerProfile {
   benefits: string[] | null;
   culture_description: string | null;
   founding_year: number | null;
+  // New fields
+  work_environment: string | null;
+  office_locations: string[] | null;
+  relocation_support: boolean | null;
+  fresher_hiring: boolean | null;
+  internship_available: boolean | null;
+  hiring_process: string | null;
+  avg_salary_range: string | null;
+  bonus_structure: string | null;
+  paid_leaves_policy: string | null;
+  learning_budget: string | null;
+  promotion_frequency: string | null;
+  career_growth_paths: string | null;
+  employee_retention_rate: string | null;
+  key_skills_hiring: string[] | null;
+  preferred_certifications: string[] | null;
+  tech_stack: string[] | null;
+  education_preference: string | null;
+  work_culture_type: string | null;
+  work_life_balance_rating: number | null;
+  diversity_policies: string | null;
+  company_values: string[] | null;
+  awards_recognition: string[] | null;
+  interview_rounds_count: number | null;
+  assessment_types: string[] | null;
+  hiring_timeline: string | null;
+  hr_contact_email: string | null;
+  careers_page_url: string | null;
+  location_city: string | null;
+  location_state: string | null;
+  location_country: string | null;
+  social_links: any | null;
+  specializations: string[] | null;
 }
 
 interface Job {
@@ -73,7 +108,6 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
   useEffect(() => {
     if (!identifier || propId) return;
     if (UUID_REGEX.test(identifier)) {
-      // UUID access — check for slug redirect
       supabase
         .from('employers')
         .select('id, slug, location_country, location_state, location_city')
@@ -217,6 +251,7 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
   }
 
   const foundedYear = employer.founding_year || (employer.created_at ? new Date(employer.created_at).getFullYear() : null);
+  const locationStr = [employer.location_city, employer.location_state, employer.location_country].filter(Boolean).join(', ');
 
   return (
     <div className="min-h-screen bg-muted/30 pb-24 lg:pb-8">
@@ -290,6 +325,11 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
                 <span className="inline-flex items-center gap-1 text-xs font-medium text-primary bg-primary/5 px-2.5 py-1 rounded-full">
                   <Briefcase className="w-3 h-3" />{jobs.length} open {jobs.length === 1 ? 'job' : 'jobs'}
                 </span>
+                {employer.work_environment && (
+                  <span className="inline-flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2.5 py-1 rounded-full">
+                    <Laptop className="w-3 h-3" />{employer.work_environment}
+                  </span>
+                )}
               </div>
 
               {employer.website_url && (
@@ -338,7 +378,7 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
               </Card>
             )}
 
-            {/* Benefits */}
+            {/* Benefits / Why Work Here */}
             {employer.benefits && employer.benefits.length > 0 && (
               <Card>
                 <CardContent className="p-5">
@@ -355,17 +395,211 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
               </Card>
             )}
 
-            {/* Culture */}
-            {employer.culture_description && (
+            {/* Compensation & Benefits Details */}
+            {(employer.avg_salary_range || employer.bonus_structure || employer.paid_leaves_policy || employer.learning_budget) && (
               <Card>
                 <CardContent className="p-5">
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Our Culture</h3>
-                  <p className="text-foreground leading-relaxed text-sm">{employer.culture_description}</p>
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Compensation & Benefits</h3>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {employer.avg_salary_range && (
+                      <div className="flex items-start gap-2.5 p-3 rounded-lg bg-muted/50">
+                        <DollarSign className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                        <div><p className="text-xs text-muted-foreground">Avg Salary Range</p><p className="text-sm font-medium text-foreground">{employer.avg_salary_range}</p></div>
+                      </div>
+                    )}
+                    {employer.bonus_structure && (
+                      <div className="flex items-start gap-2.5 p-3 rounded-lg bg-muted/50">
+                        <Zap className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                        <div><p className="text-xs text-muted-foreground">Bonus Structure</p><p className="text-sm font-medium text-foreground">{employer.bonus_structure}</p></div>
+                      </div>
+                    )}
+                    {employer.paid_leaves_policy && (
+                      <div className="flex items-start gap-2.5 p-3 rounded-lg bg-muted/50">
+                        <Calendar className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                        <div><p className="text-xs text-muted-foreground">Paid Leaves</p><p className="text-sm font-medium text-foreground">{employer.paid_leaves_policy}</p></div>
+                      </div>
+                    )}
+                    {employer.learning_budget && (
+                      <div className="flex items-start gap-2.5 p-3 rounded-lg bg-muted/50">
+                        <BookOpen className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                        <div><p className="text-xs text-muted-foreground">Learning Budget</p><p className="text-sm font-medium text-foreground">{employer.learning_budget}</p></div>
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             )}
 
-            {/* Trust Documents - Visible to everyone */}
+            {/* Growth & Career */}
+            {(employer.promotion_frequency || employer.career_growth_paths || employer.employee_retention_rate) && (
+              <Card>
+                <CardContent className="p-5">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Growth & Career</h3>
+                  <div className="space-y-3">
+                    {employer.career_growth_paths && (
+                      <div className="flex items-start gap-2.5">
+                        <TrendingUp className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                        <div><p className="text-xs text-muted-foreground">Career Growth Paths</p><p className="text-sm text-foreground">{employer.career_growth_paths}</p></div>
+                      </div>
+                    )}
+                    {employer.promotion_frequency && (
+                      <div className="flex items-start gap-2.5">
+                        <Star className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                        <div><p className="text-xs text-muted-foreground">Promotion Frequency</p><p className="text-sm text-foreground">{employer.promotion_frequency}</p></div>
+                      </div>
+                    )}
+                    {employer.employee_retention_rate && (
+                      <div className="flex items-start gap-2.5">
+                        <Shield className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                        <div><p className="text-xs text-muted-foreground">Employee Retention Rate</p><p className="text-sm text-foreground">{employer.employee_retention_rate}</p></div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Skills & Tech Stack */}
+            {((employer.key_skills_hiring && employer.key_skills_hiring.length > 0) || (employer.tech_stack && employer.tech_stack.length > 0) || (employer.preferred_certifications && employer.preferred_certifications.length > 0)) && (
+              <Card>
+                <CardContent className="p-5">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Skills & Technology</h3>
+                  <div className="space-y-4">
+                    {employer.key_skills_hiring && employer.key_skills_hiring.length > 0 && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1"><Zap className="w-3 h-3" />Key Skills Hiring For</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {employer.key_skills_hiring.map((s, i) => (
+                            <Badge key={i} variant="secondary" className="text-xs">{s}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {employer.tech_stack && employer.tech_stack.length > 0 && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1"><Code className="w-3 h-3" />Tech Stack</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {employer.tech_stack.map((t, i) => (
+                            <Badge key={i} variant="outline" className="text-xs">{t}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {employer.preferred_certifications && employer.preferred_certifications.length > 0 && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1"><GraduationCap className="w-3 h-3" />Preferred Certifications</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {employer.preferred_certifications.map((c, i) => (
+                            <Badge key={i} variant="outline" className="text-xs">{c}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {employer.education_preference && (
+                      <div className="flex items-start gap-2.5">
+                        <GraduationCap className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                        <div><p className="text-xs text-muted-foreground">Education Preference</p><p className="text-sm text-foreground">{employer.education_preference}</p></div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Culture */}
+            {(employer.culture_description || employer.work_culture_type || employer.diversity_policies || (employer.company_values && employer.company_values.length > 0)) && (
+              <Card>
+                <CardContent className="p-5">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Our Culture</h3>
+                  <div className="space-y-4">
+                    {employer.culture_description && (
+                      <p className="text-foreground leading-relaxed text-sm">{employer.culture_description}</p>
+                    )}
+                    {employer.work_culture_type && (
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary">{employer.work_culture_type}</Badge>
+                        {employer.work_life_balance_rating && (
+                          <span className="text-xs text-muted-foreground">Work-Life Balance: {employer.work_life_balance_rating}/5</span>
+                        )}
+                      </div>
+                    )}
+                    {employer.company_values && employer.company_values.length > 0 && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-2">Company Values</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {employer.company_values.map((v, i) => (
+                            <Badge key={i} variant="outline" className="text-xs bg-primary/5 border-primary/20 text-primary">{v}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {employer.diversity_policies && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Diversity & Inclusion</p>
+                        <p className="text-sm text-foreground">{employer.diversity_policies}</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Hiring Process */}
+            {(employer.hiring_process || employer.interview_rounds_count || employer.hiring_timeline || (employer.assessment_types && employer.assessment_types.length > 0)) && (
+              <Card>
+                <CardContent className="p-5">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Hiring Process</h3>
+                  <div className="space-y-3">
+                    {employer.hiring_process && (
+                      <p className="text-sm text-foreground leading-relaxed">{employer.hiring_process}</p>
+                    )}
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      {employer.interview_rounds_count && (
+                        <div className="flex items-start gap-2.5 p-3 rounded-lg bg-muted/50">
+                          <FileText className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                          <div><p className="text-xs text-muted-foreground">Interview Rounds</p><p className="text-sm font-medium text-foreground">{employer.interview_rounds_count}</p></div>
+                        </div>
+                      )}
+                      {employer.hiring_timeline && (
+                        <div className="flex items-start gap-2.5 p-3 rounded-lg bg-muted/50">
+                          <Clock className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                          <div><p className="text-xs text-muted-foreground">Hiring Timeline</p><p className="text-sm font-medium text-foreground">{employer.hiring_timeline}</p></div>
+                        </div>
+                      )}
+                    </div>
+                    {employer.assessment_types && employer.assessment_types.length > 0 && (
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-2">Assessment Types</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {employer.assessment_types.map((a, i) => (
+                            <Badge key={i} variant="secondary" className="text-xs">{a}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Awards */}
+            {employer.awards_recognition && employer.awards_recognition.length > 0 && (
+              <Card>
+                <CardContent className="p-5">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Awards & Recognition</h3>
+                  <div className="space-y-2">
+                    {employer.awards_recognition.map((a, i) => (
+                      <div key={i} className="flex items-center gap-2.5 p-2.5 rounded-lg bg-yellow-500/5 border border-yellow-500/10">
+                        <Award className="w-4 h-4 text-yellow-600 shrink-0" />
+                        <span className="text-sm text-foreground">{a}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Trust Documents */}
             {(employer.office_photo_url || employer.business_card_url) && (
               <Card>
                 <CardContent className="p-5">
@@ -420,7 +654,7 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
 
           {/* Sidebar */}
           <div className="lg:col-span-1 space-y-4">
-            {/* Contact/Auth Card - hidden when viewing own profile */}
+            {/* Contact/Auth Card */}
             {!isOwnProfile && (
               <Card className="overflow-hidden">
                 <div className="bg-primary p-4">
@@ -450,7 +684,7 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
               </Card>
             )}
 
-            {/* Company Info */}
+            {/* Company Info Sidebar */}
             <Card>
               <CardContent className="p-4">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Company Info</h3>
@@ -482,6 +716,24 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
                       <Separator />
                     </>
                   )}
+                  {locationStr && (
+                    <>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Location</span>
+                        <span className="font-medium text-foreground text-right max-w-[60%]">{locationStr}</span>
+                      </div>
+                      <Separator />
+                    </>
+                  )}
+                  {employer.work_environment && (
+                    <>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Work Setup</span>
+                        <span className="font-medium text-foreground capitalize">{employer.work_environment}</span>
+                      </div>
+                      <Separator />
+                    </>
+                  )}
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Open Jobs</span>
                     <Badge className="bg-primary/10 text-primary border-0 text-xs">{jobs.length}</Badge>
@@ -498,6 +750,87 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Quick Facts */}
+            {(employer.fresher_hiring || employer.internship_available || employer.relocation_support) && (
+              <Card>
+                <CardContent className="p-4">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Quick Facts</h3>
+                  <div className="space-y-2">
+                    {employer.fresher_hiring && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
+                        <span className="text-foreground">Hires Freshers</span>
+                      </div>
+                    )}
+                    {employer.internship_available && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
+                        <span className="text-foreground">Internships Available</span>
+                      </div>
+                    )}
+                    {employer.relocation_support && (
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle2 className="w-4 h-4 text-success shrink-0" />
+                        <span className="text-foreground">Relocation Support</span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Office Locations */}
+            {employer.office_locations && employer.office_locations.length > 0 && (
+              <Card>
+                <CardContent className="p-4">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Office Locations</h3>
+                  <div className="space-y-2">
+                    {employer.office_locations.map((loc, i) => (
+                      <div key={i} className="flex items-center gap-2 text-sm">
+                        <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                        <span className="text-foreground">{loc}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Specializations */}
+            {employer.specializations && employer.specializations.length > 0 && (
+              <Card>
+                <CardContent className="p-4">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Specializations</h3>
+                  <div className="flex flex-wrap gap-1.5">
+                    {employer.specializations.map((s, i) => (
+                      <Badge key={i} variant="secondary" className="text-xs">{s}</Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Careers & Contact Links */}
+            {(employer.careers_page_url || employer.hr_contact_email) && (
+              <Card>
+                <CardContent className="p-4">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">Links</h3>
+                  <div className="space-y-2">
+                    {employer.careers_page_url && (
+                      <a href={employer.careers_page_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
+                        <Globe className="w-3.5 h-3.5" />Careers Page <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                    {employer.hr_contact_email && (
+                      <a href={`mailto:${employer.hr_contact_email}`} className="flex items-center gap-2 text-sm text-primary hover:underline">
+                        <Mail className="w-3.5 h-3.5" />{employer.hr_contact_email}
+                      </a>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
       </div>
