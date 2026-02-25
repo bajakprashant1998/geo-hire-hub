@@ -5,7 +5,7 @@ import { useGeolocation } from '@/hooks/useGeolocation';
 import { useMapData } from '@/hooks/useMapData';
 import { useAuth } from '@/hooks/useAuth';
 import { Header } from '@/components/map/Header';
-import { MapContainer } from '@/components/map/MapContainer';
+import { GoogleMapContainer as MapContainer } from '@/components/map/GoogleMapContainer';
 import { MapLoadingSkeleton } from '@/components/map/MapLoadingSkeleton';
 import { Sidebar } from '@/components/map/Sidebar';
 import { MarkerPreviewSheet } from '@/components/map/MarkerPreviewSheet';

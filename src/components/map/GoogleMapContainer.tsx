@@ -1,9 +1,10 @@
-import { useCallback, useMemo, useState, useEffect } from 'react';
-import { GoogleMap, useJsApiLoader, Marker, Circle, MarkerClusterer } from '@react-google-maps/api';
+import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { GoogleMap, useJsApiLoader, Marker, Circle, MarkerClusterer, InfoWindow, OverlayView } from '@react-google-maps/api';
 import { ViewMode, Candidate, Job } from '@/types';
 import { useGoogleMapsKey } from '@/hooks/useGoogleMapsKey';
 import { GoogleMapsLoaderBoundary } from '@/components/map/GoogleMapsLoaderBoundary';
-import { Loader2 } from 'lucide-react';
+import { Loader2, MapPin, CheckCircle2 } from 'lucide-react';
 
 interface GoogleMapContainerProps {
   mode: ViewMode;
@@ -13,6 +14,8 @@ interface GoogleMapContainerProps {
   radius: number;
   onMarkerClick: (data: Candidate | Job) => void;
   selectedItem: Candidate | Job | null;
+  isEmployer?: boolean;
+  centerTrigger?: number;
 }
 
 const mapContainerStyle = {
@@ -37,6 +40,83 @@ const mapOptions: google.maps.MapOptions = {
   ],
 };
 
+// --- Custom HTML Marker Ported from Leaflet MapContainer ---
+const CustomMarker = ({
+  item,
+  mode,
+  isHovered,
+  onClick,
+  onMouseEnter,
+  onMouseLeave
+}: {
+  item: Candidate | Job;
+  mode: ViewMode;
+  isHovered: boolean;
+  onClick: () => void;
+  onMouseEnter: () => void;
+  onMouseLeave: () => void;
+}) => {
+  const isCandidate = mode === 'hiring';
+
+  // Base styles ported from the custom Leaflet HTML clusters
+  const size = isHovered ? '40px' : '32px';
+  const iconSize = isHovered ? '20' : '16';
+
+  // Specific styling based on mode and attributes
+  let bgColor = '';
+  if (isCandidate) {
+    bgColor = 'hsl(217, 89%, 61%)'; // Blue
+  } else {
+    const job = item as Job;
+    bgColor = job.job_category === 'government' ? 'hsl(152, 69%, 31%)' : 'hsl(4, 90%, 58%)'; // Green or Red
+  }
+
+  return (
+    <OverlayView
+      position={{ lat: item.latitude, lng: item.longitude }}
+      mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+      getPixelPositionOffset={(width, height) => ({
+        x: -(width / 2),
+        y: -height, // Anchor to bottom center like Leaflet's [16, 32]
+      })}
+    >
+      <div
+        onClick={onClick}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        style={{
+          width: size,
+          height: size,
+          background: bgColor,
+          border: '3px solid white',
+          borderRadius: '50%',
+          boxShadow: `0 ${isHovered ? '4px 12px' : '2px 8px'} rgba(0,0,0,${isHovered ? '0.4' : '0.3'})`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'all 0.2s ease',
+          transform: isHovered ? 'scale(1.1)' : 'scale(1)',
+          cursor: 'pointer',
+          zIndex: isHovered ? 1000 : 1
+        }}
+      >
+        {isCandidate ? (
+          <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        ) : (
+          <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+            <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+            <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+          </svg>
+        )}
+      </div>
+    </OverlayView>
+  );
+};
+// -------------------------------------------------------------
+
 // Inner component that only renders when we have the API key
 const GoogleMapInner = ({
   mode,
@@ -46,9 +126,47 @@ const GoogleMapInner = ({
   radius,
   onMarkerClick,
   selectedItem,
+  isEmployer,
+  centerTrigger = 0,
   apiKey,
 }: GoogleMapContainerProps & { apiKey: string }) => {
   const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [hoveredItem, setHoveredItem] = useState<Candidate | Job | null>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const navigate = useNavigate();
+
+  const handleMouseEnter = (item: Candidate | Job) => {
+    if (hoverTimeoutRef.current) {
+      clearTimeout(hoverTimeoutRef.current);
+      hoverTimeoutRef.current = null;
+    }
+    setHoveredItem(item);
+  };
+
+  const handleMouseLeave = () => {
+    hoverTimeoutRef.current = setTimeout(() => {
+      setHoveredItem(null);
+    }, 300); // 300ms buffer to allow mouse to move into popup
+  };
+
+  // Helper to format relative time
+  const formatTimeAgo = (dateString: string): string => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays}d ago`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+    return `${Math.floor(diffDays / 30)}mo ago`;
+  };
+
+  const isNewJob = (dateString: string): boolean => {
+    const date = new Date(dateString);
+    const now = new Date();
+    return (now.getTime() - date.getTime()) < 24 * 60 * 60 * 1000;
+  };
 
   const { isLoaded, loadError } = useJsApiLoader({
     // Use a key-derived script id to avoid "different options" crashes during hot reloads
@@ -83,6 +201,13 @@ const GoogleMapInner = ({
     }
   }, [map, selectedItem]);
 
+  // Handle center trigger
+  useEffect(() => {
+    if (!map || !userLocation || centerTrigger === 0) return;
+    map.panTo(userLocation);
+    map.setZoom(12);
+  }, [centerTrigger, map, userLocation]);
+
   // Fit bounds when markers change
   useEffect(() => {
     if (!map) return;
@@ -103,19 +228,11 @@ const GoogleMapInner = ({
   }, [map, mode, candidates, jobs, userLocation]);
 
   const items = mode === 'hiring' ? candidates : jobs;
-  
-  // Helper to get marker color based on job category
-  const getMarkerColor = (item: Candidate | Job) => {
-    if (mode === 'hiring') {
-      return '#4285F4'; // Blue for candidates
-    }
-    // For jobs, check if it's a government job
-    const job = item as Job;
-    if (job.job_category === 'government') {
-      return '#10B981'; // Emerald/green for government jobs
-    }
-    return '#EA4335'; // Red for private jobs
-  };
+
+  const mapTypeId = map?.getMapTypeId() || 'roadmap';
+
+  const isSaved = false; // Note: For a robust implementation, pass saved states or fetch them similar to MapContainer
+  const isGovt = hoveredItem && 'job_category' in hoveredItem ? hoveredItem.job_category === 'government' : false;
 
   if (loadError) {
     return (
@@ -143,7 +260,10 @@ const GoogleMapInner = ({
       zoom={userLocation ? 12 : 5}
       onLoad={onLoad}
       onUnmount={onUnmount}
-      options={mapOptions}
+      options={{
+        ...mapOptions,
+        mapTypeId: 'hybrid', // Setting satellite view as requested
+      }}
     >
       {/* User location marker */}
       {userLocation && (
@@ -174,39 +294,244 @@ const GoogleMapInner = ({
         </>
       )}
 
-      {/* Marker Clusterer */}
-      <MarkerClusterer
-        options={{
-          imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m',
-          gridSize: 50,
-          minimumClusterSize: 2,
-        }}
-      >
-        {(clusterer) => (
-          <>
-            {items.map((item) => {
-              const color = getMarkerColor(item);
-              return (
-                <Marker
-                  key={item.id}
-                  position={{ lat: item.latitude, lng: item.longitude }}
-                  onClick={() => onMarkerClick(item)}
-                  clusterer={clusterer}
-                  icon={{
-                    path: 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z',
-                    fillColor: color,
-                    fillOpacity: 1,
-                    strokeColor: '#ffffff',
-                    strokeWeight: 2,
-                    scale: 1.5,
-                    anchor: new google.maps.Point(12, 24),
-                  }}
-                />
-              );
-            })}
-          </>
-        )}
-      </MarkerClusterer>
+      {/* Map Items mapped manually as Custom HTML Overlays */}
+      {items.map((item) => (
+        <CustomMarker
+          key={item.id}
+          item={item}
+          mode={mode}
+          isHovered={hoveredItem?.id === item.id}
+          onClick={() => onMarkerClick(item)}
+          onMouseEnter={() => handleMouseEnter(item)}
+          onMouseLeave={handleMouseLeave}
+        />
+      ))}
+
+      {/* InfoWindow for hover preview */}
+      {hoveredItem && (
+        <InfoWindow
+          position={{ lat: hoveredItem.latitude, lng: hoveredItem.longitude }}
+          options={{ disableAutoPan: true, pixelOffset: new google.maps.Size(0, -32) }}
+          onCloseClick={() => setHoveredItem(null)}
+        >
+          <div
+            onMouseEnter={() => {
+              if (hoverTimeoutRef.current) {
+                clearTimeout(hoverTimeoutRef.current);
+                hoverTimeoutRef.current = null;
+              }
+            }}
+            onMouseLeave={handleMouseLeave}
+            style={{
+              minWidth: '280px',
+              maxWidth: '320px',
+              fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+              background: 'white',
+              borderRadius: '16px',
+              overflow: 'hidden',
+              boxShadow: '0 4px 24px rgba(0, 0, 0, 0.12)',
+            }}>
+            {mode === 'hiring' ? (
+              // Candidate Preview
+              <>
+                <div style={{ padding: '16px 16px 12px', display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+                  {(hoveredItem as Candidate).avatar_url ? (
+                    <img
+                      src={(hoveredItem as Candidate).avatar_url}
+                      alt={(hoveredItem as Candidate).full_name}
+                      style={{ width: '48px', height: '48px', borderRadius: '12px', objectFit: 'cover', border: '2px solid hsl(217, 89%, 85%)' }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: '48px', height: '48px', borderRadius: '12px',
+                      background: 'hsl(217, 89%, 95%)', display: 'flex',
+                      alignItems: 'center', justifyContent: 'center',
+                      color: 'hsl(217, 89%, 61%)', fontWeight: 600, fontSize: '18px'
+                    }}>
+                      {(hoveredItem as Candidate).full_name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'C'}
+                    </div>
+                  )}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'hsl(220, 9%, 15%)', lineHeight: 1.3, fontFamily: "'Playfair Display', Georgia, serif" }}>
+                      {(hoveredItem as Candidate).full_name}
+                    </h4>
+                    <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'hsl(217, 89%, 61%)', fontWeight: 500 }}>
+                      {(hoveredItem as Candidate).job_title || 'Job Seeker'}
+                    </p>
+                  </div>
+                  {isEmployer && (
+                    <button style={{
+                      width: '36px', height: '36px', padding: 0, border: 'none', borderRadius: '8px', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s ease', flexShrink: 0,
+                      background: isSaved ? 'hsl(45, 93%, 95%)' : 'hsl(220, 14%, 96%)'
+                    }}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill={isSaved ? "hsl(45, 93%, 47%)" : "none"} stroke={isSaved ? "hsl(45, 93%, 47%)" : "hsl(220, 9%, 46%)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+
+                {isEmployer ? (
+                  <div style={{ padding: '0 16px 14px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {(hoveredItem as Candidate).experience_years && (
+                      <span style={{ padding: '6px 12px', background: 'hsl(217, 89%, 95%)', color: 'hsl(217, 89%, 45%)', fontSize: '12px', borderRadius: '6px', fontWeight: 500 }}>
+                        {(hoveredItem as Candidate).experience_years}+ years
+                      </span>
+                    )}
+                    {(hoveredItem as Candidate).skills && (hoveredItem as Candidate).skills!.length > 0 && (
+                      <span style={{ padding: '6px 12px', background: 'hsl(142, 70%, 95%)', color: 'hsl(142, 76%, 30%)', fontSize: '12px', borderRadius: '6px', fontWeight: 600 }}>
+                        {(hoveredItem as Candidate).skills!.length} skills
+                      </span>
+                    )}
+                    {(hoveredItem as Candidate).distance_km !== undefined && (
+                      <span style={{ padding: '6px 12px', background: 'hsl(4, 90%, 95%)', color: 'hsl(4, 90%, 50%)', fontSize: '12px', borderRadius: '6px', fontWeight: 500 }}>
+                        {(hoveredItem as Candidate).distance_km?.toFixed(1)} km
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ padding: '0 16px 14px' }}>
+                    <p style={{ margin: 0, fontSize: '12px', color: 'hsl(220, 9%, 46%)', lineHeight: 1.5 }}>Sign in as an employer to view full profile details</p>
+                  </div>
+                )}
+
+                <div style={{ padding: '12px 16px', borderTop: '1px solid hsl(220, 13%, 93%)', display: 'flex', gap: '8px' }}>
+                  {isEmployer ? (
+                    <>
+                      <button
+                        onClick={() => { navigate(`/candidates/${hoveredItem.id}?action=contact`); }}
+                        style={{
+                          flex: 1, padding: '10px 16px', background: 'hsl(217, 89%, 61%)', color: 'white', border: 'none', borderRadius: '8px',
+                          fontSize: '13px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
+                        }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                        </svg>
+                        Contact
+                      </button>
+                      <button
+                        onClick={() => { navigate(`/candidates/${hoveredItem.id}`); }}
+                        style={{
+                          padding: '10px 16px', background: 'hsl(220, 14%, 96%)', color: 'hsl(220, 9%, 35%)', border: 'none', borderRadius: '8px',
+                          fontSize: '13px', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
+                        }}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+                        </svg>
+                        View
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => { navigate(`/candidates/${hoveredItem.id}`); }}
+                      style={{
+                        flex: 1, padding: '10px 16px', background: 'hsl(217, 89%, 61%)', color: 'white', border: 'none', borderRadius: '8px',
+                        fontSize: '13px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px'
+                      }}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" /><polyline points="10 17 15 12 10 7" /><line x1="15" y1="12" x2="3" y2="12" />
+                      </svg>
+                      Sign In to View
+                    </button>
+                  )}
+                </div>
+              </>
+            ) : (
+              // Job Preview
+              <>
+                <div style={{ height: '4px', background: isGovt ? 'hsl(152, 69%, 31%)' : 'hsl(4, 90%, 58%)' }}></div>
+
+                <div style={{ padding: '14px 16px 10px', display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+                  <div style={{ position: 'relative', width: '48px', height: '48px', borderRadius: '12px', background: isGovt ? 'hsl(152, 69%, 95%)' : 'hsl(4, 90%, 95%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill={isGovt ? 'hsl(152, 69%, 31%)' : 'hsl(4, 90%, 58%)'} stroke="none">
+                      <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" fill={isGovt ? 'hsl(152, 69%, 95%)' : 'hsl(4, 90%, 95%)'} />
+                    </svg>
+                    {(hoveredItem as any).employers?.verification_status === 'approved' && (
+                      <div style={{ position: 'absolute', bottom: '-4px', right: '-4px', background: 'white', borderRadius: '50%', padding: '2px' }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#16a34a" stroke="white" strokeWidth="2">
+                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'hsl(220, 9%, 15%)', lineHeight: 1.3, fontFamily: "'Playfair Display', Georgia, serif", flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {(hoveredItem as Job).title}
+                      </h4>
+                      {(hoveredItem as Job).created_at && isNewJob((hoveredItem as Job).created_at) && (
+                        <span style={{ padding: '2px 8px', background: 'hsl(45, 93%, 47%)', color: 'white', fontSize: '10px', borderRadius: '4px', fontWeight: 700, letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>
+                          NEW
+                        </span>
+                      )}
+                    </div>
+                    <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'hsl(220, 9%, 46%)' }}>{(hoveredItem as Job).company_name || 'Company'}</p>
+                  </div>
+                  <button style={{
+                    width: '36px', height: '36px', padding: 0, border: 'none', borderRadius: '8px', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s ease', flexShrink: 0,
+                    background: isSaved ? 'hsl(45, 93%, 95%)' : 'hsl(220, 14%, 96%)'
+                  }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill={isSaved ? "hsl(45, 93%, 47%)" : "none"} stroke={isSaved ? "hsl(45, 93%, 47%)" : "hsl(220, 9%, 46%)"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                    </svg>
+                  </button>
+                </div>
+
+                <div style={{ padding: '0 16px 14px', display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+                  {(hoveredItem as Job).job_type && (
+                    <span style={{ padding: '6px 12px', background: 'hsl(220, 14%, 96%)', color: 'hsl(220, 9%, 35%)', fontSize: '12px', borderRadius: '6px', fontWeight: 500 }}>
+                      {(hoveredItem as Job).job_type}
+                    </span>
+                  )}
+                  {(hoveredItem as Job).salary_range && (
+                    <span style={{ padding: '6px 12px', background: 'hsl(142, 70%, 95%)', color: 'hsl(142, 76%, 30%)', fontSize: '12px', borderRadius: '6px', fontWeight: 600 }}>
+                      ₹{(hoveredItem as Job).salary_range}
+                    </span>
+                  )}
+                  {(hoveredItem as Job).distance_km !== undefined && (
+                    <span style={{ padding: '6px 12px', background: 'hsl(4, 90%, 95%)', color: 'hsl(4, 90%, 50%)', fontSize: '12px', borderRadius: '6px', fontWeight: 500 }}>
+                      {(hoveredItem as Job).distance_km?.toFixed(1)} km
+                    </span>
+                  )}
+                  {(hoveredItem as Job).created_at && (
+                    <span style={{ marginLeft: 'auto', fontSize: '11px', color: 'hsl(220, 9%, 56%)' }}>
+                      {formatTimeAgo((hoveredItem as Job).created_at)}
+                    </span>
+                  )}
+                </div>
+
+                <div style={{ padding: '12px 16px', borderTop: '1px solid hsl(220, 13%, 93%)', display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={() => { navigate(`/jobs/${hoveredItem.id}?action=apply`); }}
+                    style={{
+                      flex: 1, padding: '10px 16px', background: 'hsl(4, 90%, 58%)', color: 'white', border: 'none', borderRadius: '8px',
+                      fontSize: '13px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: 'all 0.15s ease'
+                    }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" />
+                    </svg>
+                    Apply Now
+                  </button>
+                  <button
+                    onClick={() => { navigate(`/jobs/${hoveredItem.id}`); }}
+                    style={{
+                      padding: '10px 16px', background: 'hsl(220, 14%, 96%)', color: 'hsl(220, 9%, 35%)', border: 'none', borderRadius: '8px',
+                      fontSize: '13px', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', transition: 'all 0.15s ease'
+                    }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
+                    </svg>
+                    View
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </InfoWindow>
+      )}
     </GoogleMap>
   );
 };
@@ -220,6 +545,8 @@ export const GoogleMapContainer = ({
   radius,
   onMarkerClick,
   selectedItem,
+  isEmployer,
+  centerTrigger,
 }: GoogleMapContainerProps) => {
   const { apiKey, loading: keyLoading, error: keyError } = useGoogleMapsKey();
 
@@ -256,6 +583,8 @@ export const GoogleMapContainer = ({
         radius={radius}
         onMarkerClick={onMarkerClick}
         selectedItem={selectedItem}
+        isEmployer={isEmployer}
+        centerTrigger={centerTrigger}
         apiKey={apiKey}
       />
     </GoogleMapsLoaderBoundary>

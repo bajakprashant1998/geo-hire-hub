@@ -135,9 +135,9 @@ export const LeftSidebarPanel = ({
         </Link>
         {onClose && (
           <Tooltip><TooltipTrigger asChild>
-          <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 rounded-lg">
-            <X className="w-4 h-4" />
-          </Button>
+            <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 rounded-lg">
+              <X className="w-4 h-4" />
+            </Button>
           </TooltipTrigger><TooltipContent>Close panel</TooltipContent></Tooltip>
         )}
       </div>
@@ -184,10 +184,10 @@ export const LeftSidebarPanel = ({
                       to={item.href}
                       className="flex flex-col items-center gap-1 p-2 rounded-lg hover:bg-muted/60 transition-colors group"
                     >
-                      <div className="w-8 h-8 rounded-lg bg-muted/50 group-hover:bg-primary/10 flex items-center justify-center transition-colors">
+                      <div className="w-8 h-8 rounded-lg bg-muted/50 group-hover:bg-primary/10 flex items-center justify-center transition-colors shrink-0">
                         <item.icon className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary transition-colors" />
                       </div>
-                      <span className="text-[9px] font-medium text-muted-foreground group-hover:text-foreground transition-colors">{item.label}</span>
+                      <span className="text-[9px] font-medium text-muted-foreground group-hover:text-foreground transition-colors truncate w-full text-center px-0.5">{item.label}</span>
                     </Link>
                   ))}
                 </div>

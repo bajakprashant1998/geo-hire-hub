@@ -9,10 +9,18 @@ export function useGoogleMapsKey() {
   useEffect(() => {
     async function fetchApiKey() {
       try {
+        // Allow overriding the key with a local environment variable during local development
+        const localKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+        if (localKey) {
+          setApiKey(localKey);
+          setLoading(false);
+          return;
+        }
+
         const { data, error } = await supabase.functions.invoke('get-google-maps-key');
-        
+
         if (error) throw error;
-        
+
         if (data?.apiKey) {
           setApiKey(data.apiKey);
         } else {

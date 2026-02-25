@@ -54,6 +54,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.hireforjob.com/jobs/full-stack-developer</loc>
+    <lastmod>2026-02-25</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://www.hireforjob.com/jobs/seo-specialist</loc>
     <lastmod>2026-02-19</lastmod>
     <changefreq>daily</changefreq>
@@ -84,14 +90,14 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://www.hireforjob.com/companies/digital-bull-technology-pvt-ltd</loc>
-    <lastmod>2026-02-19</lastmod>
+    <loc>https://www.hireforjob.com/companies/social-offerz</loc>
+    <lastmod>2026-02-23</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://www.hireforjob.com/companies/weaving</loc>
-    <lastmod>2026-02-20</lastmod>
+    <loc>https://www.hireforjob.com/companies/digital-marketing-agency</loc>
+    <lastmod>2026-02-21</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -114,14 +120,32 @@
     <priority>0.6</priority>
   </url>
   <url>
+    <loc>https://www.hireforjob.com/companies/my-company-10</loc>
+    <lastmod>2026-02-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://www.hireforjob.com/companies/test-company</loc>
-    <lastmod>2026-02-20</lastmod>
+    <lastmod>2026-02-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.hireforjob.com/companies/digital-web-solutions</loc>
-    <lastmod>2026-02-21</lastmod>
+    <lastmod>2026-02-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.hireforjob.com/companies/digital-bull-technology-pvt-ltd</loc>
+    <lastmod>2026-02-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.hireforjob.com/companies/smarttax-solutions</loc>
+    <lastmod>2026-02-25</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>

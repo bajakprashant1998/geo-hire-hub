@@ -56,11 +56,11 @@ export const SearchBar = ({ onSearch, placeholder = 'Search...', className, onLo
     const value = e.target.value;
     setQuery(value);
     setShowSuggestions(true);
-    
+
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }
-    
+
     debounceRef.current = setTimeout(() => {
       onSearch(value);
     }, 300);
@@ -86,14 +86,14 @@ export const SearchBar = ({ onSearch, placeholder = 'Search...', className, onLo
 
   return (
     <div className={cn("relative w-full", className)}>
-      <form 
+      <form
         onSubmit={handleSubmit}
         className={cn(
           "w-full bg-background rounded-xl border",
           "px-4 py-2.5 flex items-center gap-3",
           "transition-all duration-200",
-          isFocused 
-            ? 'border-primary ring-2 ring-primary/20 shadow-md' 
+          isFocused
+            ? 'border-primary ring-2 ring-primary/20 shadow-md'
             : 'border-border hover:border-muted-foreground/30 shadow-sm'
         )}
       >
@@ -101,7 +101,7 @@ export const SearchBar = ({ onSearch, placeholder = 'Search...', className, onLo
           "w-4 h-4 flex-shrink-0 transition-colors",
           isFocused ? "text-primary" : "text-muted-foreground"
         )} />
-        
+
         <input
           ref={inputRef}
           type="text"
@@ -156,15 +156,15 @@ export const SearchBar = ({ onSearch, placeholder = 'Search...', className, onLo
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -5 }}
-            className="absolute top-full left-0 right-0 mt-1.5 px-1 z-50"
+            className="mt-1.5 px-1 w-full"
           >
             <div className={cn(
               "text-xs px-3 py-1.5 rounded-lg",
-              resultCount > 0 
-                ? "text-muted-foreground bg-muted/50" 
+              resultCount > 0
+                ? "text-muted-foreground bg-muted/50"
                 : "text-destructive bg-destructive/10"
             )}>
-              {resultCount > 0 
+              {resultCount > 0
                 ? `${resultCount} result${resultCount !== 1 ? 's' : ''} found`
                 : 'No results found — try a different search'
               }

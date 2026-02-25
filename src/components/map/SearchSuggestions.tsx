@@ -14,11 +14,11 @@ interface SearchSuggestionsProps {
   currentQuery: string;
 }
 
-export const SearchSuggestions = ({ 
-  isVisible, 
-  onSelect, 
+export const SearchSuggestions = ({
+  isVisible,
+  onSelect,
   onClose,
-  currentQuery 
+  currentQuery
 }: SearchSuggestionsProps) => {
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [dbSuggestions, setDbSuggestions] = useState<{ title: string; type: 'job' | 'category' }[]>([]);
@@ -105,8 +105,8 @@ export const SearchSuggestions = ({
 
   const filteredRecent = currentQuery
     ? recentSearches.filter(s =>
-        s.toLowerCase().includes(currentQuery.toLowerCase())
-      )
+      s.toLowerCase().includes(currentQuery.toLowerCase())
+    )
     : recentSearches;
 
   const popularSearches = [
@@ -120,10 +120,10 @@ export const SearchSuggestions = ({
     'Sales Executive',
   ];
 
-  const filteredPopular = currentQuery 
-    ? popularSearches.filter(s => 
-        s.toLowerCase().includes(currentQuery.toLowerCase())
-      )
+  const filteredPopular = currentQuery
+    ? popularSearches.filter(s =>
+      s.toLowerCase().includes(currentQuery.toLowerCase())
+    )
     : popularSearches.slice(0, 6);
 
   if (!isVisible) return null;
@@ -138,11 +138,11 @@ export const SearchSuggestions = ({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
         className={cn(
-          "absolute top-full left-0 right-0 mt-2",
+          "mt-2 w-full",
           "bg-card/98 backdrop-blur-xl rounded-2xl",
-          "border border-border/50 shadow-2xl",
+          "border border-border/50 shadow-sm",
           "max-h-[60vh] overflow-y-auto",
-          "z-50"
+          "z-10"
         )}
       >
         {/* DB Suggestions */}
@@ -283,10 +283,10 @@ export const SearchSuggestions = ({
 // Utility to save a search to recent
 export const saveRecentSearch = (query: string) => {
   if (!query.trim()) return;
-  
+
   const stored = localStorage.getItem(STORAGE_KEY);
   let recent: string[] = [];
-  
+
   try {
     recent = stored ? JSON.parse(stored) : [];
   } catch {

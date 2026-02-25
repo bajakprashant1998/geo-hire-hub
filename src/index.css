@@ -135,7 +135,12 @@
   }
 
   /* Clean modern sans-serif headings */
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-weight: 700;
     line-height: 1.2;
@@ -174,12 +179,22 @@
   }
 
   /* Navigation and UI elements use clean sans-serif */
-  nav, nav a, nav button,
-  button, .btn, [role="button"],
-  input, select, textarea,
-  label, .label,
-  th, thead,
-  .badge, .tab, .chip {
+  nav,
+  nav a,
+  nav button,
+  button,
+  .btn,
+  [role="button"],
+  input,
+  select,
+  textarea,
+  label,
+  .label,
+  th,
+  thead,
+  .badge,
+  .tab,
+  .chip {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     letter-spacing: -0.01em;
   }
@@ -191,17 +206,23 @@
   }
 
   /* Strong/bold text */
-  strong, b {
+  strong,
+  b {
     font-weight: 600;
   }
 
   /* Smooth transitions */
-  button, a, input, select, textarea {
+  button,
+  a,
+  input,
+  select,
+  textarea {
     transition: all 0.2s ease-in-out;
   }
 }
 
 @layer components {
+
   /* Google-style elevated card */
   .card-google {
     @apply bg-card rounded-xl border-0;
@@ -326,152 +347,7 @@
   }
 }
 
-/* Leaflet customizations */
-.leaflet-container {
-  background: hsl(var(--background));
-  font-family: 'Inter', -apple-system, sans-serif;
-  z-index: 0 !important;
-}
 
-.leaflet-pane {
-  z-index: 1 !important;
-}
-
-.leaflet-tile-pane {
-  z-index: 1 !important;
-}
-
-.leaflet-overlay-pane {
-  z-index: 2 !important;
-}
-
-.leaflet-shadow-pane {
-  z-index: 3 !important;
-}
-
-.leaflet-marker-pane {
-  z-index: 4 !important;
-}
-
-.leaflet-tooltip-pane {
-  z-index: 5 !important;
-}
-
-.leaflet-popup-pane {
-  z-index: 50 !important;
-}
-
-.leaflet-control-container {
-  z-index: 50 !important;
-}
-
-.leaflet-top,
-.leaflet-bottom {
-  z-index: 50 !important;
-}
-
-.leaflet-popup-content-wrapper {
-  padding: 0;
-  border-radius: 16px;
-  box-shadow: var(--shadow-xl);
-  background: hsl(var(--card));
-  border: none;
-}
-
-.leaflet-popup-content {
-  margin: 0;
-  min-width: 300px;
-}
-
-.leaflet-popup-tip {
-  background: hsl(var(--card));
-  box-shadow: var(--shadow-sm);
-}
-
-.leaflet-popup-close-button {
-  display: none;
-}
-
-.leaflet-control-zoom {
-  border: none !important;
-  box-shadow: var(--shadow-md) !important;
-  border-radius: 12px !important;
-  overflow: hidden;
-  margin-right: 12px !important;
-  margin-bottom: 120px !important;
-}
-
-.leaflet-control-zoom a {
-  background: hsl(var(--card)) !important;
-  color: hsl(var(--foreground)) !important;
-  border: none !important;
-  border-bottom: 1px solid hsl(var(--border)) !important;
-  width: 42px !important;
-  height: 42px !important;
-  line-height: 42px !important;
-  font-size: 18px !important;
-  font-family: 'Open Sans', sans-serif !important;
-  transition: background 0.2s ease !important;
-}
-
-.leaflet-control-zoom a:last-child {
-  border-bottom: none !important;
-}
-
-.leaflet-control-zoom a:hover {
-  background: hsl(var(--muted)) !important;
-}
-
-/* Marker cluster styles */
-.marker-cluster {
-  background-clip: padding-box;
-  border-radius: 50%;
-}
-
-.marker-cluster div {
-  width: 32px;
-  height: 32px;
-  margin-left: 4px;
-  margin-top: 4px;
-  text-align: center;
-  border-radius: 50%;
-  font-size: 13px;
-  font-weight: 600;
-  font-family: 'Open Sans', sans-serif;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-}
-
-.marker-cluster-candidate {
-  background: hsla(217, 89%, 61%, 0.25);
-  animation: pulse-cluster 2s infinite;
-}
-
-.marker-cluster-candidate div {
-  background: hsl(217, 89%, 61%);
-  box-shadow: 0 2px 8px hsla(217, 89%, 61%, 0.4);
-}
-
-.marker-cluster-job {
-  background: hsla(5, 81%, 56%, 0.25);
-  animation: pulse-cluster 2s infinite;
-}
-
-.marker-cluster-job div {
-  background: hsl(5, 81%, 56%);
-  box-shadow: 0 2px 8px hsla(5, 81%, 56%, 0.4);
-}
-
-@keyframes pulse-cluster {
-  0%, 100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.08);
-  }
-}
 
 /* Float-in animation */
 @keyframes float-in {
@@ -479,6 +355,7 @@
     opacity: 0;
     transform: translateY(12px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -528,10 +405,24 @@
   color: hsl(var(--primary-foreground));
 }
 
-.bg-primary h1, .bg-primary h2, .bg-primary h3, .bg-primary h4, .bg-primary h5, .bg-primary h6,
-.bg-primary p, .bg-primary span, .bg-primary div,
-.bg-google-blue h1, .bg-google-blue h2, .bg-google-blue h3, .bg-google-blue h4, .bg-google-blue h5, .bg-google-blue h6,
-.bg-google-blue p, .bg-google-blue span, .bg-google-blue div {
+.bg-primary h1,
+.bg-primary h2,
+.bg-primary h3,
+.bg-primary h4,
+.bg-primary h5,
+.bg-primary h6,
+.bg-primary p,
+.bg-primary span,
+.bg-primary div,
+.bg-google-blue h1,
+.bg-google-blue h2,
+.bg-google-blue h3,
+.bg-google-blue h4,
+.bg-google-blue h5,
+.bg-google-blue h6,
+.bg-google-blue p,
+.bg-google-blue span,
+.bg-google-blue div {
   color: inherit;
 }
 
@@ -542,11 +433,64 @@
   color: hsl(var(--destructive-foreground));
 }
 
-.bg-destructive h1, .bg-destructive h2, .bg-destructive h3, .bg-destructive h4, .bg-destructive h5, .bg-destructive h6,
-.bg-destructive p, .bg-destructive span, .bg-destructive div,
-.bg-google-red h1, .bg-google-red h2, .bg-google-red h3, .bg-google-red h4, .bg-google-red h5, .bg-google-red h6,
-.bg-google-red p, .bg-google-red span, .bg-google-red div {
+.bg-destructive h1,
+.bg-destructive h2,
+.bg-destructive h3,
+.bg-destructive h4,
+.bg-destructive h5,
+.bg-destructive h6,
+.bg-destructive p,
+.bg-destructive span,
+.bg-destructive div,
+.bg-google-red h1,
+.bg-google-red h2,
+.bg-google-red h3,
+.bg-google-red h4,
+.bg-google-red h5,
+.bg-google-red h6,
+.bg-google-red p,
+.bg-google-red span,
+.bg-google-red div {
   color: inherit;
+}
+
+/* ================================================
+   GOOGLE MAPS CUSTOMIZATIONS
+   ================================================ */
+
+/* Override default InfoWindow padding and styling to match the modern flush design */
+.gm-style .gm-style-iw {
+  padding: 0 !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+.gm-style .gm-style-iw-c {
+  padding: 0 !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+.gm-style .gm-style-iw-d {
+  overflow: visible !important;
+  max-height: none !important;
+  padding: 0 !important;
+}
+
+/* Hide the default Google Maps close button entirely */
+.gm-style .gm-style-iw-c>button {
+  display: none !important;
+}
+
+/* Hide the Google Maps InfoWindow tail/pointer (optional, but requested for the exact look) */
+.gm-style .gm-style-iw-tc::after {
+  display: none !important;
+}
+
+.gm-style .gm-style-iw-t::after {
+  display: none !important;
 }
 
 /* ================================================
@@ -665,28 +609,30 @@
   0% {
     background-position: -200% 0;
   }
+
   100% {
     background-position: 200% 0;
   }
 }
 
 .skeleton-shimmer {
-  background: linear-gradient(
-    90deg,
-    hsl(var(--muted)) 0%,
-    hsl(var(--muted-foreground) / 0.1) 50%,
-    hsl(var(--muted)) 100%
-  );
+  background: linear-gradient(90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--muted-foreground) / 0.1) 50%,
+      hsl(var(--muted)) 100%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
 /* Pulse animation for live indicators */
 @keyframes pulse-live {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.6;
     transform: scale(1.1);
@@ -702,8 +648,8 @@
   @apply flex flex-col gap-2 sm:flex-row;
 }
 
-.btn-group-mobile > button,
-.btn-group-mobile > a {
+.btn-group-mobile>button,
+.btn-group-mobile>a {
   @apply w-full sm:w-auto;
 }
 
@@ -726,8 +672,8 @@
   .action-buttons-stack {
     @apply flex-col items-stretch;
   }
-  
-  .action-buttons-stack > * {
+
+  .action-buttons-stack>* {
     @apply w-full justify-center;
   }
 }
@@ -756,22 +702,7 @@
   }
 }
 
-/* Improved popup touch handling */
-.leaflet-popup-content-wrapper {
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
 
-/* Ensure popups don't close accidentally on mobile */
-@media (max-width: 767px) {
-  .leaflet-popup {
-    touch-action: none;
-  }
-  
-  .leaflet-popup-content {
-    touch-action: pan-y;
-  }
-}
 
 /* Enhanced card hover/tap states */
 .interactive-card {
@@ -809,12 +740,12 @@
   .messages-header-mobile {
     @apply flex-col gap-2;
   }
-  
+
   .messages-actions-mobile {
     @apply flex-col gap-2 w-full;
   }
-  
-  .messages-actions-mobile > button {
+
+  .messages-actions-mobile>button {
     @apply w-full justify-center text-xs px-3 py-2;
   }
 }
@@ -827,6 +758,7 @@
   from {
     transform: translateY(100%);
   }
+
   to {
     transform: translateY(0);
   }
@@ -836,6 +768,7 @@
   from {
     transform: translateY(0);
   }
+
   to {
     transform: translateY(100%);
   }
@@ -863,6 +796,7 @@
 
 /* Reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {
@@ -871,7 +805,7 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  
+
   .skeleton-shimmer {
     animation: none;
     background: hsl(var(--muted));
@@ -884,7 +818,7 @@
     background: hsl(var(--card));
     border: 2px solid hsl(var(--border));
   }
-  
+
   .touch-target,
   .touch-target-sm,
   .touch-target-lg {
