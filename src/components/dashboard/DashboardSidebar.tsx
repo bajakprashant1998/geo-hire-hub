@@ -94,7 +94,7 @@ const SectionLabel = ({ label }: { label: string }) => (
   </div>
 );
 
-const ACTIVITY_ITEMS = ['jobs', 'messages', 'chat', 'interviews', 'tasks', 'saved', 'recommended', 'candidates', 'drafts', 'career-buddy', 'auto-apply'];
+const ACTIVITY_ITEMS = ['job-radar', 'jobs', 'messages', 'chat', 'interviews', 'tasks', 'saved', 'recommended', 'candidates', 'drafts', 'career-buddy', 'auto-apply'];
 const PROFILE_ITEMS = ['resume', 'audio-resume', 'ai-resume', 'profile', 'public-profile', 'company', 'analytics'];
 const SETTINGS_ITEMS = ['notifications', 'alerts', 'security', 'upgrade-plan', 'salary-insights'];
 

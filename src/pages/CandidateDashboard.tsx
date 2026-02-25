@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import {
   Briefcase, Bell, Shield, FileText, Sparkles, Loader2,
   Eye, Calendar, Star, ChevronRight, User, MessageSquare, Bookmark, Mic,
-  MapPin, TrendingUp, Zap, DollarSign, Bot
+  MapPin, TrendingUp, Zap, DollarSign, Bot, Radar
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -40,6 +40,7 @@ import { ProfileCompletionPrompts } from '@/components/candidate/ProfileCompleti
 import { DashboardBottomNav } from '@/components/dashboard/DashboardBottomNav';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 import { AutoApplyManager } from '@/components/candidate/AutoApplyManager';
+import { JobRadar } from '@/components/candidate/JobRadar';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { motion } from 'framer-motion';
 import { lazy, Suspense } from 'react';
@@ -189,6 +190,7 @@ const CandidateDashboard = () => {
   };
 
   const sidebarItems = [
+    { icon: Radar, label: 'Job Radar', value: 'job-radar' },
     { icon: Briefcase, label: 'My Applications', value: 'jobs', badge: stats.applications },
     { icon: MessageSquare, label: 'Messages', value: 'messages', badge: stats.unreadMessages },
     { icon: Calendar, label: 'Interviews', value: 'interviews', badge: stats.interviews },
@@ -453,6 +455,7 @@ const CandidateDashboard = () => {
         <RecommendedJobs candidateId={candidate.id} skills={candidate.skills || []} latitude={profile.latitude} longitude={profile.longitude} />
       );
       case 'auto-apply': return candidate && <AutoApplyManager candidateId={candidate.id} />;
+      case 'job-radar': return candidate && <JobRadar candidateId={candidate.id} candidate={candidate} profile={profile} />;
       case 'salary-insights': return <SalaryInsights />;
       case 'career-buddy': return <CareerBuddyChat />;
       case 'ai-resume': return (
