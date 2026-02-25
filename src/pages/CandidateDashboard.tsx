@@ -240,19 +240,103 @@ const CandidateDashboard = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-secondary flex items-center justify-center p-4">
-        <Card className="w-full max-w-md shadow-xl border-0">
-          <CardContent className="p-8 text-center">
-            <div className="w-20 h-20 bg-primary rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <User className="w-10 h-10 text-primary-foreground" />
-            </div>
-            <h2 className="text-2xl font-bold mb-3 text-foreground">Welcome to Hire for Job</h2>
-            <p className="text-muted-foreground mb-8">Sign in to access your personalized dashboard</p>
-            <Button onClick={() => navigate('/login')} className="w-full h-12" size="lg">
-              Sign In to Continue
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/10 flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/4 -left-20 w-72 h-72 bg-primary/8 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
+          <div className="absolute top-10 right-1/4 w-40 h-40 bg-primary/5 rounded-full blur-2xl" />
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 80, damping: 20 }}
+          className="relative z-10 w-full max-w-md"
+        >
+          <Card className="shadow-2xl border border-border/50 backdrop-blur-sm bg-card/95 rounded-3xl overflow-hidden">
+            {/* Gradient accent strip */}
+            <div className="h-1.5 bg-gradient-to-r from-primary via-primary/70 to-accent" />
+
+            <CardContent className="p-8 sm:p-10 text-center">
+              {/* Animated icon */}
+              <motion.div
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ delay: 0.15, type: 'spring', stiffness: 200, damping: 15 }}
+                className="relative mx-auto mb-8 w-24 h-24"
+              >
+                <div className="absolute inset-0 bg-primary/15 rounded-3xl rotate-6" />
+                <div className="absolute inset-0 bg-primary/10 rounded-3xl -rotate-3" />
+                <div className="relative w-full h-full bg-primary rounded-3xl flex items-center justify-center shadow-lg shadow-primary/25">
+                  <Briefcase className="w-11 h-11 text-primary-foreground" />
+                </div>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+              >
+                <h2 className="text-2xl sm:text-3xl font-bold mb-2 text-foreground tracking-tight">
+                  Welcome Back
+                </h2>
+                <p className="text-muted-foreground mb-8 text-base">
+                  Sign in to access your personalized dashboard, track applications, and discover opportunities.
+                </p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35 }}
+                className="space-y-3"
+              >
+                <Button
+                  onClick={() => navigate('/login')}
+                  className="w-full h-13 text-base font-semibold rounded-xl shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
+                  size="lg"
+                >
+                  Sign In to Continue
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+                <Button
+                  onClick={() => navigate('/signup')}
+                  variant="outline"
+                  className="w-full h-12 text-sm rounded-xl border-border/60"
+                  size="lg"
+                >
+                  New here? Create an account
+                </Button>
+              </motion.div>
+
+              {/* Feature highlights */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="mt-8 grid grid-cols-3 gap-3"
+              >
+                {[
+                  { icon: Sparkles, label: 'AI Matching' },
+                  { icon: MapPin, label: 'Local Jobs' },
+                  { icon: Zap, label: 'Auto Apply' },
+                ].map((feat, i) => (
+                  <div key={i} className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-muted/50">
+                    <feat.icon className="w-4 h-4 text-primary" />
+                    <span className="text-[11px] font-medium text-muted-foreground">{feat.label}</span>
+                  </div>
+                ))}
+              </motion.div>
+            </CardContent>
+          </Card>
+
+          <p className="text-center text-xs text-muted-foreground/60 mt-6">
+            By continuing, you agree to our{' '}
+            <Link to="/terms" className="underline hover:text-foreground transition-colors">Terms</Link>{' & '}
+            <Link to="/privacy" className="underline hover:text-foreground transition-colors">Privacy Policy</Link>
+          </p>
+        </motion.div>
       </div>
     );
   }
