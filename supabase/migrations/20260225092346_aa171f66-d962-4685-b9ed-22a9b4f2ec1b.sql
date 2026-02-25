@@ -1,0 +1,30 @@
+
+-- Add modern job portal fields to candidates table
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS notice_period text;
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS work_authorization text;
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS willing_to_relocate boolean DEFAULT false;
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS remote_preference text DEFAULT 'no_preference';
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS date_of_birth date;
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS gender text;
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS current_company text;
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS current_salary text;
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS salary_currency text DEFAULT 'INR';
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS industry_preference text[];
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS cover_letter_default text;
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS video_intro_url text;
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS achievements text[];
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS projects jsonb DEFAULT '[]'::jsonb;
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS references_available boolean DEFAULT false;
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS disability_status text;
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS military_veteran boolean DEFAULT false;
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS driving_license boolean DEFAULT false;
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS marital_status text;
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS nationality text;
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS address_line text;
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS city text;
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS state text;
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS country text;
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS pincode text;
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS hobbies text[];
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS career_objective text;
+ALTER TABLE public.candidates ADD COLUMN IF NOT EXISTS strengths text[];
