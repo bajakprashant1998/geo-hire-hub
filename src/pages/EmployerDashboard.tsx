@@ -548,7 +548,7 @@ const EmployerDashboard = () => {
           />
 
           {/* Main Content */}
-          <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto pb-20 md:pb-6">
+          <main className="flex-1 p-2 sm:p-4 lg:p-6 overflow-y-auto pb-20 md:pb-6">
             {activeSection ? (
               <div className="max-w-6xl mx-auto">
                 <Button
@@ -559,11 +559,15 @@ const EmployerDashboard = () => {
                   <ChevronRight className="w-4 h-4 rotate-180 mr-2" />
                   Back to Dashboard
                 </Button>
-                <Card className="bg-card/70 backdrop-blur-xl shadow-lg border border-border/50 overflow-visible">
-                  <CardContent className="p-2 sm:p-4 md:p-6">
-                    {renderSectionContent()}
-                  </CardContent>
-                </Card>
+                {activeSection === 'candidates' ? (
+                  renderSectionContent()
+                ) : (
+                  <Card className="bg-card/70 backdrop-blur-xl shadow-lg border border-border/50 overflow-visible">
+                    <CardContent className="p-2 sm:p-4 md:p-6">
+                      {renderSectionContent()}
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             ) : (
               <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
