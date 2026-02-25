@@ -53,6 +53,7 @@ const navItems = [
   { href: '/admin/email-templates', label: 'Email Templates', icon: Mail },
   { href: '/admin/content-seo', label: 'Content & SEO', icon: FileText },
   { href: '/admin/system-health', label: 'System Health', icon: Activity },
+  { href: '/admin/auto-apply', label: 'Auto Apply', icon: Activity },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 
