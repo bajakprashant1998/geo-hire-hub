@@ -52,6 +52,7 @@ import AdminModeration from "./pages/admin/AdminModeration";
 import AdminEmailTemplates from "./pages/admin/AdminEmailTemplates";
 import AdminSystemHealth from "./pages/admin/AdminSystemHealth";
 import AdminContentSEO from "./pages/admin/AdminContentSEO";
+import AdminAutoApply from "./pages/admin/AdminAutoApply";
 
 const queryClient = new QueryClient();
 
@@ -144,6 +145,7 @@ const App = () => (
               <Route path="/admin/email-templates" element={<AdminEmailTemplates />} />
               <Route path="/admin/system-health" element={<AdminSystemHealth />} />
               <Route path="/admin/content-seo" element={<AdminContentSEO />} />
+              <Route path="/admin/auto-apply" element={<AdminAutoApply />} />
 
               {/* ==================== REDIRECTS & ALIASES ==================== */}
               <Route path="/dashboard" element={<Navigate to="/candidate-dashboard" replace />} />
