@@ -1031,6 +1031,7 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                 const initials = candidate.fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
                 const isSelected = selectedIds.includes(candidate.applicationId || '');
                 const isTopPick = aiInsights?.topPick?.name?.toLowerCase().includes(candidate.fullName.split(' ')[0].toLowerCase());
+                const timeAgo = candidate.appliedAt ? formatDistanceToNow(new Date(candidate.appliedAt), { addSuffix: false }) : null;
 
                 return (
                   <motion.div
@@ -1041,138 +1042,160 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                     layout
                   >
                     <Card className={cn(
-                      "group transition-all duration-300 hover:shadow-xl relative rounded-2xl border-0 shadow-sm",
-                      isSelected ? "ring-2 ring-primary bg-primary/[0.03] shadow-md" :
-                      isTopPick ? "ring-1 ring-success/30 bg-gradient-to-r from-success/[0.03] to-card hover:ring-success/50" :
-                      "bg-card hover:shadow-lg"
+                      "group transition-all duration-300 relative rounded-2xl border shadow-sm hover:shadow-lg",
+                      isSelected ? "ring-2 ring-primary bg-primary/[0.02] shadow-md border-primary/20" :
+                      isTopPick ? "ring-1 ring-success/30 bg-gradient-to-r from-success/[0.02] via-card to-card hover:ring-success/50 border-success/20" :
+                      "bg-card border-border/40 hover:border-border/60"
                     )}>
-                      {/* AI Top Pick indicator */}
+                      {/* AI Top Pick ribbon */}
                       {isTopPick && (
-                        <div className="absolute -top-px left-5 z-10">
-                          <Badge className="bg-gradient-to-r from-success to-success/80 text-success-foreground text-[9px] font-bold gap-1 shadow-lg border-0 rounded-b-xl rounded-t-none px-3 py-1">
+                        <div className="absolute -top-px left-4 sm:left-5 z-10">
+                          <Badge className="bg-gradient-to-r from-success to-success/80 text-success-foreground text-[9px] font-bold gap-1 shadow-lg border-0 rounded-b-xl rounded-t-none px-2.5 py-1">
                             <Brain className="w-3 h-3" /> AI Top Pick
                           </Badge>
                         </div>
                       )}
 
-                      <CardContent className={cn("p-3 sm:p-5", isTopPick && "pt-5 sm:pt-7")}>
-                        {/* Top row: checkbox + avatar + info */}
-                        <div className="flex items-start gap-3 sm:gap-4">
-                          <Checkbox
-                            checked={isSelected}
-                            onCheckedChange={(checked) => {
-                              if (checked) setSelectedIds([...selectedIds, candidate.applicationId || '']);
-                              else setSelectedIds(selectedIds.filter(id => id !== candidate.applicationId));
-                            }}
-                            className="mt-1.5 shrink-0"
-                          />
+                      <CardContent className={cn("p-0", isTopPick && "pt-2")}>
+                        {/* Main content area */}
+                        <div className="p-3 sm:p-5">
+                          <div className="flex items-start gap-2.5 sm:gap-4">
+                            {/* Checkbox */}
+                            <Checkbox
+                              checked={isSelected}
+                              onCheckedChange={(checked) => {
+                                if (checked) setSelectedIds([...selectedIds, candidate.applicationId || '']);
+                                else setSelectedIds(selectedIds.filter(id => id !== candidate.applicationId));
+                              }}
+                              className="mt-2 shrink-0"
+                            />
 
-                          {/* Avatar with score ring */}
-                          <div className="relative shrink-0 cursor-pointer" onClick={() => setSelectedCandidate(candidate)}>
-                            <Avatar
-                              className={cn("w-12 h-12 sm:w-14 sm:h-14 ring-[3px] shadow-md hover:shadow-lg transition-all duration-200", getScoreRingColor(candidate.matchScore))}
-                            >
-                              <AvatarImage src={candidate.avatarUrl || ''} />
-                              <AvatarFallback className="bg-gradient-to-br from-primary/15 to-primary/5 text-primary font-bold text-xs sm:text-sm">{initials}</AvatarFallback>
-                            </Avatar>
-                            <div className={cn("absolute -bottom-1.5 -right-1.5 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full border-2 border-card shadow-md", getScoreColor(candidate.matchScore))}>
-                              {candidate.matchScore}%
-                            </div>
-                          </div>
-
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <h4
-                                className="font-bold text-foreground text-sm sm:text-base leading-tight cursor-pointer hover:text-primary transition-colors truncate max-w-[160px] sm:max-w-none"
-                                onClick={() => setSelectedCandidate(candidate)}
-                              >
-                                {candidate.fullName}
-                              </h4>
-                              {getStatusBadge(candidate.applicationStatus || 'pending')}
+                            {/* Avatar with match score */}
+                            <div className="relative shrink-0 cursor-pointer" onClick={() => setSelectedCandidate(candidate)}>
+                              <Avatar className={cn("w-12 h-12 sm:w-14 sm:h-14 ring-[3px] shadow-md transition-all duration-200 group-hover:shadow-lg", getScoreRingColor(candidate.matchScore))}>
+                                <AvatarImage src={candidate.avatarUrl || ''} />
+                                <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/5 text-primary font-bold text-xs sm:text-sm">{initials}</AvatarFallback>
+                              </Avatar>
+                              <div className={cn(
+                                "absolute -bottom-1.5 -right-1.5 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full border-2 border-card shadow-md",
+                                getScoreColor(candidate.matchScore)
+                              )}>
+                                {candidate.matchScore}%
+                              </div>
                             </div>
 
-                            <div className="flex items-center gap-2 sm:gap-3 mt-1.5 text-[11px] sm:text-xs text-muted-foreground flex-wrap">
-                              <span className="flex items-center gap-1">
-                                <Briefcase className="w-3 h-3 shrink-0" /> 
-                                <span className="truncate max-w-[100px] sm:max-w-none">{candidate.jobTitle}</span>
-                              </span>
-                              <span className="font-semibold text-foreground/70">{candidate.experienceYears}y exp</span>
-                              {candidate.appliedAt && (
-                                <span className="hidden sm:flex items-center gap-1 text-muted-foreground/70">
-                                  <Clock className="w-3 h-3 shrink-0" /> {formatDistanceToNow(new Date(candidate.appliedAt), { addSuffix: true })}
+                            {/* Info section */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                                <h4
+                                  className="font-bold text-foreground text-sm sm:text-base leading-tight cursor-pointer hover:text-primary transition-colors truncate"
+                                  onClick={() => setSelectedCandidate(candidate)}
+                                >
+                                  {candidate.fullName}
+                                </h4>
+                                {getStatusBadge(candidate.applicationStatus || 'pending')}
+                              </div>
+
+                              {/* Meta row */}
+                              <div className="flex items-center gap-1.5 sm:gap-3 mt-1 text-[11px] text-muted-foreground flex-wrap">
+                                <span className="flex items-center gap-1">
+                                  <Briefcase className="w-3 h-3 shrink-0 text-muted-foreground/60" />
+                                  <span className="truncate max-w-[120px] sm:max-w-none">{candidate.jobTitle}</span>
                                 </span>
+                                <span className="font-semibold text-foreground/70">{candidate.experienceYears}y exp</span>
+                                {timeAgo && (
+                                  <span className="flex items-center gap-1 text-muted-foreground/60">
+                                    <Clock className="w-3 h-3 shrink-0" /> {timeAgo}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Skills */}
+                              {candidate.skills.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                  {candidate.skills.slice(0, 3).map(skill => (
+                                    <span key={skill} className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-muted/50 text-muted-foreground border border-border/30 truncate max-w-[100px] sm:max-w-[140px]">
+                                      {skill}
+                                    </span>
+                                  ))}
+                                  {candidate.skills.length > 3 && (
+                                    <span className="text-[10px] font-medium px-2 py-0.5 rounded-md border border-dashed border-border/50 text-muted-foreground/60">
+                                      +{candidate.skills.length - 3}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Applied for */}
+                              {candidate.jobTitle_applied && (
+                                <p className="text-[10px] text-muted-foreground/70 mt-1.5">
+                                  Applied for <span className="font-semibold text-foreground/70">{candidate.jobTitle_applied}</span>
+                                </p>
                               )}
                             </div>
 
-                            {candidate.skills.length > 0 && (
-                              <div className="flex flex-wrap gap-1.5 mt-2">
-                                {candidate.skills.slice(0, 4).map(skill => (
-                                  <Badge key={skill} variant="secondary" className="text-[9px] sm:text-[10px] font-medium px-2 py-0.5 h-auto max-w-[90px] sm:max-w-[120px] truncate rounded-full bg-muted/60 border-0">
-                                    {skill}
-                                  </Badge>
-                                ))}
-                                {candidate.skills.length > 4 && (
-                                  <Badge variant="outline" className="text-[9px] sm:text-[10px] px-2 py-0.5 h-auto rounded-full border-dashed">+{candidate.skills.length - 4}</Badge>
-                                )}
-                              </div>
-                            )}
-
-                            {candidate.jobTitle_applied && (
-                              <p className="text-[10px] sm:text-[11px] text-muted-foreground mt-1.5">
-                                Applied for <span className="font-semibold text-foreground/80">{candidate.jobTitle_applied}</span>
-                              </p>
-                            )}
-                          </div>
-
-                          {/* Desktop Quick Actions */}
-                          <div className="hidden sm:flex flex-col gap-1.5 shrink-0">
-                            <Button variant="outline" size="sm" className="h-9 text-xs px-4 gap-2 rounded-full hover:bg-primary/5 hover:border-primary/30 hover:text-primary transition-all" onClick={() => navigate(`/candidates/${candidate.candidateId}`)}>
-                              <Eye className="w-4 h-4" /> View
-                            </Button>
-                            <Button variant="outline" size="sm" className="h-9 text-xs px-4 gap-2 rounded-full transition-all" onClick={() => startConversation(candidate.userId, candidate.jobId || undefined)}>
-                              <Mail className="w-4 h-4" /> Message
-                            </Button>
-                            {/* WhatsApp Button - Desktop */}
-                            {candidate.whatsappNumber ? (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                className="h-9 text-xs px-4 gap-2 rounded-full w-full bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] border-[#25D366]/40 hover:border-[#25D366] transition-all"
-                                onClick={() => window.open(`https://wa.me/${candidate.whatsappNumber}`, '_blank')}
-                              >
-                                <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
-                                  <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-                                </svg>
-                                WhatsApp
+                            {/* Desktop actions */}
+                            <div className="hidden sm:flex flex-col gap-1.5 shrink-0">
+                              <Button variant="outline" size="sm" className="h-9 text-xs px-4 gap-2 rounded-full hover:bg-primary/5 hover:border-primary/30 hover:text-primary transition-all" onClick={() => navigate(`/candidates/${candidate.candidateId}`)}>
+                                <Eye className="w-3.5 h-3.5" /> View
                               </Button>
-                            ) : null}
-                            {(candidate.applicationStatus === 'pending' || candidate.applicationStatus === 'reviewed') && (
-                              <Button size="sm" className="h-9 text-xs px-4 gap-2 bg-success hover:bg-success/90 text-success-foreground rounded-full transition-all" onClick={() => updateStatus(candidate.applicationId || '', 'shortlisted')}>
-                                <CheckCircle2 className="w-4 h-4" /> Shortlist
+                              <Button variant="outline" size="sm" className="h-9 text-xs px-4 gap-2 rounded-full transition-all" onClick={() => startConversation(candidate.userId, candidate.jobId || undefined)}>
+                                <Mail className="w-3.5 h-3.5" /> Message
                               </Button>
-                            )}
+                              {candidate.whatsappNumber && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-9 text-xs px-4 gap-2 rounded-full bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#25D366] border-[#25D366]/40 hover:border-[#25D366] transition-all"
+                                  onClick={() => window.open(`https://wa.me/${candidate.whatsappNumber}`, '_blank')}
+                                >
+                                  <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="currentColor">
+                                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
+                                  </svg>
+                                  WhatsApp
+                                </Button>
+                              )}
+                              {(candidate.applicationStatus === 'pending' || candidate.applicationStatus === 'reviewed') && (
+                                <Button size="sm" className="h-9 text-xs px-4 gap-2 bg-success hover:bg-success/90 text-success-foreground rounded-full transition-all" onClick={() => updateStatus(candidate.applicationId || '', 'shortlisted')}>
+                                  <CheckCircle2 className="w-3.5 h-3.5" /> Shortlist
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </div>
 
-                        {/* Mobile Quick Actions */}
-                        <div className="flex sm:hidden items-center gap-2 mt-3 pt-3 border-t border-border/10">
-                          <Button variant="outline" size="sm" className="h-10 text-xs px-4 gap-2 rounded-full flex-1 hover:bg-primary/5 hover:border-primary/30" onClick={() => navigate(`/candidates/${candidate.candidateId}`)}>
-                            <Eye className="w-4 h-4 shrink-0" /> View
-                          </Button>
-                          <Button variant="outline" size="sm" className="h-10 text-xs px-4 gap-2 rounded-full flex-1" onClick={() => startConversation(candidate.userId, candidate.jobId || undefined)}>
-                            <Mail className="w-4 h-4 shrink-0" /> Msg
-                          </Button>
+                        {/* Mobile action bar — full-width bottom strip */}
+                        <div className="flex sm:hidden items-center border-t border-border/20 bg-muted/20">
+                          <button
+                            onClick={() => navigate(`/candidates/${candidate.candidateId}`)}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-medium text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors border-r border-border/20"
+                          >
+                            <Eye className="w-3.5 h-3.5" /> View
+                          </button>
+                          <button
+                            onClick={() => startConversation(candidate.userId, candidate.jobId || undefined)}
+                            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors border-r border-border/20"
+                          >
+                            <Mail className="w-3.5 h-3.5" /> Message
+                          </button>
                           {candidate.whatsappNumber && (
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              className="h-10 w-10 rounded-full shrink-0 bg-[#25D366]/10 text-[#25D366] border-[#25D366]/30 hover:bg-[#25D366]/20"
+                            <button
                               onClick={() => window.open(`https://wa.me/${candidate.whatsappNumber}`, '_blank')}
+                              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-medium text-[#25D366] hover:bg-[#25D366]/10 transition-colors border-r border-border/20"
                             >
-                              <svg viewBox="0 0 24 24" className="w-4 h-4 shrink-0" fill="currentColor">
+                              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="currentColor">
                                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
                               </svg>
-                            </Button>
+                              WA
+                            </button>
+                          )}
+                          {(candidate.applicationStatus === 'pending' || candidate.applicationStatus === 'reviewed') && (
+                            <button
+                              onClick={() => updateStatus(candidate.applicationId || '', 'shortlisted')}
+                              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 text-[11px] font-bold text-success hover:bg-success/10 transition-colors"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Shortlist
+                            </button>
                           )}
                         </div>
                       </CardContent>
@@ -1212,38 +1235,38 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                 </DialogHeader>
               </div>
 
-              <div className="space-y-4 mt-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="flex items-center gap-2 text-sm p-3 bg-muted/50 rounded-xl">
-                    <Briefcase className="w-4 h-4 text-muted-foreground" />
-                    <span>{selectedCandidate.experienceYears} years experience</span>
+              <div className="space-y-4 px-5 sm:px-7 pb-5 sm:pb-7">
+                <div className="grid grid-cols-2 gap-2 sm:gap-3">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm p-2.5 sm:p-3 bg-muted/40 rounded-xl border border-border/20">
+                    <Briefcase className="w-4 h-4 text-primary/60 shrink-0" />
+                    <span className="truncate">{selectedCandidate.experienceYears}y experience</span>
                   </div>
                   {selectedCandidate.locationCity && (
-                    <div className="flex items-center gap-2 text-sm p-3 bg-muted/50 rounded-xl">
-                      <MapPin className="w-4 h-4 text-muted-foreground" />
-                      <span>{selectedCandidate.locationCity}{selectedCandidate.locationCountry ? `, ${selectedCandidate.locationCountry}` : ''}</span>
+                    <div className="flex items-center gap-2 text-xs sm:text-sm p-2.5 sm:p-3 bg-muted/40 rounded-xl border border-border/20">
+                      <MapPin className="w-4 h-4 text-primary/60 shrink-0" />
+                      <span className="truncate">{selectedCandidate.locationCity}{selectedCandidate.locationCountry ? `, ${selectedCandidate.locationCountry}` : ''}</span>
                     </div>
                   )}
                   {selectedCandidate.expectedSalary && (
-                    <div className="flex items-center gap-2 text-sm p-3 bg-muted/50 rounded-xl">
-                      <DollarSign className="w-4 h-4 text-muted-foreground" />
-                      <span>{selectedCandidate.expectedSalary}</span>
+                    <div className="flex items-center gap-2 text-xs sm:text-sm p-2.5 sm:p-3 bg-muted/40 rounded-xl border border-border/20">
+                      <DollarSign className="w-4 h-4 text-primary/60 shrink-0" />
+                      <span className="truncate">{selectedCandidate.expectedSalary}</span>
                     </div>
                   )}
                   {selectedCandidate.availabilityStatus && (
-                    <div className="flex items-center gap-2 text-sm p-3 bg-muted/50 rounded-xl">
-                      <Clock className="w-4 h-4 text-muted-foreground" />
-                      <span className="capitalize">{selectedCandidate.availabilityStatus}</span>
+                    <div className="flex items-center gap-2 text-xs sm:text-sm p-2.5 sm:p-3 bg-muted/40 rounded-xl border border-border/20">
+                      <Clock className="w-4 h-4 text-primary/60 shrink-0" />
+                      <span className="capitalize truncate">{selectedCandidate.availabilityStatus}</span>
                     </div>
                   )}
                 </div>
 
                 {selectedCandidate.skills.length > 0 && (
                   <div>
-                    <h4 className="text-xs font-semibold text-foreground mb-2">Skills</h4>
+                    <h4 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Skills</h4>
                     <div className="flex flex-wrap gap-1.5">
                       {selectedCandidate.skills.map(s => (
-                        <Badge key={s} variant="secondary" className="text-xs rounded-lg">{s}</Badge>
+                        <span key={s} className="text-[11px] font-medium px-2.5 py-1 rounded-lg bg-primary/[0.06] text-primary border border-primary/15">{s}</span>
                       ))}
                     </div>
                   </div>
@@ -1251,14 +1274,14 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
 
                 {selectedCandidate.bio && (
                   <div>
-                    <h4 className="text-xs font-semibold text-foreground mb-2">About</h4>
-                    <p className="text-sm text-muted-foreground">{selectedCandidate.bio}</p>
+                    <h4 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">About</h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{selectedCandidate.bio}</p>
                   </div>
                 )}
 
                 {selectedCandidate.certifications.length > 0 && (
                   <div>
-                    <h4 className="text-xs font-semibold text-foreground mb-2">Certifications</h4>
+                    <h4 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Certifications</h4>
                     <div className="flex flex-wrap gap-1.5">
                       {selectedCandidate.certifications.map(c => (
                         <Badge key={c} variant="outline" className="text-xs gap-1 rounded-lg"><Award className="w-3 h-3" /> {c}</Badge>
@@ -1269,11 +1292,11 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
 
                 {selectedCandidate.portfolioUrls.length > 0 && (
                   <div>
-                    <h4 className="text-xs font-semibold text-foreground mb-2">Portfolio</h4>
+                    <h4 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Portfolio</h4>
                     <div className="space-y-1">
                       {selectedCandidate.portfolioUrls.map(url => (
-                        <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-primary hover:underline">
-                          <Link2 className="w-3.5 h-3.5" /> {url}
+                        <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-primary hover:underline truncate">
+                          <Link2 className="w-3.5 h-3.5 shrink-0" /> <span className="truncate">{url}</span>
                         </a>
                       ))}
                     </div>
@@ -1282,30 +1305,31 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
 
                 {selectedCandidate.coverLetter && (
                   <div>
-                    <h4 className="text-xs font-semibold text-foreground mb-2">Cover Letter</h4>
-                    <p className="text-sm text-muted-foreground bg-muted/50 rounded-xl p-4 border">{selectedCandidate.coverLetter}</p>
+                    <h4 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Cover Letter</h4>
+                    <p className="text-sm text-muted-foreground bg-muted/30 rounded-xl p-4 border border-border/30 leading-relaxed">{selectedCandidate.coverLetter}</p>
                   </div>
                 )}
 
-                <div className="flex items-center gap-2 pt-3 border-t">
-                  <Button className="flex-1 gap-1.5 rounded-xl" onClick={() => navigate(`/candidates/${selectedCandidate.candidateId}`)}>
+                {/* Action buttons */}
+                <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-border/30">
+                  <Button className="flex-1 min-w-[120px] gap-1.5 rounded-xl h-10" onClick={() => navigate(`/candidates/${selectedCandidate.candidateId}`)}>
                     <Eye className="w-4 h-4" /> Full Profile
                   </Button>
-                  <Button variant="outline" className="gap-1.5 rounded-xl" onClick={() => startConversation(selectedCandidate.userId, selectedCandidate.jobId || undefined)}>
+                  <Button variant="outline" className="gap-1.5 rounded-xl h-10" onClick={() => startConversation(selectedCandidate.userId, selectedCandidate.jobId || undefined)}>
                     <Mail className="w-4 h-4" /> Message
                   </Button>
                   {(selectedCandidate.applicationStatus === 'pending' || selectedCandidate.applicationStatus === 'reviewed') && (
                     <>
-                      <Button size="sm" className="gap-1 bg-success hover:bg-success/90 text-success-foreground rounded-xl" onClick={() => { updateStatus(selectedCandidate.applicationId || '', 'shortlisted'); setSelectedCandidate(null); }}>
+                      <Button size="sm" className="gap-1 bg-success hover:bg-success/90 text-success-foreground rounded-xl h-10 px-4" onClick={() => { updateStatus(selectedCandidate.applicationId || '', 'shortlisted'); setSelectedCandidate(null); }}>
                         <CheckCircle2 className="w-4 h-4" /> Shortlist
                       </Button>
-                      <Button size="sm" variant="outline" className="gap-1 text-destructive border-destructive/30 rounded-xl" onClick={() => { updateStatus(selectedCandidate.applicationId || '', 'rejected'); setSelectedCandidate(null); }}>
+                      <Button size="sm" variant="outline" className="gap-1 text-destructive border-destructive/30 rounded-xl h-10 px-4" onClick={() => { updateStatus(selectedCandidate.applicationId || '', 'rejected'); setSelectedCandidate(null); }}>
                         <XCircle className="w-4 h-4" /> Reject
                       </Button>
                     </>
                   )}
                   {selectedCandidate.applicationStatus === 'shortlisted' && (
-                    <Button size="sm" className="gap-1 bg-success hover:bg-success/90 text-success-foreground rounded-xl" onClick={() => { updateStatus(selectedCandidate.applicationId || '', 'hired'); setSelectedCandidate(null); }}>
+                    <Button size="sm" className="gap-1 bg-success hover:bg-success/90 text-success-foreground rounded-xl h-10 px-4" onClick={() => { updateStatus(selectedCandidate.applicationId || '', 'hired'); setSelectedCandidate(null); }}>
                       <Trophy className="w-4 h-4" /> Hire
                     </Button>
                   )}
