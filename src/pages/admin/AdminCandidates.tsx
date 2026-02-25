@@ -36,8 +36,11 @@ import {
   Eye, 
   Search,
   User,
+  Users,
+  UserX,
   CheckCircle
 } from 'lucide-react';
+import { StatsCard } from '@/components/admin/StatsCard';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
@@ -167,8 +170,19 @@ export default function AdminCandidates() {
     c.job_title?.toLowerCase().includes(search.toLowerCase())
   );
 
+  const totalCount = data?.total || 0;
+  const activeCount = candidates?.filter(c => !c.is_blocked).length || 0;
+  const blockedCount = candidates?.filter(c => c.is_blocked).length || 0;
+
   return (
     <AdminLayout title="Candidate Management">
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
+        <StatsCard title="Total Candidates" value={totalCount} icon={Users} />
+        <StatsCard title="Active" value={activeCount} icon={User} variant="success" />
+        <StatsCard title="Blocked" value={blockedCount} icon={UserX} variant="destructive" />
+      </div>
+
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1">
@@ -193,7 +207,7 @@ export default function AdminCandidates() {
       </div>
 
       {/* Candidates Table */}
-      <Card>
+      <Card className="rounded-xl border-border/40 bg-card/80 backdrop-blur-sm">
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-6 space-y-4">
