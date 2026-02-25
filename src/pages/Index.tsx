@@ -34,17 +34,22 @@ const Index = () => {
   const [centerTrigger, setCenterTrigger] = useState(0);
 
   const geolocation = useGeolocation();
+  const hasRealLocation = !!(geolocation.latitude && geolocation.longitude);
   const userLocation = useMemo(() => {
-    if (geolocation.latitude && geolocation.longitude) {
-      return { lat: geolocation.latitude, lng: geolocation.longitude };
+    if (hasRealLocation) {
+      return { lat: geolocation.latitude!, lng: geolocation.longitude! };
     }
-    return null;
-  }, [geolocation.latitude, geolocation.longitude]);
+    // Fallback to India center so jobs still load when geolocation is unavailable
+    return { lat: 20.5937, lng: 78.9629 };
+  }, [geolocation.latitude, geolocation.longitude, hasRealLocation]);
+
+  // Use a large radius when no real geolocation to show all jobs
+  const effectiveRadius = hasRealLocation ? radius : 5000;
 
   // Fetch real data from Supabase
   const { candidates, jobs, loading } = useMapData({
     userLocation,
-    radius,
+    radius: effectiveRadius,
     searchQuery,
   });
 

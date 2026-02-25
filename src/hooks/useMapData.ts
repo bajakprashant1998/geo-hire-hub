@@ -38,7 +38,6 @@ export const useMapData = ({ userLocation, radius, searchQuery }: UseMapDataProp
 
   // Fetch candidates from database
   const fetchCandidates = useCallback(async () => {
-    if (!userLocation) return [];
 
     try {
       // Use the database function for geospatial query ONLY if user is authenticated
@@ -114,7 +113,6 @@ export const useMapData = ({ userLocation, radius, searchQuery }: UseMapDataProp
 
   // Fetch jobs from database
   const fetchJobs = useCallback(async () => {
-    if (!userLocation) return [];
 
     try {
       // Use the database function for geospatial query if user is logged in
@@ -196,10 +194,6 @@ export const useMapData = ({ userLocation, radius, searchQuery }: UseMapDataProp
   // Load data on mount and when dependencies change
   useEffect(() => {
     const loadData = async () => {
-      if (!userLocation) {
-        setLoading(false);
-        return;
-      }
 
       setLoading(true);
       setError(null);
