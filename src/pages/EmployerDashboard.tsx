@@ -559,8 +559,8 @@ const EmployerDashboard = () => {
                   <ChevronRight className="w-4 h-4 rotate-180 mr-2" />
                   Back to Dashboard
                 </Button>
-                <Card className="bg-card/70 backdrop-blur-xl shadow-lg border border-border/50">
-                  <CardContent className="p-3 sm:p-4 md:p-6">
+                <Card className="bg-card/70 backdrop-blur-xl shadow-lg border border-border/50 overflow-visible">
+                  <CardContent className="p-2 sm:p-4 md:p-6">
                     {renderSectionContent()}
                   </CardContent>
                 </Card>
