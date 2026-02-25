@@ -685,7 +685,7 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
             exit={{ opacity: 0, y: -10, height: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Card className="border-primary/15 bg-gradient-to-br from-primary/[0.03] via-background to-primary/[0.05] overflow-hidden relative backdrop-blur-sm rounded-2xl shadow-sm">
+            <Card className="border-primary/15 bg-gradient-to-br from-primary/[0.03] via-background to-primary/[0.05] relative backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-sm overflow-hidden">
               <button
                 onClick={() => setShowAiPanel(false)}
                 className="absolute top-2 right-2 sm:top-3 sm:right-3 text-muted-foreground hover:text-foreground z-10 p-1.5 rounded-lg hover:bg-muted/50 transition-colors"
@@ -1011,7 +1011,7 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
               </Card>
             </motion.div>
           ) : (
-            <div className="space-y-2.5">
+            <div className="space-y-2">
               {filteredCandidates.map((candidate, index) => {
                 const initials = candidate.fullName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
                 const isSelected = selectedIds.includes(candidate.applicationId || '');
@@ -1026,7 +1026,7 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                     layout
                   >
                     <Card className={cn(
-                      "group transition-all duration-200 hover:shadow-lg relative rounded-2xl overflow-hidden",
+                      "group transition-all duration-200 hover:shadow-lg relative rounded-xl sm:rounded-2xl overflow-hidden",
                       isSelected ? "ring-2 ring-primary bg-primary/5 shadow-md" :
                       isTopPick ? "ring-1 ring-success/30 bg-success/[0.02] hover:ring-success/50" :
                       "border-border/50 hover:border-border hover:shadow-md"
@@ -1068,7 +1068,7 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                               <h4
-                                className="font-semibold text-foreground text-xs sm:text-sm leading-tight cursor-pointer hover:text-primary transition-colors truncate max-w-[120px] sm:max-w-none"
+                                className="font-semibold text-foreground text-xs sm:text-sm leading-tight cursor-pointer hover:text-primary transition-colors truncate max-w-[140px] sm:max-w-none"
                                 onClick={() => setSelectedCandidate(candidate)}
                               >
                                 {candidate.fullName}
@@ -1079,7 +1079,7 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                             <div className="flex items-center gap-1.5 sm:gap-3 mt-1 text-[10px] sm:text-xs text-muted-foreground flex-wrap">
                               <span className="flex items-center gap-0.5 sm:gap-1">
                                 <Briefcase className="w-2.5 h-2.5 sm:w-3 sm:h-3 shrink-0" /> 
-                                <span className="truncate max-w-[70px] sm:max-w-none">{candidate.jobTitle}</span>
+                                <span className="truncate max-w-[80px] sm:max-w-none">{candidate.jobTitle}</span>
                               </span>
                               <span className="font-medium">{candidate.experienceYears}y</span>
                               {candidate.appliedAt && (
@@ -1092,7 +1092,7 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                             {candidate.skills.length > 0 && (
                               <div className="flex flex-wrap gap-1 mt-1.5">
                                 {candidate.skills.slice(0, 3).map(skill => (
-                                  <Badge key={skill} variant="secondary" className="text-[8px] sm:text-[10px] font-normal px-1 sm:px-1.5 py-0 h-4 sm:h-5 max-w-[60px] sm:max-w-[100px] truncate rounded-md sm:rounded-lg">
+                                  <Badge key={skill} variant="secondary" className="text-[8px] sm:text-[10px] font-normal px-1.5 sm:px-1.5 py-0 h-[18px] sm:h-5 max-w-[70px] sm:max-w-[100px] truncate rounded-md sm:rounded-lg">
                                     {skill}
                                   </Badge>
                                 ))}
@@ -1157,29 +1157,29 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                           </div>
                         </div>
 
-                        {/* Mobile Quick Actions - compact icon buttons */}
-                        <div className="flex sm:hidden items-center gap-1 mt-2 pt-2 border-t border-border/20">
-                          <Button variant="outline" size="sm" className="flex-1 h-7 text-[9px] px-1.5 gap-0.5 rounded-lg" onClick={() => navigate(`/candidates/${candidate.candidateId}`)}>
-                            <Eye className="w-3 h-3" /> View
+                        {/* Mobile Quick Actions */}
+                        <div className="flex sm:hidden items-center gap-1.5 mt-2 pt-2 border-t border-border/20">
+                          <Button variant="outline" size="sm" className="h-8 text-[10px] px-3 gap-1 rounded-lg flex-1" onClick={() => navigate(`/candidates/${candidate.candidateId}`)}>
+                            <Eye className="w-3.5 h-3.5" /> View
                           </Button>
-                          <Button variant="outline" size="sm" className="flex-1 h-7 text-[9px] px-1.5 gap-0.5 rounded-lg" onClick={() => startConversation(candidate.userId, candidate.jobId || undefined)}>
-                            <Mail className="w-3 h-3" /> Msg
+                          <Button variant="outline" size="sm" className="h-8 text-[10px] px-3 gap-1 rounded-lg flex-1" onClick={() => startConversation(candidate.userId, candidate.jobId || undefined)}>
+                            <Mail className="w-3.5 h-3.5" /> Msg
                           </Button>
                           {candidate.whatsappNumber && (
                             <Button
                               variant="outline"
                               size="sm"
-                              className="h-7 w-7 p-0 rounded-lg bg-[#25D366]/10 text-[#25D366] border-[#25D366]/40"
+                              className="h-8 w-8 p-0 rounded-lg bg-[#25D366]/10 text-[#25D366] border-[#25D366]/40 shrink-0"
                               onClick={() => window.open(`https://wa.me/${candidate.whatsappNumber}`, '_blank')}
                             >
-                              <svg viewBox="0 0 24 24" className="w-3 h-3" fill="currentColor">
+                              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="currentColor">
                                 <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
                               </svg>
                             </Button>
                           )}
                           {(candidate.applicationStatus === 'pending' || candidate.applicationStatus === 'reviewed') && (
-                            <Button size="sm" variant="ghost" className="flex-1 h-7 text-[9px] px-1.5 gap-0.5 text-success rounded-lg" onClick={() => updateStatus(candidate.applicationId || '', 'shortlisted')}>
-                              <CheckCircle2 className="w-3 h-3" /> Shortlist
+                            <Button size="sm" className="h-8 text-[10px] px-3 gap-1 bg-success/10 text-success hover:bg-success/20 border border-success/20 rounded-lg flex-1" onClick={() => updateStatus(candidate.applicationId || '', 'shortlisted')}>
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Shortlist
                             </Button>
                           )}
                         </div>
