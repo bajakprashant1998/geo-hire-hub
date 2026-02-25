@@ -168,7 +168,11 @@ export const AutoApplyManager = ({ candidateId }: AutoApplyManagerProps) => {
 
       if (res.error) throw new Error(res.error.message);
       const result = res.data;
-      toast.success(result.message || `Applied to ${result.applied} jobs`);
+      if (result.applied > 0) {
+        toast.success(result.message || `Applied to ${result.applied} jobs`);
+      } else {
+        toast.info(result.message || 'No matching jobs found', { duration: 6000 });
+      }
       fetchData();
     } catch (err: any) {
       toast.error('Failed: ' + err.message);

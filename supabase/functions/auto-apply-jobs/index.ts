@@ -42,12 +42,24 @@ Deno.serve(async (req) => {
     // Use service role for cross-table operations
     const adminClient = createClient(supabaseUrl, serviceKey);
 
-    // Get candidate
+    // Get candidate - first get profile, then candidate
+    const { data: profile } = await adminClient
+      .from("profiles")
+      .select("id, full_name, latitude, longitude")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (!profile) {
+      return new Response(JSON.stringify({ error: "Profile not found" }), {
+        status: 404,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { data: candidate } = await adminClient
       .from("candidates")
-      .select("*, profiles!candidates_profile_id_fkey(full_name, latitude, longitude)")
-      .eq("profiles.user_id", userId)
-      .limit(1)
+      .select("*")
+      .eq("profile_id", profile.id)
       .maybeSingle();
 
     if (!candidate) {
@@ -118,15 +130,35 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Filter out already-applied and excluded
+    // Filter out already-applied and excluded, log skip reasons
+    let skippedAlready = 0, skippedExcluded = 0, skippedRemote = 0;
     const eligibleJobs = jobs.filter((job: any) => {
-      if (appliedJobIds.has(job.id)) return false;
+      if (appliedJobIds.has(job.id)) { skippedAlready++; return false; }
       const companyName = job.employers?.company_name?.toLowerCase() || "";
-      if (excludedCompanies.some((exc: string) => companyName.includes(exc))) return false;
-      // Remote filter
-      if (prefs.remote_only && job.job_type !== "remote" && job.job_type !== "Remote") return false;
+      if (excludedCompanies.some((exc: string) => companyName.includes(exc))) { skippedExcluded++; return false; }
+      // Remote filter - check job_type, title, and description for remote indicators
+      if (prefs.remote_only) {
+        const isRemote = /remote/i.test(job.job_type || "") || 
+                         /remote/i.test(job.title || "") || 
+                         /remote/i.test(job.description || "") ||
+                         /work.from.home/i.test(job.description || "");
+        if (!isRemote) { skippedRemote++; return false; }
+      }
       return true;
     });
+
+    console.log(`Jobs: ${jobs.length} total, ${eligibleJobs.length} eligible. Skipped: ${skippedAlready} already applied, ${skippedExcluded} excluded companies, ${skippedRemote} not remote`);
+
+    if (eligibleJobs.length === 0) {
+      return new Response(
+        JSON.stringify({
+          message: `No matching jobs found. ${skippedAlready} already applied, ${skippedExcluded} excluded, ${skippedRemote} not remote.`,
+          applied: 0,
+          details: { total: jobs.length, skippedAlready, skippedExcluded, skippedRemote },
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     const results: any[] = [];
     let appliedCount = 0;
@@ -139,7 +171,7 @@ Deno.serve(async (req) => {
         const matchPrompt = `You are a job matching AI. Score how well this candidate matches this job from 0-100.
 
 CANDIDATE:
-- Name: ${candidate.profiles?.full_name || "Unknown"}
+- Name: ${profile.full_name || "Unknown"}
 - Title: ${candidate.job_title}
 - Skills: ${(candidate.skills || []).join(", ")}
 - Experience: ${candidate.experience_years || 0} years
@@ -201,7 +233,7 @@ Return ONLY valid JSON: {"score": <number 0-100>, "reasons": ["reason1", "reason
         let coverLetter: string | null = null;
         if (prefs.generate_cover_letter) {
           const clPrompt = `Write a brief, professional cover letter (150 words max) for this candidate applying to this job.
-Candidate: ${candidate.profiles?.full_name}, ${candidate.job_title}, Skills: ${(candidate.skills || []).join(", ")}
+Candidate: ${profile.full_name}, ${candidate.job_title}, Skills: ${(candidate.skills || []).join(", ")}
 Job: ${job.title} at ${job.employers?.company_name}
 Description: ${(job.description || "").substring(0, 500)}
 
