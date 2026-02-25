@@ -50,6 +50,31 @@ interface CandidateProfileEditProps {
     embedded?: boolean;
 }
 
+const TagInput = ({ items, onAdd, onRemove, input, setInput, placeholder, icon: Icon }: {
+    items: string[]; onAdd: () => void; onRemove: (s: string) => void;
+    input: string; setInput: (v: string) => void; placeholder: string; icon?: any;
+}) => (
+    <div className="space-y-3">
+        <div className="flex gap-2">
+            <Input value={input} onChange={e => setInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); onAdd(); } }}
+                placeholder={placeholder} />
+            <Button type="button" onClick={onAdd} variant="outline" size="icon"><Plus className="w-4 h-4" /></Button>
+        </div>
+        {items.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+                {items.map((item, i) => (
+                    <Badge key={i} variant="secondary" className="gap-1 py-1.5 px-3">
+                        {Icon && <Icon className="w-3 h-3" />}
+                        {item}
+                        <X className="w-3 h-3 cursor-pointer hover:text-destructive ml-1" onClick={() => onRemove(item)} />
+                    </Badge>
+                ))}
+            </div>
+        )}
+    </div>
+);
+
 const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) => {
     const navigate = useNavigate();
     const { user, profile, refreshProfile, loading: authLoading, profileLoading } = useAuth();
@@ -293,31 +318,6 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
             </div>
         );
     }
-
-    const TagInput = ({ items, onAdd, onRemove, input, setInput, placeholder, icon: Icon }: {
-        items: string[]; onAdd: () => void; onRemove: (s: string) => void;
-        input: string; setInput: (v: string) => void; placeholder: string; icon?: any;
-    }) => (
-        <div className="space-y-3">
-            <div className="flex gap-2">
-                <Input value={input} onChange={e => setInput(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); onAdd(); } }}
-                    placeholder={placeholder} />
-                <Button type="button" onClick={onAdd} variant="outline" size="icon"><Plus className="w-4 h-4" /></Button>
-            </div>
-            {items.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                    {items.map((item, i) => (
-                        <Badge key={i} variant="secondary" className="gap-1 py-1.5 px-3">
-                            {Icon && <Icon className="w-3 h-3" />}
-                            {item}
-                            <X className="w-3 h-3 cursor-pointer hover:text-destructive ml-1" onClick={() => onRemove(item)} />
-                        </Badge>
-                    ))}
-                </div>
-            )}
-        </div>
-    );
 
     const profileContent = (
         <div className={embedded ? "space-y-6" : "max-w-4xl mx-auto space-y-6"}>
