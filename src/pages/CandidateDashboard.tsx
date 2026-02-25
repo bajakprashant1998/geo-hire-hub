@@ -39,6 +39,7 @@ import CandidateProfileEdit from '@/pages/CandidateProfileEdit';
 import { ProfileCompletionPrompts } from '@/components/candidate/ProfileCompletionPrompts';
 import { DashboardBottomNav } from '@/components/dashboard/DashboardBottomNav';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
+import { AutoApplyManager } from '@/components/candidate/AutoApplyManager';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { motion } from 'framer-motion';
 import { lazy, Suspense } from 'react';
@@ -202,6 +203,7 @@ const CandidateDashboard = () => {
     { icon: Eye, label: 'Public Profile', value: 'public-profile' },
     { icon: Sparkles, label: 'Job Alerts', value: 'alerts' },
     { icon: Shield, label: 'Security', value: 'security' },
+    { icon: Zap, label: 'Auto Apply', value: 'auto-apply' },
     { icon: DollarSign, label: 'Salary Insights', value: 'salary-insights' },
     { icon: Bot, label: 'Talk to My Buddy', value: 'career-buddy' }
   ];
@@ -305,6 +307,7 @@ const CandidateDashboard = () => {
       case 'recommended': return candidate && (
         <RecommendedJobs candidateId={candidate.id} skills={candidate.skills || []} latitude={profile.latitude} longitude={profile.longitude} />
       );
+      case 'auto-apply': return candidate && <AutoApplyManager candidateId={candidate.id} />;
       case 'salary-insights': return <SalaryInsights />;
       case 'career-buddy': return <CareerBuddyChat />;
       case 'ai-resume': return (

@@ -158,6 +158,138 @@ export type Database = {
           },
         ]
       }
+      auto_apply_logs: {
+        Row: {
+          application_id: string | null
+          candidate_id: string
+          cover_letter: string | null
+          created_at: string
+          id: string
+          job_id: string
+          match_score: number
+          skip_reason: string | null
+          status: string
+        }
+        Insert: {
+          application_id?: string | null
+          candidate_id: string
+          cover_letter?: string | null
+          created_at?: string
+          id?: string
+          job_id: string
+          match_score?: number
+          skip_reason?: string | null
+          status?: string
+        }
+        Update: {
+          application_id?: string | null
+          candidate_id?: string
+          cover_letter?: string | null
+          created_at?: string
+          id?: string
+          job_id?: string
+          match_score?: number
+          skip_reason?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auto_apply_logs_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auto_apply_logs_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auto_apply_logs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      auto_apply_preferences: {
+        Row: {
+          candidate_id: string
+          company_size_preference: string[]
+          created_at: string
+          daily_limit: number
+          excluded_companies: string[]
+          experience_level: string | null
+          focus_skills: string[]
+          generate_cover_letter: boolean
+          id: string
+          industry_preference: string[]
+          is_enabled: boolean
+          location_radius: string
+          match_threshold: number
+          min_salary: string | null
+          preferred_locations: string[]
+          preferred_titles: string[]
+          remote_only: boolean
+          salary_currency: string
+          updated_at: string
+        }
+        Insert: {
+          candidate_id: string
+          company_size_preference?: string[]
+          created_at?: string
+          daily_limit?: number
+          excluded_companies?: string[]
+          experience_level?: string | null
+          focus_skills?: string[]
+          generate_cover_letter?: boolean
+          id?: string
+          industry_preference?: string[]
+          is_enabled?: boolean
+          location_radius?: string
+          match_threshold?: number
+          min_salary?: string | null
+          preferred_locations?: string[]
+          preferred_titles?: string[]
+          remote_only?: boolean
+          salary_currency?: string
+          updated_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          company_size_preference?: string[]
+          created_at?: string
+          daily_limit?: number
+          excluded_companies?: string[]
+          experience_level?: string | null
+          focus_skills?: string[]
+          generate_cover_letter?: boolean
+          id?: string
+          industry_preference?: string[]
+          is_enabled?: boolean
+          location_radius?: string
+          match_threshold?: number
+          min_salary?: string | null
+          preferred_locations?: string[]
+          preferred_titles?: string[]
+          remote_only?: boolean
+          salary_currency?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auto_apply_preferences_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: true
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidate_resumes: {
         Row: {
           candidate_id: string
