@@ -81,13 +81,13 @@ interface AppliedJob {
 }
 
 const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
-  requested: { label: 'Requested', color: 'bg-amber-500/10 text-amber-600 border-amber-500/20', icon: Send },
-  pending_confirmation: { label: 'Pending', color: 'bg-blue-500/10 text-blue-600 border-blue-500/20', icon: Clock },
-  scheduled: { label: 'Scheduled', color: 'bg-blue-500/10 text-blue-600 border-blue-500/20', icon: CalendarDays },
-  confirmed: { label: 'Confirmed', color: 'bg-green-500/10 text-green-600 border-green-500/20', icon: CheckCircle },
-  rescheduled: { label: 'Rescheduled', color: 'bg-purple-500/10 text-purple-600 border-purple-500/20', icon: RefreshCw },
+  requested: { label: 'Requested', color: 'bg-warning/10 text-warning-foreground border-warning/20', icon: Send },
+  pending_confirmation: { label: 'Pending', color: 'bg-primary/10 text-primary border-primary/20', icon: Clock },
+  scheduled: { label: 'Scheduled', color: 'bg-primary/10 text-primary border-primary/20', icon: CalendarDays },
+  confirmed: { label: 'Confirmed', color: 'bg-success/10 text-success border-success/20', icon: CheckCircle },
+  rescheduled: { label: 'Rescheduled', color: 'bg-accent/10 text-accent-foreground border-accent/20', icon: RefreshCw },
   rejected: { label: 'Declined', color: 'bg-destructive/10 text-destructive border-destructive/20', icon: XCircle },
-  completed: { label: 'Completed', color: 'bg-green-500/10 text-green-600 border-green-500/20', icon: CheckCircle },
+  completed: { label: 'Completed', color: 'bg-success/10 text-success border-success/20', icon: CheckCircle },
   cancelled: { label: 'Cancelled', color: 'bg-muted text-muted-foreground border-border', icon: XCircle },
 };
 
@@ -323,9 +323,9 @@ export const CandidateInterviewManager = ({ candidateId }: CandidateInterviewMan
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
           { label: 'Upcoming', value: upcoming.length, icon: CalendarDays, color: 'text-primary bg-primary/10' },
-          { label: 'Pending', value: requested.length, icon: AlertCircle, color: 'text-amber-600 bg-amber-500/10' },
-          { label: 'Completed', value: past.filter(i => i.status === 'completed').length, icon: CheckCircle, color: 'text-green-600 bg-green-500/10' },
-          { label: 'Total', value: interviews.length, icon: Calendar, color: 'text-blue-600 bg-blue-500/10' },
+          { label: 'Pending', value: requested.length, icon: AlertCircle, color: 'text-warning-foreground bg-warning/10' },
+          { label: 'Completed', value: past.filter(i => i.status === 'completed').length, icon: CheckCircle, color: 'text-success bg-success/10' },
+          { label: 'Total', value: interviews.length, icon: Calendar, color: 'text-primary bg-primary/10' },
         ].map((stat, i) => (
           <motion.div key={stat.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
             <Card className="shadow-sm">

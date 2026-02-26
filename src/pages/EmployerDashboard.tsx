@@ -50,6 +50,8 @@ import { JobExpiryBadge } from '@/components/employer/JobExpiryBadge';
 import { SecuritySettings } from '@/components/candidate/SecuritySettings';
 import { NotificationCenter } from '@/components/candidate/NotificationCenter';
 import { CompanyProfileSection } from '@/components/employer/CompanyProfileSection';
+import { RecentActivityFeed } from '@/components/employer/RecentActivityFeed';
+import { HiringPipeline } from '@/components/employer/HiringPipeline';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -855,7 +857,7 @@ const EmployerDashboard = () => {
                 {/* === BENTO GRID DASHBOARD === */}
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 auto-rows-[minmax(0,1fr)]">
 
-                  {/* Row 1: Hero Stat Cards - span full width */}
+                  {/* Row 1: Hero Stat Cards */}
                   {[
                     { icon: Briefcase, label: 'Active Jobs', value: stats.activeJobs, subtitle: 'currently open', accentColor: 'blue' as const, section: 'jobs', span: 'col-span-1' },
                     { icon: Users, label: 'Applications', value: stats.totalApplications, subtitle: 'across all jobs', accentColor: 'amber' as const, section: 'jobs', span: 'col-span-1' },
@@ -881,7 +883,7 @@ const EmployerDashboard = () => {
                     </motion.div>
                   ))}
 
-                  {/* Welcome / CTA Card - spans 2 cols on large */}
+                  {/* Welcome / CTA Card */}
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -889,7 +891,6 @@ const EmployerDashboard = () => {
                     className="col-span-2 row-span-1 hidden lg:block"
                   >
                     <div className="relative h-full rounded-2xl overflow-hidden bg-gradient-to-br from-primary/90 via-primary to-primary/80 p-5 sm:p-6 flex flex-col justify-between group">
-                      {/* Decorative orbs */}
                       <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary-foreground/10 rounded-full blur-3xl" />
                       <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-primary-foreground/5 rounded-full blur-2xl" />
                       <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, hsl(var(--primary-foreground)) 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
@@ -917,7 +918,7 @@ const EmployerDashboard = () => {
                     </div>
                   </motion.div>
 
-                  {/* Quick Actions - 8 items in a bento card */}
+                  {/* Quick Actions */}
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -925,7 +926,6 @@ const EmployerDashboard = () => {
                     className="col-span-2 md:col-span-4 lg:col-span-6"
                   >
                     <div className="relative rounded-2xl border border-border/40 bg-card/60 backdrop-blur-xl p-4 sm:p-5 overflow-hidden">
-                      {/* Subtle decorative orb */}
                       <div className="absolute -top-16 -right-16 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
                       <div className="absolute -bottom-12 -left-12 w-36 h-36 bg-accent/8 rounded-full blur-3xl pointer-events-none" />
 
@@ -961,12 +961,12 @@ const EmployerDashboard = () => {
                     </div>
                   </motion.div>
 
-                  {/* Active Jobs Table - Large bento card */}
+                  {/* Active Jobs Table */}
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4, type: 'spring', stiffness: 100 }}
-                    className="col-span-2 md:col-span-4 lg:col-span-4"
+                    className="col-span-2 md:col-span-4 lg:col-span-3"
                   >
                     <div className="relative rounded-2xl border border-border/40 bg-card/60 backdrop-blur-xl overflow-hidden h-full">
                       <div className="absolute -top-20 -left-20 w-56 h-56 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
@@ -981,12 +981,37 @@ const EmployerDashboard = () => {
                     </div>
                   </motion.div>
 
-                  {/* Interviews Card - Tall bento card */}
+                  {/* Hiring Pipeline + Recent Activity */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.45, type: 'spring', stiffness: 100 }}
+                    className="col-span-2 md:col-span-2 lg:col-span-3 flex flex-col gap-3 sm:gap-4"
+                  >
+                    {/* Hiring Pipeline */}
+                    <div className="relative rounded-2xl border border-border/40 bg-card/60 backdrop-blur-xl overflow-hidden">
+                      <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-success/5 rounded-full blur-3xl pointer-events-none" />
+                      <div className="relative z-10 p-4 sm:p-5">
+                        {employer && <HiringPipeline employerId={employer.id} />}
+                      </div>
+                    </div>
+
+                    {/* Recent Activity */}
+                    <div className="relative rounded-2xl border border-border/40 bg-card/60 backdrop-blur-xl overflow-hidden flex-1">
+                      <div className="absolute -top-16 -right-16 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+                      <div className="relative z-10 p-4 sm:p-5">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Recent Activity</p>
+                        {employer && profile && <RecentActivityFeed employerId={employer.id} profileId={profile.id} />}
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  {/* Interviews Card */}
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5, type: 'spring', stiffness: 100 }}
-                    className="col-span-2 md:col-span-4 lg:col-span-2"
+                    className="col-span-2 md:col-span-4 lg:col-span-6"
                   >
                     <div className="relative rounded-2xl border border-border/40 bg-card/60 backdrop-blur-xl overflow-hidden h-full">
                       <div className="absolute -bottom-16 -right-16 w-48 h-48 bg-success/5 rounded-full blur-3xl pointer-events-none" />

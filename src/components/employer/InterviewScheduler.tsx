@@ -259,24 +259,26 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
       {/* Quick Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { label: 'Scheduled', value: scheduledInterviews.length, icon: Calendar, color: 'text-primary bg-primary/10' },
-          { label: 'Requests', value: candidateRequests.length, icon: Send, color: 'text-amber-600 bg-amber-500/10' },
-          { label: 'Pending Review', value: pendingApplicants.length, icon: Users, color: 'text-blue-600 bg-blue-500/10' },
-          { label: 'Video Calls', value: scheduledInterviews.filter(i => i.interview_type === 'video').length, icon: Video, color: 'text-green-600 bg-green-500/10' },
-        ].map((stat) => (
-          <Card key={stat.label} className="bg-card">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center", stat.color)}>
-                  <stat.icon className="w-5 h-5" />
+          { label: 'Scheduled', value: scheduledInterviews.length, icon: Calendar, color: 'text-primary', bg: 'bg-primary/10' },
+          { label: 'Requests', value: candidateRequests.length, icon: Send, color: 'text-warning-foreground', bg: 'bg-warning/10' },
+          { label: 'Pending Review', value: pendingApplicants.length, icon: Users, color: 'text-muted-foreground', bg: 'bg-muted' },
+          { label: 'Video Calls', value: scheduledInterviews.filter(i => i.interview_type === 'video').length, icon: Video, color: 'text-success', bg: 'bg-success/10' },
+        ].map((stat, i) => (
+          <motion.div key={stat.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+            <Card className="bg-card border-border/50">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0", stat.bg)}>
+                    <stat.icon className={cn("w-5 h-5", stat.color)} />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                    <p className="text-xs text-muted-foreground">{stat.label}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{stat.value}</p>
-                  <p className="text-xs text-muted-foreground">{stat.label}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </motion.div>
         ))}
       </div>
 
@@ -345,18 +347,18 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
                 <div className="space-y-3">
                   {candidateRequests.map((req) => (
                     <motion.div key={req.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                      className="p-4 rounded-xl border border-amber-500/20 bg-amber-500/5 transition-all"
+                      className="p-4 rounded-xl border border-warning/20 bg-warning/5 transition-all"
                     >
                       <div className="flex items-start gap-3">
                         <Avatar className="h-12 w-12">
                           <AvatarImage src={req.candidate_avatar || ''} />
-                          <AvatarFallback className="bg-amber-500/10 text-amber-600"><User className="w-6 h-6" /></AvatarFallback>
+                          <AvatarFallback className="bg-warning/10 text-warning-foreground"><User className="w-6 h-6" /></AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold">{req.candidate_name}</p>
+                          <p className="font-semibold text-foreground">{req.candidate_name}</p>
                           <p className="text-sm text-muted-foreground">{req.job_title}</p>
                           <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                            <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-xs gap-1">
+                            <Badge className="bg-warning/10 text-warning-foreground border-warning/20 text-xs gap-1">
                               <Send className="w-3 h-3" /> Request
                             </Badge>
                             <span className="text-xs text-muted-foreground flex items-center gap-1">
@@ -377,7 +379,7 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-amber-500/10">
+                      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-warning/10">
                         <Button size="sm" className="flex-1" onClick={() => handleAcceptRequest(req)}>
                           <CheckCircle className="w-4 h-4 mr-1" /> Accept
                         </Button>
@@ -402,35 +404,34 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
                 <div className="space-y-3">
                   {scheduledInterviews.map((interview) => (
                     <motion.div key={interview.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 rounded-xl border border-green-500/20 bg-green-500/5 transition-all gap-3"
+                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 rounded-xl border border-success/20 bg-success/5 transition-all gap-3"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="text-center p-2 bg-green-500/10 rounded-lg min-w-16">
-                          <p className="text-2xl font-bold text-green-600">{format(new Date(interview.scheduled_date), 'd')}</p>
-                          <p className="text-xs text-green-600">{format(new Date(interview.scheduled_date), 'MMM')}</p>
+                        <div className="text-center p-2 bg-success/10 rounded-lg min-w-16">
+                          <p className="text-2xl font-bold text-success">{format(new Date(interview.scheduled_date), 'd')}</p>
+                          <p className="text-xs text-success">{format(new Date(interview.scheduled_date), 'MMM')}</p>
                         </div>
                         <Avatar className="h-12 w-12">
                           <AvatarImage src={interview.candidate_avatar || ''} />
-                          <AvatarFallback className="bg-green-500/10 text-green-600"><User className="w-6 h-6" /></AvatarFallback>
+                          <AvatarFallback className="bg-success/10 text-success"><User className="w-6 h-6" /></AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-semibold">{interview.candidate_name}</p>
+                          <p className="font-semibold text-foreground">{interview.candidate_name}</p>
                           <p className="text-sm text-muted-foreground">{interview.job_title}</p>
                           <div className="flex items-center gap-2 mt-1">
-                            <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 text-xs">
+                            <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">
                               {interview.interview_type === 'video' ? <Video className="w-3 h-3 mr-1" /> : <MapPin className="w-3 h-3 mr-1" />}
                               {interview.interview_type}
                             </Badge>
                             <span className="text-xs text-muted-foreground flex items-center gap-1">
                               <Clock className="w-3 h-3" /> {interview.scheduled_time}
                             </span>
-                            {/* Confirmation status */}
                             {interview.confirmed_by_candidate ? (
-                              <Badge className="bg-green-500/10 text-green-600 border-green-500/20 text-[10px]">
+                              <Badge className="bg-success/10 text-success border-success/20 text-[10px]">
                                 <CheckCircle className="w-3 h-3 mr-0.5" /> Confirmed
                               </Badge>
                             ) : (
-                              <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 text-[10px]">
+                              <Badge className="bg-warning/10 text-warning-foreground border-warning/20 text-[10px]">
                                 <AlertTriangle className="w-3 h-3 mr-0.5" /> Awaiting
                               </Badge>
                             )}
