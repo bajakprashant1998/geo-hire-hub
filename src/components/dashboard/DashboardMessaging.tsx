@@ -521,7 +521,7 @@ export const DashboardMessaging = () => {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex h-[calc(100vh-300px)] min-h-[500px] max-h-[750px] bg-background rounded-2xl border overflow-hidden">
+      <div className="flex h-[calc(100vh-300px)] min-h-[500px] bg-background rounded-2xl border overflow-hidden">
         {/* Conversation List */}
         <div className={cn(
           "w-full md:w-[360px] flex-col border-r border-border bg-card",
@@ -675,12 +675,12 @@ export const DashboardMessaging = () => {
                           </div>
                         </button>
                         {/* Hover actions */}
-                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-0.5">
+                        <div className="absolute top-1.5 right-1.5 z-10 opacity-0 group-hover:opacity-100 transition-all flex gap-0.5 bg-card/95 backdrop-blur-sm border border-border rounded-lg shadow-sm p-0.5">
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <button
                                 onClick={(e) => { e.stopPropagation(); togglePin(conv.id); }}
-                                className="p-1.5 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/30 text-muted-foreground hover:text-amber-600"
+                                className="p-1.5 rounded-md bg-transparent hover:bg-amber-500/15 text-foreground/60 hover:text-amber-600 transition-colors"
                               >
                                 {isPinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
                               </button>
@@ -693,7 +693,7 @@ export const DashboardMessaging = () => {
                               setDeletingConvId(conv.id);
                               setDeleteDialogOpen(true);
                             }}
-                            className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                            className="p-1.5 rounded-md bg-transparent hover:bg-destructive/15 text-foreground/60 hover:text-destructive transition-colors"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
