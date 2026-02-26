@@ -399,18 +399,18 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-foreground">Company Profile</h2>
-          <p className="text-sm text-muted-foreground mt-1">Complete your profile to attract top talent & enable AI matching</p>
+          <h2 className="text-lg sm:text-2xl font-bold text-foreground">Company Profile</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">Complete your profile to attract top talent & enable AI matching</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           <VerificationBadge status={verificationStatus} />
           {onViewPublicProfile && (
-            <Button variant="outline" size="sm" onClick={onViewPublicProfile} className="gap-1.5">
-              <Eye className="w-4 h-4" /> Preview
+            <Button variant="outline" size="sm" onClick={onViewPublicProfile} className="gap-1.5 text-xs sm:text-sm h-8 sm:h-9">
+              <Eye className="w-3.5 h-3.5" /> Preview
             </Button>
           )}
         </div>
@@ -419,7 +419,7 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
       {/* Completeness */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
         <Card className="border-border bg-gradient-to-br from-primary/5 via-transparent to-transparent">
-          <CardContent className="p-5">
+          <CardContent className="p-3 sm:p-5">
             <ProfileCompletenessBar completeness={completeness} missingFields={calculateMissingFields()} />
           </CardContent>
         </Card>
@@ -428,7 +428,7 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
       {/* Verification Warnings */}
       {verificationStatus === 'pending' && completeness >= 100 && (
         <Card className="border-warning/50 bg-warning/5">
-          <CardContent className="p-4 flex items-start gap-3">
+          <CardContent className="p-3 sm:p-4 flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-warning mt-0.5 shrink-0" />
             <div>
               <p className="font-medium text-sm">Pending Admin Approval</p>
@@ -438,21 +438,21 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
         </Card>
       )}
 
-      {/* Step Navigation - scrollable */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+      {/* Step Navigation - mobile: 2-row grid, desktop: horizontal scroll */}
+      <div className="grid grid-cols-3 sm:grid-cols-5 md:flex gap-1.5 sm:gap-2 sm:overflow-x-auto sm:pb-1 scrollbar-hide">
         {steps.map((step, idx) => (
           <button
             key={step.label}
             onClick={() => setActiveStep(idx)}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-all whitespace-nowrap border shrink-0",
+              "flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-2 sm:py-2 rounded-lg text-[10px] sm:text-xs font-medium transition-all whitespace-nowrap border shrink-0",
               activeStep === idx
                 ? "bg-primary text-primary-foreground border-primary shadow-sm"
                 : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
             )}
           >
-            <step.icon className="w-3.5 h-3.5 shrink-0" />
-            <span>{step.label}</span>
+            <step.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+            <span className="leading-tight text-center sm:text-left">{step.label}</span>
           </button>
         ))}
       </div>
@@ -468,48 +468,48 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
         >
           {/* 0: Basic Info */}
           {activeStep === 0 && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <Card>
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Camera className="w-5 h-5 text-primary" />
+                <CardHeader className="pb-3 sm:pb-4 px-3 sm:px-6 pt-4 sm:pt-6">
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                    <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                     Company Branding
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="flex flex-col md:flex-row items-center gap-6 p-4 bg-muted/30 rounded-xl">
+                <CardContent className="space-y-4 sm:space-y-6 px-3 sm:px-6 pb-4 sm:pb-6">
+                  <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 p-3 sm:p-4 bg-muted/30 rounded-xl">
                     {user && (
                       <LogoUpload userId={user.id} currentLogoUrl={logoUrl} onLogoUploaded={setLogoUrl} size="lg" />
                     )}
-                    <div className="text-center md:text-left">
-                      <h3 className="font-semibold text-foreground">Company Logo</h3>
-                      <p className="text-sm text-muted-foreground">Square image, at least 200×200px</p>
+                    <div className="text-center sm:text-left">
+                      <h3 className="font-semibold text-foreground text-sm sm:text-base">Company Logo</h3>
+                      <p className="text-xs sm:text-sm text-muted-foreground">Square image, at least 200×200px</p>
                     </div>
                   </div>
                   <Separator />
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Company Name *</Label>
-                      <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Your Company Name" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div className="space-y-1.5 sm:space-y-2">
+                      <Label className="text-xs sm:text-sm">Company Name *</Label>
+                      <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} placeholder="Your Company Name" className="h-9 sm:h-10 text-sm" />
                     </div>
-                    <div className="space-y-2">
-                      <Label>Industry *</Label>
+                    <div className="space-y-1.5 sm:space-y-2">
+                      <Label className="text-xs sm:text-sm">Industry *</Label>
                       <Select value={industry} onValueChange={setIndustry}>
-                        <SelectTrigger><SelectValue placeholder="Select industry" /></SelectTrigger>
+                        <SelectTrigger className="h-9 sm:h-10 text-sm"><SelectValue placeholder="Select industry" /></SelectTrigger>
                         <SelectContent>
                           {industries.map((ind) => (<SelectItem key={ind} value={ind}>{ind}</SelectItem>))}
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="flex items-center gap-2">
-                        <Users className="w-4 h-4 text-muted-foreground" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div className="space-y-1.5 sm:space-y-2">
+                      <Label className="flex items-center gap-2 text-xs sm:text-sm">
+                        <Users className="w-3.5 h-3.5 text-muted-foreground" />
                         Team Size
                       </Label>
                       <Select value={teamSize} onValueChange={setTeamSize}>
-                        <SelectTrigger><SelectValue placeholder="Select team size" /></SelectTrigger>
+                        <SelectTrigger className="h-9 sm:h-10 text-sm"><SelectValue placeholder="Select team size" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="1-10">1-10 employees</SelectItem>
                           <SelectItem value="11-50">11-50 employees</SelectItem>
@@ -520,13 +520,13 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-2">
-                      <Label>Year Founded</Label>
+                    <div className="space-y-1.5 sm:space-y-2">
+                      <Label className="text-xs sm:text-sm">Year Founded</Label>
                       <Select
                         value={foundingYear?.toString() || ''}
                         onValueChange={(val) => setFoundingYear(val ? parseInt(val) : null)}
                       >
-                        <SelectTrigger><SelectValue placeholder="Select year" /></SelectTrigger>
+                        <SelectTrigger className="h-9 sm:h-10 text-sm"><SelectValue placeholder="Select year" /></SelectTrigger>
                         <SelectContent className="max-h-60">
                           {Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i).map((year) => (
                             <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
@@ -535,31 +535,30 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
                       </Select>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Company Description *</Label>
-                    <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Tell candidates about your company..." rows={4} />
-                    <p className="text-xs text-muted-foreground">{description.length}/20 characters minimum</p>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Company Description *</Label>
+                    <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Tell candidates about your company..." rows={3} className="text-sm" />
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">{description.length}/20 characters minimum</p>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Website URL</Label>
-                    <Input type="url" value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} placeholder="https://yourcompany.com" />
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Website URL</Label>
+                    <Input type="url" value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} placeholder="https://yourcompany.com" className="h-9 sm:h-10 text-sm" />
                   </div>
-                  {/* Legal */}
                   <Separator />
-                  <h4 className="font-semibold flex items-center gap-2"><CreditCard className="w-4 h-4 text-primary" /> Legal Information</h4>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Country *</Label>
+                  <h4 className="font-semibold flex items-center gap-2 text-sm sm:text-base"><CreditCard className="w-4 h-4 text-primary" /> Legal Information</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div className="space-y-1.5 sm:space-y-2">
+                      <Label className="text-xs sm:text-sm">Country *</Label>
                       <Select value={countryCode} onValueChange={setCountryCode}>
-                        <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+                        <SelectTrigger className="h-9 sm:h-10 text-sm"><SelectValue placeholder="Select country" /></SelectTrigger>
                         <SelectContent>
                           {countries.map((c) => (<SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>))}
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-2">
-                      <Label>{getTaxLabel()} *</Label>
-                      <Input value={taxId} onChange={(e) => setTaxId(e.target.value)} placeholder={`Enter your ${getTaxLabel()}`} />
+                    <div className="space-y-1.5 sm:space-y-2">
+                      <Label className="text-xs sm:text-sm">{getTaxLabel()} *</Label>
+                      <Input value={taxId} onChange={(e) => setTaxId(e.target.value)} placeholder={`Enter your ${getTaxLabel()}`} className="h-9 sm:h-10 text-sm" />
                     </div>
                   </div>
                 </CardContent>
@@ -569,17 +568,17 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
 
           {/* 1: Location & Work Setup */}
           {activeStep === 1 && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <Card>
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-2 text-lg"><MapPin className="w-5 h-5 text-primary" /> Location & Work Setup</CardTitle>
-                  <CardDescription>Important for AI nearby job matching</CardDescription>
+                <CardHeader className="pb-3 sm:pb-4 px-3 sm:px-6 pt-4 sm:pt-6">
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /> Location & Work Setup</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">Important for AI nearby job matching</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-2">
-                    <Label>Work Environment</Label>
+                <CardContent className="space-y-4 sm:space-y-6 px-3 sm:px-6 pb-4 sm:pb-6">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Work Environment</Label>
                     <Select value={workEnvironment} onValueChange={setWorkEnvironment}>
-                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="h-9 sm:h-10 text-sm"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="onsite">🏢 Onsite</SelectItem>
                         <SelectItem value="remote">🏠 Remote</SelectItem>
@@ -587,15 +586,15 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Office Locations</Label>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Office Locations</Label>
                     <TagInput tags={officeLocations} onChange={setOfficeLocations} placeholder="Add city, e.g. New York, Mumbai" />
-                    <p className="text-xs text-muted-foreground">Add all your office locations for better AI matching</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Add all your office locations for better AI matching</p>
                   </div>
                   <div className="flex items-center justify-between p-3 rounded-lg border border-border">
                     <div>
-                      <Label className="font-medium">Relocation Support</Label>
-                      <p className="text-xs text-muted-foreground">Do you offer relocation assistance?</p>
+                      <Label className="font-medium text-xs sm:text-sm">Relocation Support</Label>
+                      <p className="text-[10px] sm:text-xs text-muted-foreground">Do you offer relocation assistance?</p>
                     </div>
                     <Switch checked={relocationSupport} onCheckedChange={setRelocationSupport} />
                   </div>
@@ -606,46 +605,46 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
 
           {/* 2: Hiring & Job Information */}
           {activeStep === 2 && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <Card>
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-2 text-lg"><Briefcase className="w-5 h-5 text-primary" /> Hiring Information</CardTitle>
+                <CardHeader className="pb-3 sm:pb-4 px-3 sm:px-6 pt-4 sm:pt-6">
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><Briefcase className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /> Hiring Information</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid md:grid-cols-2 gap-4">
+                <CardContent className="space-y-4 sm:space-y-6 px-3 sm:px-6 pb-4 sm:pb-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div className="flex items-center justify-between p-3 rounded-lg border border-border">
                       <div>
-                        <Label className="font-medium">Internship Available</Label>
-                        <p className="text-xs text-muted-foreground">Offer internship positions?</p>
+                        <Label className="font-medium text-xs sm:text-sm">Internship Available</Label>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground">Offer internship positions?</p>
                       </div>
                       <Switch checked={internshipAvailable} onCheckedChange={setInternshipAvailable} />
                     </div>
                     <div className="flex items-center justify-between p-3 rounded-lg border border-border">
                       <div>
-                        <Label className="font-medium">Fresher Hiring</Label>
-                        <p className="text-xs text-muted-foreground">Hire fresh graduates?</p>
+                        <Label className="font-medium text-xs sm:text-sm">Fresher Hiring</Label>
+                        <p className="text-[10px] sm:text-xs text-muted-foreground">Hire fresh graduates?</p>
                       </div>
                       <Switch checked={fresherHiring} onCheckedChange={setFresherHiring} />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Hiring Process</Label>
-                    <Textarea value={hiringProcess} onChange={(e) => setHiringProcess(e.target.value)} placeholder="e.g., Application → Phone Screen → Technical → Final → Offer" rows={3} />
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Hiring Process</Label>
+                    <Textarea value={hiringProcess} onChange={(e) => setHiringProcess(e.target.value)} placeholder="e.g., Application → Phone Screen → Technical → Final → Offer" rows={3} className="text-sm" />
                   </div>
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Interview Rounds</Label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div className="space-y-1.5 sm:space-y-2">
+                      <Label className="text-xs sm:text-sm">Interview Rounds</Label>
                       <Select value={interviewRoundsCount?.toString() || ''} onValueChange={(v) => setInterviewRoundsCount(v ? parseInt(v) : null)}>
-                        <SelectTrigger><SelectValue placeholder="Select rounds" /></SelectTrigger>
+                        <SelectTrigger className="h-9 sm:h-10 text-sm"><SelectValue placeholder="Select rounds" /></SelectTrigger>
                         <SelectContent>
                           {[1, 2, 3, 4, 5, 6].map((n) => (<SelectItem key={n} value={n.toString()}>{n} round{n > 1 ? 's' : ''}</SelectItem>))}
                         </SelectContent>
                       </Select>
                     </div>
-                    <div className="space-y-2">
-                      <Label>Typical Hiring Timeline</Label>
+                    <div className="space-y-1.5 sm:space-y-2">
+                      <Label className="text-xs sm:text-sm">Typical Hiring Timeline</Label>
                       <Select value={hiringTimeline} onValueChange={setHiringTimeline}>
-                        <SelectTrigger><SelectValue placeholder="Select timeline" /></SelectTrigger>
+                        <SelectTrigger className="h-9 sm:h-10 text-sm"><SelectValue placeholder="Select timeline" /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="1-2 weeks">1-2 weeks</SelectItem>
                           <SelectItem value="2-4 weeks">2-4 weeks</SelectItem>
@@ -656,8 +655,8 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
                       </Select>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Assessment Types</Label>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Assessment Types</Label>
                     <TagInput tags={assessmentTypes} onChange={setAssessmentTypes} placeholder="e.g. Coding test, Case study, Group discussion" />
                   </div>
                 </CardContent>
@@ -667,28 +666,28 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
 
           {/* 3: Compensation & Benefits */}
           {activeStep === 3 && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <Card>
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-2 text-lg"><DollarSign className="w-5 h-5 text-primary" /> Salary & Compensation</CardTitle>
-                  <CardDescription>Critical for AI salary advice & matching</CardDescription>
+                <CardHeader className="pb-3 sm:pb-4 px-3 sm:px-6 pt-4 sm:pt-6">
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /> Salary & Compensation</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">Critical for AI salary advice & matching</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Average Salary Range</Label>
-                    <Input value={avgSalaryRange} onChange={(e) => setAvgSalaryRange(e.target.value)} placeholder="e.g., $50,000 - $150,000 / year" />
+                <CardContent className="space-y-3 sm:space-y-4 px-3 sm:px-6 pb-4 sm:pb-6">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Average Salary Range</Label>
+                    <Input value={avgSalaryRange} onChange={(e) => setAvgSalaryRange(e.target.value)} placeholder="e.g., $50,000 - $150,000 / year" className="h-9 sm:h-10 text-sm" />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Bonus Structure</Label>
-                    <Textarea value={bonusStructure} onChange={(e) => setBonusStructure(e.target.value)} placeholder="e.g., Annual performance bonus up to 20%, quarterly incentives..." rows={2} />
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Bonus Structure</Label>
+                    <Textarea value={bonusStructure} onChange={(e) => setBonusStructure(e.target.value)} placeholder="e.g., Annual performance bonus up to 20%, quarterly incentives..." rows={2} className="text-sm" />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Paid Leaves Policy</Label>
-                    <Input value={paidLeavesPolicy} onChange={(e) => setPaidLeavesPolicy(e.target.value)} placeholder="e.g., 25 days annual leave + 10 sick days" />
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Paid Leaves Policy</Label>
+                    <Input value={paidLeavesPolicy} onChange={(e) => setPaidLeavesPolicy(e.target.value)} placeholder="e.g., 25 days annual leave + 10 sick days" className="h-9 sm:h-10 text-sm" />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Learning & Training Budget</Label>
-                    <Input value={learningBudget} onChange={(e) => setLearningBudget(e.target.value)} placeholder="e.g., $2,000/year per employee" />
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Learning & Training Budget</Label>
+                    <Input value={learningBudget} onChange={(e) => setLearningBudget(e.target.value)} placeholder="e.g., $2,000/year per employee" className="h-9 sm:h-10 text-sm" />
                   </div>
                 </CardContent>
               </Card>
@@ -698,17 +697,17 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
 
           {/* 4: Growth & Career */}
           {activeStep === 4 && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <Card>
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-2 text-lg"><TrendingUp className="w-5 h-5 text-primary" /> Growth & Career Opportunities</CardTitle>
-                  <CardDescription>Critical for AI career prediction</CardDescription>
+                <CardHeader className="pb-3 sm:pb-4 px-3 sm:px-6 pt-4 sm:pt-6">
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /> Growth & Career Opportunities</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">Critical for AI career prediction</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Promotion Frequency</Label>
+                <CardContent className="space-y-3 sm:space-y-4 px-3 sm:px-6 pb-4 sm:pb-6">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Promotion Frequency</Label>
                     <Select value={promotionFrequency} onValueChange={setPromotionFrequency}>
-                      <SelectTrigger><SelectValue placeholder="Select frequency" /></SelectTrigger>
+                      <SelectTrigger className="h-9 sm:h-10 text-sm"><SelectValue placeholder="Select frequency" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="6-12 months">Every 6-12 months</SelectItem>
                         <SelectItem value="1-2 years">Every 1-2 years</SelectItem>
@@ -717,14 +716,14 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Career Growth Paths</Label>
-                    <Textarea value={careerGrowthPaths} onChange={(e) => setCareerGrowthPaths(e.target.value)} placeholder="Describe career progression, leadership programs, internal mobility..." rows={3} />
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Career Growth Paths</Label>
+                    <Textarea value={careerGrowthPaths} onChange={(e) => setCareerGrowthPaths(e.target.value)} placeholder="Describe career progression, leadership programs, internal mobility..." rows={3} className="text-sm" />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Employee Retention Rate</Label>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Employee Retention Rate</Label>
                     <Select value={employeeRetentionRate} onValueChange={setEmployeeRetentionRate}>
-                      <SelectTrigger><SelectValue placeholder="Select retention rate" /></SelectTrigger>
+                      <SelectTrigger className="h-9 sm:h-10 text-sm"><SelectValue placeholder="Select retention rate" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="90%+">90%+ (Excellent)</SelectItem>
                         <SelectItem value="80-90%">80-90% (Good)</SelectItem>
@@ -740,29 +739,29 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
 
           {/* 5: Skills & Role Alignment */}
           {activeStep === 5 && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <Card>
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-2 text-lg"><Target className="w-5 h-5 text-primary" /> Skill & Role Alignment</CardTitle>
-                  <CardDescription>Used for AI candidate match % calculation</CardDescription>
+                <CardHeader className="pb-3 sm:pb-4 px-3 sm:px-6 pt-4 sm:pt-6">
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><Target className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /> Skill & Role Alignment</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">Used for AI candidate match % calculation</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-2">
-                    <Label>Key Skills You Hire For</Label>
+                <CardContent className="space-y-4 sm:space-y-6 px-3 sm:px-6 pb-4 sm:pb-6">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Key Skills You Hire For</Label>
                     <TagInput tags={keySkillsHiring} onChange={setKeySkillsHiring} placeholder="e.g. React, Python, Sales, Marketing" />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Technology Stack</Label>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Technology Stack</Label>
                     <TagInput tags={techStack} onChange={setTechStack} placeholder="e.g. AWS, React, PostgreSQL, Docker" />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Preferred Certifications</Label>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Preferred Certifications</Label>
                     <TagInput tags={preferredCertifications} onChange={setPreferredCertifications} placeholder="e.g. AWS Certified, PMP, Google Analytics" />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Education Preference</Label>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Education Preference</Label>
                     <Select value={educationPreference} onValueChange={setEducationPreference}>
-                      <SelectTrigger><SelectValue placeholder="Select preference" /></SelectTrigger>
+                      <SelectTrigger className="h-9 sm:h-10 text-sm"><SelectValue placeholder="Select preference" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="any">Any Education</SelectItem>
                         <SelectItem value="high-school">High School+</SelectItem>
@@ -773,8 +772,8 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Company Specializations</Label>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Company Specializations</Label>
                     <TagInput tags={specializations} onChange={setSpecializations} placeholder="e.g. AI/ML, FinTech, SaaS" />
                   </div>
                 </CardContent>
@@ -784,16 +783,16 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
 
           {/* 6: Culture & Work Environment */}
           {activeStep === 6 && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <Card>
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-2 text-lg"><Heart className="w-5 h-5 text-primary" /> Company Culture</CardTitle>
+                <CardHeader className="pb-3 sm:pb-4 px-3 sm:px-6 pt-4 sm:pt-6">
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><Heart className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /> Company Culture</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-2">
-                    <Label>Work Culture Type</Label>
+                <CardContent className="space-y-4 sm:space-y-6 px-3 sm:px-6 pb-4 sm:pb-6">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Work Culture Type</Label>
                     <Select value={workCultureType} onValueChange={setWorkCultureType}>
-                      <SelectTrigger><SelectValue placeholder="Select culture type" /></SelectTrigger>
+                      <SelectTrigger className="h-9 sm:h-10 text-sm"><SelectValue placeholder="Select culture type" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="startup">🚀 Startup</SelectItem>
                         <SelectItem value="corporate">🏢 Corporate</SelectItem>
@@ -804,17 +803,17 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Culture Description</Label>
-                    <Textarea value={cultureDescription} onChange={(e) => setCultureDescription(e.target.value)} placeholder="What makes your company culture unique?" rows={4} />
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Culture Description</Label>
+                    <Textarea value={cultureDescription} onChange={(e) => setCultureDescription(e.target.value)} placeholder="What makes your company culture unique?" rows={4} className="text-sm" />
                   </div>
-                  <div className="space-y-2">
-                    <Label>Company Values</Label>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Company Values</Label>
                     <TagInput tags={companyValues} onChange={setCompanyValues} placeholder="e.g. Innovation, Transparency, Customer First" />
                   </div>
-                  <div className="space-y-3">
-                    <Label>Work-Life Balance Rating</Label>
-                    <div className="flex items-center gap-4">
+                  <div className="space-y-2 sm:space-y-3">
+                    <Label className="text-xs sm:text-sm">Work-Life Balance Rating</Label>
+                    <div className="flex items-center gap-3 sm:gap-4">
                       <Slider
                         value={[workLifeBalanceRating]}
                         onValueChange={(v) => setWorkLifeBalanceRating(v[0])}
@@ -823,14 +822,14 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
                       />
                       <div className="flex gap-0.5">
                         {[1, 2, 3, 4, 5].map((s) => (
-                          <Star key={s} className={cn("w-4 h-4", s <= workLifeBalanceRating ? "text-warning fill-warning" : "text-muted-foreground")} />
+                          <Star key={s} className={cn("w-3.5 h-3.5 sm:w-4 sm:h-4", s <= workLifeBalanceRating ? "text-warning fill-warning" : "text-muted-foreground")} />
                         ))}
                       </div>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Diversity & Inclusion Policies</Label>
-                    <Textarea value={diversityPolicies} onChange={(e) => setDiversityPolicies(e.target.value)} placeholder="Describe your D&I initiatives..." rows={3} />
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Diversity & Inclusion Policies</Label>
+                    <Textarea value={diversityPolicies} onChange={(e) => setDiversityPolicies(e.target.value)} placeholder="Describe your D&I initiatives..." rows={3} className="text-sm" />
                   </div>
                 </CardContent>
               </Card>
@@ -840,13 +839,13 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
 
           {/* 7: Documents & Media */}
           {activeStep === 7 && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <Card>
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-2 text-lg"><FileText className="w-5 h-5 text-primary" /> Trust Documents & Media</CardTitle>
-                  <CardDescription>Upload photos and documents to build trust</CardDescription>
+                <CardHeader className="pb-3 sm:pb-4 px-3 sm:px-6 pt-4 sm:pt-6">
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><FileText className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /> Trust Documents & Media</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">Upload photos and documents to build trust</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-4 px-3 sm:px-6 pb-4 sm:pb-6">
                   {user && (
                     <>
                       <DocumentUpload userId={user.id} type="office" currentUrl={officePhotoUrl} onUploaded={(url) => autoSaveDocument('office_photo_url', url)} label="Office Photo" description="Upload a photo of your office or workspace" />
@@ -856,23 +855,23 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
                 </CardContent>
               </Card>
               <Card>
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-2 text-lg"><Award className="w-5 h-5 text-primary" /> Awards & Recognition</CardTitle>
+                <CardHeader className="pb-3 sm:pb-4 px-3 sm:px-6 pt-4 sm:pt-6">
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><Award className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /> Awards & Recognition</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="px-3 sm:px-6 pb-4 sm:pb-6">
                   <TagInput tags={awardsRecognition} onChange={setAwardsRecognition} placeholder="e.g. Best Workplace 2024, Forbes 500" />
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="p-6">
+                <CardContent className="p-3 sm:p-6">
                   <div className="flex items-start gap-3">
                     <Checkbox id="terms" checked={termsAccepted} onCheckedChange={(checked) => {
                       if (checked && !termsAccepted) setShowTermsDialog(true);
                       else setTermsAccepted(false);
                     }} />
                     <div>
-                      <Label htmlFor="terms" className="cursor-pointer">I agree to the Platform Rules & Terms</Label>
-                      <p className="text-sm text-muted-foreground mt-1">By checking this, you agree to follow our posting guidelines and fair hiring practices.</p>
+                      <Label htmlFor="terms" className="cursor-pointer text-xs sm:text-sm">I agree to the Platform Rules & Terms</Label>
+                      <p className="text-[10px] sm:text-sm text-muted-foreground mt-1">By checking this, you agree to follow our posting guidelines and fair hiring practices.</p>
                     </div>
                   </div>
                 </CardContent>
@@ -882,24 +881,24 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
 
           {/* 8: Contact */}
           {activeStep === 8 && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <Card>
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center gap-2 text-lg"><Phone className="w-5 h-5 text-primary" /> Application & Contact</CardTitle>
+                <CardHeader className="pb-3 sm:pb-4 px-3 sm:px-6 pt-4 sm:pt-6">
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><Phone className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /> Application & Contact</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>HR Contact Email</Label>
-                    <Input type="email" value={hrContactEmail} onChange={(e) => setHrContactEmail(e.target.value)} placeholder="hr@company.com" />
+                <CardContent className="space-y-3 sm:space-y-4 px-3 sm:px-6 pb-4 sm:pb-6">
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">HR Contact Email</Label>
+                    <Input type="email" value={hrContactEmail} onChange={(e) => setHrContactEmail(e.target.value)} placeholder="hr@company.com" className="h-9 sm:h-10 text-sm" />
                   </div>
-                  <div className="space-y-2">
-                    <Label>WhatsApp Number</Label>
-                    <Input value={whatsappNumber} onChange={(e) => setWhatsappNumber(e.target.value)} placeholder="e.g., 919876543210" />
-                    <p className="text-xs text-muted-foreground">Include country code for direct contact</p>
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">WhatsApp Number</Label>
+                    <Input value={whatsappNumber} onChange={(e) => setWhatsappNumber(e.target.value)} placeholder="e.g., 919876543210" className="h-9 sm:h-10 text-sm" />
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">Include country code for direct contact</p>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Careers Page URL</Label>
-                    <Input type="url" value={careersPageUrl} onChange={(e) => setCareersPageUrl(e.target.value)} placeholder="https://company.com/careers" />
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="text-xs sm:text-sm">Careers Page URL</Label>
+                    <Input type="url" value={careersPageUrl} onChange={(e) => setCareersPageUrl(e.target.value)} placeholder="https://company.com/careers" className="h-9 sm:h-10 text-sm" />
                   </div>
                 </CardContent>
               </Card>
@@ -908,29 +907,38 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
         </motion.div>
       </AnimatePresence>
 
-      {/* Navigation & Save */}
-      <div className="flex items-center justify-between pt-2">
-        <div className="flex gap-2">
+      {/* Navigation & Save - sticky on mobile */}
+      <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t border-border -mx-3 sm:-mx-4 lg:-mx-6 px-3 sm:px-4 lg:px-6 py-3 sm:py-4 flex items-center justify-between gap-2 z-10">
+        <div className="flex gap-1.5 sm:gap-2">
           {activeStep > 0 && (
-            <Button variant="outline" size="sm" onClick={() => setActiveStep(activeStep - 1)}>← Previous</Button>
+            <Button variant="outline" size="sm" onClick={() => setActiveStep(activeStep - 1)} className="text-xs sm:text-sm h-8 sm:h-9 px-2.5 sm:px-3">
+              ← Back
+            </Button>
           )}
           {activeStep < steps.length - 1 && (
-            <Button variant="outline" size="sm" onClick={() => setActiveStep(activeStep + 1)}>Next →</Button>
+            <Button variant="outline" size="sm" onClick={() => setActiveStep(activeStep + 1)} className="text-xs sm:text-sm h-8 sm:h-9 px-2.5 sm:px-3">
+              Next →
+            </Button>
           )}
         </div>
-        <Button onClick={handleSave} disabled={saving} className="gap-2">
-          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          Save Profile
-        </Button>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:inline">
+            Step {activeStep + 1} of {steps.length}
+          </span>
+          <Button onClick={handleSave} disabled={saving} className="gap-1.5 text-xs sm:text-sm h-8 sm:h-9 px-3 sm:px-4">
+            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+            Save
+          </Button>
+        </div>
       </div>
 
       {/* Terms Dialog */}
       <AlertDialog open={showTermsDialog} onOpenChange={setShowTermsDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-[90vw] sm:max-w-lg">
           <AlertDialogHeader>
-            <AlertDialogTitle>Platform Rules & Terms</AlertDialogTitle>
+            <AlertDialogTitle className="text-base sm:text-lg">Platform Rules & Terms</AlertDialogTitle>
             <AlertDialogDescription asChild>
-              <div className="space-y-4 text-sm">
+              <div className="space-y-4 text-xs sm:text-sm">
                 <p>By using Hire for Job as an employer, you agree to:</p>
                 <ul className="list-disc list-inside space-y-2">
                   <li>Post only legitimate job opportunities</li>
