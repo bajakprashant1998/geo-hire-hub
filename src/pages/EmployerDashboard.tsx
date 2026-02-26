@@ -850,29 +850,42 @@ const EmployerDashboard = () => {
                   <EmployerProfileCompletionPrompts employer={employer} jobCount={jobs.length} />
                 )}
 
-                {/* Mobile Quick Actions */}
-                <div className="grid grid-cols-4 gap-2 sm:hidden">
-                  {[
-                    { icon: Plus, label: 'Post Job', action: () => setActiveSection('post-job'), color: 'text-[hsl(217,89%,61%)]', bg: 'bg-[hsl(217,89%,61%)]/10', glow: 'shadow-[0_4px_20px_hsl(217,89%,61%,0.1)]' },
-                    { icon: Users, label: 'Candidates', action: () => setActiveSection('candidates'), color: 'text-[hsl(142,53%,43%)]', bg: 'bg-[hsl(142,53%,43%)]/10', glow: 'shadow-[0_4px_20px_hsl(142,53%,43%,0.1)]' },
-                    { icon: BarChart3, label: 'Analytics', action: () => setActiveSection('analytics'), color: 'text-[hsl(262,83%,58%)]', bg: 'bg-[hsl(262,83%,58%)]/10', glow: 'shadow-[0_4px_20px_hsl(262,83%,58%,0.1)]' },
-                    { icon: Calendar, label: 'Interviews', action: () => setActiveSection('interviews'), color: 'text-[hsl(44,70%,45%)]', bg: 'bg-[hsl(44,98%,50%)]/10', glow: 'shadow-[0_4px_20px_hsl(44,98%,50%,0.1)]' },
-                  ].map((item, i) => (
-                    <motion.button
-                      key={item.label}
-                      initial={{ opacity: 0, y: 16, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{ delay: i * 0.06, type: 'spring', stiffness: 140 }}
-                      onClick={item.action}
-                      className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-card/70 backdrop-blur-xl border border-border/50 hover:shadow-lg transition-all active:scale-95 ${item.glow}`}
-                    >
-                      <div className={`w-10 h-10 rounded-xl ${item.bg} flex items-center justify-center`}>
-                        <item.icon className={`w-5 h-5 ${item.color}`} />
-                      </div>
-                      <span className="text-[10px] font-medium text-muted-foreground">{item.label}</span>
-                    </motion.button>
-                  ))}
-                </div>
+                {/* Quick Actions Grid */}
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1, type: 'spring', stiffness: 120 }}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Quick Actions</h3>
+                  </div>
+                  <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3">
+                    {[
+                      { icon: Plus, label: 'Create Job', action: () => setActiveSection('post-job'), color: 'text-primary', bg: 'bg-primary/10' },
+                      { icon: Briefcase, label: 'My Jobs', action: () => setActiveSection('jobs'), color: 'text-[hsl(217,89%,61%)]', bg: 'bg-[hsl(217,89%,61%)]/10' },
+                      { icon: Filter, label: 'Find Talent', action: () => setActiveSection('candidates'), color: 'text-[hsl(142,53%,43%)]', bg: 'bg-[hsl(142,53%,43%)]/10' },
+                      { icon: MessageSquare, label: 'Messages', action: () => setActiveSection('chat'), color: 'text-[hsl(199,89%,48%)]', bg: 'bg-[hsl(199,89%,48%)]/10' },
+                      { icon: Calendar, label: 'Interviews', action: () => setActiveSection('interviews'), color: 'text-[hsl(44,70%,45%)]', bg: 'bg-[hsl(44,70%,45%)]/10' },
+                      { icon: BarChart3, label: 'Analytics', action: () => setActiveSection('analytics'), color: 'text-[hsl(262,83%,58%)]', bg: 'bg-[hsl(262,83%,58%)]/10' },
+                      { icon: FileEdit, label: 'Drafts', action: () => setActiveSection('drafts'), color: 'text-[hsl(25,95%,53%)]', bg: 'bg-[hsl(25,95%,53%)]/10' },
+                      { icon: Users, label: 'Tasks', action: () => setActiveSection('tasks'), color: 'text-[hsl(340,82%,52%)]', bg: 'bg-[hsl(340,82%,52%)]/10' },
+                    ].map((item, i) => (
+                      <motion.button
+                        key={item.label}
+                        initial={{ opacity: 0, y: 16, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{ delay: 0.12 + i * 0.04, type: 'spring', stiffness: 140 }}
+                        onClick={item.action}
+                        className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-card/70 backdrop-blur-xl border border-border/40 hover:border-border hover:shadow-md hover:scale-[1.03] transition-all active:scale-95 group"
+                      >
+                        <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-xl ${item.bg} flex items-center justify-center transition-transform group-hover:scale-110`}>
+                          <item.icon className={`w-5 h-5 ${item.color}`} />
+                        </div>
+                        <span className="text-[10px] sm:text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors">{item.label}</span>
+                      </motion.button>
+                    ))}
+                  </div>
+                </motion.div>
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
