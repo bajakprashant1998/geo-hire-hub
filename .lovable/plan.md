@@ -1,75 +1,57 @@
 
 
-# Enhance Map View, Lazy Loading & Card Designs
+## Plan: Candidate Dashboard Overhaul
 
-## Overview
-Three-part enhancement: (1) lazy-load the Google Maps script so it only initializes when the map section is visible, (2) improve the map popup card designs for jobs and candidates with richer visuals, and (3) enhance the mobile MarkerPreviewSheet with better navigation and information hierarchy.
+### Task 1: Redesign Bento Grid Layout with Glassmorphism (Home View)
+**File: `src/pages/CandidateDashboard.tsx`**
 
----
+Replace the current linear layout (stats → messages → interviews → AI matches) with a proper bento grid matching the employer dashboard pattern:
 
-## Technical Details
+- Use `grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6` layout
+- **Row 1**: 4 stat cards (Applied, Profile Views, Messages, Interviews) — keep existing `DashboardStatCard`
+- **Row 2**: Welcome/Hero card (lg:col-span-2, hidden on mobile) with gradient background, user greeting, and contextual status message + CTA button
+- **Row 3**: Quick Actions panel (full-width col-span-6) with 8 shortcuts in glassmorphism card:
+  - Find Jobs, My Applications, Messages, Interviews, Resume, AI Match, Auto Apply, Career Buddy
+  - Each with icon, color-coded bg, hover-lift animation, staggered framer-motion entrance
+- **Row 4**: Messages Preview (col-span-4) + Upcoming Interview (col-span-2) — both wrapped in glassmorphism containers with decorative blur orbs
+- **Row 5**: AI Job Matches + Job Match Carousel below the grid
 
-### 1. Lazy Load Google Maps (`src/components/map/GoogleMapContainer.tsx`)
+All containers get: `bg-card/60 backdrop-blur-xl border border-border/40 rounded-2xl` with absolute positioned blur orbs.
 
-Currently the Google Maps `useJsApiLoader` runs immediately on mount, downloading ~200KB of scripts even before the user sees the map. We will wrap the inner map component with an `IntersectionObserver`-based visibility gate:
+### Task 2: Upgrade Chat Section to Match Employer Dashboard
+**File: `src/pages/CandidateDashboard.tsx`**
 
-- Add a `useInView` wrapper using `useRef` + `IntersectionObserver` inside `GoogleMapContainer`
-- Only render `GoogleMapInner` (which calls `useJsApiLoader`) once the container div is in viewport
-- Show a lightweight placeholder (skeleton with map icon) until visible
-- This prevents the Google Maps JS SDK from loading until the user actually scrolls to or views the map area
+- The `messages` section already renders `<DashboardMessaging />` which is the same component used by the employer — this is already consistent.
+- No changes needed here; the component is shared.
 
-**Changes in `GoogleMapContainer.tsx`:**
-- Add `useInView` state + `IntersectionObserver` ref in the outer `GoogleMapContainer` wrapper component (~lines 540-592)
-- Render a placeholder div with `ref` until `isInView` is true, then render `GoogleMapsLoaderBoundary > GoogleMapInner`
+### Task 3: Enhance Notification, Resume, and Section Cards
+**File: `src/components/candidate/NotificationCenter.tsx`**
 
-### 2. Enhanced Job Popup Card (InfoWindow in `GoogleMapContainer.tsx`)
+Upgrade the notification card:
+- Add filter tabs: All / Unread / Application Updates
+- Add "Clear All" button alongside "Mark all read"
+- Group notifications by date (Today, Yesterday, Earlier)
+- Add empty state animation with framer-motion
+- Upgrade card wrapper with glassmorphism: `bg-card/50 backdrop-blur-2xl`
 
-Redesign the job hover card (InfoWindow content, ~lines 440-530) with:
-- **Company logo/initial avatar** instead of generic briefcase icon
-- **Verified employer badge** with checkmark
-- **Skill tags** (first 3 from job description keywords)
-- **"NEW" badge** with animation pulse for jobs < 24h old
-- **Urgency indicator** ("Actively Hiring" strip)
-- **Better salary formatting** with ₹ symbol and "/month" suffix
-- **Distance** with walking/driving icon
-- **Cleaner action buttons** with gradient backgrounds and hover effects
+### Task 4: Add All Feature Shortcuts on Dashboard Home
+**File: `src/pages/CandidateDashboard.tsx`**
 
-### 3. Enhanced Candidate Popup Card (InfoWindow in `GoogleMapContainer.tsx`)
+Expand `quickActions` from 4 mobile-only buttons to a full 8-item grid (visible on all screens), matching employer dashboard pattern:
+- Find Jobs (navigate to `/`)
+- My Applications (`jobs`)
+- Messages (`messages`)
+- Interviews (`interviews`)
+- Resume (`resume`)
+- AI Match (`ai-resume`)
+- Auto Apply (`auto-apply`)
+- Career Buddy (`career-buddy`)
 
-Redesign the candidate hover card (~lines 334-438) with:
-- **Larger avatar** with status ring (online/offline)
-- **Experience bar** visual indicator
-- **Top 3 skills** shown as mini badges
-- **Location city name** instead of just km distance
-- **Profile completeness indicator** (small progress ring)
-- **Better CTA buttons** with consistent styling
+Remove the mobile-only constraint (`sm:hidden`) and use the same responsive grid as employer: `grid-cols-4 lg:grid-cols-8`.
 
-### 4. Enhanced MarkerPreviewSheet (Mobile Bottom Sheet) (`src/components/map/MarkerPreviewSheet.tsx`)
+### Implementation Summary
 
-Complete redesign of the mobile preview sheet:
-- **Job preview**: Add company logo placeholder, gradient header bar, skill tags, "Quick Apply" button, share button, salary comparison hint
-- **Candidate preview**: Add profile strength ring, availability status badge, top skills with match indicators, quick actions row (Message, Save, Share)
-- **Navigation improvements**: Add swipe-to-dismiss hint, "View on Map" button that centers the map, breadcrumb-style navigation showing "Map > Job Detail"
-- **Better visual hierarchy**: Use card sections with subtle dividers, icon badges for metadata
-
-### 5. Map Loading Skeleton Enhancement (`src/components/map/MapLoadingSkeleton.tsx`)
-
-- Add animated map pin markers that "drop in" during loading
-- Show a blurred placeholder map image background
-- Add progress text: "Finding jobs near you..." / "Locating candidates..."
-
----
-
-## Files Modified
-
-| File | Change |
-|------|--------|
-| `src/components/map/GoogleMapContainer.tsx` | Add IntersectionObserver lazy loading, enhanced InfoWindow card designs for both jobs and candidates |
-| `src/components/map/MarkerPreviewSheet.tsx` | Complete redesign with better navigation, richer cards, share/save actions |
-| `src/components/map/MapLoadingSkeleton.tsx` | Enhanced loading animation with mode-aware text |
-
-## Files NOT Changed
-- No database changes
-- No new dependencies (IntersectionObserver is native browser API)
-- No changes to data fetching logic
+**Files to modify:**
+1. `src/pages/CandidateDashboard.tsx` — Bento grid layout, quick actions grid, glassmorphism wrappers, hero card
+2. `src/components/candidate/NotificationCenter.tsx` — Filter tabs, date grouping, enhanced styling
 
