@@ -296,10 +296,10 @@ const GoogleMapInner = ({
         </>
       )}
 
-      {/* Clustered Markers */}
+      {/* Clustered Markers - key forces re-creation when mode changes */}
       <MarkerClusterer
+        key={`cluster-${mode}`}
         options={{
-          imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m',
           maxZoom: 15,
           gridSize: 60,
           styles: [
