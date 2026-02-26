@@ -57,6 +57,7 @@ import AdminRevenue from "./pages/admin/AdminRevenue";
 import AdminRoleManagement from "./pages/admin/AdminRoleManagement";
 import AdminFraudDetection from "./pages/admin/AdminFraudDetection";
 import AdminScheduledJobs from "./pages/admin/AdminScheduledJobs";
+import AdminTasks from "./pages/admin/AdminTasks";
 
 const queryClient = new QueryClient();
 
@@ -154,6 +155,7 @@ const App = () => (
               <Route path="/admin/roles" element={<AdminRoleManagement />} />
               <Route path="/admin/fraud" element={<AdminFraudDetection />} />
               <Route path="/admin/scheduled-jobs" element={<AdminScheduledJobs />} />
+              <Route path="/admin/tasks" element={<AdminTasks />} />
 
               {/* ==================== REDIRECTS & ALIASES ==================== */}
               <Route path="/dashboard" element={<Navigate to="/candidate-dashboard" replace />} />
