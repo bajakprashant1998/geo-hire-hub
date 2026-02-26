@@ -65,7 +65,7 @@ export const FloatingControls = ({
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.4, duration: 0.3 }}
-        className="absolute right-3 top-[40%] -translate-y-1/2 z-[90] flex flex-col gap-2.5"
+        className="absolute right-3 top-[35%] -translate-y-1/2 z-[90] flex flex-col gap-2.5"
       >
         {/* Search Button */}
         <Tooltip>
