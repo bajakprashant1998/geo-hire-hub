@@ -20,6 +20,10 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight,
+  DollarSign,
+  Crown,
+  AlertTriangle,
+  Clock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -82,6 +86,10 @@ const navSections = [
     label: 'System',
     items: [
       { href: '/admin/plans', label: 'Plans & Revenue', icon: CreditCard },
+      { href: '/admin/revenue', label: 'Revenue Analytics', icon: DollarSign },
+      { href: '/admin/roles', label: 'Role Management', icon: Crown },
+      { href: '/admin/fraud', label: 'Fraud Detection', icon: AlertTriangle },
+      { href: '/admin/scheduled-jobs', label: 'Scheduled Jobs', icon: Clock },
       { href: '/admin/government', label: 'Government', icon: Shield },
       { href: '/admin/email-templates', label: 'Email Templates', icon: Mail },
       { href: '/admin/auto-apply', label: 'Auto Apply', icon: Activity },

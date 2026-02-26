@@ -53,6 +53,10 @@ import AdminEmailTemplates from "./pages/admin/AdminEmailTemplates";
 import AdminSystemHealth from "./pages/admin/AdminSystemHealth";
 import AdminContentSEO from "./pages/admin/AdminContentSEO";
 import AdminAutoApply from "./pages/admin/AdminAutoApply";
+import AdminRevenue from "./pages/admin/AdminRevenue";
+import AdminRoleManagement from "./pages/admin/AdminRoleManagement";
+import AdminFraudDetection from "./pages/admin/AdminFraudDetection";
+import AdminScheduledJobs from "./pages/admin/AdminScheduledJobs";
 
 const queryClient = new QueryClient();
 
@@ -146,6 +150,10 @@ const App = () => (
               <Route path="/admin/system-health" element={<AdminSystemHealth />} />
               <Route path="/admin/content-seo" element={<AdminContentSEO />} />
               <Route path="/admin/auto-apply" element={<AdminAutoApply />} />
+              <Route path="/admin/revenue" element={<AdminRevenue />} />
+              <Route path="/admin/roles" element={<AdminRoleManagement />} />
+              <Route path="/admin/fraud" element={<AdminFraudDetection />} />
+              <Route path="/admin/scheduled-jobs" element={<AdminScheduledJobs />} />
 
               {/* ==================== REDIRECTS & ALIASES ==================== */}
               <Route path="/dashboard" element={<Navigate to="/candidate-dashboard" replace />} />
