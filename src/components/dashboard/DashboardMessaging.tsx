@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,7 +17,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import {
   MessageCircle, Search, ArrowLeft, Send, Trash2, Phone, Video,
-  Check, CheckCheck, Paperclip, Smile, MoreVertical, User
+  Check, CheckCheck, Paperclip, Smile, MoreVertical, User, Pin, PinOff,
+  Filter, Star, Archive, Clock, MessageSquare, Users, Mail, Zap, X
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -40,6 +41,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
@@ -76,6 +78,16 @@ interface Conversation {
   last_message_at: string;
 }
 
+const QUICK_REPLIES = [
+  "Thanks for reaching out!",
+  "Let's schedule an interview.",
+  "Can you share your availability?",
+  "I'll get back to you shortly.",
+  "Could you send your updated resume?",
+];
+
+type FilterType = 'all' | 'unread' | 'online';
+
 export const DashboardMessaging = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
@@ -94,6 +106,12 @@ export const DashboardMessaging = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingConvId, setDeletingConvId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [pinnedConversations, setPinnedConversations] = useState<Set<string>>(new Set());
+  const [filterType, setFilterType] = useState<FilterType>('all');
+  const [showQuickReplies, setShowQuickReplies] = useState(false);
+  const [messageSearchQuery, setMessageSearchQuery] = useState('');
+  const [showMessageSearch, setShowMessageSearch] = useState(false);
+  const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -106,6 +124,34 @@ export const DashboardMessaging = () => {
         ? activeConversation.participant_2
         : activeConversation.participant_1)
     : null;
+
+  // Load pinned from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem(`pinned-conversations-${user?.id}`);
+    if (saved) setPinnedConversations(new Set(JSON.parse(saved)));
+  }, [user?.id]);
+
+  const togglePin = (convId: string) => {
+    setPinnedConversations(prev => {
+      const next = new Set(prev);
+      if (next.has(convId)) next.delete(convId);
+      else next.add(convId);
+      localStorage.setItem(`pinned-conversations-${user?.id}`, JSON.stringify([...next]));
+      return next;
+    });
+  };
+
+  // Stats
+  const stats = useMemo(() => {
+    const totalUnread = conversations.reduce((sum, c) => sum + c.unreadCount, 0);
+    const totalConversations = conversations.length;
+    const activeToday = conversations.filter(c => {
+      const d = new Date(c.last_message_at);
+      const now = new Date();
+      return d.toDateString() === now.toDateString();
+    }).length;
+    return { totalUnread, totalConversations, activeToday };
+  }, [conversations]);
 
   // Fetch conversations
   useEffect(() => {
@@ -286,6 +332,12 @@ export const DashboardMessaging = () => {
     }
   };
 
+  const sendQuickReply = (text: string) => {
+    setNewMessage(text);
+    setShowQuickReplies(false);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
   const handleAddReaction = async (messageId: string, emoji: string) => {
     if (!user) return;
     try {
@@ -368,9 +420,34 @@ export const DashboardMessaging = () => {
 
   const getInitials = (name?: string) => name?.split(' ').map(n => n[0]).join('').slice(0, 2) || '?';
 
-  const filteredConversations = conversations.filter((conv) =>
-    conv.otherProfile?.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredConversations = useMemo(() => {
+    let filtered = conversations.filter((conv) =>
+      conv.otherProfile?.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    if (filterType === 'unread') {
+      filtered = filtered.filter(c => c.unreadCount > 0);
+    }
+
+    // Sort: pinned first, then by last_message_at
+    filtered.sort((a, b) => {
+      const aPinned = pinnedConversations.has(a.id);
+      const bPinned = pinnedConversations.has(b.id);
+      if (aPinned && !bPinned) return -1;
+      if (!aPinned && bPinned) return 1;
+      return new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime();
+    });
+
+    return filtered;
+  }, [conversations, searchQuery, filterType, pinnedConversations]);
+
+  // Message search results
+  const messageSearchResults = useMemo(() => {
+    if (!messageSearchQuery.trim()) return [];
+    return messages.filter(m =>
+      m.content.toLowerCase().includes(messageSearchQuery.toLowerCase())
+    );
+  }, [messages, messageSearchQuery]);
 
   const handleConversationSelect = (convId: string) => {
     setActiveConversationId(convId);
@@ -387,312 +464,553 @@ export const DashboardMessaging = () => {
     navigate(otherUser.user_type === 'candidate' ? `/candidates/${otherUser.id}` : `/employers/${otherUser.id}`);
   };
 
+  const scrollToMessage = (messageId: string) => {
+    setHighlightedMessageId(messageId);
+    const el = document.getElementById(`msg-${messageId}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => setHighlightedMessageId(null), 2000);
+  };
+
   if (!user || !profile) return null;
 
   return (
-    <div className="flex h-[calc(100vh-220px)] min-h-[500px] max-h-[800px] bg-background rounded-2xl border overflow-hidden">
-      {/* Conversation List */}
-      <div className={cn(
-        "w-full md:w-[340px] flex-col border-r border-border bg-card",
-        showConversationList ? "flex" : "hidden md:flex"
-      )}>
-        {/* Header */}
-        <div className="p-4 border-b border-border">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <MessageCircle className="w-4 h-4 text-primary" />
-            </div>
-            <h2 className="text-lg font-bold text-foreground">Messages</h2>
-            {conversations.filter(c => c.unreadCount > 0).length > 0 && (
-              <Badge className="h-5 min-w-5 px-1.5 bg-primary text-primary-foreground text-xs font-bold">
-                {conversations.reduce((sum, c) => sum + c.unreadCount, 0)}
-              </Badge>
-            )}
+    <div className="space-y-4">
+      {/* Stats Bar */}
+      <div className="grid grid-cols-3 gap-3">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-card border border-border rounded-xl p-3.5 flex items-center gap-3"
+        >
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <MessageSquare className="w-5 h-5 text-primary" />
           </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search conversations..."
-              className="pl-9 h-9 bg-muted/50 border-border/50 text-sm"
-            />
+          <div>
+            <p className="text-xs text-muted-foreground">Total Chats</p>
+            <p className="text-xl font-bold text-foreground">{stats.totalConversations}</p>
           </div>
-        </div>
-
-        {/* Conversation List */}
-        <ScrollArea className="flex-1">
-          {loading ? (
-            <div className="p-8 text-center">
-              <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-            </div>
-          ) : filteredConversations.length === 0 ? (
-            <div className="p-8 text-center">
-              <MessageCircle className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">
-                {searchQuery ? 'No matching conversations' : 'No conversations yet'}
-              </p>
-              <p className="text-xs text-muted-foreground/70 mt-1">
-                Start by applying to jobs or messaging candidates
-              </p>
-            </div>
-          ) : (
-            <div className="p-1.5">
-              {filteredConversations.map((conv) => (
-                <div key={conv.id} className="group relative">
-                  <button
-                    onClick={() => handleConversationSelect(conv.id)}
-                    className={cn(
-                      "w-full p-3 text-left rounded-xl transition-all duration-200 hover:bg-muted/70",
-                      activeConversationId === conv.id && 'bg-primary/8 border border-primary/20'
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="relative">
-                        <Avatar className={cn(
-                          "w-11 h-11 ring-2 ring-offset-1 ring-offset-background transition-all",
-                          activeConversationId === conv.id ? "ring-primary/50" : "ring-transparent"
-                        )}>
-                          <AvatarImage src={conv.otherProfile?.avatar_url || ''} />
-                          <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
-                            {getInitials(conv.otherProfile?.full_name)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="absolute -bottom-0.5 -right-0.5 p-0.5 bg-background rounded-full">
-                          <OnlineStatus isOnline={false} size="sm" />
-                        </div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-0.5">
-                          <p className={cn(
-                            "font-medium truncate text-sm",
-                            conv.unreadCount > 0 && 'font-semibold text-foreground'
-                          )}>
-                            {conv.otherProfile?.full_name || 'Unknown User'}
-                          </p>
-                          <span className="text-[11px] text-muted-foreground ml-2 shrink-0">
-                            {formatTime(conv.last_message_at)}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <p className={cn(
-                            "text-xs truncate flex-1",
-                            conv.unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'
-                          )}>
-                            {conv.lastMessage || 'No messages yet'}
-                          </p>
-                          {conv.unreadCount > 0 && (
-                            <Badge className="h-5 min-w-5 px-1.5 bg-primary text-primary-foreground text-[10px] font-bold shrink-0">
-                              {conv.unreadCount > 9 ? '9+' : conv.unreadCount}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                  {/* Delete button on hover */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDeletingConvId(conv.id);
-                      setDeleteDialogOpen(true);
-                    }}
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-        </ScrollArea>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="bg-card border border-border rounded-xl p-3.5 flex items-center gap-3"
+        >
+          <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
+            <Mail className="w-5 h-5 text-destructive" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Unread</p>
+            <p className="text-xl font-bold text-foreground">{stats.totalUnread}</p>
+          </div>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="bg-card border border-border rounded-xl p-3.5 flex items-center gap-3"
+        >
+          <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
+            <Clock className="w-5 h-5 text-green-600" />
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Active Today</p>
+            <p className="text-xl font-bold text-foreground">{stats.activeToday}</p>
+          </div>
+        </motion.div>
       </div>
 
-      {/* Chat Area */}
-      <div className={cn(
-        "flex-1 flex-col bg-background",
-        !showConversationList || activeConversationId ? "flex" : "hidden md:flex"
-      )}>
-        {activeConversation && otherUser ? (
-          <>
-            {/* Chat Header */}
-            <div className="flex items-center gap-3 p-3 sm:p-4 border-b border-border bg-card">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="md:hidden h-8 w-8 text-muted-foreground"
-                onClick={handleBackToList}
-              >
-                <ArrowLeft className="w-4 h-4" />
-              </Button>
-              <div className="relative cursor-pointer" onClick={handleViewProfile}>
-                <Avatar className="w-10 h-10 ring-2 ring-primary/20">
-                  <AvatarImage src={otherUser.avatar_url || ''} />
-                  <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
-                    {getInitials(otherUser.full_name)}
-                  </AvatarFallback>
-                </Avatar>
-                  <div className="absolute -bottom-0.5 -right-0.5 p-0.5 bg-background rounded-full">
-                  <OnlineStatus isOnline={otherUserId ? isOnline(otherUserId) : false} size="sm" />
+      {/* Main Chat Area */}
+      <div className="flex h-[calc(100vh-300px)] min-h-[500px] max-h-[750px] bg-background rounded-2xl border overflow-hidden">
+        {/* Conversation List */}
+        <div className={cn(
+          "w-full md:w-[360px] flex-col border-r border-border bg-card",
+          showConversationList ? "flex" : "hidden md:flex"
+        )}>
+          {/* Header */}
+          <div className="p-4 border-b border-border">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <MessageCircle className="w-4 h-4 text-primary" />
                 </div>
-              </div>
-              <div className="flex-1 min-w-0 cursor-pointer" onClick={handleViewProfile}>
-                <p className="font-semibold text-foreground text-sm truncate hover:underline">
-                  {otherUser.full_name || 'Unknown User'}
-                </p>
-                <div className="flex items-center gap-1.5">
-                  <OnlineStatus isOnline={otherUserId ? isOnline(otherUserId) : false} showLabel className="text-muted-foreground text-xs" />
-                  <span className="text-muted-foreground/50 text-xs">•</span>
-                  <span className="text-xs text-muted-foreground capitalize">{otherUser.user_type}</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-1">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
-                      <MoreVertical className="w-4 h-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={handleViewProfile}>
-                      <User className="w-4 h-4 mr-2" /> View Profile
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setDeletingConvId(activeConversationId);
-                        setDeleteDialogOpen(true);
-                      }}
-                      className="text-destructive focus:text-destructive"
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" /> Delete Chat
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-
-            {/* Messages */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 bg-muted/20">
-              {messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full py-12 text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-                    <MessageCircle className="w-8 h-8 text-primary" />
-                  </div>
-                  <p className="text-sm font-medium text-foreground mb-1">Start the conversation</p>
-                  <p className="text-xs text-muted-foreground">Send a message to {otherUser.full_name}</p>
-                </div>
-              ) : (
-                messages.map((message, index) => {
-                  const isOwn = message.sender_id === user?.id;
-                  const showAvatar = index === 0 || messages[index - 1].sender_id !== message.sender_id;
-                  return (
-                    <MessageBubble
-                      key={message.id}
-                      message={message}
-                      isOwn={isOwn}
-                      showAvatar={showAvatar}
-                      otherUser={otherUser}
-                      onAddReaction={handleAddReaction}
-                      onRemoveReaction={handleRemoveReaction}
-                    />
-                  );
-                })
-              )}
-              {otherUserId && activeConversationId && isTyping(otherUserId, activeConversationId) && (
-                <div className="flex items-center gap-2">
-                  <Avatar className="w-7 h-7">
-                    <AvatarImage src={otherUser?.avatar_url || ''} />
-                    <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                      {getInitials(otherUser?.full_name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <TypingIndicator />
-                </div>
-              )}
-            </div>
-
-            {/* Input */}
-            <div className="border-t border-border bg-card p-3 sm:p-4">
-              <form onSubmit={sendMessage} className="flex items-center gap-2">
-                {!pendingAttachment && (
-                  <AttachmentUpload
-                    userId={user?.id || ''}
-                    conversationId={activeConversation.id}
-                    onAttachmentReady={setPendingAttachment}
-                    pendingAttachment={null}
-                    onClearAttachment={() => setPendingAttachment(null)}
-                  />
+                <h2 className="text-lg font-bold text-foreground">Messages</h2>
+                {stats.totalUnread > 0 && (
+                  <Badge className="h-5 min-w-5 px-1.5 bg-primary text-primary-foreground text-xs font-bold">
+                    {stats.totalUnread}
+                  </Badge>
                 )}
-                <Input
-                  ref={inputRef}
-                  value={newMessage}
-                  onChange={(e) => handleMessageChange(e.target.value)}
-                  placeholder="Type a message..."
-                  className="flex-1 h-10 bg-muted/50 border-border/50 text-sm rounded-full px-4"
-                  disabled={sending}
-                />
-                <Button
-                  type="submit"
-                  size="icon"
-                  disabled={(!newMessage.trim() && !pendingAttachment) || sending}
+              </div>
+            </div>
+            <div className="relative mb-2">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search conversations..."
+                className="pl-9 h-9 bg-muted/50 border-border/50 text-sm"
+              />
+            </div>
+            {/* Filter Chips */}
+            <div className="flex gap-1.5">
+              {([
+                { key: 'all', label: 'All', icon: MessageSquare },
+                { key: 'unread', label: 'Unread', icon: Mail },
+              ] as const).map(f => (
+                <button
+                  key={f.key}
+                  onClick={() => setFilterType(f.key)}
                   className={cn(
-                    "rounded-full h-10 w-10 transition-all",
-                    (newMessage.trim() || pendingAttachment) && !sending
-                      ? "bg-primary hover:bg-primary/90 shadow-md"
-                      : "bg-muted text-muted-foreground"
+                    "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all",
+                    filterType === f.key
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "bg-muted/70 text-muted-foreground hover:bg-muted"
                   )}
                 >
-                  <Send className="w-4 h-4" />
-                </Button>
-              </form>
-              {pendingAttachment && (
-                <div className="mt-2">
-                  <AttachmentUpload
-                    userId={user?.id || ''}
-                    conversationId={activeConversation.id}
-                    onAttachmentReady={setPendingAttachment}
-                    pendingAttachment={pendingAttachment}
-                    onClearAttachment={() => setPendingAttachment(null)}
-                  />
-                </div>
-              )}
+                  <f.icon className="w-3 h-3" />
+                  {f.label}
+                  {f.key === 'unread' && stats.totalUnread > 0 && (
+                    <span className="ml-0.5 bg-primary-foreground/20 rounded-full px-1 text-[10px]">{stats.totalUnread}</span>
+                  )}
+                </button>
+              ))}
             </div>
-          </>
-        ) : (
-          /* Empty State */
-          <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-            <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
-              <MessageCircle className="w-10 h-10 text-primary" />
-            </div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">Your Messages</h3>
-            <p className="text-sm text-muted-foreground max-w-sm">
-              Select a conversation from the list to start chatting, or connect with employers and candidates through job listings.
-            </p>
           </div>
-        )}
-      </div>
 
-      {/* Delete Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Chat</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete this conversation and all its messages. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteConversation}
-              disabled={deleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deleting ? 'Deleting...' : 'Delete'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+          {/* Conversation List */}
+          <ScrollArea className="flex-1">
+            {loading ? (
+              <div className="p-8 text-center">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+              </div>
+            ) : filteredConversations.length === 0 ? (
+              <div className="p-8 text-center">
+                <MessageCircle className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">
+                  {searchQuery ? 'No matching conversations' : filterType === 'unread' ? 'No unread messages' : 'No conversations yet'}
+                </p>
+                <p className="text-xs text-muted-foreground/70 mt-1">
+                  Start by applying to jobs or messaging candidates
+                </p>
+              </div>
+            ) : (
+              <div className="p-1.5">
+                <AnimatePresence mode="popLayout">
+                  {filteredConversations.map((conv) => {
+                    const isPinned = pinnedConversations.has(conv.id);
+                    return (
+                      <motion.div
+                        key={conv.id}
+                        layout
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="group relative"
+                      >
+                        <button
+                          onClick={() => handleConversationSelect(conv.id)}
+                          className={cn(
+                            "w-full p-3 text-left rounded-xl transition-all duration-200 hover:bg-muted/70",
+                            activeConversationId === conv.id && 'bg-primary/8 border border-primary/20',
+                            isPinned && 'border-l-2 border-l-amber-400'
+                          )}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="relative">
+                              <Avatar className={cn(
+                                "w-11 h-11 ring-2 ring-offset-1 ring-offset-background transition-all",
+                                activeConversationId === conv.id ? "ring-primary/50" : "ring-transparent"
+                              )}>
+                                <AvatarImage src={conv.otherProfile?.avatar_url || ''} />
+                                <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+                                  {getInitials(conv.otherProfile?.full_name)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="absolute -bottom-0.5 -right-0.5 p-0.5 bg-background rounded-full">
+                                <OnlineStatus isOnline={false} size="sm" />
+                              </div>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-0.5">
+                                <div className="flex items-center gap-1 min-w-0">
+                                  {isPinned && <Pin className="w-3 h-3 text-amber-500 shrink-0" />}
+                                  <p className={cn(
+                                    "font-medium truncate text-sm",
+                                    conv.unreadCount > 0 && 'font-semibold text-foreground'
+                                  )}>
+                                    {conv.otherProfile?.full_name || 'Unknown User'}
+                                  </p>
+                                </div>
+                                <span className="text-[11px] text-muted-foreground ml-2 shrink-0">
+                                  {formatTime(conv.last_message_at)}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <p className={cn(
+                                  "text-xs truncate flex-1",
+                                  conv.unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'
+                                )}>
+                                  {conv.lastMessage || 'No messages yet'}
+                                </p>
+                                {conv.unreadCount > 0 && (
+                                  <Badge className="h-5 min-w-5 px-1.5 bg-primary text-primary-foreground text-[10px] font-bold shrink-0">
+                                    {conv.unreadCount > 9 ? '9+' : conv.unreadCount}
+                                  </Badge>
+                                )}
+                              </div>
+                              {conv.otherProfile?.user_type && (
+                                <Badge
+                                  variant="secondary"
+                                  className={cn(
+                                    "text-[10px] px-2 py-0 h-4 capitalize mt-1",
+                                    conv.otherProfile.user_type === 'employer'
+                                      ? 'bg-blue-500/10 text-blue-600'
+                                      : 'bg-green-500/10 text-green-600'
+                                  )}
+                                >
+                                  {conv.otherProfile.user_type}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                        {/* Hover actions */}
+                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-0.5">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); togglePin(conv.id); }}
+                                className="p-1.5 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-900/30 text-muted-foreground hover:text-amber-600"
+                              >
+                                {isPinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="text-xs">{isPinned ? 'Unpin' : 'Pin'}</TooltipContent>
+                          </Tooltip>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeletingConvId(conv.id);
+                              setDeleteDialogOpen(true);
+                            }}
+                            className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </div>
+            )}
+          </ScrollArea>
+        </div>
+
+        {/* Chat Area */}
+        <div className={cn(
+          "flex-1 flex-col bg-background",
+          !showConversationList || activeConversationId ? "flex" : "hidden md:flex"
+        )}>
+          {activeConversation && otherUser ? (
+            <>
+              {/* Chat Header */}
+              <div className="flex items-center gap-3 p-3 sm:p-4 border-b border-border bg-card">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="md:hidden h-8 w-8 text-muted-foreground"
+                  onClick={handleBackToList}
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+                <div className="relative cursor-pointer" onClick={handleViewProfile}>
+                  <Avatar className="w-10 h-10 ring-2 ring-primary/20">
+                    <AvatarImage src={otherUser.avatar_url || ''} />
+                    <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+                      {getInitials(otherUser.full_name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="absolute -bottom-0.5 -right-0.5 p-0.5 bg-background rounded-full">
+                    <OnlineStatus isOnline={otherUserId ? isOnline(otherUserId) : false} size="sm" />
+                  </div>
+                </div>
+                <div className="flex-1 min-w-0 cursor-pointer" onClick={handleViewProfile}>
+                  <p className="font-semibold text-foreground text-sm truncate hover:underline">
+                    {otherUser.full_name || 'Unknown User'}
+                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <OnlineStatus isOnline={otherUserId ? isOnline(otherUserId) : false} showLabel className="text-muted-foreground text-xs" />
+                    <span className="text-muted-foreground/50 text-xs">•</span>
+                    <span className="text-xs text-muted-foreground capitalize">{otherUser.user_type}</span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground"
+                        onClick={() => setShowMessageSearch(!showMessageSearch)}
+                      >
+                        <Search className="w-4 h-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Search in chat</TooltipContent>
+                  </Tooltip>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground">
+                        <MoreVertical className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={handleViewProfile}>
+                        <User className="w-4 h-4 mr-2" /> View Profile
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => activeConversationId && togglePin(activeConversationId)}>
+                        {activeConversationId && pinnedConversations.has(activeConversationId)
+                          ? <><PinOff className="w-4 h-4 mr-2" /> Unpin Chat</>
+                          : <><Pin className="w-4 h-4 mr-2" /> Pin Chat</>
+                        }
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDeletingConvId(activeConversationId);
+                          setDeleteDialogOpen(true);
+                        }}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" /> Delete Chat
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+
+              {/* Message Search Bar */}
+              <AnimatePresence>
+                {showMessageSearch && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="border-b border-border bg-muted/30 overflow-hidden"
+                  >
+                    <div className="p-2 flex items-center gap-2">
+                      <Search className="w-4 h-4 text-muted-foreground shrink-0" />
+                      <Input
+                        value={messageSearchQuery}
+                        onChange={(e) => setMessageSearchQuery(e.target.value)}
+                        placeholder="Search in this conversation..."
+                        className="h-8 text-sm border-none bg-transparent shadow-none focus-visible:ring-0"
+                        autoFocus
+                      />
+                      {messageSearchQuery && (
+                        <span className="text-xs text-muted-foreground shrink-0">
+                          {messageSearchResults.length} found
+                        </span>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 shrink-0"
+                        onClick={() => { setShowMessageSearch(false); setMessageSearchQuery(''); }}
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                    {messageSearchResults.length > 0 && (
+                      <div className="px-2 pb-2 flex gap-1 overflow-x-auto">
+                        {messageSearchResults.slice(0, 5).map(m => (
+                          <button
+                            key={m.id}
+                            onClick={() => scrollToMessage(m.id)}
+                            className="text-[10px] px-2 py-1 bg-primary/10 text-primary rounded-full shrink-0 hover:bg-primary/20 transition-colors"
+                          >
+                            {m.content.slice(0, 30)}...
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Messages */}
+              <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 bg-muted/20">
+                {messages.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-full py-12 text-center">
+                    <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+                      <MessageCircle className="w-8 h-8 text-primary" />
+                    </div>
+                    <p className="text-sm font-medium text-foreground mb-1">Start the conversation</p>
+                    <p className="text-xs text-muted-foreground">Send a message to {otherUser.full_name}</p>
+                  </div>
+                ) : (
+                  messages.map((message, index) => {
+                    const isOwn = message.sender_id === user?.id;
+                    const showAvatar = index === 0 || messages[index - 1].sender_id !== message.sender_id;
+                    return (
+                      <div
+                        key={message.id}
+                        id={`msg-${message.id}`}
+                        className={cn(
+                          "transition-all duration-500",
+                          highlightedMessageId === message.id && "bg-primary/10 rounded-xl -mx-1 px-1"
+                        )}
+                      >
+                        <MessageBubble
+                          message={message}
+                          isOwn={isOwn}
+                          showAvatar={showAvatar}
+                          otherUser={otherUser}
+                          onAddReaction={handleAddReaction}
+                          onRemoveReaction={handleRemoveReaction}
+                        />
+                      </div>
+                    );
+                  })
+                )}
+                {otherUserId && activeConversationId && isTyping(otherUserId, activeConversationId) && (
+                  <div className="flex items-center gap-2">
+                    <Avatar className="w-7 h-7">
+                      <AvatarImage src={otherUser?.avatar_url || ''} />
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                        {getInitials(otherUser?.full_name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <TypingIndicator />
+                  </div>
+                )}
+              </div>
+
+              {/* Quick Replies */}
+              <AnimatePresence>
+                {showQuickReplies && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="border-t border-border bg-muted/30 overflow-hidden"
+                  >
+                    <div className="p-2 flex flex-wrap gap-1.5">
+                      <span className="text-[10px] text-muted-foreground flex items-center gap-1 mr-1">
+                        <Zap className="w-3 h-3" /> Quick:
+                      </span>
+                      {QUICK_REPLIES.map((reply, i) => (
+                        <button
+                          key={i}
+                          onClick={() => sendQuickReply(reply)}
+                          className="text-xs px-2.5 py-1 bg-card border border-border rounded-full hover:bg-primary/10 hover:border-primary/30 hover:text-primary transition-all"
+                        >
+                          {reply}
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Input */}
+              <div className="border-t border-border bg-card p-3 sm:p-4">
+                <form onSubmit={sendMessage} className="flex items-center gap-2">
+                  {!pendingAttachment && (
+                    <AttachmentUpload
+                      userId={user?.id || ''}
+                      conversationId={activeConversation.id}
+                      onAttachmentReady={setPendingAttachment}
+                      pendingAttachment={null}
+                      onClearAttachment={() => setPendingAttachment(null)}
+                    />
+                  )}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 shrink-0 text-muted-foreground hover:text-primary"
+                        onClick={() => setShowQuickReplies(!showQuickReplies)}
+                      >
+                        <Zap className="w-4 h-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Quick replies</TooltipContent>
+                  </Tooltip>
+                  <Input
+                    ref={inputRef}
+                    value={newMessage}
+                    onChange={(e) => handleMessageChange(e.target.value)}
+                    placeholder="Type a message..."
+                    className="flex-1 h-10 bg-muted/50 border-border/50 text-sm rounded-full px-4"
+                    disabled={sending}
+                  />
+                  <Button
+                    type="submit"
+                    size="icon"
+                    disabled={(!newMessage.trim() && !pendingAttachment) || sending}
+                    className={cn(
+                      "rounded-full h-10 w-10 transition-all",
+                      (newMessage.trim() || pendingAttachment) && !sending
+                        ? "bg-primary hover:bg-primary/90 shadow-md"
+                        : "bg-muted text-muted-foreground"
+                    )}
+                  >
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </form>
+                {pendingAttachment && (
+                  <div className="mt-2">
+                    <AttachmentUpload
+                      userId={user?.id || ''}
+                      conversationId={activeConversation.id}
+                      onAttachmentReady={setPendingAttachment}
+                      pendingAttachment={pendingAttachment}
+                      onClearAttachment={() => setPendingAttachment(null)}
+                    />
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            /* Empty State */
+            <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
+              <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
+                <MessageCircle className="w-10 h-10 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">Your Messages</h3>
+              <p className="text-sm text-muted-foreground max-w-sm">
+                Select a conversation from the list to start chatting, or connect with employers and candidates through job listings.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Delete Dialog */}
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Chat</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will permanently delete this conversation and all its messages. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteConversation}
+                disabled={deleting}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                {deleting ? 'Deleting...' : 'Delete'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
     </div>
   );
 };
