@@ -22,7 +22,7 @@ export const NearbyAvatarRow = ({ mode, candidates, jobs, onSelect, onViewAll }:
       initial={{ y: 40, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ delay: 0.3, type: 'spring', damping: 25 }}
-      className="absolute bottom-[68px] left-0 right-0 z-30 px-2 pb-2"
+      className="fixed bottom-[68px] left-0 right-0 z-[45] px-2 pb-2 md:hidden"
     >
       <div className="bg-card/90 backdrop-blur-md rounded-2xl border border-border/40 shadow-xl py-2.5 px-2">
         <div className="flex gap-2 overflow-x-auto scrollbar-hide items-center">
