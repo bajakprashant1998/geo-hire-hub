@@ -165,18 +165,7 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
 
     setScheduling(true);
     try {
-      // Update application status to shortlisted
-      const { error: appError } = await supabase
-        .from('applications')
-        .update({ 
-          status: 'shortlisted',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', scheduleDialog.applicant.id);
-
-      if (appError) throw appError;
-
-      // Insert into interviews table with meeting link
+      // Insert into interviews table first
       const { error: intError } = await supabase
         .from('interviews')
         .insert({
@@ -191,12 +180,26 @@ export const InterviewScheduler = ({ employerId }: InterviewSchedulerProps) => {
           meeting_link: interviewDetails.type === 'video' && interviewDetails.meetingLink ? interviewDetails.meetingLink : null,
         });
 
+      if (intError) throw intError;
+
+      // Only update application status after interview is successfully created
+      const { error: statusError } = await supabase
+        .from('applications')
+        .update({ 
+          status: 'shortlisted',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', scheduleDialog.applicant.id);
+
+      if (statusError) {
+        console.error('Failed to update application status:', statusError);
+      }
+
       toast.success('Interview scheduled successfully!');
       setScheduleDialog({ open: false, applicant: null });
       setInterviewDetails({ date: '', time: '', type: 'video', location: '', meetingLink: '' });
       fetchApplicants();
       fetchScheduledInterviews();
-      fetchApplicants();
     } catch (error: any) {
       toast.error('Failed to schedule interview: ' + error.message);
     } finally {
