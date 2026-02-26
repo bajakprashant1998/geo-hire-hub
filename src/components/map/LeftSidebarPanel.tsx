@@ -175,7 +175,7 @@ export const LeftSidebarPanel = ({
                 <div className="grid grid-cols-4 gap-1 mt-3">
                   {[
                     { icon: LayoutDashboard, label: 'Dashboard', href: dashboardPath },
-                    { icon: MessageSquare, label: 'Messages', href: '/messages' },
+                    { icon: MessageSquare, label: 'Messages', href: profile?.user_type === 'employer' ? '/employer-dashboard?tab=chat' : '/candidate-dashboard?tab=messages' },
                     { icon: Heart, label: 'Saved', href: dashboardPath },
                     { icon: Settings, label: 'Settings', href: settingsPath },
                   ].map((item) => (

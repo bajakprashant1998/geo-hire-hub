@@ -6,7 +6,13 @@ import { toast } from 'sonner';
 
 export const useStartConversation = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+
+  const getDashboardMessagesPath = useCallback((conversationId?: string) => {
+    const base = profile?.user_type === 'employer' ? '/employer-dashboard' : '/candidate-dashboard';
+    const tab = profile?.user_type === 'employer' ? 'chat' : 'messages';
+    return conversationId ? `${base}?tab=${tab}&conversation=${conversationId}` : `${base}?tab=${tab}`;
+  }, [profile]);
 
   const startConversation = useCallback(async (otherUserId: string, jobId?: string) => {
     if (!user) {
@@ -31,7 +37,7 @@ export const useStartConversation = () => {
         .maybeSingle();
 
       if (existingConv) {
-        navigate(`/messages/${existingConv.id}`);
+        navigate(getDashboardMessagesPath(existingConv.id));
         return existingConv.id;
       }
 
@@ -49,14 +55,14 @@ export const useStartConversation = () => {
 
       if (error) throw error;
 
-      navigate(`/messages/${newConv.id}`);
+      navigate(getDashboardMessagesPath(newConv.id));
       return newConv.id;
     } catch (error: any) {
       console.error('Error starting conversation:', error);
       toast.error('Failed to start conversation');
       return null;
     }
-  }, [user, navigate]);
+  }, [user, navigate, getDashboardMessagesPath]);
 
-  return { startConversation };
+  return { startConversation, getDashboardMessagesPath };
 };
