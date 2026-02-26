@@ -160,7 +160,7 @@ const EmployerDashboard = () => {
           .from('interviews')
           .select('*', { count: 'exact', head: true })
           .eq('employer_id', employerData.id)
-          .eq('status', 'scheduled');
+          .in('status', ['scheduled', 'confirmed', 'requested']);
 
         // Real profile views from profile_views table
         const { count: viewCount } = await supabase

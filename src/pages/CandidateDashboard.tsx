@@ -115,13 +115,14 @@ const CandidateDashboard = () => {
     setCandidate(data);
 
     if (data) {
-      const [appsRes, messagesRes] = await Promise.all([
+      const [appsRes, messagesRes, interviewsRes] = await Promise.all([
         supabase.from('applications').select('id, status, job_id').eq('candidate_id', data.id),
-        supabase.from('messages').select('id').eq('is_read', false).neq('sender_id', profile.id)
+        supabase.from('messages').select('id').eq('is_read', false).neq('sender_id', user.id),
+        supabase.from('interviews').select('id', { count: 'exact', head: true }).eq('candidate_id', data.id).in('status', ['requested', 'confirmed', 'scheduled'])
       ]);
 
       const applications = appsRes.data || [];
-      const interviews = applications.filter(a => a.status === 'shortlisted').length;
+      const interviews = interviewsRes.count || 0;
 
       const { count: viewCount } = await supabase
         .from('profile_views')

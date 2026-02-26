@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import DOMPurify from 'dompurify';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -430,7 +431,7 @@ export const CareerBuddyChat = () => {
                         "[&_li]:text-foreground [&_ul]:list-none [&_ol]:pl-5",
                         "[&_hr]:my-4 [&_hr]:border-border/40"
                       )}
-                      dangerouslySetInnerHTML={{ __html: formatMarkdown(message.content) }}
+                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formatMarkdown(message.content)) }}
                     />
                   ) : (
                     <p className="text-sm leading-relaxed font-medium">{message.content}</p>
