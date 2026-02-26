@@ -57,8 +57,8 @@ export const MobileFAB = ({ mode, className }: MobileFABProps) => {
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0, opacity: 0 }}
         transition={{ type: 'spring', damping: 20, stiffness: 300, delay: 0.5 }}
-        className={cn("fab-position md:hidden", className)}
-        style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 12rem)' }}
+        className={cn("fixed right-4 z-[46] md:hidden", className)}
+        style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 9rem)' }}
       >
         {/* Tooltip */}
         <AnimatePresence>
