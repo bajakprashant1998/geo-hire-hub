@@ -283,13 +283,42 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
 
   const calculateMissingFields = () => {
     const missing: string[] = [];
-    if (!companyName) missing.push('Company Name');
+    // Basic Info (35pts)
+    if (!companyName || companyName === 'My Company') missing.push('Company Name');
     if (!industry) missing.push('Industry');
-    if (!description || description.length < 20) missing.push('Company Description');
+    if (!description || description.length < 20) missing.push('Company Description (min 20 chars)');
     if (!countryCode) missing.push('Country');
     if (!taxId) missing.push('Tax ID');
+    if (!teamSize) missing.push('Team Size');
+    if (!websiteUrl) missing.push('Website URL');
+    // Location (10pts)
+    if (officeLocations.length === 0) missing.push('Office Locations');
+    // Hiring (10pts)
+    if (!hiringProcess) missing.push('Hiring Process');
+    if (!interviewRoundsCount) missing.push('Interview Rounds');
+    if (!hiringTimeline) missing.push('Hiring Timeline');
+    if (assessmentTypes.length === 0) missing.push('Assessment Types');
+    // Compensation (10pts)
+    if (!avgSalaryRange) missing.push('Average Salary Range');
+    if (benefits.length === 0) missing.push('Benefits');
+    if (!paidLeavesPolicy) missing.push('Paid Leaves Policy');
+    // Growth (8pts)
+    if (!promotionFrequency) missing.push('Promotion Frequency');
+    if (!careerGrowthPaths) missing.push('Career Growth Paths');
+    if (!employeeRetentionRate) missing.push('Employee Retention Rate');
+    // Skills (10pts)
+    if (keySkillsHiring.length === 0) missing.push('Key Skills');
+    if (techStack.length === 0) missing.push('Tech Stack');
+    if (!educationPreference) missing.push('Education Preference');
+    // Culture (7pts)
+    if (!workCultureType) missing.push('Work Culture Type');
+    if (!cultureDescription) missing.push('Culture Description');
+    if (companyValues.length === 0) missing.push('Company Values');
+    // Documents (8pts)
     if (!officePhotoUrl) missing.push('Office Photo');
     if (!businessCardUrl) missing.push('Business Card');
+    // Contact (2pts)
+    if (!hrContactEmail) missing.push('HR Contact Email');
     return missing;
   };
 

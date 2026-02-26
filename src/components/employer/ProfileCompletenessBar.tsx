@@ -61,18 +61,25 @@ export const ProfileCompletenessBar = ({
       
       {completeness < 100 && missingFields.length > 0 && (
         <div className="text-sm text-muted-foreground">
-          <p className="mb-1">Missing:</p>
-          <ul className="list-disc list-inside space-y-0.5">
-            {missingFields.map((field, i) => (
-              <li key={i}>{field}</li>
+          <p className="mb-1 font-medium">Missing ({missingFields.length} fields):</p>
+          <div className="flex flex-wrap gap-1.5">
+            {missingFields.slice(0, 6).map((field, i) => (
+              <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-md bg-destructive/10 text-destructive text-xs">
+                {field}
+              </span>
             ))}
-          </ul>
+            {missingFields.length > 6 && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-muted text-muted-foreground text-xs">
+                +{missingFields.length - 6} more
+              </span>
+            )}
+          </div>
         </div>
       )}
       
       {completeness < 100 && (
-        <p className="text-sm text-destructive">
-          Complete your profile to 100% before posting jobs.
+        <p className="text-xs text-muted-foreground">
+          Fill all tabs to reach 100% and unlock full AI matching features.
         </p>
       )}
     </div>
