@@ -1080,15 +1080,24 @@ export type Database = {
       interviews: {
         Row: {
           application_id: string
+          cancel_reason: string | null
+          cancelled_by: string | null
           candidate_id: string
+          candidate_message: string | null
+          completed_at: string | null
+          confirmed_by_candidate: boolean
+          confirmed_by_employer: boolean
           created_at: string
           employer_id: string
+          employer_notes: string | null
           id: string
           interview_type: string
           job_id: string
           location: string | null
           meeting_link: string | null
           notes: string | null
+          requested_by: string
+          rescheduled_from: string | null
           scheduled_date: string
           scheduled_time: string
           status: string
@@ -1096,15 +1105,24 @@ export type Database = {
         }
         Insert: {
           application_id: string
+          cancel_reason?: string | null
+          cancelled_by?: string | null
           candidate_id: string
+          candidate_message?: string | null
+          completed_at?: string | null
+          confirmed_by_candidate?: boolean
+          confirmed_by_employer?: boolean
           created_at?: string
           employer_id: string
+          employer_notes?: string | null
           id?: string
           interview_type?: string
           job_id: string
           location?: string | null
           meeting_link?: string | null
           notes?: string | null
+          requested_by?: string
+          rescheduled_from?: string | null
           scheduled_date: string
           scheduled_time: string
           status?: string
@@ -1112,15 +1130,24 @@ export type Database = {
         }
         Update: {
           application_id?: string
+          cancel_reason?: string | null
+          cancelled_by?: string | null
           candidate_id?: string
+          candidate_message?: string | null
+          completed_at?: string | null
+          confirmed_by_candidate?: boolean
+          confirmed_by_employer?: boolean
           created_at?: string
           employer_id?: string
+          employer_notes?: string | null
           id?: string
           interview_type?: string
           job_id?: string
           location?: string | null
           meeting_link?: string | null
           notes?: string | null
+          requested_by?: string
+          rescheduled_from?: string | null
           scheduled_date?: string
           scheduled_time?: string
           status?: string
@@ -1153,6 +1180,13 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interviews_rescheduled_from_fkey"
+            columns: ["rescheduled_from"]
+            isOneToOne: false
+            referencedRelation: "interviews"
             referencedColumns: ["id"]
           },
         ]

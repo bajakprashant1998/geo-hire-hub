@@ -26,7 +26,7 @@ import { NotificationCenter } from '@/components/candidate/NotificationCenter';
 import { JobAlertsManager } from '@/components/candidate/JobAlertsManager';
 import { SecuritySettings } from '@/components/candidate/SecuritySettings';
 import { RecommendedJobs } from '@/components/candidate/RecommendedJobs';
-import { InterviewCalendar } from '@/components/candidate/InterviewCalendar';
+import { CandidateInterviewManager } from '@/components/candidate/CandidateInterviewManager';
 import { PlatformNotificationBanner } from '@/components/dashboard/PlatformNotificationBanner';
 import { SavedJobsSection } from '@/components/candidate/SavedJobsSection';
 import { AIJobMatches } from '@/components/candidate/AIJobMatches';
@@ -448,7 +448,7 @@ const CandidateDashboard = () => {
     switch (activeSection) {
       case 'jobs': return candidate && <JobActivityTabs candidateId={candidate.id} />;
       case 'saved': return candidate && <SavedJobsSection candidateId={candidate.id} />;
-      case 'interviews': return candidate && <InterviewCalendar candidateId={candidate.id} />;
+      case 'interviews': return candidate && <CandidateInterviewManager candidateId={candidate.id} />;
       case 'profile': return <CandidateProfileEdit embedded />;
       case 'resume': return candidate && <ResumeAndDocumentManager candidate={candidate} onUpdate={fetchCandidate} />;
       case 'audio-resume': return candidate && <AudioResumeCard candidate={candidate} onUpdate={fetchCandidate} />;
