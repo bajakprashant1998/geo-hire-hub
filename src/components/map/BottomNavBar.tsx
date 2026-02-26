@@ -38,7 +38,7 @@ const BottomNavBar = () => {
         "safe-area-pb"
       )}
     >
-      <div className="flex items-center justify-around h-[58px] px-1">
+      <div className="flex items-center justify-around h-[60px] px-1">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
