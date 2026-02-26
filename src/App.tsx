@@ -121,7 +121,7 @@ const App = () => (
               {/* ==================== EMPLOYER ROUTES ==================== */}
               <Route path="/employer-dashboard" element={<EmployerDashboard />} />
               <Route path="/employer-settings" element={<EmployerSettings />} />
-              <Route path="/post-job" element={<PostJob />} />
+              <Route path="/post-job" element={<Navigate to="/employer-dashboard?tab=post-job" replace />} />
               <Route path="/edit-job/:jobId" element={<PostJob />} />
               <Route path="/company-profile" element={<Navigate to="/employer-dashboard?tab=company" replace />} />
               <Route path="/video-call/:interviewId" element={<VideoCall />} />
