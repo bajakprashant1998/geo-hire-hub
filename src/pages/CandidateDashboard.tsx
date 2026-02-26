@@ -210,12 +210,16 @@ const CandidateDashboard = () => {
     { icon: Bot, label: 'Talk to My Buddy', value: 'career-buddy' }
   ];
 
-  // Quick action buttons for dashboard home
+  // Quick action buttons for dashboard home — full 8-item grid
   const quickActions = [
-    { icon: MapPin, label: 'Find Jobs', onClick: () => navigate('/'), color: 'from-primary/20 to-primary/5 text-primary border-primary/15' },
-    { icon: FileText, label: 'My Resume', onClick: () => handleSectionClick('resume'), color: 'from-success/20 to-success/5 text-success border-success/15' },
-    { icon: Sparkles, label: 'AI Match', onClick: () => handleSectionClick('ai-resume'), color: 'from-[hsl(262,83%,58%)]/20 to-[hsl(262,83%,58%)]/5 text-[hsl(262,83%,58%)] border-[hsl(262,83%,58%)]/15' },
-    { icon: Bookmark, label: 'Saved', onClick: () => handleSectionClick('saved'), color: 'from-warning/20 to-warning/5 text-warning-foreground border-warning/15' },
+    { icon: MapPin, label: 'Find Jobs', onClick: () => navigate('/'), color: 'text-primary', bg: 'bg-primary/10' },
+    { icon: Briefcase, label: 'Applications', onClick: () => handleSectionClick('jobs'), color: 'text-[hsl(217,89%,61%)]', bg: 'bg-[hsl(217,89%,61%)]/10' },
+    { icon: MessageSquare, label: 'Messages', onClick: () => handleSectionClick('messages'), color: 'text-success', bg: 'bg-success/10' },
+    { icon: Calendar, label: 'Interviews', onClick: () => handleSectionClick('interviews'), color: 'text-[hsl(262,83%,58%)]', bg: 'bg-[hsl(262,83%,58%)]/10' },
+    { icon: FileText, label: 'Resume', onClick: () => handleSectionClick('resume'), color: 'text-warning-foreground', bg: 'bg-warning/10' },
+    { icon: Sparkles, label: 'AI Match', onClick: () => handleSectionClick('ai-resume'), color: 'text-primary', bg: 'bg-primary/10' },
+    { icon: Zap, label: 'Auto Apply', onClick: () => handleSectionClick('auto-apply'), color: 'text-success', bg: 'bg-success/10' },
+    { icon: Bot, label: 'Career Buddy', onClick: () => handleSectionClick('career-buddy'), color: 'text-[hsl(262,83%,58%)]', bg: 'bg-[hsl(262,83%,58%)]/10' },
   ];
 
   if (authLoading) {
@@ -560,80 +564,124 @@ const CandidateDashboard = () => {
                   </motion.div>
                 )}
 
-                {/* Quick Actions - Mobile */}
-                <div className="grid grid-cols-4 gap-2 sm:hidden">
-                  {quickActions.map((action, i) => (
-                    <motion.button
-                      key={action.label}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      onClick={action.onClick}
-                      className={cn(
-                        "flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-gradient-to-br backdrop-blur-xl border",
-                        "hover:shadow-md transition-all active:scale-95",
-                        action.color
-                      )}
+                {/* Bento Grid Layout */}
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
+                  {/* Row 1: Stat Cards */}
+                  <div className="col-span-1 md:col-span-1 lg:col-span-1">
+                    <DashboardStatCard icon={FileText} label="Applied" value={stats.applications} subtitle="all time" accentColor="blue" onClick={() => setActiveSection('jobs')} delay={0} />
+                  </div>
+                  <div className="col-span-1 md:col-span-1 lg:col-span-1">
+                    <DashboardStatCard icon={Eye} label="Profile Views" value={stats.views} subtitle="all time" accentColor="green" onClick={() => setEditModalOpen(true)} delay={1} />
+                  </div>
+                  <div className="col-span-1 md:col-span-1 lg:col-span-1">
+                    <DashboardStatCard icon={MessageSquare} label="Messages" value={stats.unreadMessages} subtitle={stats.unreadMessages > 0 ? 'unread' : 'all caught up'} accentColor="amber" onClick={() => setActiveSection('messages')} delay={2} />
+                  </div>
+                  <div className="col-span-1 md:col-span-1 lg:col-span-1">
+                    <DashboardStatCard icon={Calendar} label="Interviews" value={stats.interviews} subtitle={nextInterviewLabel} accentColor="purple" delay={3} />
+                  </div>
+
+                  {/* Row 1 cont: Hero Welcome Card (desktop only) */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4, type: 'spring', stiffness: 120, damping: 16 }}
+                    className="hidden lg:flex col-span-2 row-span-1 relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary to-primary/70 p-5 flex-col justify-between border border-primary/20"
+                  >
+                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
+                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full blur-2xl" />
+                    <div className="relative z-10">
+                      <p className="text-primary-foreground/80 text-xs font-semibold uppercase tracking-wider mb-1">Welcome back</p>
+                      <h3 className="text-xl font-bold text-primary-foreground leading-tight">
+                        {profile.full_name?.split(' ')[0] || 'there'} 👋
+                      </h3>
+                      <p className="text-primary-foreground/70 text-sm mt-1.5 leading-snug">
+                        {stats.applications > 0
+                          ? `You have ${stats.applications} active application${stats.applications > 1 ? 's' : ''}`
+                          : 'Start applying to find your dream job'}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="relative z-10 mt-3 w-fit rounded-xl text-xs font-semibold shadow-lg"
+                      onClick={() => navigate('/')}
                     >
-                      <action.icon className="w-5 h-5" />
-                      <span className="text-[10px] font-semibold">{action.label}</span>
-                    </motion.button>
-                  ))}
+                      <MapPin className="w-3.5 h-3.5 mr-1" />
+                      Explore Jobs
+                    </Button>
+                  </motion.div>
                 </div>
 
-                {/* Stats Grid */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
-                  <DashboardStatCard
-                    icon={FileText}
-                    label="Applied"
-                    value={stats.applications}
-                    subtitle="all time"
-                    accentColor="blue"
-                    onClick={() => setActiveSection('jobs')}
-                    delay={0}
-                  />
-                  <DashboardStatCard
-                    icon={Eye}
-                    label="Profile Views"
-                    value={stats.views}
-                    subtitle="all time"
-                    accentColor="green"
-                    onClick={() => setEditModalOpen(true)}
-                    delay={1}
-                  />
-                  <DashboardStatCard
-                    icon={MessageSquare}
-                    label="Messages"
-                    value={stats.unreadMessages}
-                    subtitle={stats.unreadMessages > 0 ? 'unread' : 'all caught up'}
-                    accentColor="amber"
-                    onClick={() => setActiveSection('messages')}
-                    delay={2}
-                  />
-                  <DashboardStatCard
-                    icon={Calendar}
-                    label="Interviews"
-                    value={stats.interviews}
-                    subtitle={nextInterviewLabel}
-                    accentColor="purple"
-                    delay={3}
-                  />
-                </div>
-
-                {/* Messages + Interview */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-6">
-                  <div className="lg:col-span-2">
-                    <MessagesPreview profileId={profile.id} onOpenChat={() => setActiveSection('messages')} />
+                {/* Quick Actions Grid — all screens */}
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl p-4 overflow-hidden"
+                >
+                  <div className="absolute -top-16 -right-16 w-40 h-40 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+                  <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[hsl(262,83%,58%)]/10 rounded-full blur-3xl pointer-events-none" />
+                  <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 dark:ring-white/5 pointer-events-none" />
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 relative z-10">Quick Actions</p>
+                  <div className="grid grid-cols-4 lg:grid-cols-8 gap-2 relative z-10">
+                    {quickActions.map((action, i) => (
+                      <motion.button
+                        key={action.label}
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.35 + i * 0.04 }}
+                        whileHover={{ scale: 1.03, y: -2 }}
+                        whileTap={{ scale: 0.96 }}
+                        onClick={action.onClick}
+                        className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-card/70 backdrop-blur-md border border-border/30 hover:border-border/60 hover:shadow-lg transition-all"
+                      >
+                        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", action.bg)}>
+                          <action.icon className={cn("w-5 h-5", action.color)} />
+                        </div>
+                        <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground">{action.label}</span>
+                      </motion.button>
+                    ))}
                   </div>
-                  <div>
-                    <UpcomingInterviewCard />
-                  </div>
+                </motion.div>
+
+                {/* Messages + Interview — Glassmorphism bento containers */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className="lg:col-span-2 relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl overflow-hidden"
+                  >
+                    <div className="absolute -top-12 -left-12 w-36 h-36 bg-warning/10 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 dark:ring-white/5 pointer-events-none" />
+                    <div className="relative z-10">
+                      <MessagesPreview profileId={profile.id} onOpenChat={() => setActiveSection('messages')} />
+                    </div>
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl overflow-hidden"
+                  >
+                    <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-[hsl(262,83%,58%)]/10 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 dark:ring-white/5 pointer-events-none" />
+                    <div className="relative z-10">
+                      <UpcomingInterviewCard />
+                    </div>
+                  </motion.div>
                 </div>
 
-                {candidate && <AIJobMatches candidateId={candidate.id} />}
-
+                {/* AI Matches + Carousel */}
                 {candidate && (
-                  <JobMatchCarousel candidateId={candidate.id} skills={candidate.skills || []} />
+                  <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}>
+                    <AIJobMatches candidateId={candidate.id} />
+                  </motion.div>
+                )}
+                {candidate && (
+                  <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+                    <JobMatchCarousel candidateId={candidate.id} skills={candidate.skills || []} />
+                  </motion.div>
                 )}
               </div>
             )}
