@@ -32,6 +32,7 @@ const mapOptions: google.maps.MapOptions = {
   mapTypeControl: false,
   streetViewControl: false,
   fullscreenControl: false,
+  gestureHandling: 'greedy', // Allow scroll zoom without ctrl key
   styles: [
     {
       featureType: 'poi',
@@ -295,18 +296,66 @@ const GoogleMapInner = ({
         </>
       )}
 
-      {/* Map Items mapped manually as Custom HTML Overlays */}
-      {items.map((item) => (
-        <CustomMarker
-          key={item.id}
-          item={item}
-          mode={mode}
-          isHovered={hoveredItem?.id === item.id}
-          onClick={() => onMarkerClick(item)}
-          onMouseEnter={() => handleMouseEnter(item)}
-          onMouseLeave={handleMouseLeave}
-        />
-      ))}
+      {/* Clustered Markers */}
+      <MarkerClusterer
+        options={{
+          imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m',
+          maxZoom: 15,
+          gridSize: 60,
+          styles: [
+            {
+              textColor: 'white',
+              textSize: 14,
+              url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
+                `<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52"><circle cx="26" cy="26" r="26" fill="${mode === 'hiring' ? 'hsl(217,89%,61%)' : 'hsl(4,90%,58%)'}" opacity="0.85"/><circle cx="26" cy="26" r="20" fill="${mode === 'hiring' ? 'hsl(217,89%,51%)' : 'hsl(4,90%,48%)'}" stroke="white" stroke-width="2"/></svg>`
+              ),
+              width: 52,
+              height: 52,
+            },
+            {
+              textColor: 'white',
+              textSize: 15,
+              url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
+                `<svg xmlns="http://www.w3.org/2000/svg" width="62" height="62"><circle cx="31" cy="31" r="31" fill="${mode === 'hiring' ? 'hsl(217,89%,61%)' : 'hsl(4,90%,58%)'}" opacity="0.8"/><circle cx="31" cy="31" r="24" fill="${mode === 'hiring' ? 'hsl(217,89%,51%)' : 'hsl(4,90%,48%)'}" stroke="white" stroke-width="2.5"/></svg>`
+              ),
+              width: 62,
+              height: 62,
+            },
+          ],
+        }}
+      >
+        {(clusterer) => (
+          <>
+            {items.map((item) => {
+              const isCandidate = mode === 'hiring';
+              const job = item as Job;
+              let markerColor = isCandidate ? '3B82F6' : (job.job_category === 'government' ? '16A34A' : 'EF4444');
+
+              return (
+                <Marker
+                  key={item.id}
+                  position={{ lat: item.latitude, lng: item.longitude }}
+                  clusterer={clusterer}
+                  icon={{
+                    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
+                      `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"><circle cx="18" cy="18" r="15" fill="#${markerColor}" stroke="white" stroke-width="3"/>${
+                        isCandidate
+                          ? '<path d="M22 24v-1a3 3 0 0 0-3-3h-2a3 3 0 0 0-3 3v1" stroke="white" stroke-width="1.5" fill="none"/><circle cx="18" cy="14" r="2.5" stroke="white" stroke-width="1.5" fill="none"/>'
+                          : '<rect x="11" y="14" width="14" height="9" rx="1.5" fill="white" opacity="0.9"/><path d="M16 14V12a2 2 0 0 1 4 0v2" stroke="white" stroke-width="1.5" fill="none"/>'
+                      }</svg>`
+                    ),
+                    scaledSize: new google.maps.Size(36, 36),
+                    anchor: new google.maps.Point(18, 18),
+                  }}
+                  onClick={() => onMarkerClick(item)}
+                  onMouseOver={() => handleMouseEnter(item)}
+                  onMouseOut={handleMouseLeave}
+                />
+              );
+            })}
+          </>
+        )}
+      </MarkerClusterer>
 
       {/* InfoWindow for hover preview */}
       {hoveredItem && (
