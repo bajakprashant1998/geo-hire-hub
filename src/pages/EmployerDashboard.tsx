@@ -200,6 +200,7 @@ const EmployerDashboard = () => {
   };
 
   const handleSectionClick = (value: string) => {
+    if (value === 'map') { navigate('/'); return; }
     if (value === 'chat') {
       setActiveSection('chat');
     } else if (value === 'company') {
@@ -242,6 +243,7 @@ const EmployerDashboard = () => {
   };
 
   const sidebarItems = [
+    { icon: MapPin, label: 'Back to Map', value: 'map' },
     { icon: Plus, label: 'Create Job', value: 'post-job' },
     { icon: Briefcase, label: 'Job Postings', value: 'jobs', badge: stats.activeJobs },
     { icon: Filter, label: 'Candidate Finder', value: 'candidates', badge: stats.totalApplications },

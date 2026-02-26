@@ -169,6 +169,7 @@ const CandidateDashboard = () => {
   };
 
   const handleSectionClick = (value: string) => {
+    if (value === 'map') { navigate('/'); return; }
     if (value === 'messages') { setActiveSection('messages'); }
     else { setActiveSection(value === 'home' ? null : value); }
     setSidebarOpen(false);
@@ -191,6 +192,7 @@ const CandidateDashboard = () => {
   };
 
   const sidebarItems = [
+    { icon: MapPin, label: 'Back to Map', value: 'map' },
     { icon: Radar, label: 'Job Radar', value: 'job-radar' },
     { icon: Briefcase, label: 'My Applications', value: 'jobs', badge: stats.applications },
     { icon: MessageSquare, label: 'Messages', value: 'messages', badge: stats.unreadMessages },
