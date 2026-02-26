@@ -1,21 +1,20 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { MapPin, Briefcase, Users, X, Sparkles, ArrowRight, Shield } from 'lucide-react';
+import { MapPin, Briefcase, Users, X, Sparkles, ArrowRight, Shield, Globe2, TrendingUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+
 interface WelcomeOverlayProps {
   onDismiss: () => void;
   onFindJobs: () => void;
   onFindTalent: () => void;
 }
+
 const STORAGE_KEY = 'hfj_welcome_dismissed';
-export const WelcomeOverlay = ({
-  onDismiss,
-  onFindJobs,
-  onFindTalent
-}: WelcomeOverlayProps) => {
+
+export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeOverlayProps) => {
   const [isVisible, setIsVisible] = useState(false);
+
   useEffect(() => {
     const dismissed = localStorage.getItem(STORAGE_KEY);
     if (!dismissed) {
@@ -23,158 +22,163 @@ export const WelcomeOverlay = ({
       return () => clearTimeout(timer);
     }
   }, []);
-  const handleDismiss = (dontShowAgain: boolean = false) => {
+
+  const handleDismiss = (dontShowAgain = false) => {
     setIsVisible(false);
-    if (dontShowAgain) {
-      localStorage.setItem(STORAGE_KEY, 'true');
-    }
+    if (dontShowAgain) localStorage.setItem(STORAGE_KEY, 'true');
     setTimeout(onDismiss, 300);
   };
+
   const containerVariants = {
-    hidden: {
-      opacity: 0
-    },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2
-      }
-    },
-    exit: {
-      opacity: 0
-    }
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.15 } },
+    exit: { opacity: 0 },
   };
+
   const itemVariants = {
-    hidden: {
-      opacity: 0,
-      y: 20
-    },
-    visible: {
-      opacity: 1,
-      y: 0
-    }
+    hidden: { opacity: 0, y: 16 },
+    visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 300, damping: 25 } },
   };
-  return <AnimatePresence>
-      {isVisible && <motion.div initial={{
-      opacity: 0
-    }} animate={{
-      opacity: 1
-    }} exit={{
-      opacity: 0
-    }} className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-          {/* Backdrop with gradient */}
-          <motion.div initial={{
-        opacity: 0
-      }} animate={{
-        opacity: 1
-      }} exit={{
-        opacity: 0
-      }} className="absolute inset-0 bg-gradient-to-br from-primary/90 via-primary/80 to-destructive/70 backdrop-blur-md" onClick={() => handleDismiss(false)} />
 
-          {/* Content */}
-          <motion.div variants={containerVariants} initial="hidden" animate="visible" exit="exit" className="relative w-full max-w-lg z-10" onClick={e => e.stopPropagation()}>
-            {/* Close button */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <motion.button variants={itemVariants} onClick={() => handleDismiss(false)} className="absolute -top-2 -right-2 p-2 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors z-20">
-                  <X className="w-5 h-5" />
+  const features = [
+    { icon: MapPin, text: 'Nearby Jobs', color: 'bg-destructive/20 text-destructive' },
+    { icon: Sparkles, text: 'AI Matching', color: 'bg-primary/20 text-primary' },
+    { icon: Shield, text: 'Verified', color: 'bg-emerald-500/20 text-emerald-600' },
+    { icon: TrendingUp, text: 'Real-time', color: 'bg-warning/20 text-warning' },
+  ];
+
+  return (
+    <AnimatePresence>
+      {isVisible && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center"
+        >
+          {/* Backdrop */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={() => handleDismiss(false)}
+          />
+
+          {/* Card */}
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="relative w-full max-w-md z-10 mx-4 mb-4 sm:mb-0"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="bg-card rounded-3xl shadow-2xl border border-border/30 overflow-hidden">
+              {/* Gradient header */}
+              <div className="relative bg-gradient-to-br from-primary via-primary/90 to-destructive/80 px-6 pt-8 pb-10 text-center">
+                {/* Close */}
+                <motion.button
+                  variants={itemVariants}
+                  onClick={() => handleDismiss(false)}
+                  className="absolute top-4 right-4 p-2 rounded-full bg-white/15 hover:bg-white/25 text-white transition-colors"
+                >
+                  <X className="w-4 h-4" />
                 </motion.button>
-              </TooltipTrigger>
-              <TooltipContent>Close</TooltipContent>
-            </Tooltip>
 
-            {/* Hero Content */}
-            <div className="text-center text-white">
-              {/* Logo Animation */}
-              <motion.div variants={itemVariants} className="mb-6">
-                <motion.div initial={{
-              scale: 0,
-              rotate: -180
-            }} animate={{
-              scale: 1,
-              rotate: 0
-            }} transition={{
-              type: 'spring',
-              damping: 15,
-              stiffness: 200
-            }} className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-3xl flex items-center justify-center mx-auto shadow-2xl">
-                  <MapPin className="w-10 h-10 text-white" />
+                {/* Logo */}
+                <motion.div variants={itemVariants} className="mb-4">
+                  <motion.div
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: 'spring', damping: 12, stiffness: 200 }}
+                    className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto"
+                  >
+                    <Globe2 className="w-8 h-8 text-white" />
+                  </motion.div>
                 </motion.div>
-              </motion.div>
 
-              {/* Title */}
-              <motion.h1 variants={itemVariants} className="text-3xl sm:text-4xl font-bold mb-3 text-cyan-50">
-                Find Jobs Near You
-              </motion.h1>
+                <motion.h1 variants={itemVariants} className="text-2xl sm:text-3xl font-bold text-white mb-2">
+                  Find Jobs Near You
+                </motion.h1>
+                <motion.p variants={itemVariants} className="text-white/75 text-sm sm:text-base max-w-xs mx-auto">
+                  Discover opportunities within walking distance on an interactive map
+                </motion.p>
+              </div>
 
-              <motion.p variants={itemVariants} className="text-white/80 text-base sm:text-lg mb-8 max-w-md mx-auto">
-                Discover opportunities within walking distance. Connect with local employers and candidates on an interactive map.
-              </motion.p>
+              {/* Features grid */}
+              <div className="px-6 -mt-5">
+                <motion.div variants={itemVariants} className="grid grid-cols-4 gap-2">
+                  {features.map((f, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 + i * 0.08 }}
+                      className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-card border border-border/50 shadow-sm"
+                    >
+                      <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center', f.color)}>
+                        <f.icon className="w-4 h-4" />
+                      </div>
+                      <span className="text-[10px] font-semibold text-muted-foreground">{f.text}</span>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              </div>
 
-              {/* Features */}
-              <motion.div variants={itemVariants} className="flex flex-wrap justify-center gap-3 mb-8">
-                {[{
-              icon: MapPin,
-              text: 'Location-based'
-            }, {
-              icon: Sparkles,
-              text: 'AI Matching'
-            }, {
-              icon: Shield,
-              text: 'Verified Jobs'
-            }].map((feature, index) => <motion.div key={index} initial={{
-              opacity: 0,
-              scale: 0.8
-            }} animate={{
-              opacity: 1,
-              scale: 1
-            }} transition={{
-              delay: 0.5 + index * 0.1
-            }} className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/15 backdrop-blur-sm">
-                    <feature.icon className="w-4 h-4" />
-                    <span className="text-sm font-medium">{feature.text}</span>
-                  </motion.div>)}
-              </motion.div>
+              {/* CTAs */}
+              <div className="px-6 pt-5 pb-6 space-y-3">
+                <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3">
+                  <Button
+                    onClick={() => { handleDismiss(true); onFindJobs(); }}
+                    size="lg"
+                    className="h-13 rounded-2xl text-sm font-semibold bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-lg group"
+                  >
+                    <Briefcase className="w-4 h-4 mr-1.5" />
+                    Find Jobs
+                    <ArrowRight className="w-3.5 h-3.5 ml-1.5 group-hover:translate-x-0.5 transition-transform" />
+                  </Button>
+                  <Button
+                    onClick={() => { handleDismiss(true); onFindTalent(); }}
+                    size="lg"
+                    variant="outline"
+                    className="h-13 rounded-2xl text-sm font-semibold border-2 group"
+                  >
+                    <Users className="w-4 h-4 mr-1.5" />
+                    Hire Talent
+                    <ArrowRight className="w-3.5 h-3.5 ml-1.5 group-hover:translate-x-0.5 transition-transform" />
+                  </Button>
+                </motion.div>
 
-              {/* CTA Buttons */}
-              <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4 mb-6">
-                <Button onClick={() => {
-              handleDismiss(true);
-              onFindJobs();
-            }} size="lg" className={cn("h-14 rounded-2xl text-base font-semibold", "bg-white text-primary hover:bg-white/90", "shadow-2xl shadow-black/20", "touch-target touch-scale group")}>
-                  <Briefcase className="w-5 h-5 mr-2" />
-                  Find Jobs
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-                
-                <Button onClick={() => {
-              handleDismiss(true);
-              onFindTalent();
-            }} size="lg" variant="outline" className={cn("h-14 rounded-2xl text-base font-semibold", "bg-transparent border-2 border-white/50 text-white", "hover:bg-white/10 hover:border-white", "touch-target touch-scale group")}>
-                  <Users className="w-5 h-5 mr-2" />
-                  Hire Talent
-                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </motion.div>
+                {/* Social proof */}
+                <motion.div variants={itemVariants} className="flex items-center justify-center gap-2 pt-1">
+                  <div className="flex -space-x-2">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div
+                        key={i}
+                        className="w-6 h-6 rounded-full bg-primary/20 border-2 border-card flex items-center justify-center text-[9px] font-bold text-primary"
+                      >
+                        {String.fromCharCode(64 + i)}
+                      </div>
+                    ))}
+                  </div>
+                  <span className="text-xs text-muted-foreground">10,000+ users finding local jobs</span>
+                </motion.div>
 
-              {/* Social Proof */}
-              <motion.div variants={itemVariants} className="flex items-center justify-center gap-2 text-white/70 text-sm mb-4">
-                <div className="flex -space-x-2">
-                  {[1, 2, 3, 4].map(i => <div key={i} className="w-7 h-7 rounded-full bg-white/30 border-2 border-white/50 flex items-center justify-center text-xs font-bold">
-                      {String.fromCharCode(64 + i)}
-                    </div>)}
-                </div>
-                <span>Join 10,000+ users finding local opportunities</span>
-              </motion.div>
-
-              {/* Skip link */}
-              <motion.button variants={itemVariants} onClick={() => handleDismiss(true)} className="text-white/60 hover:text-white text-sm underline-offset-4 hover:underline transition-colors">
-                Skip and explore the map
-              </motion.button>
+                <motion.button
+                  variants={itemVariants}
+                  onClick={() => handleDismiss(true)}
+                  className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors pt-1"
+                >
+                  Skip and explore the map →
+                </motion.button>
+              </div>
             </div>
           </motion.div>
-        </motion.div>}
-    </AnimatePresence>;
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 };
+
 export default WelcomeOverlay;

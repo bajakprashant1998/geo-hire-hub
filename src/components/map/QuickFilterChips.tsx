@@ -21,30 +21,35 @@ export const QuickFilterChips = ({
       label: `${jobCount} Jobs`,
       active: mode === 'seeking',
       onClick: () => onModeChange('seeking'),
+      activeClass: 'bg-destructive text-destructive-foreground border-destructive shadow-destructive/20',
     },
     {
       icon: Users,
       label: `${candidateCount} Talent`,
       active: mode === 'hiring',
       onClick: () => onModeChange('hiring'),
+      activeClass: 'bg-primary text-primary-foreground border-primary shadow-primary/20',
     },
     {
       icon: Landmark,
       label: `${governmentJobCount} Govt`,
       active: false,
       onClick: () => onModeChange('seeking'),
+      activeClass: '',
     },
     {
       icon: Building2,
       label: `${privateJobCount} Private`,
       active: false,
       onClick: () => onModeChange('seeking'),
+      activeClass: '',
     },
     {
       icon: Sparkles,
       label: 'AI Match',
       active: false,
       onClick: () => {},
+      activeClass: '',
     },
   ];
 
@@ -55,24 +60,25 @@ export const QuickFilterChips = ({
       transition={{ delay: 0.2, duration: 0.3 }}
       className="absolute top-[56px] left-0 right-0 z-[99] safe-area-pt px-3"
     >
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
         {chips.map((chip, i) => (
           <motion.button
             key={chip.label}
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.1 * i + 0.2 }}
+            transition={{ delay: 0.08 * i + 0.2 }}
+            whileTap={{ scale: 0.92 }}
             onClick={chip.onClick}
             className={cn(
-              "flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold whitespace-nowrap",
-              "shadow-lg backdrop-blur-md transition-all duration-200 active:scale-95",
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-semibold whitespace-nowrap",
+              "shadow-lg backdrop-blur-xl transition-all duration-200",
               "border",
               chip.active
-                ? "bg-primary text-primary-foreground border-primary shadow-primary/25"
-                : "bg-card/90 text-foreground border-border/40 hover:bg-card"
+                ? cn(chip.activeClass, "shadow-lg")
+                : "bg-card/90 text-foreground border-border/30 hover:bg-card active:bg-muted"
             )}
           >
-            <chip.icon className="w-3.5 h-3.5" />
+            <chip.icon className="w-3 h-3" />
             {chip.label}
           </motion.button>
         ))}
