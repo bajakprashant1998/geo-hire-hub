@@ -474,54 +474,54 @@ export const DashboardMessaging = () => {
   if (!user || !profile) return null;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Stats Bar */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-card border border-border rounded-xl p-3.5 flex items-center gap-3"
+          className="bg-card border border-border rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2 sm:gap-3"
         >
-          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-            <MessageSquare className="w-5 h-5 text-primary" />
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+            <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Total Chats</p>
-            <p className="text-xl font-bold text-foreground">{stats.totalConversations}</p>
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">Total Chats</p>
+            <p className="text-lg sm:text-xl font-bold text-foreground">{stats.totalConversations}</p>
           </div>
         </motion.div>
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="bg-card border border-border rounded-xl p-3.5 flex items-center gap-3"
+          className="bg-card border border-border rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2 sm:gap-3"
         >
-          <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
-            <Mail className="w-5 h-5 text-destructive" />
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
+            <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-destructive" />
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Unread</p>
-            <p className="text-xl font-bold text-foreground">{stats.totalUnread}</p>
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">Unread</p>
+            <p className="text-lg sm:text-xl font-bold text-foreground">{stats.totalUnread}</p>
           </div>
         </motion.div>
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-card border border-border rounded-xl p-3.5 flex items-center gap-3"
+          className="bg-card border border-border rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2 sm:gap-3"
         >
-          <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
-            <Clock className="w-5 h-5 text-green-600" />
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-accent/50 flex items-center justify-center shrink-0">
+            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
           </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Active Today</p>
-            <p className="text-xl font-bold text-foreground">{stats.activeToday}</p>
+          <div className="min-w-0">
+            <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">Active Today</p>
+            <p className="text-lg sm:text-xl font-bold text-foreground">{stats.activeToday}</p>
           </div>
         </motion.div>
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex h-[calc(100vh-300px)] min-h-[500px] bg-background rounded-2xl border overflow-hidden">
+      <div className="flex h-[calc(100vh-380px)] sm:h-[calc(100vh-320px)] min-h-[400px] bg-background rounded-2xl border overflow-hidden">
         {/* Conversation List */}
         <div className={cn(
           "w-full md:w-[360px] flex-col border-r border-border bg-card",
