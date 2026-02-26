@@ -300,8 +300,10 @@ const GoogleMapInner = ({
       <MarkerClusterer
         key={`cluster-${mode}`}
         options={{
-          maxZoom: 15,
+          maxZoom: 18,
           gridSize: 60,
+          zoomOnClick: true,
+          minimumClusterSize: 2,
           styles: [
             {
               textColor: 'white',
@@ -322,6 +324,19 @@ const GoogleMapInner = ({
               height: 62,
             },
           ],
+        }}
+        onClick={(cluster) => {
+          if (map) {
+            const bounds = cluster.getBounds();
+            if (bounds) {
+              map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
+              // If already at max zoom, zoom in one more level to force separation
+              const currentZoom = map.getZoom();
+              if (currentZoom && currentZoom >= 17) {
+                map.setZoom(currentZoom + 1);
+              }
+            }
+          }
         }}
       >
         {(clusterer) => (
