@@ -524,7 +524,7 @@ export const DashboardMessaging = () => {
       <div className="flex h-[calc(100vh-380px)] sm:h-[calc(100vh-320px)] min-h-[400px] bg-background rounded-2xl border overflow-hidden">
         {/* Conversation List */}
         <div className={cn(
-          "w-full md:w-[360px] flex-col border-r border-border bg-card",
+          "w-full md:w-[340px] lg:w-[380px] flex-col border-r border-border bg-card overflow-hidden",
           showConversationList ? "flex" : "hidden md:flex"
         )}>
           {/* Header */}
@@ -610,7 +610,7 @@ export const DashboardMessaging = () => {
                         <button
                           onClick={() => handleConversationSelect(conv.id)}
                           className={cn(
-                            "w-full p-3 text-left rounded-xl transition-all duration-200 hover:bg-muted/70",
+                            "w-full p-3 pr-8 text-left rounded-xl transition-all duration-200 hover:bg-muted/70",
                             activeConversationId === conv.id && 'bg-primary/8 border border-primary/20',
                             isPinned && 'border-l-2 border-l-amber-400'
                           )}
@@ -631,8 +631,8 @@ export const DashboardMessaging = () => {
                               </div>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-0.5">
-                                <div className="flex items-center gap-1 min-w-0">
+                              <div className="flex items-center justify-between gap-1 mb-0.5">
+                                <div className="flex items-center gap-1 min-w-0 flex-1">
                                   {isPinned && <Pin className="w-3 h-3 text-amber-500 shrink-0" />}
                                   <p className={cn(
                                     "font-medium truncate text-sm",
@@ -641,7 +641,7 @@ export const DashboardMessaging = () => {
                                     {conv.otherProfile?.full_name || 'Unknown User'}
                                   </p>
                                 </div>
-                                <span className="text-[11px] text-muted-foreground ml-2 shrink-0">
+                                <span className="text-[10px] text-muted-foreground shrink-0 whitespace-nowrap">
                                   {formatTime(conv.last_message_at)}
                                 </span>
                               </div>
