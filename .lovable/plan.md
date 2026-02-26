@@ -1,63 +1,127 @@
 
 
-## Suggested Admin Features
+## Two-Way Interview Scheduling System — Implementation Plan
 
-Based on the existing admin modules (Dashboard, Analytics, Users, Employers, Candidates, Jobs, Applications, Moderation, Reports, Messages, Notifications, Plans, Categories, Content/SEO, Email Templates, Auto Apply, Government, System Health, Settings), here are high-value features that are currently missing:
+This is a large-scope upgrade touching database schema, RLS policies, both dashboards, and notifications. Here's the structured plan:
 
-### 1. Admin Bulk Email / Announcements
-- Send platform-wide announcements to all users, or filtered segments (candidates only, employers only, verified employers, etc.)
-- Template-based email blasts using the existing email templates system
-- Schedule emails for future delivery
-- Track open/delivery stats
+---
 
-### 2. Employer Revenue & Subscription Dashboard
-- Detailed per-employer revenue breakdown (plan type, billing history, upgrades/downgrades)
-- Churn tracking — employers who cancelled or downgraded
-- Revenue forecasting chart based on active subscriptions
-- Overdue payment alerts
+### 1. Database Migration
 
-### 3. Advanced Fraud Detection & IP Logging
-- Track login IP addresses and flag suspicious activity (multiple accounts from same IP, rapid-fire job posts)
-- Auto-flag employers with duplicate tax IDs or company names
-- Suspicious application pattern detection (bot-like auto-apply abuse)
-- Admin alert banner for flagged accounts
+Add new columns to `interviews` table to support two-way scheduling:
 
-### 4. Admin Role Management UI
-- Visual interface to assign/remove admin and moderator roles (currently only in AdminUsers but limited)
-- Activity-based permission scoping (e.g., moderators can only access Moderation + Reports, not Settings or Plans)
-- Audit trail per role change
+| Column | Type | Purpose |
+|--------|------|---------|
+| `requested_by` | text ('candidate' / 'employer') | Who initiated the interview |
+| `candidate_message` | text | Optional message from candidate |
+| `employer_notes` | text | Internal employer notes |
+| `confirmed_by_candidate` | boolean (default false) | Candidate confirmation |
+| `confirmed_by_employer` | boolean (default false) | Employer confirmation |
+| `rescheduled_from` | uuid (nullable, FK → interviews) | Link to original if rescheduled |
+| `cancelled_by` | text (nullable) | Who cancelled |
+| `cancel_reason` | text (nullable) | Cancellation reason |
+| `completed_at` | timestamptz (nullable) | When marked complete |
 
-### 5. Scheduled Jobs & Cron Monitor
-- Dashboard showing all scheduled/automated tasks (job expiry cleanup, old message cleanup, auto-apply runs)
-- Last run status, next run time, error logs
-- Manual trigger button for each task
-- Alert if a scheduled task hasn't run in expected window
+Update `status` default flow to support: `requested → pending_confirmation → confirmed → rescheduled → rejected → completed → cancelled`
 
-### 6. Platform Feedback & Surveys
-- In-app feedback collection from candidates and employers
-- Admin-created micro-surveys (1-3 questions) triggered after key actions (e.g., after posting a job, after applying)
-- Aggregate results with charts in admin analytics
+Add new RLS policies:
+- Candidates can INSERT interviews (for requesting) — restricted to jobs they've applied to
+- Candidates can UPDATE their own interviews (for confirm/cancel only)
 
-### 7. Admin Activity Heatmap
-- Visual calendar heatmap showing admin action volume per day
-- Identify peak moderation periods
-- Per-admin breakdown of actions taken
+Add anti-spam validation trigger:
+- Max 2 interview requests per candidate per job
+- 48-hour cooldown between requests
+- Block duplicate date/time requests per candidate
+- Candidate can only request if they have an active application
 
-### 8. Data Export Center
-- Centralized export hub for all entities (users, jobs, applications, employers, candidates)
-- Scheduled/recurring exports (e.g., weekly CSV of new registrations)
-- Export history log
+---
 
-### Implementation Priority
+### 2. Candidate Side — New `CandidateInterviewManager` Component
 
-| Priority | Feature | Effort |
-|----------|---------|--------|
-| High | Employer Revenue Dashboard | Medium |
-| High | Fraud Detection & IP Logging | Medium-High |
-| High | Admin Role Management UI | Low-Medium |
-| Medium | Bulk Email / Announcements | Medium |
-| Medium | Scheduled Jobs Monitor | Medium |
-| Low | Platform Feedback & Surveys | Medium |
-| Low | Admin Activity Heatmap | Low |
-| Low | Data Export Center | Low-Medium |
+Replace simple `InterviewCalendar` with a full-featured component containing:
+
+**Tabs:**
+- **Upcoming** — Confirmed interviews with Join/Details buttons
+- **Requested** — Pending requests sent by candidate, with status badges
+- **Past** — Completed/cancelled interviews
+- **Request Interview** — Form to request interview for an applied job
+
+**Request Interview Flow:**
+1. Select from applied jobs (dropdown populated from `applications` table)
+2. Calendar date picker + time slot selector
+3. Interview type selector (Video / Phone / In-person / Assessment)
+4. Optional message textarea
+5. Submit → creates interview with `status: 'requested'`, `requested_by: 'candidate'`
+
+**Confirmation Flow:**
+- When employer schedules an interview, candidate sees "Confirm / Reschedule / Decline" buttons
+- Confirming sets `confirmed_by_candidate = true`, status → `confirmed`
+
+**Stats row:** Upcoming / Pending / Completed / Cancelled counts
+
+---
+
+### 3. Employer Side — Upgrade `InterviewScheduler` Component
+
+Enhance existing component with:
+
+**New Tab: "Requests"**
+- Shows candidate-initiated interview requests
+- Each card has: Accept / Reject / Reschedule buttons
+- Accept → sets date/time, adds meeting link, status → `confirmed`
+
+**Enhanced Schedule Dialog:**
+- Add internal notes field
+- Add "Online Assessment" interview type option
+- Show conflict warning if time slot already has an interview
+
+**Confirmation tracking:**
+- After employer schedules, show `confirmed_by_candidate` status
+- Badge: "Awaiting Candidate Confirmation" / "Confirmed"
+
+**Reschedule flow:**
+- Creates new interview linked via `rescheduled_from`
+- Original marked as `rescheduled`
+
+---
+
+### 4. Notification Integration
+
+Create notifications for interview events using existing `notifications` table:
+
+| Event | Recipient | Message |
+|-------|-----------|---------|
+| Interview requested | Employer | "Candidate X requested an interview for Job Y" |
+| Interview scheduled | Candidate | "Employer scheduled an interview for Job Y" |
+| Interview confirmed | Both | "Interview confirmed for Date/Time" |
+| Interview rejected | Requester | "Interview request was declined" |
+| Interview rescheduled | Other party | "Interview has been rescheduled" |
+| Interview cancelled | Other party | "Interview was cancelled" |
+
+Also trigger email notifications via existing `send-notification-email` edge function.
+
+---
+
+### 5. Dashboard Integration
+
+- **Candidate Dashboard:** Replace `InterviewCalendar` usage with new `CandidateInterviewManager`
+- **Employer Dashboard:** Upgrade `InterviewScheduler` in-place with request management tab
+- Both get real-time updates via Supabase Realtime on `interviews` table
+
+---
+
+### Technical Details
+
+**Files to create:**
+- `src/components/candidate/CandidateInterviewManager.tsx` — Full candidate interview UI with tabs, request form, confirmation flow
+
+**Files to modify:**
+- `src/components/employer/InterviewScheduler.tsx` — Add requests tab, reschedule, conflict detection, confirmation tracking
+- `src/components/candidate/InterviewCalendar.tsx` — Keep as sub-component for calendar view within new manager
+- `src/pages/CandidateDashboard.tsx` — Wire up new component
+- `src/pages/EmployerDashboard.tsx` — No route changes needed, InterviewScheduler upgrade is in-place
+
+**Migration:** One SQL migration for schema changes + RLS + anti-spam trigger + realtime
+
+**Estimated scope:** ~4 tasks, significant but modular implementation
 
