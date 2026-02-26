@@ -134,6 +134,20 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
   const [loading, setLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
 
+  const redirectEmployerToSeoPath = (data: any) => {
+    if (data.slug) {
+      const parts = ['/companies'];
+      if (data.location_country) parts.push(encodeURIComponent(data.location_country.toLowerCase().replace(/\s+/g, '-')));
+      if (data.location_state) parts.push(encodeURIComponent(data.location_state.toLowerCase().replace(/\s+/g, '-')));
+      if (data.location_city) parts.push(encodeURIComponent(data.location_city.toLowerCase().replace(/\s+/g, '-')));
+      parts.push(data.slug);
+      const seoPath = parts.join('/');
+      if (window.location.pathname !== seoPath) {
+        navigate(seoPath + window.location.search, { replace: true });
+      }
+    }
+  };
+
   useEffect(() => {
     if (!identifier || propId) return;
     if (UUID_REGEX.test(identifier)) {
@@ -145,18 +159,23 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
         .then(({ data }) => {
           if (data) {
             setResolvedId(data.id);
-            if (data.slug) {
-              const parts = ['/companies'];
-              if (data.location_country) parts.push(encodeURIComponent(data.location_country.toLowerCase().replace(/\s+/g, '-')));
-              if (data.location_state) parts.push(encodeURIComponent(data.location_state.toLowerCase().replace(/\s+/g, '-')));
-              if (data.location_city) parts.push(encodeURIComponent(data.location_city.toLowerCase().replace(/\s+/g, '-')));
-              parts.push(data.slug);
-              const seoPath = parts.join('/');
-              if (window.location.pathname !== seoPath) {
-                navigate(seoPath + window.location.search, { replace: true });
-              }
-            }
-          } else setLoading(false);
+            redirectEmployerToSeoPath(data);
+          } else {
+            // Fallback: try by profile_id (e.g. when navigating from messages)
+            supabase
+              .from('employers')
+              .select('id, slug, location_country, location_state, location_city')
+              .eq('profile_id', identifier)
+              .maybeSingle()
+              .then(({ data: empByProfile }) => {
+                if (empByProfile) {
+                  setResolvedId(empByProfile.id);
+                  redirectEmployerToSeoPath(empByProfile);
+                } else {
+                  setLoading(false);
+                }
+              });
+          }
         });
     } else {
       supabase.from('employers').select('id').eq('slug', identifier).maybeSingle()

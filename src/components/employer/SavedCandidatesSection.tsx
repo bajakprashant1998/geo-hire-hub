@@ -236,7 +236,7 @@ export const SavedCandidatesSection = ({ employerId }: SavedCandidatesSectionPro
                     View Profile
                   </Button>
                 </Link>
-                <Link to={`/messages?user=${saved.candidate.profile.user_id}`}>
+                <Link to={`/employer-dashboard?tab=chat`}>
                   <Button variant="outline" size="sm">
                     <MessageSquare className="w-3 h-3" />
                   </Button>
