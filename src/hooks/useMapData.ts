@@ -191,10 +191,13 @@ export const useMapData = ({ userLocation, radius, searchQuery }: UseMapDataProp
     }
   }, [user, userLocation, radius, calculateDistance]);
 
-  // Load data on mount and when dependencies change
-  useEffect(() => {
-    const loadData = async () => {
+  // Load data on mount and when location/radius change
+  // Use stringified location to avoid unnecessary re-fetches from object reference changes
+  const locationKey = userLocation ? `${userLocation.lat},${userLocation.lng}` : 'null';
 
+  useEffect(() => {
+    let cancelled = false;
+    const loadData = async () => {
       setLoading(true);
       setError(null);
 
@@ -204,18 +207,25 @@ export const useMapData = ({ userLocation, radius, searchQuery }: UseMapDataProp
           fetchJobs(),
         ]);
 
-        setCandidates(candidatesData);
-        setJobs(jobsData);
+        if (!cancelled) {
+          setCandidates(candidatesData);
+          setJobs(jobsData);
+        }
       } catch (err: any) {
-        setError(err.message);
-        toast.error('Failed to load map data');
+        if (!cancelled) {
+          setError(err.message);
+          toast.error('Failed to load map data');
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
     loadData();
-  }, [userLocation, radius, fetchCandidates, fetchJobs]);
+    return () => { cancelled = true; };
+  }, [locationKey, radius]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Filter by search query
   const filteredCandidates = useMemo(() => {

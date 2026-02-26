@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, useEffect, useRef } from 'react';
+import { useCallback, useMemo, useState, useEffect, useRef, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GoogleMap, useJsApiLoader, Marker, Circle, MarkerClusterer, InfoWindow, OverlayView } from '@react-google-maps/api';
 import { ViewMode, Candidate, Job } from '@/types';
@@ -42,7 +42,36 @@ const mapOptions: google.maps.MapOptions = {
   ],
 };
 
-// --- Custom HTML Marker Ported from Leaflet MapContainer ---
+// Pre-computed marker icon URLs to avoid regenerating SVG data URIs on every render
+const markerIconCache = new Map<string, string>();
+const getMarkerIconUrl = (color: string, isCandidate: boolean): string => {
+  const key = `${color}-${isCandidate}`;
+  if (markerIconCache.has(key)) return markerIconCache.get(key)!;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"><circle cx="18" cy="18" r="15" fill="#${color}" stroke="white" stroke-width="3"/>${
+    isCandidate
+      ? '<path d="M22 24v-1a3 3 0 0 0-3-3h-2a3 3 0 0 0-3 3v1" stroke="white" stroke-width="1.5" fill="none"/><circle cx="18" cy="14" r="2.5" stroke="white" stroke-width="1.5" fill="none"/>'
+      : '<rect x="11" y="14" width="14" height="9" rx="1.5" fill="white" opacity="0.9"/><path d="M16 14V12a2 2 0 0 1 4 0v2" stroke="white" stroke-width="1.5" fill="none"/>'
+  }</svg>`;
+  const url = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+  markerIconCache.set(key, url);
+  return url;
+};
+
+// Pre-computed cluster icon URLs
+const clusterIconCache = new Map<string, string>();
+const getClusterIconUrl = (mode: string, size: number): string => {
+  const key = `${mode}-${size}`;
+  if (clusterIconCache.has(key)) return clusterIconCache.get(key)!;
+  const r = size / 2;
+  const innerR = Math.round(r * 0.77);
+  const fill = mode === 'hiring' ? 'hsl(217,89%,61%)' : 'hsl(4,90%,58%)';
+  const innerFill = mode === 'hiring' ? 'hsl(217,89%,51%)' : 'hsl(4,90%,48%)';
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"><circle cx="${r}" cy="${r}" r="${r}" fill="${fill}" opacity="0.85"/><circle cx="${r}" cy="${r}" r="${innerR}" fill="${innerFill}" stroke="white" stroke-width="2"/></svg>`;
+  const url = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
+  clusterIconCache.set(key, url);
+  return url;
+};
+
 const CustomMarker = ({
   item,
   mode,
@@ -308,18 +337,14 @@ const GoogleMapInner = ({
             {
               textColor: 'white',
               textSize: 14,
-              url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" width="52" height="52"><circle cx="26" cy="26" r="26" fill="${mode === 'hiring' ? 'hsl(217,89%,61%)' : 'hsl(4,90%,58%)'}" opacity="0.85"/><circle cx="26" cy="26" r="20" fill="${mode === 'hiring' ? 'hsl(217,89%,51%)' : 'hsl(4,90%,48%)'}" stroke="white" stroke-width="2"/></svg>`
-              ),
+              url: getClusterIconUrl(mode, 52),
               width: 52,
               height: 52,
             },
             {
               textColor: 'white',
               textSize: 15,
-              url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" width="62" height="62"><circle cx="31" cy="31" r="31" fill="${mode === 'hiring' ? 'hsl(217,89%,61%)' : 'hsl(4,90%,58%)'}" opacity="0.8"/><circle cx="31" cy="31" r="24" fill="${mode === 'hiring' ? 'hsl(217,89%,51%)' : 'hsl(4,90%,48%)'}" stroke="white" stroke-width="2.5"/></svg>`
-              ),
+              url: getClusterIconUrl(mode, 62),
               width: 62,
               height: 62,
             },
@@ -330,7 +355,6 @@ const GoogleMapInner = ({
             const bounds = cluster.getBounds();
             if (bounds) {
               map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
-              // If already at max zoom, zoom in one more level to force separation
               const currentZoom = map.getZoom();
               if (currentZoom && currentZoom >= 17) {
                 map.setZoom(currentZoom + 1);
@@ -344,7 +368,7 @@ const GoogleMapInner = ({
             {items.map((item) => {
               const isCandidate = mode === 'hiring';
               const job = item as Job;
-              let markerColor = isCandidate ? '3B82F6' : (job.job_category === 'government' ? '16A34A' : 'EF4444');
+              const markerColor = isCandidate ? '3B82F6' : (job.job_category === 'government' ? '16A34A' : 'EF4444');
 
               return (
                 <Marker
@@ -352,13 +376,7 @@ const GoogleMapInner = ({
                   position={{ lat: item.latitude, lng: item.longitude }}
                   clusterer={clusterer}
                   icon={{
-                    url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(
-                      `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36"><circle cx="18" cy="18" r="15" fill="#${markerColor}" stroke="white" stroke-width="3"/>${
-                        isCandidate
-                          ? '<path d="M22 24v-1a3 3 0 0 0-3-3h-2a3 3 0 0 0-3 3v1" stroke="white" stroke-width="1.5" fill="none"/><circle cx="18" cy="14" r="2.5" stroke="white" stroke-width="1.5" fill="none"/>'
-                          : '<rect x="11" y="14" width="14" height="9" rx="1.5" fill="white" opacity="0.9"/><path d="M16 14V12a2 2 0 0 1 4 0v2" stroke="white" stroke-width="1.5" fill="none"/>'
-                      }</svg>`
-                    ),
+                    url: getMarkerIconUrl(markerColor, isCandidate),
                     scaledSize: new google.maps.Size(36, 36),
                     anchor: new google.maps.Point(18, 18),
                   }}
@@ -601,7 +619,7 @@ const GoogleMapInner = ({
   );
 };
 
-// Wrapper component that handles API key loading + lazy IntersectionObserver
+// Wrapper component that handles API key loading
 export const GoogleMapContainer = ({
   mode,
   candidates,
@@ -614,34 +632,6 @@ export const GoogleMapContainer = ({
   centerTrigger,
 }: GoogleMapContainerProps) => {
   const { apiKey, loading: keyLoading, error: keyError } = useGoogleMapsKey();
-  const [isInView, setIsInView] = useState(false);
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin: '200px' }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
-  // Show skeleton until the container scrolls into view
-  if (!isInView) {
-    return (
-      <div ref={sentinelRef} className="w-full h-full">
-        <MapLazySkeleton mode={mode} />
-      </div>
-    );
-  }
 
   if (keyLoading) {
     return (
@@ -684,42 +674,3 @@ export const GoogleMapContainer = ({
   );
 };
 
-// Lightweight skeleton shown before map enters viewport
-const MapLazySkeleton = ({ mode }: { mode: ViewMode }) => (
-  <div className="w-full h-full bg-muted/50 flex flex-col items-center justify-center gap-4 relative overflow-hidden">
-    {/* Faux map grid lines */}
-    <div className="absolute inset-0 opacity-10">
-      {[...Array(6)].map((_, i) => (
-        <div key={`h-${i}`} className="absolute w-full border-t border-muted-foreground/30" style={{ top: `${(i + 1) * 14}%` }} />
-      ))}
-      {[...Array(6)].map((_, i) => (
-        <div key={`v-${i}`} className="absolute h-full border-l border-muted-foreground/30" style={{ left: `${(i + 1) * 14}%` }} />
-      ))}
-    </div>
-
-    {/* Animated dropping pins */}
-    <div className="flex items-end gap-6 mb-2">
-      {[0, 1, 2, 3].map((i) => (
-        <div
-          key={i}
-          className="flex flex-col items-center animate-bounce"
-          style={{ animationDelay: `${i * 200}ms`, animationDuration: '1.5s' }}
-        >
-          <MapPin
-            className={`w-7 h-7 ${mode === 'hiring' ? 'text-blue-500' : 'text-destructive'}`}
-            style={{ opacity: 1 - i * 0.15 }}
-          />
-        </div>
-      ))}
-    </div>
-
-    <div className="text-center z-10">
-      <p className="text-sm font-medium text-foreground">
-        {mode === 'hiring' ? 'Finding candidates near you…' : 'Finding jobs near you…'}
-      </p>
-      <p className="text-xs text-muted-foreground mt-1">Map will load when visible</p>
-    </div>
-
-    <Loader2 className="w-5 h-5 animate-spin text-primary" />
-  </div>
-);
