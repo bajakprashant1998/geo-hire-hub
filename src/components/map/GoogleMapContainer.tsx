@@ -5,6 +5,7 @@ import { ViewMode, Candidate, Job } from '@/types';
 import { useGoogleMapsKey } from '@/hooks/useGoogleMapsKey';
 import { GoogleMapsLoaderBoundary } from '@/components/map/GoogleMapsLoaderBoundary';
 import { Loader2, MapPin, CheckCircle2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface GoogleMapContainerProps {
   mode: ViewMode;
@@ -536,7 +537,7 @@ const GoogleMapInner = ({
   );
 };
 
-// Wrapper component that handles API key loading
+// Wrapper component that handles API key loading + lazy IntersectionObserver
 export const GoogleMapContainer = ({
   mode,
   candidates,
@@ -549,6 +550,34 @@ export const GoogleMapContainer = ({
   centerTrigger,
 }: GoogleMapContainerProps) => {
   const { apiKey, loading: keyLoading, error: keyError } = useGoogleMapsKey();
+  const [isInView, setIsInView] = useState(false);
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // Show skeleton until the container scrolls into view
+  if (!isInView) {
+    return (
+      <div ref={sentinelRef} className="w-full h-full">
+        <MapLazySkeleton mode={mode} />
+      </div>
+    );
+  }
 
   if (keyLoading) {
     return (
@@ -590,3 +619,43 @@ export const GoogleMapContainer = ({
     </GoogleMapsLoaderBoundary>
   );
 };
+
+// Lightweight skeleton shown before map enters viewport
+const MapLazySkeleton = ({ mode }: { mode: ViewMode }) => (
+  <div className="w-full h-full bg-muted/50 flex flex-col items-center justify-center gap-4 relative overflow-hidden">
+    {/* Faux map grid lines */}
+    <div className="absolute inset-0 opacity-10">
+      {[...Array(6)].map((_, i) => (
+        <div key={`h-${i}`} className="absolute w-full border-t border-muted-foreground/30" style={{ top: `${(i + 1) * 14}%` }} />
+      ))}
+      {[...Array(6)].map((_, i) => (
+        <div key={`v-${i}`} className="absolute h-full border-l border-muted-foreground/30" style={{ left: `${(i + 1) * 14}%` }} />
+      ))}
+    </div>
+
+    {/* Animated dropping pins */}
+    <div className="flex items-end gap-6 mb-2">
+      {[0, 1, 2, 3].map((i) => (
+        <div
+          key={i}
+          className="flex flex-col items-center animate-bounce"
+          style={{ animationDelay: `${i * 200}ms`, animationDuration: '1.5s' }}
+        >
+          <MapPin
+            className={`w-7 h-7 ${mode === 'hiring' ? 'text-blue-500' : 'text-destructive'}`}
+            style={{ opacity: 1 - i * 0.15 }}
+          />
+        </div>
+      ))}
+    </div>
+
+    <div className="text-center z-10">
+      <p className="text-sm font-medium text-foreground">
+        {mode === 'hiring' ? 'Finding candidates near you…' : 'Finding jobs near you…'}
+      </p>
+      <p className="text-xs text-muted-foreground mt-1">Map will load when visible</p>
+    </div>
+
+    <Loader2 className="w-5 h-5 animate-spin text-primary" />
+  </div>
+);
