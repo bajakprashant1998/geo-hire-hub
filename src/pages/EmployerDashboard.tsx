@@ -793,10 +793,8 @@ const EmployerDashboard = () => {
 
   return (
     <EmailVerificationGuard fallbackMessage="Please verify your email to access your employer dashboard.">
-      <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/80 flex">
-        {/* Onboarding Tour */}
+      <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/80 flex overflow-x-hidden">
         {user && <OnboardingTour userId={user.id} type="employer" />}
-        {/* Sidebar */}
         <DashboardSidebar
           type="employer"
           items={sidebarItems}
@@ -811,9 +809,7 @@ const EmployerDashboard = () => {
           profileCompleteness={employer?.profile_completeness || 0}
         />
 
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-h-screen lg:ml-0">
-          {/* Header */}
+        <div className="flex-1 flex flex-col min-h-screen lg:ml-0 overflow-x-hidden">
           <EmployerHeader
             companyName={employer?.company_name || 'Your Company'}
             planName={planName}
@@ -825,233 +821,215 @@ const EmployerDashboard = () => {
             onNotificationClick={() => handleSectionClick('notifications')}
           />
 
-          {/* Main Content */}
-          <main className="flex-1 p-2 sm:p-4 lg:p-6 overflow-y-auto pb-20 md:pb-6">
+          <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto pb-24 md:pb-6">
             {activeSection ? (
-              <div className="max-w-6xl mx-auto">
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+                className="max-w-6xl mx-auto"
+              >
                 <Button
                   variant="ghost"
                   onClick={() => setActiveSection(null)}
-                  className="mb-4 text-muted-foreground hover:text-foreground"
+                  className="mb-4 text-muted-foreground hover:text-foreground rounded-xl gap-2 backdrop-blur-sm"
                 >
-                  <ChevronRight className="w-4 h-4 rotate-180 mr-2" />
+                  <ChevronRight className="w-4 h-4 rotate-180" />
                   Back to Dashboard
                 </Button>
                 {activeSection === 'candidates' || activeSection === 'post-job' ? (
                   renderSectionContent()
                 ) : (
-                  <Card className="bg-card/70 backdrop-blur-xl shadow-lg border border-border/50 overflow-visible">
-                    <CardContent className="p-2 sm:p-4 md:p-6">
+                  <div className="bg-card/70 backdrop-blur-xl shadow-lg border border-border/40 rounded-2xl overflow-hidden">
+                    <div className="p-3 sm:p-4 md:p-6">
                       {renderSectionContent()}
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 )}
-              </div>
+              </motion.div>
             ) : (
-              <div className="max-w-6xl mx-auto space-y-5 sm:space-y-6">
+              <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
                 <PlatformNotificationBanner userType="employer" />
 
                 {employer && (
                   <EmployerProfileCompletionPrompts employer={employer} jobCount={jobs.length} />
                 )}
 
-                {/* === BENTO GRID DASHBOARD === */}
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4 auto-rows-[minmax(0,1fr)]">
+                {/* Bento Grid Layout */}
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
+                  {/* Row 1: Stat Cards */}
+                  <div className="col-span-1">
+                    <DashboardStatCard icon={Briefcase} label="Active Jobs" value={stats.activeJobs} subtitle="currently open" accentColor="blue" onClick={() => setActiveSection('jobs')} delay={0} />
+                  </div>
+                  <div className="col-span-1">
+                    <DashboardStatCard icon={Users} label="Applications" value={stats.totalApplications} subtitle="across all jobs" accentColor="amber" onClick={() => setActiveSection('jobs')} delay={1} />
+                  </div>
+                  <div className="col-span-1">
+                    <DashboardStatCard icon={Calendar} label="Interviews" value={stats.scheduledInterviews} subtitle="upcoming" accentColor="green" onClick={() => setActiveSection('interviews')} delay={2} />
+                  </div>
+                  <div className="col-span-1">
+                    <DashboardStatCard icon={Eye} label="Profile Views" value={stats.profileViews} subtitle="all time" accentColor="purple" delay={3} />
+                  </div>
 
-                  {/* Row 1: Hero Stat Cards */}
-                  {[
-                    { icon: Briefcase, label: 'Active Jobs', value: stats.activeJobs, subtitle: 'currently open', accentColor: 'blue' as const, section: 'jobs', span: 'col-span-1' },
-                    { icon: Users, label: 'Applications', value: stats.totalApplications, subtitle: 'across all jobs', accentColor: 'amber' as const, section: 'jobs', span: 'col-span-1' },
-                    { icon: Calendar, label: 'Interviews', value: stats.scheduledInterviews, subtitle: 'upcoming', accentColor: 'green' as const, section: 'interviews', span: 'col-span-1' },
-                    { icon: Eye, label: 'Profile Views', value: stats.profileViews, subtitle: 'all time', accentColor: 'purple' as const, section: null, span: 'col-span-1' },
-                  ].map((stat, i) => (
-                    <motion.div
-                      key={stat.label}
-                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      transition={{ delay: i * 0.08, type: 'spring', stiffness: 140, damping: 18 }}
-                      className={cn(stat.span, 'md:col-span-1 lg:col-span-1')}
+                  {/* Hero Welcome Card (desktop only) */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4, type: 'spring', stiffness: 120, damping: 16 }}
+                    className="hidden lg:flex col-span-2 row-span-1 relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary to-primary/70 p-5 flex-col justify-between border border-primary/20"
+                  >
+                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
+                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full blur-2xl" />
+                    <div className="relative z-10">
+                      <p className="text-primary-foreground/80 text-xs font-semibold uppercase tracking-wider mb-1">Welcome back</p>
+                      <h3 className="text-xl font-bold text-primary-foreground leading-tight">
+                        {employer?.company_name || 'Your Company'} 👋
+                      </h3>
+                      <p className="text-primary-foreground/70 text-sm mt-1.5 leading-snug">
+                        {stats.activeJobs > 0
+                          ? `You have ${stats.activeJobs} active job${stats.activeJobs > 1 ? 's' : ''} and ${stats.totalApplications} application${stats.totalApplications !== 1 ? 's' : ''} waiting.`
+                          : 'Post your first job to start receiving applications from top talent.'}
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="relative z-10 mt-3 w-fit rounded-xl text-xs font-semibold shadow-lg"
+                      onClick={() => setActiveSection('post-job')}
                     >
-                      <DashboardStatCard
-                        icon={stat.icon}
-                        label={stat.label}
-                        value={stat.value}
-                        subtitle={stat.subtitle}
-                        accentColor={stat.accentColor}
-                        onClick={stat.section ? () => setActiveSection(stat.section) : undefined}
-                        delay={i}
-                      />
-                    </motion.div>
-                  ))}
-
-                  {/* Welcome / CTA Card */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.35, type: 'spring', stiffness: 120 }}
-                    className="col-span-2 row-span-1 hidden lg:block"
-                  >
-                    <div className="relative h-full rounded-2xl overflow-hidden bg-gradient-to-br from-primary/90 via-primary to-primary/80 p-5 sm:p-6 flex flex-col justify-between group">
-                      <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary-foreground/10 rounded-full blur-3xl" />
-                      <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-primary-foreground/5 rounded-full blur-2xl" />
-                      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, hsl(var(--primary-foreground)) 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
-                      
-                      <div className="relative z-10">
-                        <p className="text-primary-foreground/70 text-xs font-semibold uppercase tracking-widest mb-1">Welcome back</p>
-                        <h3 className="text-xl font-bold text-primary-foreground leading-snug">
-                          {employer?.company_name || 'Your Company'}
-                        </h3>
-                        <p className="text-primary-foreground/60 text-sm mt-1.5 leading-relaxed">
-                          {stats.activeJobs > 0 
-                            ? `You have ${stats.activeJobs} active job${stats.activeJobs > 1 ? 's' : ''} and ${stats.totalApplications} application${stats.totalApplications !== 1 ? 's' : ''} waiting.`
-                            : 'Post your first job to start receiving applications from top talent.'}
-                        </p>
-                      </div>
-                      <div className="relative z-10 mt-4">
-                        <Button
-                          onClick={() => setActiveSection('post-job')}
-                          size="sm"
-                          className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 rounded-xl font-semibold shadow-lg gap-1.5 h-9"
-                        >
-                          <Plus className="w-4 h-4" /> Post a Job
-                        </Button>
-                      </div>
-                    </div>
+                      <Plus className="w-3.5 h-3.5 mr-1" />
+                      Post a Job
+                    </Button>
                   </motion.div>
-
-                  {/* Quick Actions */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2, type: 'spring', stiffness: 120 }}
-                    className="col-span-2 md:col-span-4 lg:col-span-6"
-                  >
-                    <div className="relative rounded-2xl border border-border/40 bg-card/60 backdrop-blur-xl p-4 sm:p-5 overflow-hidden">
-                      <div className="absolute -top-16 -right-16 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-                      <div className="absolute -bottom-12 -left-12 w-36 h-36 bg-accent/8 rounded-full blur-3xl pointer-events-none" />
-
-                      <div className="relative z-10">
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Quick Actions</p>
-                        <div className="grid grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-3">
-                          {[
-                            { icon: Plus, label: 'Create Job', action: () => setActiveSection('post-job'), color: 'text-primary', bg: 'bg-primary/10', ring: 'ring-primary/20' },
-                            { icon: Briefcase, label: 'My Jobs', action: () => setActiveSection('jobs'), color: 'text-primary', bg: 'bg-primary/10', ring: 'ring-primary/20' },
-                            { icon: Filter, label: 'Find Talent', action: () => setActiveSection('candidates'), color: 'text-success', bg: 'bg-success/10', ring: 'ring-success/20' },
-                            { icon: MessageSquare, label: 'Messages', action: () => setActiveSection('chat'), color: 'text-primary', bg: 'bg-primary/10', ring: 'ring-primary/20' },
-                            { icon: Calendar, label: 'Interviews', action: () => setActiveSection('interviews'), color: 'text-warning-foreground', bg: 'bg-warning/10', ring: 'ring-warning/20' },
-                            { icon: BarChart3, label: 'Analytics', action: () => setActiveSection('analytics'), color: 'text-primary', bg: 'bg-primary/10', ring: 'ring-primary/20' },
-                            { icon: FileEdit, label: 'Drafts', action: () => setActiveSection('drafts'), color: 'text-warning-foreground', bg: 'bg-warning/10', ring: 'ring-warning/20' },
-                            { icon: Users, label: 'Tasks', action: () => setActiveSection('tasks'), color: 'text-destructive', bg: 'bg-destructive/10', ring: 'ring-destructive/20' },
-                          ].map((item, i) => (
-                            <motion.button
-                              key={item.label}
-                              initial={{ opacity: 0, y: 12, scale: 0.95 }}
-                              animate={{ opacity: 1, y: 0, scale: 1 }}
-                              transition={{ delay: 0.25 + i * 0.04, type: 'spring', stiffness: 150 }}
-                              onClick={item.action}
-                              className="flex flex-col items-center gap-1.5 p-2.5 sm:p-3 rounded-2xl bg-card/80 backdrop-blur-sm border border-border/30 hover:border-border/60 hover:shadow-lg hover:scale-[1.05] transition-all active:scale-95 group ring-1 ring-transparent hover:ring-1"
-                            >
-                              <div className={cn('w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center transition-transform group-hover:scale-110 ring-1', item.bg, item.ring)}>
-                                <item.icon className={cn('w-5 h-5', item.color)} />
-                              </div>
-                              <span className="text-[10px] sm:text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors leading-tight text-center">{item.label}</span>
-                            </motion.button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  {/* Active Jobs Table */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4, type: 'spring', stiffness: 100 }}
-                    className="col-span-2 md:col-span-4 lg:col-span-3"
-                  >
-                    <div className="relative rounded-2xl border border-border/40 bg-card/60 backdrop-blur-xl overflow-hidden h-full">
-                      <div className="absolute -top-20 -left-20 w-56 h-56 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-                      <div className="relative z-10 p-1">
-                        {employer && (
-                          <ActiveJobsTable
-                            employerId={employer.id}
-                            onManageJobs={() => setActiveSection('jobs')}
-                          />
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  {/* Hiring Pipeline + Recent Activity */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.45, type: 'spring', stiffness: 100 }}
-                    className="col-span-2 md:col-span-2 lg:col-span-3 flex flex-col gap-3 sm:gap-4"
-                  >
-                    {/* Hiring Pipeline */}
-                    <div className="relative rounded-2xl border border-border/40 bg-card/60 backdrop-blur-xl overflow-hidden">
-                      <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-success/5 rounded-full blur-3xl pointer-events-none" />
-                      <div className="relative z-10 p-4 sm:p-5">
-                        {employer && <HiringPipeline employerId={employer.id} />}
-                      </div>
-                    </div>
-
-                    {/* Recent Activity */}
-                    <div className="relative rounded-2xl border border-border/40 bg-card/60 backdrop-blur-xl overflow-hidden flex-1">
-                      <div className="absolute -top-16 -right-16 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-                      <div className="relative z-10 p-4 sm:p-5">
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Recent Activity</p>
-                        {employer && profile && <RecentActivityFeed employerId={employer.id} profileId={profile.id} />}
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  {/* Pending Tasks Widget */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5, type: 'spring', stiffness: 100 }}
-                    className="col-span-2 md:col-span-2 lg:col-span-3"
-                  >
-                    <div className="relative rounded-2xl border border-border/40 bg-card/60 backdrop-blur-xl overflow-hidden h-full">
-                      <div className="absolute -top-12 -left-12 w-40 h-40 bg-warning/5 rounded-full blur-3xl pointer-events-none" />
-                      <div className="relative z-10 p-4 sm:p-5">
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Pending Tasks</p>
-                        {employer && (
-                          <PendingTasksWidget
-                            type="employer"
-                            employerId={employer.id}
-                            onViewAll={() => setActiveSection('tasks')}
-                          />
-                        )}
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  {/* Interviews Card */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.55, type: 'spring', stiffness: 100 }}
-                    className="col-span-2 md:col-span-2 lg:col-span-3"
-                  >
-                    <div className="relative rounded-2xl border border-border/40 bg-card/60 backdrop-blur-xl overflow-hidden h-full">
-                      <div className="absolute -bottom-16 -right-16 w-48 h-48 bg-success/5 rounded-full blur-3xl pointer-events-none" />
-                      <div className="relative z-10 p-1">
-                        {employer && <EmployerInterviewsCard employerId={employer.id} />}
-                      </div>
-                    </div>
-                  </motion.div>
-
                 </div>
+
+                {/* Quick Actions Grid */}
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl p-4 overflow-hidden"
+                >
+                  <div className="absolute -top-16 -right-16 w-40 h-40 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+                  <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[hsl(262,83%,58%)]/10 rounded-full blur-3xl pointer-events-none" />
+                  <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 dark:ring-white/5 pointer-events-none" />
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 relative z-10">Quick Actions</p>
+                  <div className="grid grid-cols-4 lg:grid-cols-8 gap-2 relative z-10">
+                    {[
+                      { icon: Plus, label: 'Create Job', onClick: () => setActiveSection('post-job'), color: 'text-primary', bg: 'bg-primary/10' },
+                      { icon: Briefcase, label: 'My Jobs', onClick: () => setActiveSection('jobs'), color: 'text-[hsl(217,89%,61%)]', bg: 'bg-[hsl(217,89%,61%)]/10' },
+                      { icon: Filter, label: 'Find Talent', onClick: () => setActiveSection('candidates'), color: 'text-success', bg: 'bg-success/10' },
+                      { icon: MessageSquare, label: 'Messages', onClick: () => setActiveSection('chat'), color: 'text-[hsl(262,83%,58%)]', bg: 'bg-[hsl(262,83%,58%)]/10' },
+                      { icon: Calendar, label: 'Interviews', onClick: () => setActiveSection('interviews'), color: 'text-warning-foreground', bg: 'bg-warning/10' },
+                      { icon: BarChart3, label: 'Analytics', onClick: () => setActiveSection('analytics'), color: 'text-primary', bg: 'bg-primary/10' },
+                      { icon: FileEdit, label: 'Drafts', onClick: () => setActiveSection('drafts'), color: 'text-success', bg: 'bg-success/10' },
+                      { icon: Users, label: 'Tasks', onClick: () => setActiveSection('tasks'), color: 'text-[hsl(262,83%,58%)]', bg: 'bg-[hsl(262,83%,58%)]/10' },
+                    ].map((action, i) => (
+                      <motion.button
+                        key={action.label}
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.35 + i * 0.04 }}
+                        whileHover={{ scale: 1.03, y: -2 }}
+                        whileTap={{ scale: 0.96 }}
+                        onClick={action.onClick}
+                        className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-card/70 backdrop-blur-md border border-border/30 hover:border-border/60 hover:shadow-lg transition-all"
+                      >
+                        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", action.bg)}>
+                          <action.icon className={cn("w-5 h-5", action.color)} />
+                        </div>
+                        <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground">{action.label}</span>
+                      </motion.button>
+                    ))}
+                  </div>
+                </motion.div>
+
+                {/* Active Jobs + Hiring Pipeline — Glassmorphism bento */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className="lg:col-span-2 relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl overflow-hidden"
+                  >
+                    <div className="absolute -top-12 -left-12 w-36 h-36 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 dark:ring-white/5 pointer-events-none" />
+                    <div className="relative z-10 p-1">
+                      {employer && (
+                        <ActiveJobsTable
+                          employerId={employer.id}
+                          onManageJobs={() => setActiveSection('jobs')}
+                        />
+                      )}
+                    </div>
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl overflow-hidden"
+                  >
+                    <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-success/10 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 dark:ring-white/5 pointer-events-none" />
+                    <div className="relative z-10 p-4 sm:p-5">
+                      {employer && <HiringPipeline employerId={employer.id} />}
+                    </div>
+                  </motion.div>
+                </div>
+
+                {/* Pending Tasks + Recent Activity */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.55 }}
+                    className="relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl overflow-hidden"
+                  >
+                    <div className="absolute -top-12 -left-12 w-36 h-36 bg-warning/10 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 dark:ring-white/5 pointer-events-none" />
+                    <div className="relative z-10 p-4 sm:p-5">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Pending Tasks</p>
+                      {employer && (
+                        <PendingTasksWidget
+                          type="employer"
+                          employerId={employer.id}
+                          onViewAll={() => setActiveSection('tasks')}
+                        />
+                      )}
+                    </div>
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6 }}
+                    className="lg:col-span-2 relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl overflow-hidden"
+                  >
+                    <div className="absolute -top-16 -right-16 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 dark:ring-white/5 pointer-events-none" />
+                    <div className="relative z-10 p-4 sm:p-5">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Recent Activity</p>
+                      {employer && profile && <RecentActivityFeed employerId={employer.id} profileId={profile.id} />}
+                    </div>
+                  </motion.div>
+                </div>
+
+                {/* Interviews Card */}
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.65 }}
+                  className="relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl overflow-hidden"
+                >
+                  <div className="absolute -bottom-16 -right-16 w-48 h-48 bg-[hsl(262,83%,58%)]/10 rounded-full blur-3xl pointer-events-none" />
+                  <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 dark:ring-white/5 pointer-events-none" />
+                  <div className="relative z-10 p-1">
+                    {employer && <EmployerInterviewsCard employerId={employer.id} />}
+                  </div>
+                </motion.div>
               </div>
             )}
           </main>
         </div>
-
-        
-
 
         {/* Delete Job Confirmation Dialog */}
         <AlertDialog open={!!jobToDelete} onOpenChange={() => setJobToDelete(null)}>
@@ -1083,12 +1061,7 @@ const EmployerDashboard = () => {
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* Mobile Bottom Nav */}
-        <DashboardBottomNav
-          type="employer"
-          activeItem={activeSection}
-          onItemClick={handleSectionClick}
-        />
+        <DashboardBottomNav type="employer" activeItem={activeSection} onItemClick={handleSectionClick} />
       </div>
     </EmailVerificationGuard>
   );
