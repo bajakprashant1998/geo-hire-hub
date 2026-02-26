@@ -56,7 +56,11 @@ const stepVariants = {
   }),
 };
 
-const PostJob = () => {
+interface PostJobProps {
+  embedded?: boolean;
+}
+
+const PostJob = ({ embedded = false }: PostJobProps) => {
   const navigate = useNavigate();
   const { jobId } = useParams<{ jobId?: string }>();
   const [searchParams] = useSearchParams();
@@ -727,8 +731,9 @@ const PostJob = () => {
 
   return (
     <EmailVerificationGuard fallbackMessage="Please verify your email to post jobs.">
-      <div className="min-h-screen bg-gradient-to-br from-background via-secondary/30 to-background">
-      {/* Header */}
+      <div className={embedded ? '' : 'min-h-screen bg-gradient-to-br from-background via-secondary/30 to-background'}>
+      {/* Header - hidden when embedded */}
+      {!embedded && (
       <header className="bg-card/80 backdrop-blur-md border-b sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
@@ -762,8 +767,33 @@ const PostJob = () => {
           </div>
         </div>
       </header>
+      )}
 
-      <main className="max-w-6xl mx-auto px-4 py-6">
+      {/* Embedded header with save */}
+      {embedded && (
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-xl font-bold text-foreground">{isEditMode ? 'Edit Job Posting' : 'Create New Job'}</h2>
+            {lastAutoSave && !isEditMode && (
+              <p className="text-xs text-muted-foreground">
+                Auto-saved at {lastAutoSave.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </p>
+            )}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSaveDraft}
+            disabled={savingDraft}
+            className="gap-1.5"
+          >
+            {savingDraft ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            Save Draft
+          </Button>
+        </div>
+      )}
+
+      <main className={embedded ? '' : 'max-w-6xl mx-auto px-4 py-6'}>
         <div className="grid lg:grid-cols-4 gap-6">
           {/* Left Sidebar - Steps */}
           <aside className="lg:col-span-1">

@@ -43,6 +43,7 @@ import { PlatformNotificationBanner } from '@/components/dashboard/PlatformNotif
 import { TaskManager } from '@/components/employer/TaskManager';
 import EmployerDetail from '@/pages/EmployerDetail';
 import { EmployerProfileCompletionPrompts } from '@/components/employer/ProfileCompletionPrompts';
+import PostJob from '@/pages/PostJob';
 import { DashboardBottomNav } from '@/components/dashboard/DashboardBottomNav';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 import { JobExpiryBadge } from '@/components/employer/JobExpiryBadge';
@@ -241,6 +242,7 @@ const EmployerDashboard = () => {
   };
 
   const sidebarItems = [
+    { icon: Plus, label: 'Create Job', value: 'post-job' },
     { icon: Briefcase, label: 'Job Postings', value: 'jobs', badge: stats.activeJobs },
     { icon: Filter, label: 'Candidate Finder', value: 'candidates', badge: stats.totalApplications },
     { icon: FileEdit, label: 'Drafts', value: 'drafts' },
@@ -519,11 +521,9 @@ const EmployerDashboard = () => {
               <div className="lg:col-span-1 space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold text-base text-foreground">Jobs ({filteredJobs.length})</h3>
-                  <Link to="/post-job">
-                    <Button size="sm" className="gap-1.5 rounded-xl shadow-sm">
-                      <Plus className="w-4 h-4" /> New
-                    </Button>
-                  </Link>
+                  <Button size="sm" className="gap-1.5 rounded-xl shadow-sm" onClick={() => setActiveSection('post-job')}>
+                    <Plus className="w-4 h-4" /> New
+                  </Button>
                 </div>
 
                 {/* Search */}
@@ -544,9 +544,7 @@ const EmployerDashboard = () => {
                       <Briefcase className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
                       <p className="text-muted-foreground mb-4 text-sm">{jobs.length === 0 ? 'No jobs posted yet' : 'No jobs match your search'}</p>
                       {jobs.length === 0 && (
-                        <Link to="/post-job">
-                          <Button className="rounded-xl">Post Your First Job</Button>
-                        </Link>
+                        <Button className="rounded-xl" onClick={() => setActiveSection('post-job')}>Post Your First Job</Button>
                       )}
                     </CardContent>
                   </Card>
@@ -781,6 +779,8 @@ const EmployerDashboard = () => {
         return <NotificationCenter />;
       case 'security':
         return <SecuritySettings />;
+      case 'post-job':
+        return <PostJob embedded />;
       default:
         return null;
     }
@@ -832,7 +832,7 @@ const EmployerDashboard = () => {
                   <ChevronRight className="w-4 h-4 rotate-180 mr-2" />
                   Back to Dashboard
                 </Button>
-                {activeSection === 'candidates' ? (
+                {activeSection === 'candidates' || activeSection === 'post-job' ? (
                   renderSectionContent()
                 ) : (
                   <Card className="bg-card/70 backdrop-blur-xl shadow-lg border border-border/50 overflow-visible">
@@ -853,7 +853,7 @@ const EmployerDashboard = () => {
                 {/* Mobile Quick Actions */}
                 <div className="grid grid-cols-4 gap-2 sm:hidden">
                   {[
-                    { icon: Plus, label: 'Post Job', action: () => navigate('/post-job'), color: 'text-[hsl(217,89%,61%)]', bg: 'bg-[hsl(217,89%,61%)]/10', glow: 'shadow-[0_4px_20px_hsl(217,89%,61%,0.1)]' },
+                    { icon: Plus, label: 'Post Job', action: () => setActiveSection('post-job'), color: 'text-[hsl(217,89%,61%)]', bg: 'bg-[hsl(217,89%,61%)]/10', glow: 'shadow-[0_4px_20px_hsl(217,89%,61%,0.1)]' },
                     { icon: Users, label: 'Candidates', action: () => setActiveSection('candidates'), color: 'text-[hsl(142,53%,43%)]', bg: 'bg-[hsl(142,53%,43%)]/10', glow: 'shadow-[0_4px_20px_hsl(142,53%,43%,0.1)]' },
                     { icon: BarChart3, label: 'Analytics', action: () => setActiveSection('analytics'), color: 'text-[hsl(262,83%,58%)]', bg: 'bg-[hsl(262,83%,58%)]/10', glow: 'shadow-[0_4px_20px_hsl(262,83%,58%,0.1)]' },
                     { icon: Calendar, label: 'Interviews', action: () => setActiveSection('interviews'), color: 'text-[hsl(44,70%,45%)]', bg: 'bg-[hsl(44,98%,50%)]/10', glow: 'shadow-[0_4px_20px_hsl(44,98%,50%,0.1)]' },
