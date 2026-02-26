@@ -74,9 +74,24 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
     }
   }, [searchParams, loading, candidate, candidateUserId, isEmployerUser]);
 
+  const redirectToSeoPath = (candidateId: string, profileData: any) => {
+    if (profileData?.slug) {
+      const parts = ['/candidates'];
+      if (profileData.location_country) parts.push(encodeURIComponent(profileData.location_country.toLowerCase().replace(/\s+/g, '-')));
+      if (profileData.location_state) parts.push(encodeURIComponent(profileData.location_state.toLowerCase().replace(/\s+/g, '-')));
+      if (profileData.location_city) parts.push(encodeURIComponent(profileData.location_city.toLowerCase().replace(/\s+/g, '-')));
+      parts.push(profileData.slug);
+      const seoPath = parts.join('/');
+      if (window.location.pathname !== seoPath) {
+        navigate(seoPath + window.location.search, { replace: true });
+      }
+    }
+  };
+
   useEffect(() => {
     if (!identifier || propId) return;
     if (UUID_REGEX.test(identifier)) {
+      // First try by candidate ID
       supabase
         .from('candidates')
         .select('id, profiles!inner(slug, location_country, location_state, location_city)')
@@ -85,19 +100,23 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
         .then(({ data }) => {
           if (data) {
             setResolvedId(data.id);
-            const p = data.profiles as any;
-            if (p?.slug) {
-              const parts = ['/candidates'];
-              if (p.location_country) parts.push(encodeURIComponent(p.location_country.toLowerCase().replace(/\s+/g, '-')));
-              if (p.location_state) parts.push(encodeURIComponent(p.location_state.toLowerCase().replace(/\s+/g, '-')));
-              if (p.location_city) parts.push(encodeURIComponent(p.location_city.toLowerCase().replace(/\s+/g, '-')));
-              parts.push(p.slug);
-              const seoPath = parts.join('/');
-              if (window.location.pathname !== seoPath) {
-                navigate(seoPath + window.location.search, { replace: true });
-              }
-            }
-          } else setLoading(false);
+            redirectToSeoPath(data.id, data.profiles as any);
+          } else {
+            // Fallback: try by profile_id (e.g. when navigating from messages)
+            supabase
+              .from('candidates')
+              .select('id, profiles!inner(slug, location_country, location_state, location_city)')
+              .eq('profile_id', identifier)
+              .maybeSingle()
+              .then(({ data: candByProfile }) => {
+                if (candByProfile) {
+                  setResolvedId(candByProfile.id);
+                  redirectToSeoPath(candByProfile.id, candByProfile.profiles as any);
+                } else {
+                  setLoading(false);
+                }
+              });
+          }
         });
     } else {
       supabase
