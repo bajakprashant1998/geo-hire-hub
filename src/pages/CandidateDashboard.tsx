@@ -42,6 +42,7 @@ import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 import { AutoApplyManager } from '@/components/candidate/AutoApplyManager';
 import { RecentlyViewedJobs } from '@/components/candidate/RecentlyViewedJobs';
 import { JobRadar } from '@/components/candidate/JobRadar';
+import { PendingTasksWidget } from '@/components/dashboard/PendingTasksWidget';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { motion } from 'framer-motion';
 import { lazy, Suspense } from 'react';
@@ -675,11 +676,35 @@ const CandidateDashboard = () => {
                   </motion.div>
                 </div>
 
-                {/* AI Matches + Carousel */}
+                {/* Pending Tasks + AI Matches */}
                 {candidate && (
-                  <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}>
-                    <AIJobMatches candidateId={candidate.id} />
-                  </motion.div>
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
+                    <motion.div
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.55 }}
+                      className="relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl overflow-hidden"
+                    >
+                      <div className="absolute -top-12 -left-12 w-36 h-36 bg-warning/10 rounded-full blur-3xl pointer-events-none" />
+                      <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 dark:ring-white/5 pointer-events-none" />
+                      <div className="relative z-10 p-4 sm:p-5">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Pending Tasks</p>
+                        <PendingTasksWidget
+                          type="candidate"
+                          candidateId={candidate.id}
+                          onViewAll={() => handleSectionClick('tasks')}
+                        />
+                      </div>
+                    </motion.div>
+                    <motion.div
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.6 }}
+                      className="lg:col-span-2"
+                    >
+                      <AIJobMatches candidateId={candidate.id} />
+                    </motion.div>
+                  </div>
                 )}
                 <RecentlyViewedJobs />
 

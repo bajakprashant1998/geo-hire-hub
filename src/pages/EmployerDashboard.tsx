@@ -52,6 +52,7 @@ import { NotificationCenter } from '@/components/candidate/NotificationCenter';
 import { CompanyProfileSection } from '@/components/employer/CompanyProfileSection';
 import { RecentActivityFeed } from '@/components/employer/RecentActivityFeed';
 import { HiringPipeline } from '@/components/employer/HiringPipeline';
+import { PendingTasksWidget } from '@/components/dashboard/PendingTasksWidget';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -1006,12 +1007,34 @@ const EmployerDashboard = () => {
                     </div>
                   </motion.div>
 
-                  {/* Interviews Card */}
+                  {/* Pending Tasks Widget */}
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5, type: 'spring', stiffness: 100 }}
-                    className="col-span-2 md:col-span-4 lg:col-span-6"
+                    className="col-span-2 md:col-span-2 lg:col-span-3"
+                  >
+                    <div className="relative rounded-2xl border border-border/40 bg-card/60 backdrop-blur-xl overflow-hidden h-full">
+                      <div className="absolute -top-12 -left-12 w-40 h-40 bg-warning/5 rounded-full blur-3xl pointer-events-none" />
+                      <div className="relative z-10 p-4 sm:p-5">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Pending Tasks</p>
+                        {employer && (
+                          <PendingTasksWidget
+                            type="employer"
+                            employerId={employer.id}
+                            onViewAll={() => setActiveSection('tasks')}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  {/* Interviews Card */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.55, type: 'spring', stiffness: 100 }}
+                    className="col-span-2 md:col-span-2 lg:col-span-3"
                   >
                     <div className="relative rounded-2xl border border-border/40 bg-card/60 backdrop-blur-xl overflow-hidden h-full">
                       <div className="absolute -bottom-16 -right-16 w-48 h-48 bg-success/5 rounded-full blur-3xl pointer-events-none" />
