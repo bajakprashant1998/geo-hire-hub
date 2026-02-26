@@ -37,6 +37,49 @@ const useCountUp = (target: number, duration = 800) => {
   return count;
 };
 
+const colorClasses = {
+  blue: {
+    gradient: 'from-primary/15 via-primary/5 to-transparent',
+    border: 'border-primary/15 hover:border-primary/30',
+    icon: 'text-primary',
+    bg: 'bg-primary/10',
+    glow: 'hover:shadow-[0_8px_40px_hsl(217,89%,61%,0.15)]',
+    ring: 'ring-primary/15',
+    dot: 'bg-primary',
+    orbColor: 'bg-primary/20',
+  },
+  green: {
+    gradient: 'from-success/15 via-success/5 to-transparent',
+    border: 'border-success/15 hover:border-success/30',
+    icon: 'text-success',
+    bg: 'bg-success/10',
+    glow: 'hover:shadow-[0_8px_40px_hsl(142,53%,43%,0.15)]',
+    ring: 'ring-success/15',
+    dot: 'bg-success',
+    orbColor: 'bg-success/20',
+  },
+  amber: {
+    gradient: 'from-warning/15 via-warning/5 to-transparent',
+    border: 'border-warning/15 hover:border-warning/30',
+    icon: 'text-warning-foreground',
+    bg: 'bg-warning/10',
+    glow: 'hover:shadow-[0_8px_40px_hsl(44,98%,50%,0.15)]',
+    ring: 'ring-warning/15',
+    dot: 'bg-warning',
+    orbColor: 'bg-warning/20',
+  },
+  purple: {
+    gradient: 'from-[hsl(262,83%,58%)]/15 via-[hsl(262,83%,58%)]/5 to-transparent',
+    border: 'border-[hsl(262,83%,58%)]/15 hover:border-[hsl(262,83%,58%)]/30',
+    icon: 'text-[hsl(262,83%,58%)]',
+    bg: 'bg-[hsl(262,83%,58%)]/10',
+    glow: 'hover:shadow-[0_8px_40px_hsl(262,83%,58%,0.15)]',
+    ring: 'ring-[hsl(262,83%,58%)]/15',
+    dot: 'bg-[hsl(262,83%,58%)]',
+    orbColor: 'bg-[hsl(262,83%,58%)]/20',
+  }
+};
+
 export const DashboardStatCard = ({
   icon: Icon,
   label,
@@ -50,57 +93,18 @@ export const DashboardStatCard = ({
   const animatedValue = useCountUp(isNumber ? value : 0);
   const displayValue = isNumber ? animatedValue : value;
 
-  const colorClasses = {
-    blue: {
-      gradient: 'from-[hsl(217,89%,61%)]/20 via-[hsl(217,89%,61%)]/8 to-transparent',
-      border: 'border-[hsl(217,89%,61%)]/20',
-      icon: 'text-[hsl(217,89%,61%)]',
-      bg: 'bg-[hsl(217,89%,61%)]/10',
-      glow: 'shadow-[0_4px_30px_hsl(217,89%,61%,0.12)]',
-      ring: 'ring-[hsl(217,89%,61%)]/20',
-      dot: 'bg-[hsl(217,89%,61%)]',
-    },
-    green: {
-      gradient: 'from-[hsl(142,53%,43%)]/20 via-[hsl(142,53%,43%)]/8 to-transparent',
-      border: 'border-[hsl(142,53%,43%)]/20',
-      icon: 'text-[hsl(142,53%,43%)]',
-      bg: 'bg-[hsl(142,53%,43%)]/10',
-      glow: 'shadow-[0_4px_30px_hsl(142,53%,43%,0.12)]',
-      ring: 'ring-[hsl(142,53%,43%)]/20',
-      dot: 'bg-[hsl(142,53%,43%)]',
-    },
-    amber: {
-      gradient: 'from-[hsl(44,98%,50%)]/20 via-[hsl(44,98%,50%)]/8 to-transparent',
-      border: 'border-[hsl(44,98%,50%)]/20',
-      icon: 'text-[hsl(44,70%,45%)]',
-      bg: 'bg-[hsl(44,98%,50%)]/10',
-      glow: 'shadow-[0_4px_30px_hsl(44,98%,50%,0.12)]',
-      ring: 'ring-[hsl(44,98%,50%)]/20',
-      dot: 'bg-[hsl(44,98%,50%)]',
-    },
-    purple: {
-      gradient: 'from-[hsl(262,83%,58%)]/20 via-[hsl(262,83%,58%)]/8 to-transparent',
-      border: 'border-[hsl(262,83%,58%)]/20',
-      icon: 'text-[hsl(262,83%,58%)]',
-      bg: 'bg-[hsl(262,83%,58%)]/10',
-      glow: 'shadow-[0_4px_30px_hsl(262,83%,58%,0.12)]',
-      ring: 'ring-[hsl(262,83%,58%)]/20',
-      dot: 'bg-[hsl(262,83%,58%)]',
-    }
-  };
-
   const colors = colorClasses[accentColor];
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24, scale: 0.96 }}
+      initial={{ opacity: 0, y: 24, scale: 0.94 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.5, delay: delay * 0.1, type: 'spring', stiffness: 120 }}
+      transition={{ duration: 0.5, delay: delay * 0.1, type: 'spring', stiffness: 130, damping: 16 }}
       onClick={onClick}
       className={cn(
-        "relative rounded-2xl border transition-all duration-300 p-4 sm:p-5 overflow-hidden group",
-        "bg-card/70 backdrop-blur-xl",
-        "hover:shadow-xl hover:-translate-y-1 active:scale-[0.97]",
+        "relative h-full rounded-2xl border transition-all duration-300 overflow-hidden group",
+        "bg-card/50 backdrop-blur-2xl",
+        "hover:-translate-y-1.5 active:scale-[0.97]",
         colors.border,
         colors.glow,
         onClick && "cursor-pointer"
@@ -108,35 +112,43 @@ export const DashboardStatCard = ({
     >
       {/* Glassmorphism gradient overlay */}
       <div className={cn(
-        "absolute inset-0 bg-gradient-to-br opacity-60 group-hover:opacity-100 transition-opacity duration-500",
+        "absolute inset-0 bg-gradient-to-br opacity-50 group-hover:opacity-80 transition-opacity duration-500",
         colors.gradient
       )} />
       
       {/* Decorative blur orb */}
       <div className={cn(
-        "absolute -top-8 -right-8 w-24 h-24 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-500",
-        colors.bg
+        "absolute -top-10 -right-10 w-28 h-28 rounded-full blur-3xl opacity-30 group-hover:opacity-50 transition-all duration-700 group-hover:scale-110",
+        colors.orbColor
       )} />
+
+      {/* Frosted inner border line */}
+      <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 dark:ring-white/5 pointer-events-none" />
       
-      <div className="relative flex items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5 mb-1">
-            <div className={cn("w-1.5 h-1.5 rounded-full", colors.dot)} />
-            <p className="text-[10px] sm:text-xs text-muted-foreground font-medium uppercase tracking-wider">{label}</p>
+      <div className="relative z-10 p-4 sm:p-5 flex flex-col justify-between h-full">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 mb-2">
+              <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse", colors.dot)} />
+              <p className="text-[10px] sm:text-xs text-muted-foreground font-semibold uppercase tracking-wider truncate">{label}</p>
+            </div>
+            <p className="text-3xl sm:text-4xl font-extrabold text-foreground tabular-nums tracking-tight leading-none">{displayValue}</p>
           </div>
-          <p className="text-3xl sm:text-4xl font-extrabold text-foreground mt-1.5 tabular-nums tracking-tight">{displayValue}</p>
-          {subtitle && (
-            <p className={cn("text-[10px] sm:text-xs mt-1.5 font-medium", colors.icon)}>{subtitle}</p>
-          )}
+          <motion.div
+            whileHover={{ scale: 1.15, rotate: 5 }}
+            transition={{ type: 'spring', stiffness: 300 }}
+            className={cn(
+              "w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0",
+              "bg-card/70 backdrop-blur-md ring-1 shadow-sm",
+              colors.ring
+            )}
+          >
+            <Icon className={cn("w-5 h-5 sm:w-6 sm:h-6", colors.icon)} />
+          </motion.div>
         </div>
-        <div className={cn(
-          "w-11 h-11 sm:w-13 sm:h-13 rounded-2xl flex items-center justify-center shrink-0",
-          "bg-card/80 backdrop-blur-sm ring-1 transition-all duration-300",
-          "group-hover:scale-110 group-hover:shadow-lg",
-          colors.ring
-        )}>
-          <Icon className={cn("w-5 h-5 sm:w-6 sm:h-6", colors.icon)} />
-        </div>
+        {subtitle && (
+          <p className={cn("text-[10px] sm:text-xs mt-2 font-medium opacity-70", colors.icon)}>{subtitle}</p>
+        )}
       </div>
     </motion.div>
   );
