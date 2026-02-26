@@ -30,6 +30,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Mail, Edit, Eye, Code, Variable } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import DOMPurify from 'dompurify';
 
 interface EmailTemplate {
   id: string;
@@ -228,10 +229,10 @@ export default function AdminEmailTemplates() {
                 <div className="border-t pt-4">
                   <div
                     dangerouslySetInnerHTML={{
-                      __html: formData.html_body.replace(
+                      __html: DOMPurify.sanitize(formData.html_body.replace(
                         /\{\{(\w+)\}\}/g,
                         '<span style="background:hsl(var(--warning)/0.2);padding:2px 6px;border-radius:4px;font-weight:600">[$1]</span>'
-                      ),
+                      )),
                     }}
                   />
                 </div>
@@ -257,7 +258,7 @@ export default function AdminEmailTemplates() {
           <DialogHeader>
             <DialogTitle>Email Preview</DialogTitle>
           </DialogHeader>
-          <div className="border rounded-lg p-6 bg-background" dangerouslySetInnerHTML={{ __html: previewHtml }} />
+          <div className="border rounded-lg p-6 bg-background" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(previewHtml) }} />
         </DialogContent>
       </Dialog>
     </AdminLayout>

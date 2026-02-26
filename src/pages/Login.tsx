@@ -107,7 +107,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex">
-      <SEOHead title="Login | HireForJob" description="Sign in to HireForJob to find jobs, manage applications, and connect with employers near you." canonicalUrl="https://www.hireforjob.com/login" />
+      <SEOHead title="Login | HireForJob" description="Sign in to HireForJob to find jobs, manage applications, and connect with employers near you." canonicalUrl="https://hireforjob1.lovable.app/login" />
       {/* Left side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary via-primary/90 to-primary/80 relative overflow-hidden">
         {/* Animated background shapes */}
@@ -348,24 +348,6 @@ const Login = () => {
               )}
             </Button>
 
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <span className="w-full border-t" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-              </div>
-            </div>
-
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full h-12 text-base font-semibold"
-              onClick={handleGoogleLogin}
-            >
-              <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5 mr-2" />
-              Sign in with Google
-            </Button>
           </form>
 
           {/* Sign up link */}
