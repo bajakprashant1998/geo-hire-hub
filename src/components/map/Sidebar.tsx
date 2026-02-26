@@ -58,7 +58,7 @@ export const Sidebar = ({
 
   const quickLinks = user ? [
     { icon: LayoutDashboard, label: 'Dashboard', path: dashboardPath },
-    { icon: MessageSquare, label: 'Messages', path: '/messages' },
+    { icon: MessageSquare, label: 'Messages', path: profile?.user_type === 'employer' ? '/employer-dashboard?tab=chat' : '/candidate-dashboard?tab=messages' },
     { icon: Heart, label: profile?.user_type === 'employer' ? 'Saved' : 'Saved Jobs', path: dashboardPath },
     { icon: Bell, label: 'Alerts', path: dashboardPath },
     { icon: Settings, label: 'Settings', path: settingsPath },

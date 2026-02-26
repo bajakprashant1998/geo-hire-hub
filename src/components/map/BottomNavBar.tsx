@@ -22,7 +22,7 @@ const BottomNavBar = () => {
     { icon: Map, label: 'Explore', path: '/', isActive: location.pathname === '/' },
     { icon: Search, label: 'Browse', path: '/browse-jobs', isActive: location.pathname === '/browse-jobs' },
     { icon: Briefcase, label: 'Dashboard', path: user ? dashboardPath : '/login', isActive: location.pathname.includes('dashboard') },
-    { icon: MessageSquare, label: 'Chat', path: user ? '/messages' : '/login', isActive: location.pathname === '/messages' },
+    { icon: MessageSquare, label: 'Chat', path: user ? (profile?.user_type === 'employer' ? '/employer-dashboard?tab=chat' : '/candidate-dashboard?tab=messages') : '/login', isActive: location.pathname === '/messages' },
     { icon: User, label: 'Profile', path: profilePath, isActive: location.pathname.includes('settings') || location.pathname.includes('profile') },
   ];
 
