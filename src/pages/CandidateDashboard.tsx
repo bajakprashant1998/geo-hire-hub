@@ -40,6 +40,7 @@ import { ProfileCompletionPrompts } from '@/components/candidate/ProfileCompleti
 import { DashboardBottomNav } from '@/components/dashboard/DashboardBottomNav';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 import { AutoApplyManager } from '@/components/candidate/AutoApplyManager';
+import { RecentlyViewedJobs } from '@/components/candidate/RecentlyViewedJobs';
 import { JobRadar } from '@/components/candidate/JobRadar';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -678,8 +679,10 @@ const CandidateDashboard = () => {
                     <AIJobMatches candidateId={candidate.id} />
                   </motion.div>
                 )}
+                <RecentlyViewedJobs />
+
                 {candidate && (
-                  <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+                  <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65 }}>
                     <JobMatchCarousel candidateId={candidate.id} skills={candidate.skills || []} />
                   </motion.div>
                 )}
