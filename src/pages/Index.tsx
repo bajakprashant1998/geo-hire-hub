@@ -196,15 +196,9 @@ const Index = () => {
       {/* Mobile Layout */}
       <div className="md:hidden h-full">
         <div className="absolute inset-0 z-0">{mapElement}</div>
-        <div className="absolute inset-0 z-10 pointer-events-none">
-          <div className="pointer-events-auto">
-            <Header mode={mode} onModeChange={handleModeChange} onSearch={setSearchQuery} onMenuClick={() => setSidebarOpen(true)} userLocation={userLocation} />
-          </div>
-          <div className="pointer-events-auto">
-            <QuickFilterChips mode={mode} onModeChange={handleModeChange} jobCount={filteredJobs.length} candidateCount={filteredCandidates.length} governmentJobCount={jobCounts.government} privateJobCount={jobCounts.private} />
-          </div>
-          <div className="pointer-events-auto">
-            <FloatingControls
+        <Header mode={mode} onModeChange={handleModeChange} onSearch={setSearchQuery} onMenuClick={() => setSidebarOpen(true)} userLocation={userLocation} />
+          <QuickFilterChips mode={mode} onModeChange={handleModeChange} jobCount={filteredJobs.length} candidateCount={filteredCandidates.length} governmentJobCount={jobCounts.government} privateJobCount={jobCounts.private} />
+          <FloatingControls
               onCenterOnUser={handleCenterOnUser}
               onToggleSidebar={() => setSidebarOpen(true)}
               radius={radius}
@@ -214,11 +208,7 @@ const Index = () => {
               heatmapEnabled={heatmapEnabled}
               onHeatmapToggle={() => setHeatmapEnabled(!heatmapEnabled)}
             />
-          </div>
-          <div className="pointer-events-auto">
-            <NearbyAvatarRow mode={mode} candidates={filteredCandidates} jobs={filteredJobs} onSelect={handleSelectFromSidebar} onViewAll={() => setSidebarOpen(true)} />
-          </div>
-        </div>
+          <NearbyAvatarRow mode={mode} candidates={filteredCandidates} jobs={filteredJobs} onSelect={handleSelectFromSidebar} onViewAll={() => setSidebarOpen(true)} />
         <MobileFAB mode={mode} />
         <BottomNavBar />
       </div>
