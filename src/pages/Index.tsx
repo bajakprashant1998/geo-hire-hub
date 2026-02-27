@@ -1,11 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, lazy, Suspense } from 'react';
 import { SEOHead } from '@/components/SEOHead';
 import { ViewMode, Candidate, Job } from '@/types';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useMapData } from '@/hooks/useMapData';
 import { useAuth } from '@/hooks/useAuth';
 import { Header } from '@/components/map/Header';
-import { GoogleMapContainer as MapContainer } from '@/components/map/GoogleMapContainer';
 import { MapLoadingSkeleton } from '@/components/map/MapLoadingSkeleton';
 import { Sidebar } from '@/components/map/Sidebar';
 import { MarkerPreviewSheet } from '@/components/map/MarkerPreviewSheet';
@@ -21,6 +20,11 @@ import { Button } from '@/components/ui/button';
 import { Navigation } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+
+// Lazy-load the heavy Google Maps component
+const LazyMapContainer = lazy(() =>
+  import('@/components/map/GoogleMapContainer').then(m => ({ default: m.GoogleMapContainer }))
+);
 
 const Index = () => {
   const { user, profile } = useAuth();
@@ -39,21 +43,17 @@ const Index = () => {
     if (hasRealLocation) {
       return { lat: geolocation.latitude!, lng: geolocation.longitude! };
     }
-    // Fallback to India center so jobs still load when geolocation is unavailable
     return { lat: 20.5937, lng: 78.9629 };
   }, [geolocation.latitude, geolocation.longitude, hasRealLocation]);
 
-  // Use a large radius when no real geolocation to show all jobs
   const effectiveRadius = hasRealLocation ? radius : 5000;
 
-  // Fetch real data from Supabase
   const { candidates, jobs, loading } = useMapData({
     userLocation,
     radius: effectiveRadius,
     searchQuery,
   });
 
-  // Job category counts
   const jobCounts = useMemo(() => ({
     private: jobs.filter(j => j.job_category !== 'government').length,
     government: jobs.filter(j => j.job_category === 'government').length,
@@ -91,11 +91,28 @@ const Index = () => {
     toast.success('Centered on your location');
   };
 
+  // Single shared map element — rendered once, positioned via CSS
+  const mapElement = (
+    <Suspense fallback={<MapLoadingSkeleton mode={mode === 'hiring' ? 'hiring' : 'job'} />}>
+      <LazyMapContainer
+        mode={mode}
+        candidates={candidates}
+        jobs={jobs}
+        userLocation={userLocation}
+        radius={radius}
+        onMarkerClick={handleMarkerClick}
+        selectedItem={selectedItem}
+        isEmployer={profile?.user_type === 'employer'}
+        centerTrigger={centerTrigger}
+      />
+    </Suspense>
+  );
+
   return (
     <div className="relative w-full h-screen overflow-hidden bg-background">
       <SEOHead title="HireForJob - Find Jobs & Talent Near You" description="Discover jobs and talent on an interactive map. Connect with employers and candidates in your area." canonicalUrl="https://www.hireforjob.com/" ogImage="https://www.hireforjob.com/logo.png" />
       {/* Loading Skeleton */}
-      {loading && <MapLoadingSkeleton />}
+      {loading && <MapLoadingSkeleton mode={mode === 'hiring' ? 'hiring' : 'job'} />}
 
       {/* Google Sign-In Prompt for unauthenticated users */}
       {!user && <GoogleSignInPrompt />}
@@ -121,19 +138,9 @@ const Index = () => {
           />
         </div>
 
-        {/* Map Container */}
+        {/* Map Container - single instance */}
         <div className="flex-1 relative">
-          <MapContainer
-            mode={mode}
-            candidates={candidates}
-            jobs={jobs}
-            userLocation={userLocation}
-            radius={radius}
-            onMarkerClick={handleMarkerClick}
-            selectedItem={selectedItem}
-            isEmployer={profile?.user_type === 'employer'}
-            centerTrigger={centerTrigger}
-          />
+          {mapElement}
 
           {/* Navigation Button - Desktop */}
           <Tooltip>
@@ -154,24 +161,13 @@ const Index = () => {
 
       {/* Mobile Layout: Full screen map with overlays */}
       <div className="md:hidden h-full">
-        {/* Map Layer */}
+        {/* Map Layer - single instance */}
         <div className="absolute inset-0 z-0">
-          <MapContainer
-            mode={mode}
-            candidates={candidates}
-            jobs={jobs}
-            userLocation={userLocation}
-            radius={radius}
-            onMarkerClick={handleMarkerClick}
-            selectedItem={selectedItem}
-            isEmployer={profile?.user_type === 'employer'}
-            centerTrigger={centerTrigger}
-          />
+          {mapElement}
         </div>
 
         {/* UI Layer */}
         <div className="absolute inset-0 z-10 pointer-events-none">
-          {/* Header */}
           <div className="pointer-events-auto">
             <Header
               mode={mode}
@@ -182,7 +178,6 @@ const Index = () => {
             />
           </div>
 
-          {/* Filter Chips */}
           <div className="pointer-events-auto">
             <QuickFilterChips
               mode={mode}
@@ -194,7 +189,6 @@ const Index = () => {
             />
           </div>
 
-          {/* Right-side Floating Controls */}
           <div className="pointer-events-auto">
             <FloatingControls
               onCenterOnUser={handleCenterOnUser}
@@ -206,7 +200,6 @@ const Index = () => {
             />
           </div>
 
-          {/* Nearby Avatar Row */}
           <div className="pointer-events-auto">
             <NearbyAvatarRow
               mode={mode}
@@ -218,14 +211,11 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Mobile FAB */}
         <MobileFAB mode={mode} />
-
-        {/* Bottom Navigation - Mobile only */}
         <BottomNavBar />
       </div>
 
-      {/* Overlay Layer - Shared between Desktop and Mobile */}
+      {/* Overlay Layer - Shared */}
       <Sidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
@@ -244,7 +234,6 @@ const Index = () => {
         isEmployer={profile?.user_type === 'employer'}
       />
 
-      {/* Welcome Overlay - Only for guests */}
       {!user && showWelcome && (
         <WelcomeOverlay
           onDismiss={() => setShowWelcome(false)}
