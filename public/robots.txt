@@ -1,8 +1,26 @@
 User-agent: Googlebot
 Allow: /
+Disallow: /admin
+Disallow: /candidate-dashboard
+Disallow: /employer-dashboard
+Disallow: /candidate-settings
+Disallow: /employer-settings
+Disallow: /profile-setup
+Disallow: /messages
+Disallow: /auth/callback
+Disallow: /select-role
+Disallow: /video-call
+Disallow: /verify-email
+Disallow: /update-password
+Disallow: /forgot-password
 
 User-agent: Bingbot
 Allow: /
+Disallow: /admin
+Disallow: /candidate-dashboard
+Disallow: /employer-dashboard
+Disallow: /messages
+Disallow: /profile-setup
 
 User-agent: Twitterbot
 Allow: /
@@ -12,9 +30,22 @@ Allow: /
 
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /candidate-dashboard
+Disallow: /employer-dashboard
+Disallow: /candidate-settings
+Disallow: /employer-settings
+Disallow: /profile-setup
+Disallow: /messages
+Disallow: /auth/callback
+Disallow: /select-role
+Disallow: /video-call
+Disallow: /verify-email
+Disallow: /update-password
+Disallow: /forgot-password
+Crawl-delay: 1
 
 Sitemap: https://www.hireforjob.com/sitemap.xml
-Sitemap: https://pzcecjuxiorqcmbtiipq.supabase.co/functions/v1/sitemap
 
 # SEO-friendly URL structure
 # /jobs/{country}/{state}/{city}/{job-slug}

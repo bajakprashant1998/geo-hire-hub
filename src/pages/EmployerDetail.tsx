@@ -24,6 +24,8 @@ import { ReportDialog } from '@/components/ReportDialog';
 import { SEOHead } from '@/components/SEOHead';
 import { motion } from 'framer-motion';
 import { VerificationBadge } from '@/components/employer/VerificationBadge';
+import { BreadcrumbNav, buildBreadcrumbJsonLd } from '@/components/BreadcrumbNav';
+import type { BreadcrumbItem } from '@/components/BreadcrumbNav';
 
 interface EmployerProfile {
   id: string;
@@ -202,7 +204,15 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
     name: employer.company_name, description: employer.description || '',
     ...(employer.website_url && { url: employer.website_url }),
     ...(employer.avatar_url && { logo: employer.avatar_url }),
+    ...(employer.team_size && { numberOfEmployees: { '@type': 'QuantitativeValue', value: employer.team_size } }),
+    ...(employer.location_city && { address: { '@type': 'PostalAddress', ...(employer.location_city && { addressLocality: employer.location_city }), ...(employer.location_state && { addressRegion: employer.location_state }), ...(employer.location_country && { addressCountry: employer.location_country }) } }),
   } : undefined;
+  const empBreadcrumbItems: BreadcrumbItem[] = employer ? [
+    { label: 'Companies', href: '/browse-jobs' },
+    ...(employer.location_country ? [{ label: employer.location_country }] : []),
+    { label: employer.company_name },
+  ] : [];
+  const empBreadcrumbJsonLd = employer ? buildBreadcrumbJsonLd(empBreadcrumbItems) : undefined;
 
   const fetchEmployer = async () => {
     try {
@@ -306,7 +316,13 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
 
   return (
     <div className="min-h-screen bg-muted/30 pb-24 lg:pb-8">
-      <SEOHead title={empSeoTitle} description={empSeoDesc} canonicalUrl={empCanonical} ogType="profile" ogImage={employer.avatar_url || undefined} jsonLd={empJsonLd} />
+      <SEOHead title={empSeoTitle} description={empSeoDesc} canonicalUrl={empCanonical} ogType="profile" ogImage={employer.avatar_url || undefined} jsonLd={empJsonLd} breadcrumbJsonLd={empBreadcrumbJsonLd} />
+      {/* Breadcrumb */}
+      {!isOwnProfile && (
+        <div className="container mx-auto px-4 max-w-5xl pt-2">
+          <BreadcrumbNav items={empBreadcrumbItems} />
+        </div>
+      )}
 
       {/* Sticky Nav */}
       <div className="bg-background/80 backdrop-blur-xl border-b border-border/50 sticky top-0 z-30">

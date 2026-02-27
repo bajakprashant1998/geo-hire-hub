@@ -16,6 +16,20 @@ interface PageMeta {
   image: string;
   url: string;
   jsonLd?: Record<string, unknown>;
+  breadcrumbJsonLd?: Record<string, unknown>;
+}
+
+function buildBreadcrumbJsonLd(items: { name: string; url?: string }[]) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((item, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: item.name,
+      ...(item.url && { item: item.url }),
+    })),
+  };
 }
 
 function buildHtml(meta: PageMeta): string {
@@ -32,7 +46,10 @@ function buildHtml(meta: PageMeta): string {
   <meta property="og:description" content="${escHtml(meta.description)}" />
   <meta property="og:url" content="${escHtml(meta.url)}" />
   <meta property="og:image" content="${escHtml(meta.image)}" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
   <meta property="og:site_name" content="${SITE_NAME}" />
+  <meta property="og:locale" content="en_US" />
 
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="${escHtml(meta.title)}" />
@@ -40,6 +57,7 @@ function buildHtml(meta: PageMeta): string {
   <meta name="twitter:image" content="${escHtml(meta.image)}" />
 
   ${meta.jsonLd ? `<script type="application/ld+json">${JSON.stringify(meta.jsonLd)}</script>` : ''}
+  ${meta.breadcrumbJsonLd ? `<script type="application/ld+json">${JSON.stringify(meta.breadcrumbJsonLd)}</script>` : ''}
 
   <meta http-equiv="refresh" content="0;url=${escHtml(meta.url)}" />
 </head>
@@ -82,20 +100,16 @@ Deno.serve(async (req) => {
     // /jobs/... pages
     if (segments[0] === 'jobs' && segments.length >= 2) {
       const slug = segments[segments.length - 1];
-      // Try slug first, then UUID
-      let query = supabase
+      let { data: job } = await supabase
         .from('jobs')
-        .select('title, description, job_type, salary_range, job_address, slug, employers!inner(company_name, profiles!inner(avatar_url))')
+        .select('id, title, description, job_type, salary_range, job_address, slug, created_at, location_country, location_state, location_city, employers!inner(company_name, website_url, profiles!inner(avatar_url))')
         .eq('slug', slug)
         .maybeSingle();
 
-      let { data: job } = await query;
-
       if (!job) {
-        // Try UUID
         const { data: jobById } = await supabase
           .from('jobs')
-          .select('title, description, job_type, salary_range, job_address, slug, employers!inner(company_name, profiles!inner(avatar_url))')
+          .select('id, title, description, job_type, salary_range, job_address, slug, created_at, location_country, location_state, location_city, employers!inner(company_name, website_url, profiles!inner(avatar_url))')
           .eq('id', slug)
           .maybeSingle();
         job = jobById;
@@ -103,6 +117,12 @@ Deno.serve(async (req) => {
 
       if (job) {
         const emp = job.employers as any;
+        const created = new Date(job.created_at);
+        const validThrough = new Date(created);
+        validThrough.setDate(validThrough.getDate() + 30);
+
+        const addressParts = job.job_address?.split(',').map((s: string) => s.trim()) || [];
+
         meta.title = `${job.title} at ${emp.company_name} | ${SITE_NAME}`;
         meta.description = `Apply for ${job.title} at ${emp.company_name}. ${job.job_type || 'Full-time'}${job.salary_range ? ` | ${job.salary_range}` : ''}${job.job_address ? ` | ${job.job_address}` : ''}`.slice(0, 160);
         meta.ogType = 'article';
@@ -112,10 +132,40 @@ Deno.serve(async (req) => {
           '@type': 'JobPosting',
           title: job.title,
           description: job.description || '',
-          hiringOrganization: { '@type': 'Organization', name: emp.company_name },
+          identifier: { '@type': 'PropertyValue', name: emp.company_name, value: job.id },
+          hiringOrganization: {
+            '@type': 'Organization',
+            name: emp.company_name,
+            ...(emp.profiles?.avatar_url && { logo: emp.profiles.avatar_url }),
+            ...(emp.website_url && { sameAs: emp.website_url }),
+          },
           employmentType: job.job_type?.toUpperCase().replace(/\s+/g, '_') || 'FULL_TIME',
-          datePosted: new Date().toISOString(),
+          datePosted: created.toISOString(),
+          validThrough: validThrough.toISOString(),
+          directApply: true,
+          jobLocation: {
+            '@type': 'Place',
+            address: {
+              '@type': 'PostalAddress',
+              ...(addressParts.length >= 1 && { addressLocality: addressParts[0] }),
+              ...(addressParts.length >= 2 && { addressRegion: addressParts[1] }),
+              ...(addressParts.length >= 3 && { addressCountry: addressParts[2] }),
+              ...(job.job_address && { streetAddress: job.job_address }),
+            },
+          },
+          ...(job.salary_range && {
+            baseSalary: {
+              '@type': 'MonetaryAmount',
+              currency: 'INR',
+              value: { '@type': 'QuantitativeValue', value: job.salary_range, unitText: 'MONTH' },
+            },
+          }),
         };
+        meta.breadcrumbJsonLd = buildBreadcrumbJsonLd([
+          { name: 'Home', url: BASE_URL },
+          { name: 'Jobs', url: `${BASE_URL}/browse-jobs` },
+          { name: job.title },
+        ]);
       }
     }
 
@@ -124,7 +174,7 @@ Deno.serve(async (req) => {
       const slug = segments[segments.length - 1];
       const { data: emp } = await supabase
         .from('employers')
-        .select('company_name, description, industry, slug, profiles!inner(avatar_url)')
+        .select('company_name, description, industry, slug, team_size, website_url, location_city, location_state, location_country, profiles!inner(avatar_url)')
         .eq('slug', slug)
         .maybeSingle();
 
@@ -139,7 +189,23 @@ Deno.serve(async (req) => {
           '@type': 'Organization',
           name: emp.company_name,
           description: emp.description || '',
+          ...(emp.website_url && { url: emp.website_url }),
+          ...(profile?.avatar_url && { logo: profile.avatar_url }),
+          ...(emp.team_size && { numberOfEmployees: { '@type': 'QuantitativeValue', value: emp.team_size } }),
+          ...(emp.location_city && {
+            address: {
+              '@type': 'PostalAddress',
+              addressLocality: emp.location_city,
+              ...(emp.location_state && { addressRegion: emp.location_state }),
+              ...(emp.location_country && { addressCountry: emp.location_country }),
+            },
+          }),
         };
+        meta.breadcrumbJsonLd = buildBreadcrumbJsonLd([
+          { name: 'Home', url: BASE_URL },
+          { name: 'Companies', url: `${BASE_URL}/browse-jobs` },
+          { name: emp.company_name },
+        ]);
       }
     }
 
@@ -148,7 +214,7 @@ Deno.serve(async (req) => {
       const slug = segments[segments.length - 1];
       const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name, avatar_url, slug')
+        .select('id, full_name, avatar_url, slug')
         .eq('slug', slug)
         .maybeSingle();
 
@@ -156,7 +222,7 @@ Deno.serve(async (req) => {
         const { data: cand } = await supabase
           .from('candidates')
           .select('job_title, experience_years, bio')
-          .eq('profile_id', (await supabase.from('profiles').select('id').eq('slug', slug).single()).data?.id)
+          .eq('profile_id', profile.id)
           .maybeSingle();
 
         if (cand) {

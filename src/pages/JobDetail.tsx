@@ -68,6 +68,8 @@ import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { GovernmentJobBadge, GovernmentEmployerBadge } from '@/components/government';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SEOHead } from '@/components/SEOHead';
+import { BreadcrumbNav, buildBreadcrumbJsonLd } from '@/components/BreadcrumbNav';
+import type { BreadcrumbItem } from '@/components/BreadcrumbNav';
 
 interface JobDetails {
   id: string;
@@ -209,17 +211,59 @@ const JobDetail = () => {
   const jobSeoTitle = job ? `${job.title} at ${job.employer.company_name} | HireForJob` : 'Job Details | HireForJob';
   const jobSeoDesc = job ? `Apply for ${job.title} at ${job.employer.company_name}. ${job.job_type || 'Full-time'}${job.salary_range ? ` | ${job.salary_range}` : ''}${job.job_address ? ` | ${job.job_address}` : ''}` : '';
   const jobCanonical = job ? `${baseUrl}${window.location.pathname}` : undefined;
-  const jobJsonLd = job ? {
-    '@context': 'https://schema.org',
-    '@type': 'JobPosting',
-    title: job.title,
-    description: job.description || '',
-    hiringOrganization: { '@type': 'Organization', name: job.employer.company_name },
-    employmentType: job.job_type?.toUpperCase().replace(/\s+/g, '_') || 'FULL_TIME',
-    ...(job.salary_range && { baseSalary: { '@type': 'MonetaryAmount', currency: 'INR', value: { '@type': 'QuantitativeValue', value: job.salary_range } } }),
-    datePosted: job.created_at,
-    jobLocation: { '@type': 'Place', address: job.job_address || '' },
-  } : undefined;
+
+  // Build rich JobPosting JSON-LD
+  const jobJsonLd = job ? (() => {
+    const created = job.created_at ? new Date(job.created_at) : new Date();
+    const validThrough = new Date(created);
+    validThrough.setDate(validThrough.getDate() + 30);
+
+    const addressParts = job.job_address?.split(',').map(s => s.trim()) || [];
+    const jobLocation: Record<string, any> = {
+      '@type': 'Place',
+      address: {
+        '@type': 'PostalAddress',
+        ...(addressParts.length >= 1 && { addressLocality: addressParts[0] }),
+        ...(addressParts.length >= 2 && { addressRegion: addressParts[1] }),
+        ...(addressParts.length >= 3 && { addressCountry: addressParts[2] }),
+        ...(job.job_address && { streetAddress: job.job_address }),
+      },
+    };
+
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'JobPosting',
+      title: job.title,
+      description: job.description || '',
+      identifier: { '@type': 'PropertyValue', name: job.employer.company_name, value: job.id },
+      hiringOrganization: {
+        '@type': 'Organization',
+        name: job.employer.company_name,
+        ...(job.employer.avatar_url && { logo: job.employer.avatar_url }),
+        ...(job.employer.website_url && { sameAs: job.employer.website_url }),
+      },
+      employmentType: job.job_type?.toUpperCase().replace(/\s+/g, '_') || 'FULL_TIME',
+      datePosted: created.toISOString(),
+      validThrough: validThrough.toISOString(),
+      directApply: true,
+      jobLocation,
+      ...(job.salary_range && {
+        baseSalary: {
+          '@type': 'MonetaryAmount',
+          currency: 'INR',
+          value: { '@type': 'QuantitativeValue', value: job.salary_range, unitText: 'MONTH' },
+        },
+      }),
+    };
+  })() : undefined;
+
+  // Breadcrumb data
+  const breadcrumbItems: BreadcrumbItem[] = job ? [
+    { label: 'Jobs', href: '/browse-jobs' },
+    ...(job.job_address ? [{ label: job.job_address }] : []),
+    { label: job.title },
+  ] : [];
+  const breadcrumbJsonLd = job ? buildBreadcrumbJsonLd(breadcrumbItems) : undefined;
 
   const id = resolvedId;
 
@@ -430,8 +474,11 @@ const JobDetail = () => {
 
   return (
     <div className="min-h-screen bg-background pb-28 lg:pb-8">
-      <SEOHead title={jobSeoTitle} description={jobSeoDesc} canonicalUrl={jobCanonical} ogType="article" ogImage={job?.employer.avatar_url || undefined} jsonLd={jobJsonLd} />
-      {/* Minimal Top Bar */}
+      <SEOHead title={jobSeoTitle} description={jobSeoDesc} canonicalUrl={jobCanonical} ogType="article" ogImage={job?.employer.avatar_url || undefined} jsonLd={jobJsonLd} breadcrumbJsonLd={breadcrumbJsonLd} publishedTime={job?.created_at || undefined} />
+      {/* Breadcrumb */}
+      <div className="container mx-auto px-4 max-w-4xl pt-2">
+        <BreadcrumbNav items={breadcrumbItems} />
+      </div>
       <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/50">
         <div className="container mx-auto px-4 max-w-4xl flex items-center justify-between h-14">
           <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-2 -ml-2 text-muted-foreground hover:text-foreground">
