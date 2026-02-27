@@ -10,6 +10,7 @@ import { ArrowLeft, Search, Briefcase, MapPin, Clock, Building2, Filter, LayoutD
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { SEOHead } from '@/components/SEOHead';
+import { BreadcrumbNav, buildBreadcrumbJsonLd } from '@/components/BreadcrumbNav';
 
 const PAGE_SIZE = 20;
 
@@ -86,17 +87,31 @@ const BrowseJobs = () => {
 
   const dashboardPath = profile?.user_type === 'employer' ? '/employer-dashboard' : '/candidate-dashboard';
 
+  const browseJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'Job Listings on HireForJob',
+    numberOfItems: total,
+    itemListElement: jobs.slice(0, 10).map((job, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `https://www.hireforjob.com${getJobUrl(job)}`,
+      name: job.title,
+    })),
+  };
+  const browseBreadcrumb = buildBreadcrumbJsonLd([{ label: 'Browse Jobs' }]);
+
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="Browse Jobs | HireForJob" description="Browse all open job listings on HireForJob. Filter by type, location, and keywords." />
+      <SEOHead title="Browse Jobs | HireForJob" description="Browse all open job listings on HireForJob. Filter by type, location, and keywords." jsonLd={browseJsonLd} breadcrumbJsonLd={browseBreadcrumb} canonicalUrl="https://www.hireforjob.com/browse-jobs" />
 
       {/* Header */}
       <div className="border-b bg-card">
         <div className="container mx-auto px-4 py-6 max-w-5xl">
           <div className="flex items-center gap-2 mb-4">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="gap-2 -ml-2 text-muted-foreground">
-              <ArrowLeft className="w-4 h-4" /> Back to Map
-            </Button>
+            <BreadcrumbNav items={[{ label: 'Browse Jobs' }]} />
+          </div>
+          <div className="flex items-center gap-2 mb-4">
             {user && (
               <Button variant="outline" size="sm" onClick={() => navigate(dashboardPath)} className="gap-2 text-muted-foreground">
                 <LayoutDashboard className="w-4 h-4" /> Dashboard

@@ -16,9 +16,18 @@ Deno.serve(async (req) => {
   );
 
   const baseUrl = 'https://www.hireforjob.com';
+  const today = new Date().toISOString().split('T')[0];
 
-  // Static pages
-  const staticPages = ['/', '/login', '/signup', '/terms', '/privacy', '/plans', '/browse-jobs'];
+  // Static pages with priorities
+  const staticPages = [
+    { path: '/', changefreq: 'daily', priority: '1.0' },
+    { path: '/browse-jobs', changefreq: 'daily', priority: '0.9' },
+    { path: '/login', changefreq: 'monthly', priority: '0.3' },
+    { path: '/signup', changefreq: 'monthly', priority: '0.3' },
+    { path: '/terms', changefreq: 'yearly', priority: '0.2' },
+    { path: '/privacy', changefreq: 'yearly', priority: '0.2' },
+    { path: '/plans', changefreq: 'monthly', priority: '0.5' },
+  ];
 
   // Fetch jobs with slugs
   const { data: jobs } = await supabase
@@ -26,14 +35,24 @@ Deno.serve(async (req) => {
     .select('slug, location_country, location_state, location_city, updated_at')
     .eq('status', 'open')
     .eq('is_active', true)
-    .not('slug', 'is', null);
+    .not('slug', 'is', null)
+    .limit(50000);
 
   // Fetch approved employers
   const { data: employers } = await supabase
     .from('employers')
     .select('slug, location_country, location_state, location_city, updated_at')
     .eq('verification_status', 'approved')
-    .not('slug', 'is', null);
+    .not('slug', 'is', null)
+    .limit(10000);
+
+  // Fetch public candidate profiles
+  const { data: candidates } = await supabase
+    .from('profiles')
+    .select('slug, updated_at')
+    .eq('is_visible_on_map', true)
+    .not('slug', 'is', null)
+    .limit(10000);
 
   const buildPath = (prefix: string, row: any) => {
     const parts = [prefix];
@@ -44,6 +63,9 @@ Deno.serve(async (req) => {
     return parts.join('/');
   };
 
+  const getLastmod = (row: any) =>
+    row.updated_at ? new Date(row.updated_at).toISOString().split('T')[0] : today;
+
   let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
 
@@ -51,9 +73,10 @@ Deno.serve(async (req) => {
   for (const page of staticPages) {
     xml += `
   <url>
-    <loc>${baseUrl}${page}</loc>
-    <changefreq>weekly</changefreq>
-    <priority>${page === '/' ? '1.0' : '0.5'}</priority>
+    <loc>${baseUrl}${page.path}</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>${page.changefreq}</changefreq>
+    <priority>${page.priority}</priority>
   </url>`;
   }
 
@@ -62,7 +85,7 @@ Deno.serve(async (req) => {
     xml += `
   <url>
     <loc>${baseUrl}${buildPath('/jobs', job)}</loc>
-    <lastmod>${job.updated_at ? new Date(job.updated_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}</lastmod>
+    <lastmod>${getLastmod(job)}</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>`;
@@ -73,9 +96,20 @@ Deno.serve(async (req) => {
     xml += `
   <url>
     <loc>${baseUrl}${buildPath('/companies', emp)}</loc>
-    <lastmod>${emp.updated_at ? new Date(emp.updated_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}</lastmod>
+    <lastmod>${getLastmod(emp)}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
+  </url>`;
+  }
+
+  // Candidates
+  for (const cand of candidates || []) {
+    xml += `
+  <url>
+    <loc>${baseUrl}/candidates/${cand.slug}</loc>
+    <lastmod>${getLastmod(cand)}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
   </url>`;
   }
 
