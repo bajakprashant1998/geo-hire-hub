@@ -163,7 +163,10 @@ const GoogleMapInner = ({
 }: GoogleMapContainerProps & { apiKey: string }) => {
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [hoveredItem, setHoveredItem] = useState<Candidate | Job | null>(null);
+  const [spiderfiedCluster, setSpiderfiedCluster] = useState<{ center: google.maps.LatLng; markers: google.maps.Marker[] } | null>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const clusterHoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const clustererRef = useRef<any>(null);
   const navigate = useNavigate();
 
   const handleMouseEnter = (item: Candidate | Job) => {
@@ -328,6 +331,34 @@ const GoogleMapInner = ({
       {/* Clustered Markers - key forces re-creation when mode changes */}
       <MarkerClusterer
         key={`cluster-${mode}`}
+        onLoad={(clusterer) => {
+          clustererRef.current = clusterer;
+          // Attach hover listeners to clusters after each clustering pass
+          google.maps.event.addListener(clusterer, 'clusteringend', () => {
+            const clusters = clusterer.getClusters();
+            clusters.forEach((cluster: any) => {
+              const clusterMarker = cluster.clusterIcon_?.div_ || cluster.clusterIcon_?.element_;
+              if (!clusterMarker) return;
+              clusterMarker.style.cursor = 'pointer';
+              clusterMarker.addEventListener('mouseenter', () => {
+                if (clusterHoverTimeoutRef.current) {
+                  clearTimeout(clusterHoverTimeoutRef.current);
+                  clusterHoverTimeoutRef.current = null;
+                }
+                const markers = cluster.getMarkers();
+                const center = cluster.getCenter();
+                if (markers && center && markers.length <= 20) {
+                  setSpiderfiedCluster({ center, markers });
+                }
+              });
+              clusterMarker.addEventListener('mouseleave', () => {
+                clusterHoverTimeoutRef.current = setTimeout(() => {
+                  setSpiderfiedCluster(null);
+                }, 400);
+              });
+            });
+          });
+        }}
         options={{
           maxZoom: 18,
           gridSize: 60,
@@ -351,6 +382,7 @@ const GoogleMapInner = ({
           ],
         }}
         onClick={(cluster) => {
+          setSpiderfiedCluster(null);
           if (map) {
             const bounds = cluster.getBounds();
             if (bounds) {
@@ -389,6 +421,136 @@ const GoogleMapInner = ({
           </>
         )}
       </MarkerClusterer>
+
+      {/* Spiderfied cluster overlay - shows individual markers on cluster hover */}
+      {spiderfiedCluster && spiderfiedCluster.markers.length > 0 && (
+        <OverlayView
+          position={{ lat: spiderfiedCluster.center.lat(), lng: spiderfiedCluster.center.lng() }}
+          mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
+          getPixelPositionOffset={() => ({ x: 0, y: 0 })}
+        >
+          <div
+            style={{ position: 'relative', width: 0, height: 0 }}
+            onMouseEnter={() => {
+              if (clusterHoverTimeoutRef.current) {
+                clearTimeout(clusterHoverTimeoutRef.current);
+                clusterHoverTimeoutRef.current = null;
+              }
+            }}
+            onMouseLeave={() => {
+              clusterHoverTimeoutRef.current = setTimeout(() => {
+                setSpiderfiedCluster(null);
+              }, 400);
+            }}
+          >
+            {/* Semi-transparent backdrop circle */}
+            <div style={{
+              position: 'absolute',
+              left: '-100px',
+              top: '-100px',
+              width: '200px',
+              height: '200px',
+              borderRadius: '50%',
+              background: 'rgba(0,0,0,0.08)',
+              border: '2px solid rgba(255,255,255,0.3)',
+              pointerEvents: 'none',
+            }} />
+            {/* Spider legs + markers */}
+            {spiderfiedCluster.markers.map((marker, i) => {
+              const count = spiderfiedCluster.markers.length;
+              const angle = (2 * Math.PI * i) / count - Math.PI / 2;
+              const legLen = Math.min(80, 40 + count * 5);
+              const x = Math.cos(angle) * legLen;
+              const y = Math.sin(angle) * legLen;
+
+              // Find the matching data item
+              const pos = marker.getPosition();
+              const matchedItem = items.find(
+                (it) => Math.abs(it.latitude - (pos?.lat() || 0)) < 0.0001 && Math.abs(it.longitude - (pos?.lng() || 0)) < 0.0001
+              );
+
+              const isCandidate = mode === 'hiring';
+              const job = matchedItem as Job;
+              const bgColor = isCandidate
+                ? 'hsl(217, 89%, 61%)'
+                : job?.job_category === 'government'
+                  ? 'hsl(152, 69%, 31%)'
+                  : 'hsl(4, 90%, 58%)';
+
+              const label = isCandidate
+                ? (matchedItem as Candidate)?.full_name?.split(' ')[0] || ''
+                : (matchedItem as Job)?.title?.split(' ').slice(0, 2).join(' ') || '';
+
+              return (
+                <div key={marker.getTitle?.() || i}>
+                  {/* Leg line */}
+                  <svg
+                    style={{ position: 'absolute', left: 0, top: 0, overflow: 'visible', pointerEvents: 'none' }}
+                    width="0"
+                    height="0"
+                  >
+                    <line x1="0" y1="0" x2={x} y2={y} stroke="rgba(255,255,255,0.7)" strokeWidth="2" />
+                  </svg>
+                  {/* Marker dot */}
+                  <div
+                    onClick={() => matchedItem && onMarkerClick(matchedItem)}
+                    onMouseEnter={() => matchedItem && handleMouseEnter(matchedItem)}
+                    onMouseLeave={handleMouseLeave}
+                    style={{
+                      position: 'absolute',
+                      left: `${x - 18}px`,
+                      top: `${y - 18}px`,
+                      width: '36px',
+                      height: '36px',
+                      borderRadius: '50%',
+                      background: bgColor,
+                      border: '3px solid white',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'transform 0.2s ease',
+                      zIndex: 10,
+                    }}
+                    title={label}
+                  >
+                    {isCandidate ? (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                      </svg>
+                    ) : (
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                      </svg>
+                    )}
+                  </div>
+                  {/* Label */}
+                  <div style={{
+                    position: 'absolute',
+                    left: `${x - 40}px`,
+                    top: `${y + 20}px`,
+                    width: '80px',
+                    textAlign: 'center',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    color: 'white',
+                    textShadow: '0 1px 3px rgba(0,0,0,0.8)',
+                    pointerEvents: 'none',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}>
+                    {label}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </OverlayView>
+      )}
 
       {/* InfoWindow for hover preview */}
       {hoveredItem && (
