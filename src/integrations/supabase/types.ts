@@ -570,6 +570,42 @@ export type Database = {
           },
         ]
       }
+      email_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          recipient_email: string
+          recipient_user_id: string | null
+          status: string
+          subject: string
+          template_key: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          recipient_email: string
+          recipient_user_id?: string | null
+          status?: string
+          subject: string
+          template_key: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          recipient_email?: string
+          recipient_user_id?: string | null
+          status?: string
+          subject?: string
+          template_key?: string
+        }
+        Relationships: []
+      }
       email_templates: {
         Row: {
           created_at: string

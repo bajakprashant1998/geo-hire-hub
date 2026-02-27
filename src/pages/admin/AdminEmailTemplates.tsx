@@ -27,7 +27,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Mail, Edit, Eye, Code, Variable } from 'lucide-react';
+import { Mail, Edit, Eye, Code, Variable, Send, ScrollText, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import DOMPurify from 'dompurify';
@@ -43,11 +43,24 @@ interface EmailTemplate {
   updated_at: string;
 }
 
+interface EmailLog {
+  id: string;
+  template_key: string;
+  recipient_email: string;
+  recipient_user_id: string | null;
+  subject: string;
+  status: string;
+  error_message: string | null;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+}
+
 export default function AdminEmailTemplates() {
   const queryClient = useQueryClient();
   const [editTemplate, setEditTemplate] = useState<EmailTemplate | null>(null);
   const [previewHtml, setPreviewHtml] = useState('');
   const [showPreview, setShowPreview] = useState(false);
+  const [activeTab, setActiveTab] = useState('templates');
   const [formData, setFormData] = useState({
     subject: '',
     html_body: '',
@@ -67,6 +80,20 @@ export default function AdminEmailTemplates() {
     },
   });
 
+  const { data: emailLogs, isLoading: logsLoading } = useQuery({
+    queryKey: ['admin-email-logs'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('email_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
+      if (error) throw error;
+      return data as EmailLog[];
+    },
+    enabled: activeTab === 'logs',
+  });
+
   const updateMutation = useMutation({
     mutationFn: async ({ id, ...updates }: { id: string; subject: string; html_body: string; description: string; is_active: boolean }) => {
       const { error } = await supabase
@@ -79,6 +106,35 @@ export default function AdminEmailTemplates() {
       queryClient.invalidateQueries({ queryKey: ['admin-email-templates'] });
       setEditTemplate(null);
       toast.success('Template updated');
+    },
+    onError: (e) => toast.error('Failed: ' + e.message),
+  });
+
+  const sendTestMutation = useMutation({
+    mutationFn: async (template: EmailTemplate) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not logged in');
+
+      const testVars: Record<string, string> = {};
+      template.variables?.forEach(v => {
+        testVars[v] = `[Test ${v}]`;
+      });
+
+      const { data, error } = await supabase.functions.invoke('send-notification-email', {
+        body: { user_id: user.id, template_key: template.template_key, variables: testVars },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data?.success) {
+        toast.success('Test email sent! Check your inbox.');
+      } else if (data?.skipped) {
+        toast.info('Email skipped: ' + data.reason);
+      } else {
+        toast.error('Send failed: ' + JSON.stringify(data));
+      }
+      queryClient.invalidateQueries({ queryKey: ['admin-email-logs'] });
     },
     onError: (e) => toast.error('Failed: ' + e.message),
   });
@@ -102,77 +158,158 @@ export default function AdminEmailTemplates() {
     setShowPreview(true);
   };
 
+  const statusIcon = (status: string) => {
+    switch (status) {
+      case 'sent': return <CheckCircle2 className="h-4 w-4 text-green-600" />;
+      case 'failed': return <XCircle className="h-4 w-4 text-destructive" />;
+      default: return <Clock className="h-4 w-4 text-muted-foreground" />;
+    }
+  };
+
   return (
     <AdminLayout title="Email Templates">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Mail className="h-5 w-5" />
-            Email Templates
-          </CardTitle>
-          <CardDescription>
-            Customize the email templates sent to users. Use {'{{variable}}'} syntax for dynamic content.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <Skeleton className="h-64 w-full" />
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Template</TableHead>
-                  <TableHead>Subject</TableHead>
-                  <TableHead>Variables</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Updated</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {templates?.map((t) => (
-                  <TableRow key={t.id}>
-                    <TableCell>
-                      <div>
-                        <span className="font-medium">{t.template_key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
-                        {t.description && <p className="text-xs text-muted-foreground mt-0.5">{t.description}</p>}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-sm">{t.subject}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-1 flex-wrap">
-                        {t.variables?.map((v) => (
-                          <Badge key={v} variant="outline" className="text-xs">
-                            <Variable className="h-3 w-3 mr-1" />{v}
-                          </Badge>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {t.is_active ? (
-                        <Badge className="bg-success/10 text-success border-success/20">Active</Badge>
-                      ) : (
-                        <Badge variant="secondary">Inactive</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {format(new Date(t.updated_at), 'MMM d, yyyy')}
-                    </TableCell>
-                    <TableCell className="text-right space-x-1">
-                      <Button variant="ghost" size="icon" onClick={() => handlePreview(t.html_body, t.variables)}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => openEdit(t)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="mb-4">
+          <TabsTrigger value="templates"><Mail className="h-4 w-4 mr-1" />Templates</TabsTrigger>
+          <TabsTrigger value="logs"><ScrollText className="h-4 w-4 mr-1" />Email Logs</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="templates">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="h-5 w-5" />
+                Email Templates
+              </CardTitle>
+              <CardDescription>
+                Customize the email templates sent to users. Use {'{{variable}}'} syntax for dynamic content.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <Skeleton className="h-64 w-full" />
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Template</TableHead>
+                      <TableHead>Subject</TableHead>
+                      <TableHead>Variables</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Updated</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {templates?.map((t) => (
+                      <TableRow key={t.id}>
+                        <TableCell>
+                          <div>
+                            <span className="font-medium">{t.template_key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                            {t.description && <p className="text-xs text-muted-foreground mt-0.5">{t.description}</p>}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm">{t.subject}</TableCell>
+                        <TableCell>
+                          <div className="flex gap-1 flex-wrap">
+                            {t.variables?.map((v) => (
+                              <Badge key={v} variant="outline" className="text-xs">
+                                <Variable className="h-3 w-3 mr-1" />{v}
+                              </Badge>
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {t.is_active ? (
+                            <Badge className="bg-success/10 text-success border-success/20">Active</Badge>
+                          ) : (
+                            <Badge variant="secondary">Inactive</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {format(new Date(t.updated_at), 'MMM d, yyyy')}
+                        </TableCell>
+                        <TableCell className="text-right space-x-1">
+                          <Button variant="ghost" size="icon" onClick={() => handlePreview(t.html_body, t.variables)} title="Preview">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => openEdit(t)} title="Edit">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => sendTestMutation.mutate(t)}
+                            disabled={sendTestMutation.isPending || !t.is_active}
+                            title="Send Test Email"
+                          >
+                            <Send className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="logs">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ScrollText className="h-5 w-5" />
+                Email Logs
+              </CardTitle>
+              <CardDescription>Recent email delivery attempts and their status.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {logsLoading ? (
+                <Skeleton className="h-64 w-full" />
+              ) : !emailLogs?.length ? (
+                <p className="text-muted-foreground text-center py-8">No email logs yet.</p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Template</TableHead>
+                      <TableHead>Recipient</TableHead>
+                      <TableHead>Subject</TableHead>
+                      <TableHead>Sent At</TableHead>
+                      <TableHead>Error</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {emailLogs?.map((log) => (
+                      <TableRow key={log.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-1.5">
+                            {statusIcon(log.status)}
+                            <span className="text-sm capitalize">{log.status}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-xs">{log.template_key}</Badge>
+                        </TableCell>
+                        <TableCell className="text-sm">{log.recipient_email}</TableCell>
+                        <TableCell className="text-sm max-w-[200px] truncate">{log.subject}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {format(new Date(log.created_at), 'MMM d, HH:mm')}
+                        </TableCell>
+                        <TableCell className="text-xs text-destructive max-w-[200px] truncate">
+                          {log.error_message || '—'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Edit Dialog */}
       <Dialog open={!!editTemplate} onOpenChange={() => setEditTemplate(null)}>
