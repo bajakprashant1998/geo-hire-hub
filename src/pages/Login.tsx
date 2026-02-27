@@ -3,11 +3,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Mail, Lock, Eye, EyeOff, MapPin, Loader2, Users, Briefcase, Shield, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Mail, Lock, Eye, EyeOff, MapPin, Loader2, Users, Briefcase, Shield, CheckCircle2, Sparkles, TrendingUp, Globe2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable/index';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { SEOHead } from '@/components/SEOHead';
 
 const Login = () => {
@@ -19,6 +19,7 @@ const Login = () => {
   const [userType, setUserType] = useState<'candidate' | 'employer'>('candidate');
   const [googleLoading, setGoogleLoading] = useState(false);
   const [liveStats, setLiveStats] = useState({ jobs: 0, companies: 0, seekers: 0 });
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -89,87 +90,191 @@ const Login = () => {
     }
   };
 
+  const features = [
+    { icon: MapPin, label: 'Location-Based Matching', desc: 'Find jobs near you' },
+    { icon: Sparkles, label: 'AI-Powered Insights', desc: 'Smart career recommendations' },
+    { icon: TrendingUp, label: 'Career Growth', desc: 'Track your progress' },
+    { icon: Globe2, label: 'Global Reach', desc: 'Opportunities worldwide' },
+  ];
+
   return (
     <div className="min-h-screen flex">
       <SEOHead title="Login | HireForJob" description="Sign in to HireForJob to find jobs, manage applications, and connect with employers near you." canonicalUrl="https://www.hireforjob.com/login" />
 
-      {/* Left side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary via-primary/90 to-primary/80 relative overflow-hidden">
-        <div className="absolute inset-0">
-          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 0.1, scale: 1 }} transition={{ duration: 1.5 }} className="absolute top-20 left-10 w-72 h-72 bg-white rounded-full blur-3xl" />
-          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 0.08, scale: 1 }} transition={{ duration: 1.5, delay: 0.3 }} className="absolute bottom-20 right-10 w-96 h-96 bg-white rounded-full blur-3xl" />
-          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 0.06, scale: 1 }} transition={{ duration: 1.5, delay: 0.6 }} className="absolute top-1/2 left-1/3 w-64 h-64 bg-white rounded-full blur-3xl" />
-        </div>
+      {/* Left side - Premium Branding */}
+      <div className="hidden lg:flex lg:w-[55%] relative overflow-hidden">
+        {/* Multi-layer gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-primary/70" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-primary/50 via-transparent to-transparent" />
+        
+        {/* Animated orbs */}
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], opacity: [0.08, 0.15, 0.08] }}
+          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute top-16 left-8 w-80 h-80 bg-white rounded-full blur-[100px]"
+        />
+        <motion.div
+          animate={{ scale: [1.2, 1, 1.2], opacity: [0.06, 0.12, 0.06] }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+          className="absolute bottom-16 right-8 w-96 h-96 bg-white rounded-full blur-[120px]"
+        />
+        <motion.div
+          animate={{ y: [0, -20, 0], opacity: [0.04, 0.1, 0.04] }}
+          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+          className="absolute top-1/2 left-1/3 w-64 h-64 bg-white rounded-full blur-[80px]"
+        />
 
-        <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <div className="flex items-center gap-3 mb-12">
-              <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/30">
-                <MapPin className="w-8 h-8 text-white" />
+        {/* Grid pattern overlay */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: 'linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)',
+          backgroundSize: '60px 60px'
+        }} />
+
+        <div className="relative z-10 flex flex-col justify-between px-12 xl:px-16 py-12 w-full">
+          {/* Logo */}
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 shadow-lg shadow-black/10">
+                <MapPin className="w-6 h-6 text-white" />
               </div>
-              <span className="font-bold text-3xl text-white">Hire for Job</span>
+              <span className="font-bold text-2xl text-white tracking-tight">Hire for Job</span>
+            </div>
+          </motion.div>
+
+          {/* Hero text */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="space-y-8"
+          >
+            <div>
+              <h1 className="text-5xl xl:text-6xl font-extrabold text-white leading-[1.1] tracking-tight">
+                Your Next
+                <br />
+                <span className="bg-gradient-to-r from-white via-white/90 to-white/70 bg-clip-text text-transparent">
+                  Career Move
+                </span>
+                <br />
+                Starts Here
+              </h1>
+              <p className="text-lg text-white/70 mt-6 max-w-lg leading-relaxed">
+                Join thousands of professionals discovering their perfect role through AI-powered, location-based job matching.
+              </p>
             </div>
 
-            <h1 className="text-4xl xl:text-5xl font-bold text-white leading-tight mb-6">
-              Find Your Perfect<br /><span className="text-white/90">Career Match</span>
-            </h1>
-            <p className="text-lg text-white/80 mb-12 max-w-md">
-              Connect with top employers and discover opportunities near you with our location-based job platform.
-            </p>
-
-            <div className="grid grid-cols-3 gap-6">
-              {[
-                { val: liveStats.jobs, label: 'Active Jobs', delay: 0.2 },
-                { val: liveStats.companies, label: 'Companies', delay: 0.3 },
-                { val: liveStats.seekers, label: 'Job Seekers', delay: 0.4 },
-              ].map((s) => (
-                <motion.div key={s.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: s.delay }} className="text-center">
-                  <div className="text-3xl font-bold text-white">{s.val.toLocaleString()}+</div>
-                  <div className="text-sm text-white/70">{s.label}</div>
+            {/* Feature pills */}
+            <div className="grid grid-cols-2 gap-3">
+              {features.map((f, i) => (
+                <motion.div
+                  key={f.label}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.5, delay: 0.4 + i * 0.1 }}
+                  className="flex items-center gap-3 bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl px-4 py-3"
+                >
+                  <div className="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center flex-shrink-0">
+                    <f.icon className="w-4.5 h-4.5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-white">{f.label}</p>
+                    <p className="text-xs text-white/60">{f.desc}</p>
+                  </div>
                 </motion.div>
               ))}
             </div>
           </motion.div>
+
+          {/* Stats bar */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+            className="flex items-center gap-8 bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl px-8 py-5"
+          >
+            {[
+              { val: liveStats.jobs, label: 'Active Jobs', icon: Briefcase },
+              { val: liveStats.companies, label: 'Companies', icon: Globe2 },
+              { val: liveStats.seekers, label: 'Job Seekers', icon: Users },
+            ].map((s, i) => (
+              <div key={s.label} className="flex items-center gap-3 flex-1">
+                <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center">
+                  <s.icon className="w-5 h-5 text-white/80" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-white tabular-nums">{s.val.toLocaleString()}+</div>
+                  <div className="text-xs text-white/60 font-medium">{s.label}</div>
+                </div>
+                {i < 2 && <div className="ml-auto w-px h-10 bg-white/15" />}
+              </div>
+            ))}
+          </motion.div>
         </div>
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-primary/50 to-transparent" />
       </div>
 
       {/* Right side - Login Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-8 lg:p-12 bg-background">
-        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-md space-y-6">
-          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group">
+      <div className="w-full lg:w-[45%] flex items-center justify-center p-6 sm:p-8 lg:p-12 bg-background relative overflow-hidden">
+        {/* Subtle background decoration */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/3 rounded-full blur-[80px] translate-y-1/2 -translate-x-1/2" />
+
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-[420px] space-y-6 relative z-10"
+        >
+          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group text-sm">
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             Back to map
           </Link>
 
+          {/* Mobile logo */}
           <div className="flex lg:hidden items-center gap-3 mb-2">
-            <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
-              <MapPin className="w-6 h-6 text-primary-foreground" />
+            <div className="w-11 h-11 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/25">
+              <MapPin className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-bold text-2xl">Hire for Job</span>
+            <span className="font-bold text-xl tracking-tight">Hire for Job</span>
           </div>
 
-          {/* Glassmorphism card */}
-          <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6 space-y-6 shadow-lg">
+          {/* Form card */}
+          <div className="bg-card/60 backdrop-blur-xl border border-border/50 rounded-3xl p-7 space-y-6 shadow-xl shadow-black/5">
             <div>
-              <h2 className="text-3xl font-bold text-foreground">Welcome back</h2>
-              <p className="mt-2 text-muted-foreground">Sign in to continue your journey</p>
+              <h2 className="text-2xl font-bold text-foreground tracking-tight">Welcome back</h2>
+              <p className="mt-1.5 text-sm text-muted-foreground">Sign in to continue your journey</p>
             </div>
 
             {/* User type toggle */}
-            <div className="flex bg-secondary rounded-xl p-1.5">
-              <button type="button" onClick={() => setUserType('candidate')}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${userType === 'candidate' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
-                <Users className="w-4 h-4" /> Job Seeker
-              </button>
-              <button type="button" onClick={() => setUserType('employer')}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${userType === 'employer' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
-                <Briefcase className="w-4 h-4" /> Employer
-              </button>
+            <div className="flex bg-muted/50 rounded-xl p-1">
+              {[
+                { type: 'candidate' as const, icon: Users, label: 'Job Seeker' },
+                { type: 'employer' as const, icon: Briefcase, label: 'Employer' },
+              ].map((tab) => (
+                <button
+                  key={tab.type}
+                  type="button"
+                  onClick={() => setUserType(tab.type)}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${
+                    userType === tab.type
+                      ? 'bg-background text-foreground shadow-md shadow-black/5'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  {tab.label}
+                </button>
+              ))}
             </div>
 
             {/* Google Sign In */}
-            <Button type="button" variant="outline" className="w-full h-12 text-base font-medium border-2 gap-3" onClick={handleGoogleLogin} disabled={googleLoading}>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-12 text-sm font-medium border-2 gap-3 rounded-xl hover:bg-muted/50 transition-all duration-200 hover:shadow-md"
+              onClick={handleGoogleLogin}
+              disabled={googleLoading}
+            >
               {googleLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -181,68 +286,109 @@ const Login = () => {
               Continue with Google
             </Button>
 
+            {/* Divider */}
             <div className="relative">
-              <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+              <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border/50" /></div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card/50 px-2 text-muted-foreground">Or continue with email</span>
+                <span className="bg-card/60 px-3 text-muted-foreground font-medium tracking-wider">or</span>
               </div>
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium">Email address</Label>
+            {/* Form */}
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="email" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Email
+                </Label>
                 <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="h-12 pl-12 text-base border-2 focus:border-primary transition-colors" required />
+                  <Mail className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200 ${focusedField === 'email' ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onFocus={() => setFocusedField('email')}
+                    onBlur={() => setFocusedField(null)}
+                    className="h-11 pl-10 text-sm border-border/50 rounded-xl bg-background/50 focus:bg-background focus:border-primary/50 transition-all duration-200"
+                    required
+                  />
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-sm font-medium">Password</Label>
-                  <Link to="/forgot-password" className="text-sm text-primary hover:underline">Forgot password?</Link>
+                  <Label htmlFor="password" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Password
+                  </Label>
+                  <Link to="/forgot-password" className="text-xs text-primary hover:text-primary/80 font-medium transition-colors">
+                    Forgot password?
+                  </Link>
                 </div>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input id="password" type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="h-12 pl-12 pr-12 text-base border-2 focus:border-primary transition-colors" required />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  <Lock className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200 ${focusedField === 'password' ? 'text-primary' : 'text-muted-foreground'}`} />
+                  <Input
+                    id="password"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onFocus={() => setFocusedField('password')}
+                    onBlur={() => setFocusedField(null)}
+                    className="h-11 pl-10 pr-10 text-sm border-border/50 rounded-xl bg-background/50 focus:bg-background focus:border-primary/50 transition-all duration-200"
+                    required
+                  />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
 
-              <Button type="submit" className="w-full h-12 text-base font-semibold bg-primary hover:bg-primary/90 transition-all duration-200" disabled={loading}>
-                {loading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                    Signing in...
-                  </div>
-                ) : 'Sign In'}
+              <Button
+                type="submit"
+                className="w-full h-11 text-sm font-semibold rounded-xl shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 mt-2"
+                disabled={loading}
+              >
+                <AnimatePresence mode="wait">
+                  {loading ? (
+                    <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Signing in...
+                    </motion.div>
+                  ) : (
+                    <motion.span key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                      Sign In
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </Button>
             </form>
 
             {/* Trust badges */}
-            <div className="flex items-center justify-center gap-4 pt-2">
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Shield className="w-3.5 h-3.5 text-primary" />
-                <span>SSL Secured</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
-                <span>Data Protected</span>
-              </div>
+            <div className="flex items-center justify-center gap-5 pt-1">
+              {[
+                { icon: Shield, label: 'SSL Secured' },
+                { icon: CheckCircle2, label: 'Data Protected' },
+              ].map((badge) => (
+                <div key={badge.label} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <badge.icon className="w-3.5 h-3.5 text-primary/70" />
+                  <span>{badge.label}</span>
+                </div>
+              ))}
             </div>
           </div>
 
-          <p className="text-center text-muted-foreground">
+          <p className="text-center text-sm text-muted-foreground">
             Don't have an account?{' '}
-            <Link to="/signup" className="text-primary font-semibold hover:underline">Create account</Link>
+            <Link to="/signup" className="text-primary font-semibold hover:text-primary/80 transition-colors">
+              Create account
+            </Link>
           </p>
 
-          <p className="text-center text-xs text-muted-foreground">
+          <p className="text-center text-xs text-muted-foreground/70">
             By signing in, you agree to our{' '}
-            <Link to="/terms" className="underline hover:text-foreground">Terms of Service</Link>{' '}and{' '}
-            <Link to="/privacy" className="underline hover:text-foreground">Privacy Policy</Link>
+            <Link to="/terms" className="underline hover:text-foreground transition-colors">Terms</Link>{' '}and{' '}
+            <Link to="/privacy" className="underline hover:text-foreground transition-colors">Privacy Policy</Link>
           </p>
         </motion.div>
       </div>
