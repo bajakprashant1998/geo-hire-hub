@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.verify-employer]
 verify_jwt = false
+
+[functions.check-reverification]
+verify_jwt = false

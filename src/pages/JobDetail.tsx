@@ -119,6 +119,8 @@ interface JobDetails {
     user_id: string | null;
     whatsapp_number: string | null;
     verification_status: 'pending' | 'approved' | 'rejected';
+    verification_method: string | null;
+    google_business_verified: boolean | null;
     is_government: boolean | null;
   };
 }
@@ -235,6 +237,8 @@ const JobDetail = () => {
             description,
             is_government,
             verification_status,
+            verification_method,
+            google_business_verified,
             profiles!inner (
               avatar_url,
               user_id,
@@ -260,6 +264,8 @@ const JobDetail = () => {
           user_id: data.employers.profiles?.user_id,
           whatsapp_number: data.employers.profiles?.whatsapp_number,
           verification_status: (data.employers.verification_status as any) || 'pending',
+          verification_method: data.employers.verification_method || null,
+          google_business_verified: data.employers.google_business_verified || null,
           is_government: data.employers.is_government,
         },
       });
@@ -482,7 +488,7 @@ const JobDetail = () => {
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-foreground group-hover:text-primary transition-colors">{job.employer.company_name}</span>
-                <VerificationBadge status={job.employer.verification_status} size="sm" showLabel={false} />
+                <VerificationBadge status={job.employer.verification_status} size="sm" showLabel={false} verificationMethod={job.employer.verification_method} googleBusinessVerified={job.employer.google_business_verified || false} />
                 {job.employer.is_government && <GovernmentEmployerBadge variant="compact" />}
                 <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>

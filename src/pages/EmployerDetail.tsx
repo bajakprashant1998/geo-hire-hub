@@ -23,6 +23,7 @@ import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { ReportDialog } from '@/components/ReportDialog';
 import { SEOHead } from '@/components/SEOHead';
 import { motion } from 'framer-motion';
+import { VerificationBadge } from '@/components/employer/VerificationBadge';
 
 interface EmployerProfile {
   id: string;
@@ -75,6 +76,9 @@ interface EmployerProfile {
   location_country: string | null;
   social_links: any | null;
   specializations: string[] | null;
+  verification_method: string | null;
+  google_business_verified: boolean | null;
+  trust_score: number | null;
 }
 
 interface Job {
@@ -215,6 +219,9 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
         longitude: data.profiles.longitude,
         created_at: data.profiles.created_at,
         verification_status: (data.verification_status as any) || 'pending',
+        verification_method: data.verification_method || null,
+        google_business_verified: data.google_business_verified || null,
+        trust_score: data.trust_score || null,
         whatsapp_number: data.profiles.whatsapp_number,
       });
     } catch (error) {
@@ -347,10 +354,13 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
                         </div>
                       )}
                     </div>
-                    {employer.verification_status === 'approved' && (
-                      <Badge variant="outline" className="gap-1 text-[10px] font-semibold bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-400 dark:border-emerald-800">
-                        <ShieldCheck className="w-3 h-3" />Verified
-                      </Badge>
+                    {employer.verification_status && (
+                      <VerificationBadge
+                        status={employer.verification_status}
+                        size="sm"
+                        verificationMethod={employer.verification_method}
+                        googleBusinessVerified={employer.google_business_verified || false}
+                      />
                     )}
                   </div>
 
