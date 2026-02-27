@@ -57,6 +57,15 @@ interface LeftSidebarPanelProps {
   onClose?: () => void;
 }
 
+// Haversine distance helper
+const calculateHaversine = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lng2 - lng1) * Math.PI) / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
 export const LeftSidebarPanel = ({
   mode, onModeChange, searchQuery, onSearchChange,
   radius, onRadiusChange, candidateCount, jobCount,
@@ -70,30 +79,76 @@ export const LeftSidebarPanel = ({
 
   const count = mode === 'hiring' ? candidateCount : jobCount;
 
-  // Fetch nearby jobs
+  // Fetch nearby jobs — RPC for auth users, direct query fallback
   const { data: nearbyJobs, isLoading: jobsLoading } = useQuery({
-    queryKey: ['nearby-jobs-sidebar', userLocation?.lat, userLocation?.lng, radius, limit],
+    queryKey: ['nearby-jobs-sidebar', userLocation?.lat, userLocation?.lng, radius, limit, !!user],
     queryFn: async () => {
       if (!userLocation) return [];
-      const { data, error } = await supabase.rpc('get_nearby_jobs', {
-        user_lat: userLocation.lat, user_lng: userLocation.lng, radius_km: radius
-      });
-      if (error) return [];
-      return (data || []).slice(0, limit) as Job[];
+
+      if (user) {
+        const { data, error } = await supabase.rpc('get_nearby_jobs', {
+          user_lat: userLocation.lat, user_lng: userLocation.lng, radius_km: radius
+        });
+        if (!error && data) return (data || []).slice(0, limit) as Job[];
+      }
+
+      const { data: directData, error: directError } = await supabase
+        .from('jobs')
+        .select('id, title, salary_range, job_type, latitude, longitude, employers!inner(company_name)')
+        .eq('status', 'open')
+        .eq('is_active', true);
+
+      if (directError || !directData) return [];
+
+      return directData
+        .map((j: any) => ({
+          id: j.id,
+          title: j.title,
+          company_name: j.employers?.company_name || 'Company',
+          salary_range: j.salary_range || '',
+          job_type: j.job_type || 'Full-time',
+          distance_km: calculateHaversine(userLocation.lat, userLocation.lng, j.latitude, j.longitude),
+        }))
+        .filter((j: Job) => j.distance_km <= radius)
+        .sort((a: Job, b: Job) => a.distance_km - b.distance_km)
+        .slice(0, limit);
     },
     enabled: !!userLocation && mode === 'seeking',
   });
 
-  // Fetch nearby candidates
+  // Fetch nearby candidates — RPC for auth users, direct query fallback
   const { data: nearbyCandidates, isLoading: candidatesLoading } = useQuery({
-    queryKey: ['nearby-candidates-sidebar', userLocation?.lat, userLocation?.lng, radius, limit],
+    queryKey: ['nearby-candidates-sidebar', userLocation?.lat, userLocation?.lng, radius, limit, !!user],
     queryFn: async () => {
       if (!userLocation) return [];
-      const { data, error } = await supabase.rpc('get_nearby_candidates', {
-        user_lat: userLocation.lat, user_lng: userLocation.lng, radius_km: radius
-      });
-      if (error) return [];
-      return (data || []).slice(0, limit) as Candidate[];
+
+      if (user) {
+        const { data, error } = await supabase.rpc('get_nearby_candidates', {
+          user_lat: userLocation.lat, user_lng: userLocation.lng, radius_km: radius
+        });
+        if (!error && data) return (data || []).slice(0, limit) as Candidate[];
+      }
+
+      const { data: directData, error: directError } = await supabase
+        .from('candidates')
+        .select('id, profile_id, job_title, experience_years, profiles!inner(full_name, latitude, longitude, is_visible_on_map)')
+        .not('profiles.latitude', 'is', null)
+        .not('profiles.longitude', 'is', null);
+
+      if (directError || !directData) return [];
+
+      return directData
+        .filter((c: any) => c.profiles?.is_visible_on_map)
+        .map((c: any) => ({
+          id: c.id,
+          full_name: c.profiles.full_name,
+          job_title: c.job_title,
+          experience_years: c.experience_years || 0,
+          distance_km: calculateHaversine(userLocation.lat, userLocation.lng, c.profiles.latitude, c.profiles.longitude),
+        }))
+        .filter((c: Candidate) => c.distance_km <= radius)
+        .sort((a: Candidate, b: Candidate) => a.distance_km - b.distance_km)
+        .slice(0, limit);
     },
     enabled: !!userLocation && mode === 'hiring',
   });
