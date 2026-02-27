@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-
 import { AuthProvider } from "@/hooks/useAuth";
 import { MessageNotificationProvider } from "@/components/messaging/MessageNotificationProvider";
 import { EmailVerificationBanner } from "@/components/auth/EmailVerificationBanner";
+import { LocationGate } from "@/components/LocationGate";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -76,6 +77,7 @@ const App = () => (
         <BrowserRouter>
           <MessageNotificationProvider>
             <EmailVerificationBanner />
+            <LocationGate>
             <Routes>
               {/* ==================== PUBLIC ROUTES ==================== */}
               <Route path="/" element={<Index />} />
@@ -165,6 +167,7 @@ const App = () => (
               {/* ==================== CATCH-ALL ==================== */}
               <Route path="*" element={<NotFound />} />
             </Routes >
+            </LocationGate>
           </MessageNotificationProvider >
         </BrowserRouter >
       </TooltipProvider >
