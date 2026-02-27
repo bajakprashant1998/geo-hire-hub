@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.ai-candidate-insights]
 verify_jwt = false
+
+[functions.verify-employer]
+verify_jwt = false

@@ -37,6 +37,9 @@ interface Employer {
   country_code: string | null;
   tax_id: string | null;
   verification_status: string;
+  verification_method: string | null;
+  trust_score: number | null;
+  google_business_verified: boolean | null;
   is_suspended: boolean;
   profile_completeness: number;
   office_photo_url: string | null;
@@ -237,6 +240,7 @@ export default function AdminEmployers() {
                   <TableHead>Owner</TableHead>
                   <TableHead>Country</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Trust Score</TableHead>
                   <TableHead>Profile</TableHead>
                   <TableHead>Registered</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -256,9 +260,22 @@ export default function AdminEmployers() {
                     <TableCell>{employer.country_code || '-'}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <VerificationBadge status={employer.verification_status as 'pending' | 'approved' | 'rejected'} size="sm" showLabel={false} />
+                        <VerificationBadge status={employer.verification_status as 'pending' | 'approved' | 'rejected'} size="sm" showLabel={false} verificationMethod={employer.verification_method} googleBusinessVerified={employer.google_business_verified || false} />
                         {employer.is_suspended && <Badge variant="destructive">Suspended</Badge>}
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      {employer.trust_score != null && employer.trust_score > 0 ? (
+                        <Badge variant="outline" className={
+                          employer.trust_score >= 80 ? 'bg-success/10 text-success border-success/20' :
+                          employer.trust_score >= 50 ? 'bg-warning/10 text-warning border-warning/20' :
+                          'bg-destructive/10 text-destructive border-destructive/20'
+                        }>
+                          {employer.trust_score}/100
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">

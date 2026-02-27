@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 
 interface DocumentUploadProps {
   userId: string;
-  type: 'office' | 'business-card';
+  type: 'office' | 'business-card' | 'company-registration' | 'gst-license' | 'pan-card';
   currentUrl: string | null;
   onUploaded: (url: string) => void;
   label: string;

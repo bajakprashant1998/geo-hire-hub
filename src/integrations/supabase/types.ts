@@ -675,6 +675,33 @@ export type Database = {
         }
         Relationships: []
       }
+      employer_blacklist: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          reason: string | null
+          type: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          reason?: string | null
+          type: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          reason?: string | null
+          type?: string
+          value?: string
+        }
+        Relationships: []
+      }
       employer_plans: {
         Row: {
           created_at: string
@@ -813,6 +840,44 @@ export type Database = {
           },
         ]
       }
+      employer_verification_checks: {
+        Row: {
+          check_type: string
+          created_at: string
+          details: Json | null
+          employer_id: string
+          id: string
+          score: number
+          status: string
+        }
+        Insert: {
+          check_type: string
+          created_at?: string
+          details?: Json | null
+          employer_id: string
+          id?: string
+          score?: number
+          status?: string
+        }
+        Update: {
+          check_type?: string
+          created_at?: string
+          details?: Json | null
+          employer_id?: string
+          id?: string
+          score?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employer_verification_checks_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "employers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employers: {
         Row: {
           assessment_types: string[] | null
@@ -824,6 +889,7 @@ export type Database = {
           career_growth_paths: string | null
           careers_page_url: string | null
           company_name: string
+          company_registration_url: string | null
           company_values: string[] | null
           country_code: string | null
           created_at: string | null
@@ -834,8 +900,11 @@ export type Database = {
           employee_retention_rate: string | null
           founding_year: number | null
           fresher_hiring: boolean | null
+          google_business_url: string | null
+          google_business_verified: boolean | null
           government_domain_verified: boolean | null
           government_email_domain: string | null
+          gst_license_url: string | null
           hiring_process: string | null
           hiring_timeline: string | null
           hr_contact_email: string | null
@@ -846,13 +915,16 @@ export type Database = {
           is_government: boolean | null
           is_suspended: boolean | null
           key_skills_hiring: string[] | null
+          last_verification_at: string | null
           learning_budget: string | null
           location_city: string | null
           location_country: string | null
           location_state: string | null
+          next_reverification_at: string | null
           office_locations: string[] | null
           office_photo_url: string | null
           paid_leaves_policy: string | null
+          pan_url: string | null
           preferred_certifications: string[] | null
           profile_completeness: number | null
           profile_id: string
@@ -869,7 +941,9 @@ export type Database = {
           team_size: string | null
           tech_stack: string[] | null
           terms_accepted_at: string | null
+          trust_score: number | null
           updated_at: string | null
+          verification_method: string | null
           verification_notes: string | null
           verification_status: string | null
           verified_at: string | null
@@ -888,6 +962,7 @@ export type Database = {
           career_growth_paths?: string | null
           careers_page_url?: string | null
           company_name: string
+          company_registration_url?: string | null
           company_values?: string[] | null
           country_code?: string | null
           created_at?: string | null
@@ -898,8 +973,11 @@ export type Database = {
           employee_retention_rate?: string | null
           founding_year?: number | null
           fresher_hiring?: boolean | null
+          google_business_url?: string | null
+          google_business_verified?: boolean | null
           government_domain_verified?: boolean | null
           government_email_domain?: string | null
+          gst_license_url?: string | null
           hiring_process?: string | null
           hiring_timeline?: string | null
           hr_contact_email?: string | null
@@ -910,13 +988,16 @@ export type Database = {
           is_government?: boolean | null
           is_suspended?: boolean | null
           key_skills_hiring?: string[] | null
+          last_verification_at?: string | null
           learning_budget?: string | null
           location_city?: string | null
           location_country?: string | null
           location_state?: string | null
+          next_reverification_at?: string | null
           office_locations?: string[] | null
           office_photo_url?: string | null
           paid_leaves_policy?: string | null
+          pan_url?: string | null
           preferred_certifications?: string[] | null
           profile_completeness?: number | null
           profile_id: string
@@ -933,7 +1014,9 @@ export type Database = {
           team_size?: string | null
           tech_stack?: string[] | null
           terms_accepted_at?: string | null
+          trust_score?: number | null
           updated_at?: string | null
+          verification_method?: string | null
           verification_notes?: string | null
           verification_status?: string | null
           verified_at?: string | null
@@ -952,6 +1035,7 @@ export type Database = {
           career_growth_paths?: string | null
           careers_page_url?: string | null
           company_name?: string
+          company_registration_url?: string | null
           company_values?: string[] | null
           country_code?: string | null
           created_at?: string | null
@@ -962,8 +1046,11 @@ export type Database = {
           employee_retention_rate?: string | null
           founding_year?: number | null
           fresher_hiring?: boolean | null
+          google_business_url?: string | null
+          google_business_verified?: boolean | null
           government_domain_verified?: boolean | null
           government_email_domain?: string | null
+          gst_license_url?: string | null
           hiring_process?: string | null
           hiring_timeline?: string | null
           hr_contact_email?: string | null
@@ -974,13 +1061,16 @@ export type Database = {
           is_government?: boolean | null
           is_suspended?: boolean | null
           key_skills_hiring?: string[] | null
+          last_verification_at?: string | null
           learning_budget?: string | null
           location_city?: string | null
           location_country?: string | null
           location_state?: string | null
+          next_reverification_at?: string | null
           office_locations?: string[] | null
           office_photo_url?: string | null
           paid_leaves_policy?: string | null
+          pan_url?: string | null
           preferred_certifications?: string[] | null
           profile_completeness?: number | null
           profile_id?: string
@@ -997,7 +1087,9 @@ export type Database = {
           team_size?: string | null
           tech_stack?: string[] | null
           terms_accepted_at?: string | null
+          trust_score?: number | null
           updated_at?: string | null
+          verification_method?: string | null
           verification_notes?: string | null
           verification_status?: string | null
           verified_at?: string | null
