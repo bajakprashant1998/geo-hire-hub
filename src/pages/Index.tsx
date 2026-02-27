@@ -1,4 +1,4 @@
-import { useState, useMemo, lazy, Suspense } from 'react';
+import { useState, useMemo, lazy, Suspense, useCallback } from 'react';
 import { SEOHead } from '@/components/SEOHead';
 import { ViewMode, Candidate, Job } from '@/types';
 import { useGeolocation } from '@/hooks/useGeolocation';
@@ -20,6 +20,8 @@ import { Button } from '@/components/ui/button';
 import { Navigation } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { MapFilters, defaultFilters } from '@/components/map/AdvancedFilters';
+import { useRealtimeMarkers } from '@/hooks/useRealtimeMarkers';
 
 // Lazy-load the heavy Google Maps component
 const LazyMapContainer = lazy(() =>
@@ -36,6 +38,8 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showWelcome, setShowWelcome] = useState(!user);
   const [centerTrigger, setCenterTrigger] = useState(0);
+  const [filters, setFilters] = useState<MapFilters>(defaultFilters);
+  const [heatmapEnabled, setHeatmapEnabled] = useState(false);
 
   const geolocation = useGeolocation();
   const hasRealLocation = !!(geolocation.latitude && geolocation.longitude);
@@ -48,16 +52,48 @@ const Index = () => {
 
   const effectiveRadius = hasRealLocation ? radius : 5000;
 
-  const { candidates, jobs, loading } = useMapData({
+  const { candidates, jobs, loading, refresh } = useMapData({
     userLocation,
     radius: effectiveRadius,
     searchQuery,
   });
 
+  // Real-time live markers
+  const handleNewJob = useCallback((newJob: any) => {
+    refresh();
+  }, [refresh]);
+
+  useRealtimeMarkers({
+    onNewJob: handleNewJob,
+    enabled: true,
+  });
+
+  // Apply advanced filters
+  const filteredJobs = useMemo(() => {
+    let result = jobs;
+    if (filters.jobTypes.length > 0) {
+      result = result.filter(j => filters.jobTypes.includes(j.job_type));
+    }
+    if (filters.category !== 'all') {
+      result = result.filter(j => j.job_category === filters.category);
+    }
+    return result;
+  }, [jobs, filters]);
+
+  const filteredCandidates = useMemo(() => {
+    let result = candidates;
+    if (filters.experienceMin > 0 || filters.experienceMax < 30) {
+      result = result.filter(c =>
+        c.experience_years >= filters.experienceMin && c.experience_years <= filters.experienceMax
+      );
+    }
+    return result;
+  }, [candidates, filters]);
+
   const jobCounts = useMemo(() => ({
-    private: jobs.filter(j => j.job_category !== 'government').length,
-    government: jobs.filter(j => j.job_category === 'government').length,
-  }), [jobs]);
+    private: filteredJobs.filter(j => j.job_category !== 'government').length,
+    government: filteredJobs.filter(j => j.job_category === 'government').length,
+  }), [filteredJobs]);
 
   const handleModeChange = (newMode: ViewMode) => {
     setMode(newMode);
@@ -91,19 +127,20 @@ const Index = () => {
     toast.success('Centered on your location');
   };
 
-  // Single shared map element — rendered once, positioned via CSS
+  // Single shared map element
   const mapElement = (
     <Suspense fallback={<MapLoadingSkeleton mode={mode === 'hiring' ? 'hiring' : 'job'} />}>
       <LazyMapContainer
         mode={mode}
-        candidates={candidates}
-        jobs={jobs}
+        candidates={filteredCandidates}
+        jobs={filteredJobs}
         userLocation={userLocation}
         radius={radius}
         onMarkerClick={handleMarkerClick}
         selectedItem={selectedItem}
         isEmployer={profile?.user_type === 'employer'}
         centerTrigger={centerTrigger}
+        heatmapEnabled={heatmapEnabled}
       />
     </Suspense>
   );
@@ -111,15 +148,11 @@ const Index = () => {
   return (
     <div className="relative w-full h-screen overflow-hidden bg-background">
       <SEOHead title="HireForJob - Find Jobs & Talent Near You" description="Discover jobs and talent on an interactive map. Connect with employers and candidates in your area." canonicalUrl="https://www.hireforjob.com/" ogImage="https://www.hireforjob.com/logo.png" />
-      {/* Loading Skeleton */}
       {loading && <MapLoadingSkeleton mode={mode === 'hiring' ? 'hiring' : 'job'} />}
-
-      {/* Google Sign-In Prompt for unauthenticated users */}
       {!user && <GoogleSignInPrompt />}
 
-      {/* Desktop Layout: Sidebar + Map */}
+      {/* Desktop Layout */}
       <div className="hidden md:flex h-full">
-        {/* Left Sidebar Panel */}
         <div className="w-[300px] h-full border-r border-border bg-background z-20 flex-shrink-0">
           <LeftSidebarPanel
             mode={mode}
@@ -128,21 +161,22 @@ const Index = () => {
             onSearchChange={setSearchQuery}
             radius={radius}
             onRadiusChange={setRadius}
-            candidateCount={candidates.length}
-            jobCount={jobs.length}
+            candidateCount={filteredCandidates.length}
+            jobCount={filteredJobs.length}
             governmentJobCount={jobCounts.government}
             privateJobCount={jobCounts.private}
             onViewList={() => setSidebarOpen(true)}
             onCenterOnUser={handleCenterOnUser}
             userLocation={userLocation}
+            filters={filters}
+            onFiltersChange={setFilters}
+            heatmapEnabled={heatmapEnabled}
+            onHeatmapToggle={() => setHeatmapEnabled(!heatmapEnabled)}
           />
         </div>
 
-        {/* Map Container - single instance */}
         <div className="flex-1 relative">
           {mapElement}
-
-          {/* Navigation Button - Desktop */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -159,36 +193,16 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Mobile Layout: Full screen map with overlays */}
+      {/* Mobile Layout */}
       <div className="md:hidden h-full">
-        {/* Map Layer - single instance */}
-        <div className="absolute inset-0 z-0">
-          {mapElement}
-        </div>
-
-        {/* UI Layer */}
+        <div className="absolute inset-0 z-0">{mapElement}</div>
         <div className="absolute inset-0 z-10 pointer-events-none">
           <div className="pointer-events-auto">
-            <Header
-              mode={mode}
-              onModeChange={handleModeChange}
-              onSearch={setSearchQuery}
-              onMenuClick={() => setSidebarOpen(true)}
-              userLocation={userLocation}
-            />
+            <Header mode={mode} onModeChange={handleModeChange} onSearch={setSearchQuery} onMenuClick={() => setSidebarOpen(true)} userLocation={userLocation} />
           </div>
-
           <div className="pointer-events-auto">
-            <QuickFilterChips
-              mode={mode}
-              onModeChange={handleModeChange}
-              jobCount={jobs.length}
-              candidateCount={candidates.length}
-              governmentJobCount={jobCounts.government}
-              privateJobCount={jobCounts.private}
-            />
+            <QuickFilterChips mode={mode} onModeChange={handleModeChange} jobCount={filteredJobs.length} candidateCount={filteredCandidates.length} governmentJobCount={jobCounts.government} privateJobCount={jobCounts.private} />
           </div>
-
           <div className="pointer-events-auto">
             <FloatingControls
               onCenterOnUser={handleCenterOnUser}
@@ -197,49 +211,23 @@ const Index = () => {
               onRadiusChange={setRadius}
               onSearch={setSearchQuery}
               searchQuery={searchQuery}
+              heatmapEnabled={heatmapEnabled}
+              onHeatmapToggle={() => setHeatmapEnabled(!heatmapEnabled)}
             />
           </div>
-
           <div className="pointer-events-auto">
-            <NearbyAvatarRow
-              mode={mode}
-              candidates={candidates}
-              jobs={jobs}
-              onSelect={handleSelectFromSidebar}
-              onViewAll={() => setSidebarOpen(true)}
-            />
+            <NearbyAvatarRow mode={mode} candidates={filteredCandidates} jobs={filteredJobs} onSelect={handleSelectFromSidebar} onViewAll={() => setSidebarOpen(true)} />
           </div>
         </div>
-
         <MobileFAB mode={mode} />
         <BottomNavBar />
       </div>
 
-      {/* Overlay Layer - Shared */}
-      <Sidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        mode={mode}
-        candidates={candidates}
-        jobs={jobs}
-        onSelectCandidate={handleSelectFromSidebar}
-        onSelectJob={handleSelectFromSidebar}
-      />
-
-      <MarkerPreviewSheet
-        isOpen={previewOpen}
-        onClose={() => setPreviewOpen(false)}
-        mode={mode}
-        item={selectedItem}
-        isEmployer={profile?.user_type === 'employer'}
-      />
-
+      {/* Overlay Layer */}
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} mode={mode} candidates={filteredCandidates} jobs={filteredJobs} onSelectCandidate={handleSelectFromSidebar} onSelectJob={handleSelectFromSidebar} />
+      <MarkerPreviewSheet isOpen={previewOpen} onClose={() => setPreviewOpen(false)} mode={mode} item={selectedItem} isEmployer={profile?.user_type === 'employer'} />
       {!user && showWelcome && (
-        <WelcomeOverlay
-          onDismiss={() => setShowWelcome(false)}
-          onFindJobs={() => setMode('seeking')}
-          onFindTalent={() => setMode('hiring')}
-        />
+        <WelcomeOverlay onDismiss={() => setShowWelcome(false)} onFindJobs={() => setMode('seeking')} onFindTalent={() => setMode('hiring')} />
       )}
     </div>
   );
