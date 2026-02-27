@@ -1,71 +1,93 @@
 
 
-## Plan: Enhance Login/Signup Pages + Mandatory Location Access
+## Plan: Automated Email Notification System
 
-### 1. Create a `LocationGate` component
-A full-screen overlay component that blocks the entire app if location permission is denied. It will:
-- Use `navigator.permissions.query({ name: 'geolocation' })` to check permission state
-- Call `navigator.geolocation.getCurrentPosition` to trigger the browser prompt
-- Show a blocking overlay with a message and "Enable Location" retry button if denied
-- Store granted location in React context so all pages can access it
-- Wrap the entire app in `App.tsx` (inside `BrowserRouter`, around `Routes`)
+### Current State
+- `email_templates` table exists with 5 templates (welcome, password_reset, application_received, application_status, interview_scheduled)
+- `send-notification-email` edge function exists but uses a hardcoded HTML template instead of the DB templates
+- `notification_preferences` table exists with `email_notifications_enabled` toggle
+- DB triggers already create in-app notifications (`notify_interview_event`, `notify_application_status_change`) but don't trigger emails
+- Admin email templates page exists at `/admin/email-templates`
+- No `email_logs` table exists for tracking sent emails
+- RESEND_API_KEY secret is configured
 
-**File**: `src/components/LocationGate.tsx`
+### What We'll Build
 
-### 2. Expand `InternationalPhoneInput` with full world country codes
-- Add ~200 country codes covering all countries (currently has ~40)
-- This component already has search/filter built in, so just expanding the data array
+**1. Database: Add email_logs table + new templates**
+- Create `email_logs` table (id, template_key, recipient_email, recipient_user_id, subject, status, error_message, metadata, created_at)
+- RLS: admins can read all, users can read their own
+- Add missing templates: `job_application_submitted`, `new_message`, `employer_welcome`, `interview_request`, `job_post_approved`
 
-**File**: `src/components/InternationalPhoneInput.tsx`
+**2. Rewrite `send-notification-email` edge function**
+- Fetch the matching template from `email_templates` by `template_key`
+- Replace `{{variables}}` with provided data
+- Wrap in a branded HTML shell (logo, primary color #4285F4, footer with unsubscribe link)
+- Log every send attempt to `email_logs` (success or failure)
+- Respect `notification_preferences` (existing logic)
+- Accept: `{ user_id, template_key, variables: Record<string, string> }`
 
-### 3. Expand SECTORS list on Signup page
-Add ~30 more industries to the employer section:
-- Legal, Consulting, Insurance, Logistics, Aerospace, Automotive, Pharmaceutical, Mining, Fashion, Food & Beverage, Sports, Government, Non-Profit, etc.
+**3. Create `notify-by-email` DB trigger function**
+A new PL/pgSQL function + triggers that call the edge function via `pg_net` to send emails on key events:
+- **Application inserted** → email employer (`application_received`) + email candidate (`job_application_submitted`)
+- **Application status updated** → email candidate (`application_status`)
+- **Interview inserted** → email candidate (`interview_scheduled`) or employer (`interview_request`)
+- **Message inserted** → email recipient (`new_message`) — debounced by checking if last email for this conversation was <5min ago
 
-**File**: `src/pages/Signup.tsx`
+Since `pg_net` may not be available, we'll instead use a simpler approach: call the edge function from the existing DB trigger functions (`notify_application_status_change`, `notify_interview_event`) by extending the in-app notification inserts — and add a separate lightweight trigger on the `notifications` table that invokes the edge function.
 
-### 4. Add WhatsApp number field on Signup page
-- Add a new `whatsappNumber` state field
-- Use the `InternationalPhoneInput` component for both phone and WhatsApp fields
-- Replace the current basic phone input with `InternationalPhoneInput`
-- Include WhatsApp number in the signup metadata
+**4. Add notification-triggered email dispatch**
+- Create a DB trigger on `notifications` INSERT that calls `send-notification-email` via `net.http_post`
+- This means every in-app notification automatically gets an email (if user has emails enabled)
+- The trigger maps notification `type` → `template_key` and passes relevant variables
 
-**File**: `src/pages/Signup.tsx`
+**5. Enhance admin email templates page**
+- Add "Email Logs" tab showing recent sends from `email_logs` with status, recipient, template, timestamp
+- Add "Send Test Email" button per template
+- Add template creation for missing notification types
 
-### 5. Enhance Login page UI
-- Add subtle glassmorphism card wrapper around the form
-- Add trust badges / security indicators
-- Add password strength hint text
-- Improve mobile responsiveness
-- Add animated transitions between states
+**6. Add candidate/employer-specific templates with branded HTML**
 
-**File**: `src/pages/Login.tsx`
+All templates will use a consistent branded wrapper:
+- Header: blue bar (#4285F4) with "Hire for Job" logo
+- Body: clean white card with content
+- CTA button: blue rounded button with contextual action text
+- Footer: "Manage notification preferences" link + unsubscribe
 
-### 6. Enhance Signup page UI
-- Wrap form in a glassmorphism card
-- Improve field grouping with section headers
-- Add step progress indicator (visual only, single page)
-- Better visual hierarchy and spacing
-- Add password strength meter
+### Files to Create/Modify
 
-**File**: `src/pages/Signup.tsx`
-
-### 7. Wire LocationGate into App.tsx
-- Import and wrap `<Routes>` with `<LocationGate>`
-- The gate will block rendering of any route until location is granted
-
-**File**: `src/App.tsx`
+| File | Action |
+|------|--------|
+| Migration SQL | Create `email_logs` table, insert new templates, create trigger on `notifications` |
+| `supabase/functions/send-notification-email/index.ts` | Rewrite to use DB templates, log to `email_logs` |
+| `src/pages/admin/AdminEmailTemplates.tsx` | Add Email Logs tab, Send Test button |
 
 ### Technical Details
 
-**LocationGate implementation**:
-- Uses `navigator.geolocation.getCurrentPosition` on mount
-- Listens for permission changes via `navigator.permissions.query`
-- Three states: `loading` (checking), `granted` (renders children), `denied`/`prompt` (shows blocker)
-- Blocker UI: full-screen centered card with MapPin icon, message, and "Allow Location Access" button that re-triggers the browser prompt
-- Stores coords in a context provider so `useGeolocation` hook can optionally consume them
+**send-notification-email flow:**
+```text
+Request { user_id, template_key, variables }
+  → Check notification_preferences
+  → Fetch email_templates by template_key
+  → Replace {{var}} placeholders
+  → Wrap in branded HTML shell
+  → Send via Resend API
+  → Log to email_logs (success/error)
+  → Return result
+```
 
-**Country codes expansion**: Will include all ~240 countries with ISO codes and emoji flags, sorted alphabetically by country name.
+**Notification → Email trigger:**
+```text
+INSERT INTO notifications
+  → AFTER INSERT trigger
+  → Maps type to template_key
+  → Calls net.http_post to send-notification-email
+  → Passes user_id + inferred variables from notification data
+```
 
-**WhatsApp field**: Separate `InternationalPhoneInput` instance with a WhatsApp icon, stored as `whatsapp_number` in user metadata.
+**Template key mapping:**
+- `application_update` → `application_status` template
+- `interview_scheduled` / `interview_confirmed` → `interview_scheduled` template
+- `interview_request` → `interview_request` template
+- `new_message` → `new_message` template
+- Registration → called directly from signup edge function
 
