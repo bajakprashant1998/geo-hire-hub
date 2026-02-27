@@ -3,13 +3,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { StatsCard } from '@/components/admin/StatsCard';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
@@ -21,6 +23,7 @@ import {
 } from '@/components/ui/select';
 import { 
   CheckCircle, XCircle, Ban, Clock, ShieldCheck, Eye, Search, Building2, ExternalLink, Trash2,
+  ChevronDown, Plus, FileText, ShieldAlert,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -29,6 +32,208 @@ import { VerificationBadge } from '@/components/employer/VerificationBadge';
 import { PaginationControls } from '@/components/admin/PaginationControls';
 
 const PAGE_SIZE = 20;
+
+// ---- Employer Detail Tabs (Decision Logs + Info) ----
+function EmployerDetailTabs({ employer }: { employer: Employer }) {
+  const { data: checks, isLoading: checksLoading } = useQuery({
+    queryKey: ['employer-verification-checks', employer.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('employer_verification_checks')
+        .select('*')
+        .eq('employer_id', employer.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  return (
+    <Tabs defaultValue="info" className="w-full">
+      <TabsList className="w-full">
+        <TabsTrigger value="info" className="flex-1">Details</TabsTrigger>
+        <TabsTrigger value="checks" className="flex-1">AI Decision Log</TabsTrigger>
+      </TabsList>
+      <TabsContent value="info">
+        <div className="space-y-6 pt-2">
+          <div className="grid grid-cols-2 gap-4">
+            <div><p className="text-sm text-muted-foreground">Owner</p><p className="font-medium">{employer.profile?.full_name}</p></div>
+            <div><p className="text-sm text-muted-foreground">Industry</p><p className="font-medium">{employer.industry || '-'}</p></div>
+            <div><p className="text-sm text-muted-foreground">Country</p><p className="font-medium">{employer.country_code || '-'}</p></div>
+            <div><p className="text-sm text-muted-foreground">Tax ID</p><p className="font-medium">{employer.tax_id || '-'}</p></div>
+            <div><p className="text-sm text-muted-foreground">Trust Score</p><p className="font-medium">{employer.trust_score ?? '—'}/100</p></div>
+            <div><p className="text-sm text-muted-foreground">Verification Method</p><p className="font-medium">{employer.verification_method || '—'}</p></div>
+          </div>
+          <div className="space-y-4">
+            <h4 className="font-medium">Trust Documents</h4>
+            <div className="grid grid-cols-2 gap-4">
+              {employer.office_photo_url ? (
+                <a href={employer.office_photo_url} target="_blank" rel="noopener noreferrer" className="block">
+                  <img src={employer.office_photo_url} alt="Office" className="w-full h-32 object-cover rounded-lg border" />
+                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">Office Photo <ExternalLink className="h-3 w-3" /></p>
+                </a>
+              ) : (
+                <div className="h-32 bg-muted rounded-lg flex items-center justify-center"><p className="text-sm text-muted-foreground">No office photo</p></div>
+              )}
+              {employer.business_card_url ? (
+                <a href={employer.business_card_url} target="_blank" rel="noopener noreferrer" className="block">
+                  <img src={employer.business_card_url} alt="Business Card" className="w-full h-32 object-cover rounded-lg border" />
+                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">Business Card <ExternalLink className="h-3 w-3" /></p>
+                </a>
+              ) : (
+                <div className="h-32 bg-muted rounded-lg flex items-center justify-center"><p className="text-sm text-muted-foreground">No business card</p></div>
+              )}
+            </div>
+          </div>
+        </div>
+      </TabsContent>
+      <TabsContent value="checks">
+        <div className="space-y-3 pt-2">
+          {checksLoading ? (
+            <div className="space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-16 w-full" />)}</div>
+          ) : !checks || checks.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">No AI verification checks recorded</p>
+          ) : (
+            checks.map((check) => (
+              <Collapsible key={check.id}>
+                <CollapsibleTrigger className="w-full">
+                  <div className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <span className="font-medium text-sm capitalize">{check.check_type.replace(/_/g, ' ')}</span>
+                      <Badge variant="outline" className={
+                        check.status === 'pass' ? 'bg-success/10 text-success border-success/20' :
+                        check.status === 'fail' ? 'bg-destructive/10 text-destructive border-destructive/20' :
+                        'bg-warning/10 text-warning border-warning/20'
+                      }>{check.status}</Badge>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">{check.score}/100</span>
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </div>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="px-3 py-2 ml-7 text-sm text-muted-foreground border-l-2 border-border">
+                    <p className="text-xs text-muted-foreground mb-1">{format(new Date(check.created_at), 'MMM d, yyyy HH:mm')}</p>
+                    {check.details && typeof check.details === 'object' && (
+                      <pre className="text-xs bg-muted p-2 rounded mt-1 overflow-auto max-h-40 whitespace-pre-wrap">{JSON.stringify(check.details, null, 2)}</pre>
+                    )}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            ))
+          )}
+        </div>
+      </TabsContent>
+    </Tabs>
+  );
+}
+
+// ---- Blacklist Management Component ----
+function BlacklistManagement() {
+  const queryClient = useQueryClient();
+  const [newType, setNewType] = useState('domain');
+  const [newValue, setNewValue] = useState('');
+  const [newReason, setNewReason] = useState('');
+
+  const { data: blacklist, isLoading } = useQuery({
+    queryKey: ['employer-blacklist'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('employer_blacklist')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const addMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from('employer_blacklist').insert({ type: newType, value: newValue.trim(), reason: newReason.trim() || null });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employer-blacklist'] });
+      setNewValue(''); setNewReason('');
+      toast.success('Blacklist entry added');
+    },
+    onError: (e) => toast.error('Failed: ' + e.message),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('employer_blacklist').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['employer-blacklist'] });
+      toast.success('Entry removed');
+    },
+    onError: (e) => toast.error('Failed: ' + e.message),
+  });
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base flex items-center gap-2"><ShieldAlert className="h-4 w-4" /> Blacklist Management</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-col sm:flex-row gap-2 mb-4">
+          <Select value={newType} onValueChange={setNewType}>
+            <SelectTrigger className="w-full sm:w-36"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="domain">Domain</SelectItem>
+              <SelectItem value="phone">Phone</SelectItem>
+              <SelectItem value="ip">IP</SelectItem>
+              <SelectItem value="document_hash">Doc Hash</SelectItem>
+            </SelectContent>
+          </Select>
+          <Input placeholder="Value..." value={newValue} onChange={(e) => setNewValue(e.target.value)} className="flex-1" />
+          <Input placeholder="Reason (optional)" value={newReason} onChange={(e) => setNewReason(e.target.value)} className="flex-1" />
+          <Button size="sm" onClick={() => addMutation.mutate()} disabled={!newValue.trim() || addMutation.isPending} className="gap-1">
+            <Plus className="h-3 w-3" /> Add
+          </Button>
+        </div>
+        {isLoading ? (
+          <Skeleton className="h-32 w-full" />
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Type</TableHead>
+                <TableHead>Value</TableHead>
+                <TableHead>Reason</TableHead>
+                <TableHead>Added</TableHead>
+                <TableHead className="w-10"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {blacklist?.map((entry) => (
+                <TableRow key={entry.id}>
+                  <TableCell><Badge variant="outline" className="capitalize">{entry.type}</Badge></TableCell>
+                  <TableCell className="font-mono text-sm">{entry.value}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{entry.reason || '—'}</TableCell>
+                  <TableCell className="text-muted-foreground text-sm">{format(new Date(entry.created_at), 'MMM d, yyyy')}</TableCell>
+                  <TableCell>
+                    <Button variant="ghost" size="icon" className="text-destructive h-7 w-7" onClick={() => deleteMutation.mutate(entry.id)}>
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {(!blacklist || blacklist.length === 0) && (
+                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">No blacklist entries</TableCell></TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 
 interface Employer {
   id: string;
@@ -314,43 +519,20 @@ export default function AdminEmployers() {
 
       <PaginationControls page={page} totalPages={totalPages} onPageChange={setPage} />
 
+      {/* Blacklist Management */}
+      <div className="mt-6">
+        <BlacklistManagement />
+      </div>
+
       {/* Detail Dialog */}
       <Dialog open={!!selectedEmployer} onOpenChange={() => setSelectedEmployer(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{selectedEmployer?.company_name}</DialogTitle>
-            <DialogDescription>Employer Details</DialogDescription>
+            <DialogDescription>Employer Details & Verification</DialogDescription>
           </DialogHeader>
           {selectedEmployer && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div><p className="text-sm text-muted-foreground">Owner</p><p className="font-medium">{selectedEmployer.profile?.full_name}</p></div>
-                <div><p className="text-sm text-muted-foreground">Industry</p><p className="font-medium">{selectedEmployer.industry || '-'}</p></div>
-                <div><p className="text-sm text-muted-foreground">Country</p><p className="font-medium">{selectedEmployer.country_code || '-'}</p></div>
-                <div><p className="text-sm text-muted-foreground">Tax ID</p><p className="font-medium">{selectedEmployer.tax_id || '-'}</p></div>
-              </div>
-              <div className="space-y-4">
-                <h4 className="font-medium">Trust Documents</h4>
-                <div className="grid grid-cols-2 gap-4">
-                  {selectedEmployer.office_photo_url ? (
-                    <a href={selectedEmployer.office_photo_url} target="_blank" rel="noopener noreferrer" className="block">
-                      <img src={selectedEmployer.office_photo_url} alt="Office" className="w-full h-32 object-cover rounded-lg border" />
-                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">Office Photo <ExternalLink className="h-3 w-3" /></p>
-                    </a>
-                  ) : (
-                    <div className="h-32 bg-muted rounded-lg flex items-center justify-center"><p className="text-sm text-muted-foreground">No office photo</p></div>
-                  )}
-                  {selectedEmployer.business_card_url ? (
-                    <a href={selectedEmployer.business_card_url} target="_blank" rel="noopener noreferrer" className="block">
-                      <img src={selectedEmployer.business_card_url} alt="Business Card" className="w-full h-32 object-cover rounded-lg border" />
-                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">Business Card <ExternalLink className="h-3 w-3" /></p>
-                    </a>
-                  ) : (
-                    <div className="h-32 bg-muted rounded-lg flex items-center justify-center"><p className="text-sm text-muted-foreground">No business card</p></div>
-                  )}
-                </div>
-              </div>
-            </div>
+            <EmployerDetailTabs employer={selectedEmployer} />
           )}
         </DialogContent>
       </Dialog>

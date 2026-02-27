@@ -27,6 +27,7 @@ const SCHEDULED_JOBS: Omit<ScheduledJob, 'lastRun'>[] = [
   { name: 'Auto Apply Jobs', description: 'Run automated job applications for opted-in candidates', functionName: 'auto-apply-jobs', schedule: 'Every 6 hours' },
   { name: 'Sitemap Generation', description: 'Regenerate XML sitemap with latest jobs and profiles', functionName: 'sitemap', schedule: 'Daily at 3 AM' },
   { name: 'Send Notification Emails', description: 'Process and send pending notification emails', functionName: 'send-notification-email', schedule: 'On trigger' },
+  { name: 'Re-verification Check', description: 'Flag employers due for re-verification', functionName: 'check-reverification', schedule: 'Daily at 6 AM' },
 ];
 
 export default function AdminScheduledJobs() {
