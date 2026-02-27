@@ -78,10 +78,10 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
           >
             <div className="bg-card rounded-3xl shadow-2xl border border-border/40 overflow-hidden">
               {/* Gradient header */}
-              <div className="relative bg-gradient-to-br from-primary via-primary/85 to-destructive/70 px-5 pt-7 pb-12 text-center overflow-hidden">
+              <div className="relative bg-gradient-to-br from-primary via-primary/85 to-destructive/70 px-5 pt-7 pb-16 text-center overflow-hidden">
                 {/* Decorative circles */}
-                <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-white/10" />
-                <div className="absolute -bottom-8 -left-8 w-24 h-24 rounded-full bg-white/8" />
+                <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-white/10 z-0" />
+                <div className="absolute -bottom-8 -left-8 w-24 h-24 rounded-full bg-white/8 z-0" />
 
                 {/* Close */}
                 <motion.button
@@ -113,8 +113,8 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
               </div>
 
               {/* Features grid – overlapping the header */}
-              <div className="px-4 -mt-6">
-                <motion.div variants={itemVariants} className="grid grid-cols-4 gap-2">
+              <div className="px-4 -mt-8 relative z-10">
+                <motion.div variants={itemVariants} className="grid grid-cols-4 gap-2.5">
                   {features.map((f, i) => (
                     <motion.div
                       key={i}
