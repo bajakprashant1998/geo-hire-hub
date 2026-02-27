@@ -9,59 +9,30 @@ import { Progress } from '@/components/ui/progress';
 import {
   ArrowLeft, Briefcase, Users, Mail, Eye, EyeOff, User, MapPin, Phone, Building2,
   Upload, X, Loader2, CheckCircle2, AlertCircle, FileText, Lock, Shield, MessageCircle,
+  Sparkles, TrendingUp, Globe2, Award, Zap,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable/index';
 import { useGeolocation } from '@/hooks/useGeolocation';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { SEOHead } from '@/components/SEOHead';
 import { InternationalPhoneInput } from '@/components/InternationalPhoneInput';
 
 const SECTORS = [
-  'Accounting & Auditing',
-  'Aerospace & Defense',
-  'Agriculture & Farming',
-  'Architecture & Design',
-  'Automotive',
-  'Aviation & Airlines',
-  'Banking & Financial Services',
-  'Biotechnology',
-  'Chemical & Petrochemical',
-  'Construction & Infrastructure',
-  'Consulting & Advisory',
-  'E-Commerce',
-  'Education & Training',
-  'Energy & Utilities',
-  'Engineering',
-  'Entertainment & Media',
-  'Environmental Services',
-  'Fashion & Apparel',
-  'Food & Beverage',
-  'Government & Public Sector',
-  'Healthcare & Pharmaceuticals',
-  'Hospitality & Tourism',
-  'Human Resources & Staffing',
-  'Information Technology',
-  'Insurance',
-  'Legal Services',
-  'Logistics & Supply Chain',
-  'Manufacturing',
-  'Marketing & Advertising',
-  'Mining & Metals',
-  'NGO & Non-Profit',
-  'Oil & Gas',
-  'Printing & Publishing',
-  'Real Estate & Property',
-  'Retail & Wholesale',
-  'Security Services',
-  'Shipping & Maritime',
-  'Sports & Fitness',
-  'Telecommunications',
-  'Textiles',
-  'Transportation',
-  'Travel & Leisure',
-  'Other',
+  'Accounting & Auditing', 'Aerospace & Defense', 'Agriculture & Farming',
+  'Architecture & Design', 'Automotive', 'Aviation & Airlines',
+  'Banking & Financial Services', 'Biotechnology', 'Chemical & Petrochemical',
+  'Construction & Infrastructure', 'Consulting & Advisory', 'E-Commerce',
+  'Education & Training', 'Energy & Utilities', 'Engineering',
+  'Entertainment & Media', 'Environmental Services', 'Fashion & Apparel',
+  'Food & Beverage', 'Government & Public Sector', 'Healthcare & Pharmaceuticals',
+  'Hospitality & Tourism', 'Human Resources & Staffing', 'Information Technology',
+  'Insurance', 'Legal Services', 'Logistics & Supply Chain', 'Manufacturing',
+  'Marketing & Advertising', 'Mining & Metals', 'NGO & Non-Profit', 'Oil & Gas',
+  'Printing & Publishing', 'Real Estate & Property', 'Retail & Wholesale',
+  'Security Services', 'Shipping & Maritime', 'Sports & Fitness',
+  'Telecommunications', 'Textiles', 'Transportation', 'Travel & Leisure', 'Other',
 ];
 
 const Signup = () => {
@@ -86,6 +57,7 @@ const Signup = () => {
   const [locationCaptured, setLocationCaptured] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [focusedField, setFocusedField] = useState<string | null>(null);
 
   useEffect(() => {
     if (!geolocation.loading && geolocation.latitude && geolocation.longitude) {
@@ -93,7 +65,6 @@ const Signup = () => {
     }
   }, [geolocation]);
 
-  // Password strength meter
   const passwordStrength = useMemo(() => {
     if (!password) return { score: 0, label: '', color: '' };
     let score = 0;
@@ -102,14 +73,12 @@ const Signup = () => {
     if (/[a-z]/.test(password)) score++;
     if (/[0-9]/.test(password)) score++;
     if (/[^A-Za-z0-9]/.test(password)) score++;
-
     if (score <= 2) return { score: score * 20, label: 'Weak', color: 'bg-destructive' };
     if (score <= 3) return { score: score * 20, label: 'Fair', color: 'bg-warning' };
     if (score <= 4) return { score: score * 20, label: 'Good', color: 'bg-primary' };
     return { score: 100, label: 'Strong', color: 'bg-[hsl(var(--success))]' };
   }, [password]);
 
-  // Step progress (visual only)
   const completionPercent = useMemo(() => {
     let filled = 0;
     const total = userType === 'employer' ? 7 : 6;
@@ -165,43 +134,33 @@ const Signup = () => {
     if (password.length < 8) { toast.error('Password must be at least 8 characters long'); return; }
     if (!/[A-Z]/.test(password) || !/[0-9]/.test(password)) { toast.error('Password must contain at least one uppercase letter and one number'); return; }
     if (password !== confirmPassword) { toast.error('Passwords do not match'); return; }
-
     const phoneDigits = phone.replace(/[^\d]/g, '');
     if (phoneDigits.length > 3 && (phoneDigits.length < 7 || phoneDigits.length > 15)) {
-      toast.error('Please enter a valid phone number (7-15 digits)');
-      return;
+      toast.error('Please enter a valid phone number (7-15 digits)'); return;
     }
-
     if (!termsAccepted) { toast.error('Please accept the Terms and Conditions'); return; }
 
     setLoading(true);
     try {
       const fullName = `${firstName} ${lastName}`.trim();
       const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
+        email, password,
         options: {
           emailRedirectTo: window.location.origin,
           data: {
-            full_name: fullName,
-            user_type: userType,
-            phone: phone.trim(),
-            whatsapp_number: whatsappNumber.trim(),
-            sector,
+            full_name: fullName, user_type: userType, phone: phone.trim(),
+            whatsapp_number: whatsappNumber.trim(), sector,
             ...(userType === 'employer' ? { organization_name: organizationName } : {}),
           },
         },
       });
       if (error) throw error;
-
       const user = data?.user;
       if (user && geolocation.latitude && geolocation.longitude) {
         await supabase.from('profiles').update({
-          latitude: geolocation.latitude,
-          longitude: geolocation.longitude,
+          latitude: geolocation.latitude, longitude: geolocation.longitude,
         }).eq('user_id', user.id);
       }
-
       sessionStorage.setItem('pendingVerificationEmail', email);
       toast.success('Account created! Please check your inbox for the verification link.');
       navigate('/verify-email');
@@ -213,94 +172,230 @@ const Signup = () => {
     }
   };
 
+  const candidatePerks = [
+    { icon: MapPin, title: 'Location Matching', desc: 'Jobs near you' },
+    { icon: Sparkles, title: 'AI Resume Builder', desc: 'Stand out instantly' },
+    { icon: TrendingUp, title: 'Career Tracking', desc: 'Monitor progress' },
+    { icon: Zap, title: 'Auto Apply', desc: 'Save your time' },
+  ];
+
+  const employerPerks = [
+    { icon: Globe2, title: 'Global Talent Pool', desc: 'Find the best fit' },
+    { icon: Award, title: 'Verified Profiles', desc: 'Quality candidates' },
+    { icon: Sparkles, title: 'AI Screening', desc: 'Smart shortlisting' },
+    { icon: TrendingUp, title: 'Hiring Analytics', desc: 'Data-driven hiring' },
+  ];
+
+  const perks = userType === 'employer' ? employerPerks : candidatePerks;
+
+  const InputField = ({ id, icon: Icon, label, required, type = 'text', placeholder, value, onChange, children }: any) => (
+    <div className="space-y-1.5">
+      <Label htmlFor={id} className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        {label} {required && <span className="text-destructive">*</span>}
+      </Label>
+      <div className="relative">
+        <Icon className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200 ${focusedField === id ? 'text-primary' : 'text-muted-foreground'}`} />
+        <Input
+          id={id} type={type} placeholder={placeholder} value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onFocus={() => setFocusedField(id)}
+          onBlur={() => setFocusedField(null)}
+          className="h-11 pl-10 text-sm border-border/50 rounded-xl bg-background/50 focus:bg-background focus:border-primary/50 transition-all duration-200"
+          required={required}
+        />
+        {children}
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen flex">
       <SEOHead title="Sign Up | HireForJob" description="Create your HireForJob account. Join as a job seeker or employer to find opportunities and talent near you." canonicalUrl="https://www.hireforjob.com/signup" />
 
-      {/* Left side - Branding */}
-      <div className="hidden lg:flex lg:w-5/12 bg-gradient-to-br from-primary via-primary/90 to-primary/80 relative overflow-hidden">
-        <div className="absolute inset-0">
-          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 0.1, scale: 1 }} transition={{ duration: 1.5 }} className="absolute top-20 left-10 w-72 h-72 bg-white rounded-full blur-3xl" />
-          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 0.08, scale: 1 }} transition={{ duration: 1.5, delay: 0.3 }} className="absolute bottom-20 right-10 w-96 h-96 bg-white rounded-full blur-3xl" />
-          <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 0.06, scale: 1 }} transition={{ duration: 1.5, delay: 0.6 }} className="absolute top-1/2 left-1/3 w-64 h-64 bg-white rounded-full blur-3xl" />
-        </div>
+      {/* Left side - Premium Branding */}
+      <div className="hidden lg:flex lg:w-[45%] relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-primary/70" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-primary/50 via-transparent to-transparent" />
 
-        <div className="relative z-10 flex flex-col justify-center px-12 xl:px-16">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-            <div className="flex items-center gap-3 mb-12">
-              <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center border border-white/30">
-                <MapPin className="w-8 h-8 text-primary-foreground" />
+        {/* Animated orbs */}
+        <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.08, 0.15, 0.08] }} transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }} className="absolute top-16 left-8 w-80 h-80 bg-white rounded-full blur-[100px]" />
+        <motion.div animate={{ scale: [1.2, 1, 1.2], opacity: [0.06, 0.12, 0.06] }} transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }} className="absolute bottom-16 right-8 w-96 h-96 bg-white rounded-full blur-[120px]" />
+        <motion.div animate={{ y: [0, -20, 0], opacity: [0.04, 0.1, 0.04] }} transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }} className="absolute top-1/2 left-1/3 w-64 h-64 bg-white rounded-full blur-[80px]" />
+
+        {/* Grid pattern */}
+        <div className="absolute inset-0 opacity-[0.03]" style={{
+          backgroundImage: 'linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)',
+          backgroundSize: '60px 60px'
+        }} />
+
+        <div className="relative z-10 flex flex-col justify-between px-12 xl:px-16 py-12 w-full">
+          {/* Logo */}
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 shadow-lg shadow-black/10">
+                <MapPin className="w-6 h-6 text-white" />
               </div>
-              <span className="font-bold text-3xl text-primary-foreground">Hire for Job</span>
-            </div>
-
-            <h1 className="text-4xl xl:text-5xl font-bold text-white leading-tight mb-6">
-              Start Your<br /><span className="text-white/90">Career Journey</span>
-            </h1>
-            <p className="text-lg text-white/80 mb-12 max-w-md">
-              Join thousands of professionals finding their dream jobs through our location-based platform.
-            </p>
-
-            <div className="space-y-4">
-              {['Location-based job matching', 'AI-powered resume builder', 'Direct employer connections'].map((f, i) => (
-                <motion.div key={f} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.2 + i * 0.1 }} className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                    <CheckCircle2 className="w-5 h-5 text-white" />
-                  </div>
-                  <span className="text-white/90">{f}</span>
-                </motion.div>
-              ))}
+              <span className="font-bold text-2xl text-white tracking-tight">Hire for Job</span>
             </div>
           </motion.div>
+
+          {/* Hero */}
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.2 }} className="space-y-8">
+            <div>
+              <AnimatePresence mode="wait">
+                <motion.h1
+                  key={userType}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.3 }}
+                  className="text-4xl xl:text-5xl font-extrabold text-white leading-[1.1] tracking-tight"
+                >
+                  {userType === 'candidate' ? (
+                    <>Launch Your<br /><span className="bg-gradient-to-r from-white via-white/90 to-white/70 bg-clip-text text-transparent">Dream Career</span><br />Today</>
+                  ) : (
+                    <>Find Your<br /><span className="bg-gradient-to-r from-white via-white/90 to-white/70 bg-clip-text text-transparent">Perfect Hire</span><br />Faster</>
+                  )}
+                </motion.h1>
+              </AnimatePresence>
+              <p className="text-lg text-white/70 mt-6 max-w-lg leading-relaxed">
+                {userType === 'candidate'
+                  ? 'Create your profile in minutes and let AI match you with the best opportunities near you.'
+                  : 'Post jobs, discover verified talent, and hire smarter with our AI-powered platform.'
+                }
+              </p>
+            </div>
+
+            {/* Feature pills - animated per userType */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={userType}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="grid grid-cols-2 gap-3"
+              >
+                {perks.map((f, i) => (
+                  <motion.div
+                    key={f.title}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.4, delay: i * 0.08 }}
+                    className="flex items-center gap-3 bg-white/10 backdrop-blur-sm border border-white/15 rounded-xl px-4 py-3"
+                  >
+                    <div className="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center flex-shrink-0">
+                      <f.icon className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-white">{f.title}</p>
+                      <p className="text-xs text-white/60">{f.desc}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </AnimatePresence>
+          </motion.div>
+
+          {/* Testimonial / social proof */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+            className="bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl px-6 py-5"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className="flex -space-x-2">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="w-8 h-8 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center">
+                    <User className="w-3.5 h-3.5 text-white/70" />
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <svg key={i} className="w-3.5 h-3.5 text-yellow-300 fill-current" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                ))}
+              </div>
+            </div>
+            <p className="text-sm text-white/80 italic leading-relaxed">
+              "I found my dream job within a week of signing up. The location-based matching is a game-changer!"
+            </p>
+            <p className="text-xs text-white/50 mt-2 font-medium">— Priya S., Software Engineer</p>
+          </motion.div>
         </div>
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-primary/50 to-transparent" />
       </div>
 
       {/* Right side - Signup Form */}
-      <div className="w-full lg:w-7/12 flex items-start justify-center p-6 sm:p-8 lg:p-12 bg-background overflow-y-auto">
-        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-xl space-y-5">
-          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group">
+      <div className="w-full lg:w-[55%] flex items-start justify-center p-6 sm:p-8 lg:p-10 bg-background overflow-y-auto relative">
+        {/* Background decoration */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/3 rounded-full blur-[80px] translate-y-1/2 -translate-x-1/2" />
+
+        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-xl space-y-5 relative z-10">
+          <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group text-sm">
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             Back to map
           </Link>
 
+          {/* Mobile logo */}
           <div className="flex lg:hidden items-center gap-3 mb-2">
-            <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
-              <MapPin className="w-6 h-6 text-primary-foreground" />
+            <div className="w-11 h-11 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/25">
+              <MapPin className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="font-bold text-2xl">Hire for Job</span>
+            <span className="font-bold text-xl tracking-tight">Hire for Job</span>
           </div>
 
-          {/* Glassmorphism card */}
-          <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-6 space-y-5 shadow-lg">
-            <div>
-              <h2 className="text-3xl font-bold text-foreground">Create your account</h2>
-              <p className="mt-1 text-muted-foreground">Join us and find your perfect opportunity</p>
-            </div>
-
-            {/* Progress */}
-            <div className="space-y-1.5">
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Profile completion</span>
-                <span>{completionPercent}%</span>
+          {/* Form card */}
+          <div className="bg-card/60 backdrop-blur-xl border border-border/50 rounded-3xl p-7 space-y-5 shadow-xl shadow-black/5">
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-foreground tracking-tight">Create your account</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Join and discover your perfect match</p>
               </div>
-              <Progress value={completionPercent} className="h-2" />
+              {/* Completion badge */}
+              <div className="flex items-center gap-2 bg-muted/50 rounded-full px-3 py-1.5">
+                <div className="relative w-8 h-8">
+                  <svg className="w-8 h-8 -rotate-90" viewBox="0 0 36 36">
+                    <circle cx="18" cy="18" r="15" fill="none" strokeWidth="3" className="stroke-border/30" />
+                    <circle cx="18" cy="18" r="15" fill="none" strokeWidth="3" className="stroke-primary" strokeDasharray={`${completionPercent * 0.94} 100`} strokeLinecap="round" />
+                  </svg>
+                  <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-foreground">{completionPercent}%</span>
+                </div>
+              </div>
             </div>
 
             {/* User type toggle */}
-            <div className="flex bg-secondary rounded-xl p-1.5">
-              <button type="button" onClick={() => setUserType('candidate')}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${userType === 'candidate' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
-                <Users className="w-4 h-4" /> Job Seeker
-              </button>
-              <button type="button" onClick={() => setUserType('employer')}
-                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${userType === 'employer' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
-                <Briefcase className="w-4 h-4" /> Employer
-              </button>
+            <div className="flex bg-muted/50 rounded-xl p-1">
+              {[
+                { type: 'candidate' as const, icon: Users, label: 'Job Seeker' },
+                { type: 'employer' as const, icon: Briefcase, label: 'Employer' },
+              ].map((tab) => (
+                <button
+                  key={tab.type}
+                  type="button"
+                  onClick={() => setUserType(tab.type)}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${
+                    userType === tab.type
+                      ? 'bg-background text-foreground shadow-md shadow-black/5'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <tab.icon className="w-4 h-4" />
+                  {tab.label}
+                </button>
+              ))}
             </div>
 
             {/* Google Sign Up */}
-            <Button type="button" variant="outline" className="w-full h-12 text-base font-medium border-2 gap-3" onClick={handleGoogleSignup} disabled={googleLoading}>
+            <Button
+              type="button" variant="outline"
+              className="w-full h-12 text-sm font-medium border-2 gap-3 rounded-xl hover:bg-muted/50 transition-all duration-200 hover:shadow-md"
+              onClick={handleGoogleSignup} disabled={googleLoading}
+            >
               {googleLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -312,117 +407,140 @@ const Signup = () => {
               Continue with Google
             </Button>
 
+            {/* Divider */}
             <div className="relative">
-              <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+              <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-border/50" /></div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card/50 px-2 text-muted-foreground">Or continue with email</span>
+                <span className="bg-card/60 px-3 text-muted-foreground font-medium tracking-wider">or</span>
               </div>
             </div>
 
             <form onSubmit={handleSignup} className="space-y-4">
               {/* Section: Personal Info */}
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Personal Information</p>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="firstName" className="text-sm font-medium">First Name <span className="text-destructive">*</span></Label>
-                  <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input id="firstName" type="text" placeholder="John" value={firstName} onChange={(e) => setFirstName(e.target.value)} className="h-12 pl-11 text-base border-2 focus:border-primary transition-colors" required />
-                  </div>
+              <div className="flex items-center gap-2 pt-1">
+                <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
+                  <User className="w-3.5 h-3.5 text-primary" />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName" className="text-sm font-medium">Last Name <span className="text-destructive">*</span></Label>
-                  <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input id="lastName" type="text" placeholder="Doe" value={lastName} onChange={(e) => setLastName(e.target.value)} className="h-12 pl-11 text-base border-2 focus:border-primary transition-colors" required />
-                  </div>
-                </div>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Personal Information</span>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium">Email address <span className="text-destructive">*</span></Label>
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} className="h-12 pl-12 text-base border-2 focus:border-primary transition-colors" required />
-                </div>
+              <div className="grid grid-cols-2 gap-3">
+                <InputField id="firstName" icon={User} label="First Name" required placeholder="John" value={firstName} onChange={setFirstName} />
+                <InputField id="lastName" icon={User} label="Last Name" required placeholder="Doe" value={lastName} onChange={setLastName} />
               </div>
+
+              <InputField id="email" icon={Mail} label="Email Address" required type="email" placeholder="you@example.com" value={email} onChange={setEmail} />
 
               {/* Section: Security */}
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider pt-2">Security</p>
+              <div className="flex items-center gap-2 pt-2">
+                <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
+                  <Lock className="w-3.5 h-3.5 text-primary" />
+                </div>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Security</span>
+              </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-sm font-medium">Password <span className="text-destructive">*</span></Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="password" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Password <span className="text-destructive">*</span>
+                  </Label>
                   <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input id="password" type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="h-12 pl-11 pr-11 text-base border-2 focus:border-primary transition-colors" minLength={6} required />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                    <Lock className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200 ${focusedField === 'password' ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <Input id="password" type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      onFocus={() => setFocusedField('password')}
+                      onBlur={() => setFocusedField(null)}
+                      className="h-11 pl-10 pr-10 text-sm border-border/50 rounded-xl bg-background/50 focus:bg-background focus:border-primary/50 transition-all duration-200" minLength={6} required />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-sm font-medium">Confirm Password <span className="text-destructive">*</span></Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="confirmPassword" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Confirm <span className="text-destructive">*</span>
+                  </Label>
                   <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input id="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="h-12 pl-11 pr-11 text-base border-2 focus:border-primary transition-colors" minLength={6} required />
-                    <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                    <Lock className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200 ${focusedField === 'confirmPassword' ? 'text-primary' : 'text-muted-foreground'}`} />
+                    <Input id="confirmPassword" type={showConfirmPassword ? 'text' : 'password'} placeholder="••••••••" value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      onFocus={() => setFocusedField('confirmPassword')}
+                      onBlur={() => setFocusedField(null)}
+                      className="h-11 pl-10 pr-10 text-sm border-border/50 rounded-xl bg-background/50 focus:bg-background focus:border-primary/50 transition-all duration-200" minLength={6} required />
+                    <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                       {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
               </div>
 
-              {/* Password strength meter */}
-              {password && (
-                <div className="space-y-1">
-                  <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full transition-all duration-300 ${passwordStrength.color}`} style={{ width: `${passwordStrength.score}%` }} />
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Password strength: <span className="font-medium">{passwordStrength.label}</span>
-                    {passwordStrength.score < 60 && ' — Use 8+ chars, uppercase, number & special char'}
-                  </p>
-                </div>
-              )}
+              {/* Password strength */}
+              <AnimatePresence>
+                {password && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-1 overflow-hidden">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full transition-all duration-500 ${passwordStrength.color}`} style={{ width: `${passwordStrength.score}%` }} />
+                      </div>
+                      <span className="text-xs font-medium text-muted-foreground w-12">{passwordStrength.label}</span>
+                    </div>
+                    {passwordStrength.score < 60 && (
+                      <p className="text-[11px] text-muted-foreground">Use 8+ chars, uppercase, number & special char</p>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Section: Contact */}
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider pt-2">Contact Details</p>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium flex items-center gap-1.5">
-                  <Phone className="w-3.5 h-3.5" /> Phone Number
-                </Label>
-                <InternationalPhoneInput value={phone} onChange={setPhone} placeholder="81234 56789" />
+              <div className="flex items-center gap-2 pt-2">
+                <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
+                  <Phone className="w-3.5 h-3.5 text-primary" />
+                </div>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Contact Details</span>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-sm font-medium flex items-center gap-1.5">
-                  <MessageCircle className="w-3.5 h-3.5" /> WhatsApp Number
-                </Label>
-                <InternationalPhoneInput value={whatsappNumber} onChange={setWhatsappNumber} placeholder="WhatsApp number" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <Phone className="w-3 h-3" /> Phone
+                  </Label>
+                  <InternationalPhoneInput value={phone} onChange={setPhone} placeholder="81234 56789" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <MessageCircle className="w-3 h-3" /> WhatsApp
+                  </Label>
+                  <InternationalPhoneInput value={whatsappNumber} onChange={setWhatsappNumber} placeholder="WhatsApp number" />
+                </div>
               </div>
 
-              {/* Organization - Employer Only */}
-              {userType === 'employer' && (
-                <>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider pt-2">Organization</p>
-                  <div className="space-y-2">
-                    <Label htmlFor="organizationName" className="text-sm font-medium">Organization Name <span className="text-destructive">*</span></Label>
-                    <div className="relative">
-                      <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                      <Input id="organizationName" type="text" placeholder="Your company name" value={organizationName} onChange={(e) => setOrganizationName(e.target.value)} className="h-12 pl-12 text-base border-2 focus:border-primary transition-colors" required={userType === 'employer'} />
+              {/* Employer-specific fields */}
+              <AnimatePresence>
+                {userType === 'employer' && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-4 overflow-hidden"
+                  >
+                    <div className="flex items-center gap-2 pt-2">
+                      <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
+                        <Building2 className="w-3.5 h-3.5 text-primary" />
+                      </div>
+                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Organization</span>
                     </div>
-                  </div>
-                </>
-              )}
+                    <InputField id="organizationName" icon={Building2} label="Company Name" required placeholder="Your company name" value={organizationName} onChange={setOrganizationName} />
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-              {/* Sector */}
-              <div className="space-y-2">
-                <Label htmlFor="sector" className="text-sm font-medium">Select Industry</Label>
+              {/* Industry Select */}
+              <div className="space-y-1.5">
+                <Label htmlFor="sector" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Industry
+                </Label>
                 <Select value={sector} onValueChange={setSector}>
-                  <SelectTrigger className="h-12 border-2">
+                  <SelectTrigger className="h-11 border-border/50 rounded-xl bg-background/50">
                     <SelectValue placeholder="Choose your industry" />
                   </SelectTrigger>
                   <SelectContent className="max-h-[300px]">
@@ -434,84 +552,104 @@ const Signup = () => {
               </div>
 
               {/* Resume Upload - Candidate Only */}
-              {userType === 'candidate' && (
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Upload Resume</Label>
-                  <div onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
-                    className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all duration-300 ${isDragging ? 'border-primary bg-primary/5 scale-[1.01]' : resumeFile ? 'border-[hsl(var(--success))] bg-[hsl(var(--success))]/5' : 'border-border hover:border-primary/50 hover:bg-secondary/50'}`}>
-                    {resumeFile ? (
-                      <div className="flex items-center justify-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-[hsl(var(--success))]/10 flex items-center justify-center">
-                          <FileText className="w-5 h-5 text-[hsl(var(--success))]" />
+              <AnimatePresence>
+                {userType === 'candidate' && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-1.5 overflow-hidden"
+                  >
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Resume</Label>
+                    <div onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
+                      className={`relative border-2 border-dashed rounded-xl p-5 text-center transition-all duration-300 ${isDragging ? 'border-primary bg-primary/5 scale-[1.01]' : resumeFile ? 'border-[hsl(var(--success))] bg-[hsl(var(--success))]/5' : 'border-border/50 hover:border-primary/40 hover:bg-muted/30'}`}>
+                      {resumeFile ? (
+                        <div className="flex items-center justify-center gap-3">
+                          <div className="w-9 h-9 rounded-lg bg-[hsl(var(--success))]/10 flex items-center justify-center">
+                            <FileText className="w-4 h-4 text-[hsl(var(--success))]" />
+                          </div>
+                          <span className="text-sm font-medium truncate max-w-[200px]">{resumeFile.name}</span>
+                          <button type="button" onClick={() => setResumeFile(null)} className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors">
+                            <X className="w-4 h-4 text-destructive" />
+                          </button>
                         </div>
-                        <span className="text-sm font-medium truncate max-w-[200px]">{resumeFile.name}</span>
-                        <button type="button" onClick={() => setResumeFile(null)} className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors">
-                          <X className="w-4 h-4 text-destructive" />
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Drop your resume or{' '}
-                          <button type="button" onClick={() => document.getElementById('resumeInput')?.click()} className="text-primary font-medium hover:underline">browse</button>
-                        </p>
-                        <p className="text-xs text-muted-foreground">Max 5MB • .doc, .docx, .pdf</p>
-                      </>
-                    )}
-                    <input id="resumeInput" type="file" accept=".doc,.docx,.pdf" onChange={handleFileChange} className="hidden" />
-                  </div>
-                </div>
-              )}
+                      ) : (
+                        <>
+                          <Upload className="w-7 h-7 text-muted-foreground mx-auto mb-2" />
+                          <p className="text-sm text-muted-foreground">
+                            Drop your resume or{' '}
+                            <button type="button" onClick={() => document.getElementById('resumeInput')?.click()} className="text-primary font-medium hover:underline">browse</button>
+                          </p>
+                          <p className="text-xs text-muted-foreground/70 mt-1">Max 5MB • .doc, .docx, .pdf</p>
+                        </>
+                      )}
+                      <input id="resumeInput" type="file" accept=".doc,.docx,.pdf" onChange={handleFileChange} className="hidden" />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Location status */}
-              <div className={`p-3 rounded-lg flex items-center gap-3 transition-all text-sm ${locationCaptured ? 'bg-[hsl(var(--success))]/10 border border-[hsl(var(--success))]/20' : geolocation.loading ? 'bg-warning/10 border border-warning/20' : 'bg-muted border border-border'}`}>
+              <div className={`p-3 rounded-xl flex items-center gap-3 transition-all text-sm ${locationCaptured ? 'bg-[hsl(var(--success))]/10 border border-[hsl(var(--success))]/20' : geolocation.loading ? 'bg-warning/10 border border-warning/20' : 'bg-muted/30 border border-border/50'}`}>
                 {geolocation.loading ? <Loader2 className="w-4 h-4 text-warning animate-spin" /> : locationCaptured ? <CheckCircle2 className="w-4 h-4 text-[hsl(var(--success))]" /> : <AlertCircle className="w-4 h-4 text-muted-foreground" />}
-                <span className={`flex-1 ${locationCaptured ? 'text-[hsl(var(--success))]' : geolocation.loading ? 'text-warning' : 'text-muted-foreground'}`}>
+                <span className={`flex-1 text-sm ${locationCaptured ? 'text-[hsl(var(--success))]' : geolocation.loading ? 'text-warning' : 'text-muted-foreground'}`}>
                   {geolocation.loading ? 'Detecting location...' : locationCaptured ? 'Location captured' : 'Enable location for map placement'}
                 </span>
                 <MapPin className={`w-4 h-4 ${locationCaptured ? 'text-[hsl(var(--success))]' : 'text-muted-foreground'}`} />
               </div>
 
               {/* Terms */}
-              <div className="flex items-start gap-3 p-3 rounded-lg bg-secondary/50">
+              <div className="flex items-start gap-3 p-3 rounded-xl bg-muted/30 border border-border/30">
                 <Checkbox id="terms" checked={termsAccepted} onCheckedChange={(checked) => setTermsAccepted(checked as boolean)} className="mt-0.5" />
                 <label htmlFor="terms" className="text-sm text-muted-foreground cursor-pointer leading-relaxed">
                   I agree to the{' '}
-                  <Link to="/terms" className="text-primary hover:underline font-medium">Terms of Service</Link>{' '}and{' '}
-                  <Link to="/privacy" className="text-primary hover:underline font-medium">Privacy Policy</Link>
+                  <Link to="/terms" className="text-primary hover:text-primary/80 font-medium transition-colors">Terms</Link>{' '}and{' '}
+                  <Link to="/privacy" className="text-primary hover:text-primary/80 font-medium transition-colors">Privacy Policy</Link>
                 </label>
               </div>
 
-              <Button type="submit" className="w-full h-12 text-base font-semibold bg-primary hover:bg-primary/90 transition-all duration-200" disabled={loading}>
-                {loading ? (
-                  <div className="flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin" /> Creating account...</div>
-                ) : 'Create Account'}
+              <Button
+                type="submit"
+                className="w-full h-11 text-sm font-semibold rounded-xl shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300"
+                disabled={loading}
+              >
+                <AnimatePresence mode="wait">
+                  {loading ? (
+                    <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" /> Creating account...
+                    </motion.div>
+                  ) : (
+                    <motion.span key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                      Create Account
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </Button>
             </form>
 
             {/* Trust badges */}
-            <div className="flex items-center justify-center gap-4 pt-2">
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Shield className="w-3.5 h-3.5 text-primary" />
-                <span>SSL Secured</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
-                <span>Data Protected</span>
-              </div>
+            <div className="flex items-center justify-center gap-5 pt-1">
+              {[
+                { icon: Shield, label: 'SSL Secured' },
+                { icon: CheckCircle2, label: 'Data Protected' },
+              ].map((badge) => (
+                <div key={badge.label} className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <badge.icon className="w-3.5 h-3.5 text-primary/70" />
+                  <span>{badge.label}</span>
+                </div>
+              ))}
             </div>
           </div>
 
-          <p className="text-center text-muted-foreground">
+          <p className="text-center text-sm text-muted-foreground">
             Already have an account?{' '}
-            <Link to="/login" className="text-primary font-semibold hover:underline">Sign in</Link>
+            <Link to="/login" className="text-primary font-semibold hover:text-primary/80 transition-colors">Sign in</Link>
           </p>
 
-          <p className="text-center text-xs text-muted-foreground pb-8">
+          <p className="text-center text-xs text-muted-foreground/70 pb-8">
             By creating an account, you agree to our{' '}
-            <Link to="/terms" className="underline hover:text-foreground">Terms of Service</Link>{' '}and{' '}
-            <Link to="/privacy" className="underline hover:text-foreground">Privacy Policy</Link>
+            <Link to="/terms" className="underline hover:text-foreground transition-colors">Terms</Link>{' '}and{' '}
+            <Link to="/privacy" className="underline hover:text-foreground transition-colors">Privacy Policy</Link>
           </p>
         </motion.div>
       </div>
