@@ -1,93 +1,145 @@
 
 
-## Plan: Automated Email Notification System
+## AI-Driven Employer Verification & Auto-Approval System
 
-### Current State
-- `email_templates` table exists with 5 templates (welcome, password_reset, application_received, application_status, interview_scheduled)
-- `send-notification-email` edge function exists but uses a hardcoded HTML template instead of the DB templates
-- `notification_preferences` table exists with `email_notifications_enabled` toggle
-- DB triggers already create in-app notifications (`notify_interview_event`, `notify_application_status_change`) but don't trigger emails
-- Admin email templates page exists at `/admin/email-templates`
-- No `email_logs` table exists for tracking sent emails
-- RESEND_API_KEY secret is configured
+This is a large, multi-layered feature. I recommend building it in phases to ship value incrementally. Here is the full plan:
 
-### What We'll Build
+---
 
-**1. Database: Add email_logs table + new templates**
-- Create `email_logs` table (id, template_key, recipient_email, recipient_user_id, subject, status, error_message, metadata, created_at)
-- RLS: admins can read all, users can read their own
-- Add missing templates: `job_application_submitted`, `new_message`, `employer_welcome`, `interview_request`, `job_post_approved`
+### Phase 1: Database Schema (Migration)
 
-**2. Rewrite `send-notification-email` edge function**
-- Fetch the matching template from `email_templates` by `template_key`
-- Replace `{{variables}}` with provided data
-- Wrap in a branded HTML shell (logo, primary color #4285F4, footer with unsubscribe link)
-- Log every send attempt to `email_logs` (success or failure)
-- Respect `notification_preferences` (existing logic)
-- Accept: `{ user_id, template_key, variables: Record<string, string> }`
+**New table: `employer_verification_checks`** - Stores each verification check result per employer.
 
-**3. Create `notify-by-email` DB trigger function**
-A new PL/pgSQL function + triggers that call the edge function via `pg_net` to send emails on key events:
-- **Application inserted** → email employer (`application_received`) + email candidate (`job_application_submitted`)
-- **Application status updated** → email candidate (`application_status`)
-- **Interview inserted** → email candidate (`interview_scheduled`) or employer (`interview_request`)
-- **Message inserted** → email recipient (`new_message`) — debounced by checking if last email for this conversation was <5min ago
+| Column | Type | Purpose |
+|--------|------|---------|
+| id | uuid PK | |
+| employer_id | uuid FK | Link to employer |
+| check_type | text | `document_ocr`, `domain_email`, `google_business`, `fraud_detection` |
+| status | text | `passed`, `failed`, `pending`, `skipped` |
+| score | integer | Points earned (0-40) |
+| details | jsonb | AI output, extracted data, match results |
+| created_at | timestamptz | |
 
-Since `pg_net` may not be available, we'll instead use a simpler approach: call the edge function from the existing DB trigger functions (`notify_application_status_change`, `notify_interview_event`) by extending the in-app notification inserts — and add a separate lightweight trigger on the `notifications` table that invokes the edge function.
+**New table: `employer_blacklist`** - Blocked domains, phone numbers, IPs.
 
-**4. Add notification-triggered email dispatch**
-- Create a DB trigger on `notifications` INSERT that calls `send-notification-email` via `net.http_post`
-- This means every in-app notification automatically gets an email (if user has emails enabled)
-- The trigger maps notification `type` → `template_key` and passes relevant variables
+| Column | Type |
+|--------|------|
+| id | uuid PK |
+| type | text (`domain`, `phone`, `ip`, `document_hash`) |
+| value | text |
+| reason | text |
+| created_by | uuid |
+| created_at | timestamptz |
 
-**5. Enhance admin email templates page**
-- Add "Email Logs" tab showing recent sends from `email_logs` with status, recipient, template, timestamp
-- Add "Send Test Email" button per template
-- Add template creation for missing notification types
+**Alter `employers` table** - Add columns:
 
-**6. Add candidate/employer-specific templates with branded HTML**
+- `trust_score` integer DEFAULT 0
+- `verification_method` text (null, `ai_auto`, `manual`)
+- `google_business_url` text
+- `google_business_verified` boolean DEFAULT false
+- `company_registration_url` text (document upload)
+- `gst_license_url` text (document upload)
+- `pan_url` text (document upload)
+- `last_verification_at` timestamptz
+- `next_reverification_at` timestamptz
 
-All templates will use a consistent branded wrapper:
-- Header: blue bar (#4285F4) with "Hire for Job" logo
-- Body: clean white card with content
-- CTA button: blue rounded button with contextual action text
-- Footer: "Manage notification preferences" link + unsubscribe
+**Add new `admin_settings` row**: `ai_verification` with value `{ auto_approval_enabled: true, google_business_mandatory: false, documents_mandatory: true, min_auto_approve_score: 80 }`
 
-### Files to Create/Modify
+**Add new `feature_flags` row**: `ai_employer_verification` (enabled: true)
 
-| File | Action |
-|------|--------|
-| Migration SQL | Create `email_logs` table, insert new templates, create trigger on `notifications` |
-| `supabase/functions/send-notification-email/index.ts` | Rewrite to use DB templates, log to `email_logs` |
-| `src/pages/admin/AdminEmailTemplates.tsx` | Add Email Logs tab, Send Test button |
+**RLS**: `employer_verification_checks` readable by admins and the employer's own user. `employer_blacklist` admin-only.
 
-### Technical Details
+---
 
-**send-notification-email flow:**
-```text
-Request { user_id, template_key, variables }
-  → Check notification_preferences
-  → Fetch email_templates by template_key
-  → Replace {{var}} placeholders
-  → Wrap in branded HTML shell
-  → Send via Resend API
-  → Log to email_logs (success/error)
-  → Return result
-```
+### Phase 2: Edge Function - `verify-employer`
 
-**Notification → Email trigger:**
-```text
-INSERT INTO notifications
-  → AFTER INSERT trigger
-  → Maps type to template_key
-  → Calls net.http_post to send-notification-email
-  → Passes user_id + inferred variables from notification data
-```
+A single backend function that orchestrates verification when triggered (after employer submits documents). Steps:
 
-**Template key mapping:**
-- `application_update` → `application_status` template
-- `interview_scheduled` / `interview_confirmed` → `interview_scheduled` template
-- `interview_request` → `interview_request` template
-- `new_message` → `new_message` template
-- Registration → called directly from signup edge function
+1. **Document AI Verification** (uses Gemini via Lovable AI)
+   - Receive document URLs from storage
+   - Send to Gemini vision model to extract: company name, registration number, address
+   - Cross-match with employer form data
+   - Check for duplicate document hashes in `employer_blacklist`
+   - Score: up to +40
+
+2. **Domain & Email Validation**
+   - Parse employer's `hr_contact_email` domain
+   - Compare with `website_url` domain
+   - Check against temporary email domain list (hardcoded list of ~50 disposable domains)
+   - Check domain against `employer_blacklist`
+   - Score: up to +20
+
+3. **Google Business Verification**
+   - If `google_business_url` provided, fetch the page via the URL
+   - Use Gemini to extract business name, address, phone from the page content
+   - Match against employer data
+   - Score: up to +30
+
+4. **Fraud Detection Layer**
+   - Check for duplicate company names in DB
+   - Check phone/email against `employer_blacklist`
+   - Check for same-day multiple registrations from similar data
+   - Score: up to -50 penalty
+
+5. **Final Decision**
+   - Sum all scores → `trust_score`
+   - 80+ → auto-approve (`verification_status = 'approved'`, `verification_method = 'ai_auto'`)
+   - 50-79 → limited access (keep `pending`, add note)
+   - Below 50 → flag for manual review, create `fraud_flags` entry
+   - Set `next_reverification_at` to 6 months from now
+   - Insert notification for admin with decision summary
+
+---
+
+### Phase 3: Employer-Facing UI Changes
+
+**Company Profile Section** (`CompanyProfileSection.tsx`):
+- Add upload fields for: Company Registration Certificate, GST/Business License, PAN (optional)
+- Add Google Business Profile URL input
+- Add "Submit for Verification" button that calls `verify-employer` edge function
+- Show verification progress: "Verification in Progress" → "AI Verified" / "Under Review"
+
+**Verification Badge** (`VerificationBadge.tsx`):
+- Add new statuses: `ai_verified`, `under_review`, `verification_in_progress`
+- Show "AI Verified Employer" + "Google Business Verified" sub-badges
+- Display on company profile, job postings, and candidate-facing views
+
+---
+
+### Phase 4: Admin Dashboard - AI Verification Panel
+
+**New admin page or tab in AdminEmployers**: `AI Verification Dashboard`
+
+- **Trust Score column** in employer table with color-coded score badge
+- **AI Decision Log**: expandable per-employer showing each `employer_verification_checks` entry with extracted data, match results, and scores
+- **Override controls**: Admin can manually approve/reject regardless of AI score
+- **Blacklist management**: Add/remove domains, phones, IPs to `employer_blacklist`
+- **Settings toggles** (in AdminSettings): AI Auto Approval ON/OFF, Google Business mandatory, Documents mandatory, minimum auto-approve score slider
+
+---
+
+### Phase 5: Re-verification System
+
+- Database function or cron job to flag employers where `next_reverification_at < now()`
+- Send notification to employer to re-submit documents
+- Admin dashboard shows "Re-verification Due" count
+
+---
+
+### Implementation Order
+
+1. Database migration (schema + seed settings)
+2. `verify-employer` edge function (core AI logic)
+3. Employer UI (document uploads + submit for verification)
+4. Admin UI (trust score display, decision logs, blacklist, settings)
+5. VerificationBadge updates (AI verified states)
+6. Re-verification cron setup
+
+### Technical Notes
+
+- Document AI uses Gemini vision (`google/gemini-2.5-flash`) via Lovable AI gateway - no additional API keys needed
+- Documents stored in existing `employer-documents` storage bucket (private)
+- Google Business verification does a lightweight URL fetch + AI extraction rather than requiring Google API keys
+- All verification actions logged to `admin_action_logs` for audit trail
+- Temporary email domain blocking uses a hardcoded list (~50 common disposable domains)
 
