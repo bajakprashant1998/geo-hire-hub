@@ -73,12 +73,10 @@ export const useMapData = ({ userLocation, radius, searchQuery }: UseMapDataProp
           profile_id,
           job_title,
           experience_years,
-          skills,
           profiles!inner (
             full_name,
             latitude,
             longitude,
-            avatar_url,
             is_visible_on_map
           )
         `)
@@ -98,10 +96,10 @@ export const useMapData = ({ userLocation, radius, searchQuery }: UseMapDataProp
           full_name: c.profiles.full_name,
           job_title: c.job_title,
           experience_years: c.experience_years || 0,
-          skills: c.skills || [],
+          skills: [],
           latitude: c.profiles.latitude,
           longitude: c.profiles.longitude,
-          avatar_url: c.profiles.avatar_url,
+          avatar_url: null,
           distance_km: calculateDistance(c.profiles.latitude, c.profiles.longitude),
         }))
         .filter((c: Candidate) => !c.distance_km || c.distance_km <= radius);
@@ -149,7 +147,6 @@ export const useMapData = ({ userLocation, radius, searchQuery }: UseMapDataProp
           id,
           employer_id,
           title,
-          description,
           salary_range,
           job_type,
           latitude,
@@ -172,7 +169,7 @@ export const useMapData = ({ userLocation, radius, searchQuery }: UseMapDataProp
           id: j.id,
           employer_id: j.employer_id,
           title: j.title,
-          description: j.description,
+          description: '',
           salary_range: j.salary_range,
           job_type: j.job_type || 'Full-time',
           latitude: j.latitude,
