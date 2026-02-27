@@ -188,25 +188,9 @@ const Signup = () => {
 
   const perks = userType === 'employer' ? employerPerks : candidatePerks;
 
-  const InputField = ({ id, icon: Icon, label, required, type = 'text', placeholder, value, onChange, children }: any) => (
-    <div className="space-y-1.5">
-      <Label htmlFor={id} className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        {label} {required && <span className="text-destructive">*</span>}
-      </Label>
-      <div className="relative">
-        <Icon className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200 ${focusedField === id ? 'text-primary' : 'text-muted-foreground'}`} />
-        <Input
-          id={id} type={type} placeholder={placeholder} value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onFocus={() => setFocusedField(id)}
-          onBlur={() => setFocusedField(null)}
-          className="h-11 pl-10 text-sm border-border/50 rounded-xl bg-background/50 focus:bg-background focus:border-primary/50 transition-all duration-200"
-          required={required}
-        />
-        {children}
-      </div>
-    </div>
-  );
+  const inputClass = "h-11 pl-10 text-sm border-border/50 rounded-xl bg-background/50 focus:bg-background focus:border-primary/50 transition-all duration-200";
+  const labelClass = "text-xs font-semibold uppercase tracking-wider text-muted-foreground";
+  const iconClass = (id: string) => `absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors duration-200 ${focusedField === id ? 'text-primary' : 'text-muted-foreground'}`;
 
   return (
     <div className="min-h-screen flex">
@@ -425,11 +409,29 @@ const Signup = () => {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <InputField id="firstName" icon={User} label="First Name" required placeholder="John" value={firstName} onChange={setFirstName} />
-                <InputField id="lastName" icon={User} label="Last Name" required placeholder="Doe" value={lastName} onChange={setLastName} />
+                <div className="space-y-1.5">
+                  <Label htmlFor="firstName" className={labelClass}>First Name <span className="text-destructive">*</span></Label>
+                  <div className="relative">
+                    <User className={iconClass('firstName')} />
+                    <Input id="firstName" type="text" placeholder="John" value={firstName} onChange={(e) => setFirstName(e.target.value)} onFocus={() => setFocusedField('firstName')} onBlur={() => setFocusedField(null)} className={inputClass} required />
+                  </div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="lastName" className={labelClass}>Last Name <span className="text-destructive">*</span></Label>
+                  <div className="relative">
+                    <User className={iconClass('lastName')} />
+                    <Input id="lastName" type="text" placeholder="Doe" value={lastName} onChange={(e) => setLastName(e.target.value)} onFocus={() => setFocusedField('lastName')} onBlur={() => setFocusedField(null)} className={inputClass} required />
+                  </div>
+                </div>
               </div>
 
-              <InputField id="email" icon={Mail} label="Email Address" required type="email" placeholder="you@example.com" value={email} onChange={setEmail} />
+              <div className="space-y-1.5">
+                <Label htmlFor="email" className={labelClass}>Email Address <span className="text-destructive">*</span></Label>
+                <div className="relative">
+                  <Mail className={iconClass('email')} />
+                  <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} onFocus={() => setFocusedField('email')} onBlur={() => setFocusedField(null)} className={inputClass} required />
+                </div>
+              </div>
 
               {/* Section: Security */}
               <div className="flex items-center gap-2 pt-2">
@@ -529,7 +531,13 @@ const Signup = () => {
                       </div>
                       <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Organization</span>
                     </div>
-                    <InputField id="organizationName" icon={Building2} label="Company Name" required placeholder="Your company name" value={organizationName} onChange={setOrganizationName} />
+                    <div className="space-y-1.5">
+                      <Label htmlFor="organizationName" className={labelClass}>Company Name <span className="text-destructive">*</span></Label>
+                      <div className="relative">
+                        <Building2 className={iconClass('organizationName')} />
+                        <Input id="organizationName" type="text" placeholder="Your company name" value={organizationName} onChange={(e) => setOrganizationName(e.target.value)} onFocus={() => setFocusedField('organizationName')} onBlur={() => setFocusedField(null)} className={inputClass} required={userType === 'employer'} />
+                      </div>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
