@@ -2314,6 +2314,14 @@ export type Database = {
       }
     }
     Functions: {
+      admin_delete_candidate: {
+        Args: { p_candidate_id: string }
+        Returns: undefined
+      }
+      admin_delete_employer: {
+        Args: { p_employer_id: string }
+        Returns: undefined
+      }
       calculate_employer_profile_completeness: {
         Args: { p_employer_id: string }
         Returns: number
