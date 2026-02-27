@@ -43,10 +43,10 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
   };
 
   const features = [
-    { icon: MapPin, text: 'Nearby Jobs', color: 'text-destructive bg-destructive/15' },
-    { icon: Sparkles, text: 'AI Matching', color: 'text-primary bg-primary/15' },
-    { icon: Shield, text: 'Verified', color: 'text-emerald-600 bg-emerald-500/15' },
-    { icon: TrendingUp, text: 'Real-time', color: 'text-amber-600 bg-amber-500/15' },
+    { icon: MapPin, text: 'Nearby Jobs', iconClass: 'text-destructive', bgClass: 'bg-destructive/20' },
+    { icon: Sparkles, text: 'AI Matching', iconClass: 'text-primary', bgClass: 'bg-primary/20' },
+    { icon: Shield, text: 'Verified', iconClass: 'text-[hsl(142,71%,35%)]', bgClass: 'bg-[hsl(142,71%,35%)]/20' },
+    { icon: TrendingUp, text: 'Real-time', iconClass: 'text-[hsl(38,92%,45%)]', bgClass: 'bg-[hsl(38,92%,45%)]/20' },
   ];
 
   return (
@@ -121,12 +121,12 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.35 + i * 0.06 }}
-                      className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-card border border-border/50 shadow-sm"
+                    className="flex flex-col items-center gap-2 p-3 rounded-xl bg-card border border-border shadow-md"
                     >
-                      <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center', f.color)}>
-                        <f.icon className="w-4 h-4" />
+                      <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', f.bgClass)}>
+                        <f.icon className={cn('w-5 h-5', f.iconClass)} />
                       </div>
-                      <span className="text-[10px] font-semibold text-muted-foreground leading-tight">{f.text}</span>
+                      <span className="text-[11px] font-bold text-foreground leading-tight">{f.text}</span>
                     </motion.div>
                   ))}
                 </motion.div>
