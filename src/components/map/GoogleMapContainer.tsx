@@ -333,14 +333,21 @@ const GoogleMapInner = ({
         key={`cluster-${mode}`}
         onLoad={(clusterer) => {
           clustererRef.current = clusterer;
-          // Attach hover listeners to clusters after each clustering pass
+          // Attach hover listeners to cluster DOM elements after clustering
           google.maps.event.addListener(clusterer, 'clusteringend', () => {
             const clusters = clusterer.getClusters();
             clusters.forEach((cluster: any) => {
-              const clusterMarker = cluster.clusterIcon_?.div_ || cluster.clusterIcon_?.element_;
-              if (!clusterMarker) return;
-              clusterMarker.style.cursor = 'pointer';
-              clusterMarker.addEventListener('mouseenter', () => {
+              // Try multiple internal API paths for different versions of markerclustererplus
+              const icon = cluster.clusterIcon_;
+              const el = icon?.div_ || icon?.element_ || icon?.div || icon?.container_;
+              if (!el) return;
+              el.style.cursor = 'pointer';
+
+              // Avoid duplicate listeners
+              if (el._spiderListenerAttached) return;
+              el._spiderListenerAttached = true;
+
+              el.addEventListener('mouseenter', () => {
                 if (clusterHoverTimeoutRef.current) {
                   clearTimeout(clusterHoverTimeoutRef.current);
                   clusterHoverTimeoutRef.current = null;
@@ -351,7 +358,7 @@ const GoogleMapInner = ({
                   setSpiderfiedCluster({ center, markers });
                 }
               });
-              clusterMarker.addEventListener('mouseleave', () => {
+              el.addEventListener('mouseleave', () => {
                 clusterHoverTimeoutRef.current = setTimeout(() => {
                   setSpiderfiedCluster(null);
                 }, 400);
