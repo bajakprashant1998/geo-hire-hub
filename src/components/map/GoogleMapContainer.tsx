@@ -7,6 +7,8 @@ import { GoogleMapsLoaderBoundary } from '@/components/map/GoogleMapsLoaderBound
 import { Loader2, MapPin, CheckCircle2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
+const MAPS_LIBRARIES: ('visualization')[] = ['visualization'];
+
 interface GoogleMapContainerProps {
   mode: ViewMode;
   candidates: Candidate[];
@@ -17,6 +19,7 @@ interface GoogleMapContainerProps {
   selectedItem: Candidate | Job | null;
   isEmployer?: boolean;
   centerTrigger?: number;
+  heatmapEnabled?: boolean;
 }
 
 const mapContainerStyle = {
@@ -149,19 +152,14 @@ const CustomMarker = ({
 // -------------------------------------------------------------
 
 // Inner component that only renders when we have the API key
-const GoogleMapInner = ({
-  mode,
-  candidates,
-  jobs,
-  userLocation,
-  radius,
-  onMarkerClick,
-  selectedItem,
-  isEmployer,
-  centerTrigger = 0,
-  apiKey,
-}: GoogleMapContainerProps & { apiKey: string }) => {
+const GoogleMapInner = (props: GoogleMapContainerProps & { apiKey: string }) => {
+  const {
+    mode, candidates, jobs, userLocation, radius,
+    onMarkerClick, selectedItem, isEmployer,
+    centerTrigger = 0, apiKey, heatmapEnabled = false,
+  } = props;
   const [map, setMap] = useState<google.maps.Map | null>(null);
+  const heatmapLayerRef = useRef<google.maps.visualization.HeatmapLayer | null>(null);
   const [hoveredItem, setHoveredItem] = useState<Candidate | Job | null>(null);
   const [spiderfiedCluster, setSpiderfiedCluster] = useState<{ center: google.maps.LatLng; markers: google.maps.Marker[] } | null>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -203,10 +201,9 @@ const GoogleMapInner = ({
   };
 
   const { isLoaded, loadError } = useJsApiLoader({
-    // Use a key-derived script id to avoid "different options" crashes during hot reloads
-    // or when the loader was previously initialized with an empty key.
     id: `google-map-script-${apiKey.slice(0, 8)}`,
     googleMapsApiKey: apiKey,
+    libraries: MAPS_LIBRARIES,
   });
 
   const center = useMemo(() => {
@@ -260,6 +257,42 @@ const GoogleMapInner = ({
 
     map.fitBounds(bounds, { top: 100, right: 50, bottom: 50, left: 50 });
   }, [map, mode, candidates, jobs, userLocation]);
+
+  // Heatmap layer
+  useEffect(() => {
+    if (!map || !isLoaded) return;
+
+    // Remove existing heatmap
+    if (heatmapLayerRef.current) {
+      heatmapLayerRef.current.setMap(null);
+      heatmapLayerRef.current = null;
+    }
+
+    if (!heatmapEnabled) return;
+
+    const points = (mode === 'hiring' ? candidates : jobs).map(item => ({
+      location: new google.maps.LatLng(item.latitude, item.longitude),
+      weight: 1,
+    }));
+
+    if (points.length === 0) return;
+
+    const heatmap = new google.maps.visualization.HeatmapLayer({
+      data: points,
+      map,
+      radius: 40,
+      opacity: 0.6,
+      gradient: mode === 'hiring'
+        ? ['rgba(66,133,244,0)', 'rgba(66,133,244,0.4)', 'rgba(66,133,244,0.8)', 'rgba(25,82,180,1)']
+        : ['rgba(234,67,53,0)', 'rgba(234,67,53,0.4)', 'rgba(234,67,53,0.8)', 'rgba(180,25,25,1)'],
+    });
+
+    heatmapLayerRef.current = heatmap;
+
+    return () => {
+      heatmap.setMap(null);
+    };
+  }, [map, isLoaded, heatmapEnabled, mode, candidates, jobs]);
 
   const items = mode === 'hiring' ? candidates : jobs;
 
@@ -789,17 +822,11 @@ const GoogleMapInner = ({
 };
 
 // Wrapper component that handles API key loading
-export const GoogleMapContainer = ({
-  mode,
-  candidates,
-  jobs,
-  userLocation,
-  radius,
-  onMarkerClick,
-  selectedItem,
-  isEmployer,
-  centerTrigger,
-}: GoogleMapContainerProps) => {
+export const GoogleMapContainer = (props: GoogleMapContainerProps) => {
+  const {
+    mode, candidates, jobs, userLocation, radius,
+    onMarkerClick, selectedItem, isEmployer, centerTrigger, heatmapEnabled,
+  } = props;
   const { apiKey, loading: keyLoading, error: keyError } = useGoogleMapsKey();
 
   if (keyLoading) {
@@ -837,6 +864,7 @@ export const GoogleMapContainer = ({
         selectedItem={selectedItem}
         isEmployer={isEmployer}
         centerTrigger={centerTrigger}
+        heatmapEnabled={heatmapEnabled}
         apiKey={apiKey}
       />
     </GoogleMapsLoaderBoundary>

@@ -6,7 +6,7 @@ import {
   List, Building2, Landmark, Search, Navigation,
   LayoutDashboard, Settings, LogOut, X, MessageSquare,
   Heart, Bell, ChevronRight, Sparkles, TrendingUp,
-  Clock, Star, Filter, Zap, Globe, Shield
+  Clock, Star, Filter, Zap, Globe, Shield, Flame
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
@@ -22,6 +22,9 @@ import { SearchBar } from './SearchBar';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AdvancedFilters, MapFilters, defaultFilters } from './AdvancedFilters';
+import { NearbyCompanies } from './NearbyCompanies';
+import { HeatmapToggle } from './HeatmapToggle';
 
 interface Job {
   id: string;
@@ -55,6 +58,10 @@ interface LeftSidebarPanelProps {
   onCenterOnUser: () => void;
   userLocation: { lat: number; lng: number } | null;
   onClose?: () => void;
+  filters?: MapFilters;
+  onFiltersChange?: (filters: MapFilters) => void;
+  heatmapEnabled?: boolean;
+  onHeatmapToggle?: () => void;
 }
 
 // Haversine distance helper
@@ -71,11 +78,15 @@ export const LeftSidebarPanel = ({
   radius, onRadiusChange, candidateCount, jobCount,
   governmentJobCount, privateJobCount, onViewList,
   onCenterOnUser, userLocation, onClose,
+  filters = defaultFilters, onFiltersChange,
+  heatmapEnabled = false, onHeatmapToggle,
 }: LeftSidebarPanelProps) => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [limit, setLimit] = useState(10);
   const [showFilters, setShowFilters] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [showCompanies, setShowCompanies] = useState(false);
 
   const count = mode === 'hiring' ? candidateCount : jobCount;
 
@@ -357,7 +368,7 @@ export const LeftSidebarPanel = ({
               )}
             >
               <Filter className="w-3.5 h-3.5" />
-              Radius & Filters
+              Radius
             </Button>
             <Button
               variant="outline"
@@ -366,11 +377,24 @@ export const LeftSidebarPanel = ({
               className="h-9 text-xs gap-1.5 rounded-xl border-border/40"
             >
               <Navigation className="w-3.5 h-3.5" />
-              My Location
+              Location
             </Button>
+            {onHeatmapToggle && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onHeatmapToggle}
+                className={cn(
+                  "h-9 text-xs gap-1.5 rounded-xl border-border/40 transition-all",
+                  heatmapEnabled && "border-orange-400/50 text-orange-500 bg-orange-500/5"
+                )}
+              >
+                <Flame className="w-3.5 h-3.5" />
+              </Button>
+            )}
           </div>
 
-          {/* Expandable Filters */}
+          {/* Expandable Radius Filter */}
           <AnimatePresence>
             {showFilters && (
               <motion.div
@@ -385,6 +409,53 @@ export const LeftSidebarPanel = ({
                   onRadiusChange={onRadiusChange}
                   className="shadow-none border border-border/30 p-3 bg-muted/20 rounded-xl"
                 />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Advanced Filters */}
+          {onFiltersChange && (
+            <AdvancedFilters
+              filters={filters}
+              onFiltersChange={onFiltersChange}
+              isOpen={showAdvancedFilters}
+              onToggle={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              activeCount={
+                (filters.jobTypes.length > 0 ? 1 : 0) +
+                (filters.category !== 'all' ? 1 : 0) +
+                (filters.experienceMin > 0 || filters.experienceMax < 30 ? 1 : 0) +
+                (filters.salaryMin > 0 || filters.salaryMax < 100 ? 1 : 0)
+              }
+            />
+          )}
+
+          {/* Nearby Companies Toggle */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowCompanies(!showCompanies)}
+            className={cn(
+              "w-full h-9 text-xs gap-1.5 rounded-xl border-border/40 transition-all",
+              showCompanies && "border-primary/50 text-primary bg-primary/5 shadow-sm"
+            )}
+          >
+            <Building2 className="w-3.5 h-3.5" />
+            Nearby Companies
+            <ChevronRight className={cn("w-3 h-3 ml-auto transition-transform", showCompanies && "rotate-90")} />
+          </Button>
+
+          <AnimatePresence>
+            {showCompanies && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="border border-border/30 rounded-xl bg-muted/10 p-2">
+                  <NearbyCompanies userLocation={userLocation} radius={radius} />
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

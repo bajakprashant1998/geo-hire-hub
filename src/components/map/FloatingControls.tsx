@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Navigation, List, Search, X, Radar } from 'lucide-react';
+import { Navigation, List, Search, X, Radar, Flame } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { SearchBar } from './SearchBar';
+import { HeatmapToggle } from './HeatmapToggle';
 
 interface FloatingControlsProps {
   onCenterOnUser: () => void;
@@ -12,6 +13,8 @@ interface FloatingControlsProps {
   onRadiusChange: (radius: number) => void;
   onSearch: (query: string) => void;
   searchQuery: string;
+  heatmapEnabled?: boolean;
+  onHeatmapToggle?: () => void;
 }
 
 const FAB = ({
@@ -54,6 +57,7 @@ const FAB = ({
 
 export const FloatingControls = ({
   onCenterOnUser, onToggleSidebar, radius, onRadiusChange, onSearch, searchQuery,
+  heatmapEnabled = false, onHeatmapToggle,
 }: FloatingControlsProps) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const radiusCycle = [5, 10, 25, 50, 100, 500];
@@ -132,6 +136,10 @@ export const FloatingControls = ({
             <span className="text-[9px] font-bold text-foreground leading-none">{radius}km</span>
           </div>
         </FAB>
+
+        {onHeatmapToggle && (
+          <HeatmapToggle enabled={heatmapEnabled} onToggle={onHeatmapToggle} />
+        )}
 
         <FAB
           icon={List}
