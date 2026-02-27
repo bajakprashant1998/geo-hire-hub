@@ -218,18 +218,18 @@ const Signup = () => {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-primary/50 via-transparent to-transparent" />
 
-        {/* Animated orbs */}
-        <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.08, 0.15, 0.08] }} transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }} className="absolute top-16 left-8 w-80 h-80 bg-white rounded-full blur-[100px]" />
-        <motion.div animate={{ scale: [1.2, 1, 1.2], opacity: [0.06, 0.12, 0.06] }} transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }} className="absolute bottom-16 right-8 w-96 h-96 bg-white rounded-full blur-[120px]" />
-        <motion.div animate={{ y: [0, -20, 0], opacity: [0.04, 0.1, 0.04] }} transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }} className="absolute top-1/2 left-1/3 w-64 h-64 bg-white rounded-full blur-[80px]" />
+        {/* Animated orbs - pointer-events-none to prevent blocking */}
+        <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.08, 0.15, 0.08] }} transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }} className="absolute top-16 left-8 w-80 h-80 bg-white rounded-full blur-[100px] pointer-events-none" />
+        <motion.div animate={{ scale: [1.2, 1, 1.2], opacity: [0.06, 0.12, 0.06] }} transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }} className="absolute bottom-16 right-8 w-96 h-96 bg-white rounded-full blur-[120px] pointer-events-none" />
+        <motion.div animate={{ y: [0, -20, 0], opacity: [0.04, 0.1, 0.04] }} transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }} className="absolute top-1/2 left-1/3 w-64 h-64 bg-white rounded-full blur-[80px] pointer-events-none" />
 
         {/* Grid pattern */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{
           backgroundImage: 'linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)',
           backgroundSize: '60px 60px'
         }} />
 
-        <div className="relative z-10 flex flex-col justify-between px-12 xl:px-16 py-12 w-full">
+        <div className="relative z-10 flex flex-col justify-start gap-10 px-12 xl:px-16 py-10 w-full">
           {/* Logo */}
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <div className="flex items-center gap-3">
@@ -332,8 +332,8 @@ const Signup = () => {
       {/* Right side - Signup Form */}
       <div className="w-full lg:w-[55%] flex items-start justify-center p-6 sm:p-8 lg:p-10 bg-background overflow-y-auto relative">
         {/* Background decoration */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/3 rounded-full blur-[80px] translate-y-1/2 -translate-x-1/2" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/3 rounded-full blur-[80px] translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="w-full max-w-xl space-y-5 relative z-10">
           <Link to="/" className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group text-sm">

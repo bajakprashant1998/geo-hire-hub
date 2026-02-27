@@ -112,21 +112,21 @@ const Login = () => {
         <motion.div
           animate={{ scale: [1, 1.2, 1], opacity: [0.08, 0.15, 0.08] }}
           transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute top-16 left-8 w-80 h-80 bg-white rounded-full blur-[100px]"
+          className="absolute top-16 left-8 w-80 h-80 bg-white rounded-full blur-[100px] pointer-events-none"
         />
         <motion.div
           animate={{ scale: [1.2, 1, 1.2], opacity: [0.06, 0.12, 0.06] }}
           transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-          className="absolute bottom-16 right-8 w-96 h-96 bg-white rounded-full blur-[120px]"
+          className="absolute bottom-16 right-8 w-96 h-96 bg-white rounded-full blur-[120px] pointer-events-none"
         />
         <motion.div
           animate={{ y: [0, -20, 0], opacity: [0.04, 0.1, 0.04] }}
           transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-          className="absolute top-1/2 left-1/3 w-64 h-64 bg-white rounded-full blur-[80px]"
+          className="absolute top-1/2 left-1/3 w-64 h-64 bg-white rounded-full blur-[80px] pointer-events-none"
         />
 
         {/* Grid pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.03]" style={{
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{
           backgroundImage: 'linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)',
           backgroundSize: '60px 60px'
         }} />
@@ -216,8 +216,8 @@ const Login = () => {
       {/* Right side - Login Form */}
       <div className="w-full lg:w-[45%] flex items-center justify-center p-6 sm:p-8 lg:p-12 bg-background relative overflow-hidden">
         {/* Subtle background decoration */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/3 rounded-full blur-[80px] translate-y-1/2 -translate-x-1/2" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-primary/5 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/3 rounded-full blur-[80px] translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
         <motion.div
           initial={{ opacity: 0, x: 20 }}
