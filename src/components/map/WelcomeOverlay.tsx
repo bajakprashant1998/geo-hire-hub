@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { MapPin, Briefcase, Users, X, Sparkles, ArrowRight, Shield, Globe2, TrendingUp } from 'lucide-react';
+import { MapPin, Briefcase, Users, X, Sparkles, ArrowRight, Shield, Globe2, TrendingUp, UserPlus, LogIn } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -14,6 +15,7 @@ const STORAGE_KEY = 'hfj_welcome_dismissed';
 
 export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeOverlayProps) => {
   const [isVisible, setIsVisible] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const dismissed = localStorage.getItem(STORAGE_KEY);
@@ -31,20 +33,20 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.15 } },
+    visible: { opacity: 1, transition: { staggerChildren: 0.06, delayChildren: 0.1 } },
     exit: { opacity: 0 },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 16 },
+    hidden: { opacity: 0, y: 12 },
     visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 300, damping: 25 } },
   };
 
   const features = [
-    { icon: MapPin, text: 'Nearby Jobs', color: 'bg-destructive/20 text-destructive' },
-    { icon: Sparkles, text: 'AI Matching', color: 'bg-primary/20 text-primary' },
-    { icon: Shield, text: 'Verified', color: 'bg-emerald-500/20 text-emerald-600' },
-    { icon: TrendingUp, text: 'Real-time', color: 'bg-warning/20 text-warning' },
+    { icon: MapPin, text: 'Nearby Jobs', color: 'text-destructive bg-destructive/15' },
+    { icon: Sparkles, text: 'AI Matching', color: 'text-primary bg-primary/15' },
+    { icon: Shield, text: 'Verified', color: 'text-emerald-600 bg-emerald-500/15' },
+    { icon: TrendingUp, text: 'Real-time', color: 'text-amber-600 bg-amber-500/15' },
   ];
 
   return (
@@ -61,7 +63,7 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => handleDismiss(false)}
           />
 
@@ -71,87 +73,119 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="relative w-full max-w-md z-10 mx-4 mb-4 sm:mb-0"
+            className="relative w-full max-w-[420px] z-10 mx-3 mb-3 sm:mb-0"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="bg-card rounded-3xl shadow-2xl border border-border/30 overflow-hidden">
+            <div className="bg-card rounded-3xl shadow-2xl border border-border/40 overflow-hidden">
               {/* Gradient header */}
-              <div className="relative bg-gradient-to-br from-primary via-primary/90 to-destructive/80 px-6 pt-8 pb-10 text-center">
+              <div className="relative bg-gradient-to-br from-primary via-primary/85 to-destructive/70 px-5 pt-7 pb-12 text-center overflow-hidden">
+                {/* Decorative circles */}
+                <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-white/10" />
+                <div className="absolute -bottom-8 -left-8 w-24 h-24 rounded-full bg-white/8" />
+
                 {/* Close */}
                 <motion.button
                   variants={itemVariants}
                   onClick={() => handleDismiss(false)}
-                  className="absolute top-4 right-4 p-2 rounded-full bg-white/15 hover:bg-white/25 text-white transition-colors"
+                  className="absolute top-3 right-3 p-2 rounded-full bg-white/15 hover:bg-white/25 text-white/90 transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </motion.button>
 
                 {/* Logo */}
-                <motion.div variants={itemVariants} className="mb-4">
+                <motion.div variants={itemVariants} className="mb-3">
                   <motion.div
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ type: 'spring', damping: 12, stiffness: 200 }}
-                    className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto"
+                    className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto shadow-lg"
                   >
-                    <Globe2 className="w-8 h-8 text-white" />
+                    <Globe2 className="w-7 h-7 text-white" />
                   </motion.div>
                 </motion.div>
 
-                <motion.h1 variants={itemVariants} className="text-2xl sm:text-3xl font-bold text-white mb-2">
+                <motion.h1 variants={itemVariants} className="text-2xl sm:text-3xl font-bold text-white mb-1.5 tracking-tight">
                   Find Jobs Near You
                 </motion.h1>
-                <motion.p variants={itemVariants} className="text-white/75 text-sm sm:text-base max-w-xs mx-auto">
+                <motion.p variants={itemVariants} className="text-white/70 text-sm max-w-[260px] mx-auto leading-relaxed">
                   Discover opportunities within walking distance on an interactive map
                 </motion.p>
               </div>
 
-              {/* Features grid */}
-              <div className="px-6 -mt-5">
+              {/* Features grid – overlapping the header */}
+              <div className="px-4 -mt-6">
                 <motion.div variants={itemVariants} className="grid grid-cols-4 gap-2">
                   {features.map((f, i) => (
                     <motion.div
                       key={i}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.4 + i * 0.08 }}
-                      className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-card border border-border/50 shadow-sm"
+                      transition={{ delay: 0.35 + i * 0.06 }}
+                      className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-card border border-border/50 shadow-sm"
                     >
                       <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center', f.color)}>
                         <f.icon className="w-4 h-4" />
                       </div>
-                      <span className="text-[10px] font-semibold text-muted-foreground">{f.text}</span>
+                      <span className="text-[10px] font-semibold text-muted-foreground leading-tight">{f.text}</span>
                     </motion.div>
                   ))}
                 </motion.div>
               </div>
 
-              {/* CTAs */}
-              <div className="px-6 pt-5 pb-6 space-y-3">
-                <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3">
+              {/* Action area */}
+              <div className="px-4 pt-4 pb-5 space-y-3">
+                {/* Primary: Register */}
+                <motion.div variants={itemVariants}>
+                  <Button
+                    onClick={() => { handleDismiss(true); navigate('/signup'); }}
+                    size="lg"
+                    className="w-full h-12 rounded-2xl text-sm font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg group"
+                  >
+                    <UserPlus className="w-4 h-4 mr-2" />
+                    Create Free Account
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-0.5 transition-transform" />
+                  </Button>
+                </motion.div>
+
+                {/* Secondary: Sign In */}
+                <motion.div variants={itemVariants}>
+                  <Button
+                    onClick={() => { handleDismiss(true); navigate('/login'); }}
+                    size="lg"
+                    variant="outline"
+                    className="w-full h-11 rounded-2xl text-sm font-semibold border-2 border-border group"
+                  >
+                    <LogIn className="w-4 h-4 mr-2" />
+                    Already have an account? Sign In
+                  </Button>
+                </motion.div>
+
+                {/* Explore buttons */}
+                <motion.div variants={itemVariants} className="grid grid-cols-2 gap-2 pt-1">
                   <Button
                     onClick={() => { handleDismiss(true); onFindJobs(); }}
-                    size="lg"
-                    className="h-13 rounded-2xl text-sm font-semibold bg-destructive hover:bg-destructive/90 text-destructive-foreground shadow-lg group"
+                    size="sm"
+                    variant="ghost"
+                    className="h-10 rounded-xl text-xs font-semibold text-destructive hover:bg-destructive/10 group"
                   >
-                    <Briefcase className="w-4 h-4 mr-1.5" />
+                    <Briefcase className="w-3.5 h-3.5 mr-1" />
                     Find Jobs
-                    <ArrowRight className="w-3.5 h-3.5 ml-1.5 group-hover:translate-x-0.5 transition-transform" />
+                    <ArrowRight className="w-3 h-3 ml-1 group-hover:translate-x-0.5 transition-transform" />
                   </Button>
                   <Button
                     onClick={() => { handleDismiss(true); onFindTalent(); }}
-                    size="lg"
-                    variant="outline"
-                    className="h-13 rounded-2xl text-sm font-semibold border-2 group"
+                    size="sm"
+                    variant="ghost"
+                    className="h-10 rounded-xl text-xs font-semibold text-primary hover:bg-primary/10 group"
                   >
-                    <Users className="w-4 h-4 mr-1.5" />
+                    <Users className="w-3.5 h-3.5 mr-1" />
                     Hire Talent
-                    <ArrowRight className="w-3.5 h-3.5 ml-1.5 group-hover:translate-x-0.5 transition-transform" />
+                    <ArrowRight className="w-3 h-3 ml-1 group-hover:translate-x-0.5 transition-transform" />
                   </Button>
                 </motion.div>
 
                 {/* Social proof */}
-                <motion.div variants={itemVariants} className="flex items-center justify-center gap-2 pt-1">
+                <motion.div variants={itemVariants} className="flex items-center justify-center gap-2 pt-0.5">
                   <div className="flex -space-x-2">
                     {[1, 2, 3, 4].map((i) => (
                       <div
@@ -162,13 +196,13 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
                       </div>
                     ))}
                   </div>
-                  <span className="text-xs text-muted-foreground">10,000+ users finding local jobs</span>
+                  <span className="text-[11px] text-muted-foreground">10,000+ users finding local jobs</span>
                 </motion.div>
 
                 <motion.button
                   variants={itemVariants}
                   onClick={() => handleDismiss(true)}
-                  className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors pt-1"
+                  className="w-full text-xs text-muted-foreground/70 hover:text-foreground transition-colors pt-0.5"
                 >
                   Skip and explore the map →
                 </motion.button>
