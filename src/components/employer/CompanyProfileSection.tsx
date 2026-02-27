@@ -31,7 +31,7 @@ import {
   Building2, Save, Eye, FileText, Loader2, AlertTriangle, Heart, Gift,
   Globe, Camera, CreditCard, MapPin, Briefcase, DollarSign, TrendingUp,
   Target, Star, Users, GraduationCap, Award, Phone, Mail, Link2,
-  Laptop, Zap, Shield, BookOpen, BarChart3, Plus, X, Check,
+  Laptop, Zap, Shield, BookOpen, BarChart3, Plus, X, Check, Bot,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -138,6 +138,14 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [completeness, setCompleteness] = useState(0);
   const [whatsappNumber, setWhatsappNumber] = useState('');
+  const [verificationMethod, setVerificationMethod] = useState<string | null>(null);
+  const [googleBusinessVerified, setGoogleBusinessVerified] = useState(false);
+  const [googleBusinessUrl, setGoogleBusinessUrl] = useState('');
+  const [companyRegistrationUrl, setCompanyRegistrationUrl] = useState('');
+  const [gstLicenseUrl, setGstLicenseUrl] = useState('');
+  const [panUrl, setPanUrl] = useState('');
+  const [trustScore, setTrustScore] = useState(0);
+  const [submittingVerification, setSubmittingVerification] = useState(false);
 
   // Culture & Details
   const [teamSize, setTeamSize] = useState('');
@@ -268,6 +276,13 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
         setHrContactEmail((data as any).hr_contact_email || '');
         setCareersPageUrl((data as any).careers_page_url || '');
         setAwardsRecognition((data as any).awards_recognition || []);
+        setVerificationMethod((data as any).verification_method || null);
+        setGoogleBusinessVerified((data as any).google_business_verified || false);
+        setGoogleBusinessUrl((data as any).google_business_url || '');
+        setCompanyRegistrationUrl((data as any).company_registration_url || '');
+        setGstLicenseUrl((data as any).gst_license_url || '');
+        setPanUrl((data as any).pan_url || '');
+        setTrustScore((data as any).trust_score || 0);
 
         const { data: calcData } = await supabase
           .rpc('calculate_employer_profile_completeness', { p_employer_id: data.id });
@@ -370,6 +385,10 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
         hr_contact_email: hrContactEmail || null,
         careers_page_url: careersPageUrl || null,
         awards_recognition: awardsRecognition,
+        google_business_url: googleBusinessUrl || null,
+        company_registration_url: companyRegistrationUrl || null,
+        gst_license_url: gstLicenseUrl || null,
+        pan_url: panUrl || null,
       };
 
       const { error } = await supabase.from('employers').update(updates).eq('id', employerId);
@@ -398,13 +417,16 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
     }
   };
 
-  const autoSaveDocument = async (field: 'office_photo_url' | 'business_card_url', url: string) => {
+  const autoSaveDocument = async (field: 'office_photo_url' | 'business_card_url' | 'company_registration_url' | 'gst_license_url' | 'pan_url', url: string) => {
     if (!employerId) return;
     try {
       const { error } = await supabase.from('employers').update({ [field]: url || null }).eq('id', employerId);
       if (error) throw error;
       if (field === 'office_photo_url') setOfficePhotoUrl(url);
-      else setBusinessCardUrl(url);
+      else if (field === 'business_card_url') setBusinessCardUrl(url);
+      else if (field === 'company_registration_url') setCompanyRegistrationUrl(url);
+      else if (field === 'gst_license_url') setGstLicenseUrl(url);
+      else if (field === 'pan_url') setPanUrl(url);
       const { data: calcData } = await supabase
         .rpc('calculate_employer_profile_completeness', { p_employer_id: employerId });
       if (typeof calcData === 'number') {
@@ -414,6 +436,55 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
     } catch (error: any) {
       console.error('Failed to auto-save document:', error);
       toast.error('Failed to link document to profile');
+    }
+  };
+
+  const handleSubmitVerification = async () => {
+    if (!employerId) return;
+    setSubmittingVerification(true);
+    try {
+      // Save current data first
+      await handleSave();
+      
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      if (!token) throw new Error('Not authenticated');
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-employer`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({ employer_id: employerId }),
+        }
+      );
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || 'Verification failed');
+      }
+
+      const result = await response.json();
+      setTrustScore(result.trust_score);
+      setVerificationStatus(result.status as any);
+      setVerificationMethod(result.verification_method);
+
+      if (result.status === 'approved') {
+        toast.success(`🎉 AI Verified! Trust Score: ${result.trust_score}/100`);
+      } else if (result.trust_score >= 50) {
+        toast.info(`Verification submitted. Score: ${result.trust_score}/100. Under review.`);
+      } else {
+        toast.warning(`Score: ${result.trust_score}/100. Flagged for manual review.`);
+      }
+    } catch (error: any) {
+      console.error('Verification error:', error);
+      toast.error(error.message || 'Verification failed');
+    } finally {
+      setSubmittingVerification(false);
     }
   };
 
@@ -436,7 +507,7 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">Complete your profile to attract top talent & enable AI matching</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <VerificationBadge status={verificationStatus} />
+          <VerificationBadge status={verificationStatus} verificationMethod={verificationMethod} googleBusinessVerified={googleBusinessVerified} />
           {onViewPublicProfile && (
             <Button variant="outline" size="sm" onClick={onViewPublicProfile} className="gap-1.5 text-xs sm:text-sm h-8 sm:h-9">
               <Eye className="w-3.5 h-3.5" /> Preview
@@ -869,6 +940,81 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
           {/* 7: Documents & Media */}
           {activeStep === 7 && (
             <div className="space-y-4 sm:space-y-6">
+              {/* Verification Documents */}
+              <Card className="border-primary/20">
+                <CardHeader className="pb-3 sm:pb-4 px-3 sm:px-6 pt-4 sm:pt-6">
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                    <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                    Verification Documents
+                  </CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">
+                    Upload documents for AI-powered verification. Higher quality = faster approval.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4 px-3 sm:px-6 pb-4 sm:pb-6">
+                  {user && (
+                    <>
+                      <DocumentUpload userId={user.id} type="company-registration" currentUrl={companyRegistrationUrl} onUploaded={(url) => autoSaveDocument('company_registration_url', url)} label="Company Registration Certificate *" description="Upload your company registration or incorporation certificate" />
+                      <DocumentUpload userId={user.id} type="gst-license" currentUrl={gstLicenseUrl} onUploaded={(url) => autoSaveDocument('gst_license_url', url)} label="GST / Business License *" description="Upload your GST certificate, business license, or trade license" />
+                      <DocumentUpload userId={user.id} type="pan-card" currentUrl={panUrl} onUploaded={(url) => autoSaveDocument('pan_url', url)} label="PAN Card (Optional)" description="Upload PAN card for additional verification points" />
+                    </>
+                  )}
+                  <Separator />
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <Label className="flex items-center gap-2 text-xs sm:text-sm">
+                      <Globe className="w-3.5 h-3.5 text-muted-foreground" />
+                      Google Business Profile URL
+                    </Label>
+                    <Input
+                      type="url"
+                      value={googleBusinessUrl}
+                      onChange={(e) => setGoogleBusinessUrl(e.target.value)}
+                      placeholder="https://g.co/kgs/... or Google Maps link"
+                      className="h-9 sm:h-10 text-sm"
+                    />
+                    <p className="text-[10px] sm:text-xs text-muted-foreground">
+                      Providing your Google Business link adds up to +30 trust points
+                    </p>
+                  </div>
+                  <Separator />
+                  {trustScore > 0 && (
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-border">
+                      <div className={cn(
+                        "text-lg font-bold rounded-full w-12 h-12 flex items-center justify-center",
+                        trustScore >= 80 ? "bg-success/10 text-success" :
+                        trustScore >= 50 ? "bg-warning/10 text-warning" :
+                        "bg-destructive/10 text-destructive"
+                      )}>
+                        {trustScore}
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">Trust Score</p>
+                        <p className="text-xs text-muted-foreground">
+                          {trustScore >= 80 ? 'Excellent — auto-approval eligible' :
+                           trustScore >= 50 ? 'Good — under review' : 'Low — manual review required'}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  <Button
+                    onClick={handleSubmitVerification}
+                    disabled={submittingVerification || verificationStatus === 'approved'}
+                    className="w-full gap-2"
+                    size="lg"
+                  >
+                    {submittingVerification ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Bot className="w-4 h-4" />
+                    )}
+                    {verificationStatus === 'approved'
+                      ? 'Already Verified'
+                      : submittingVerification
+                        ? 'AI Verification in Progress...'
+                        : 'Submit for AI Verification'}
+                  </Button>
+                </CardContent>
+              </Card>
               <Card>
                 <CardHeader className="pb-3 sm:pb-4 px-3 sm:px-6 pt-4 sm:pt-6">
                   <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><FileText className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /> Trust Documents & Media</CardTitle>

@@ -14,7 +14,9 @@ import {
   Shield,
   Eye,
   Briefcase,
-  ToggleLeft
+  ToggleLeft,
+  Bot,
+  Sliders,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -141,6 +143,7 @@ export default function AdminSettings() {
   const resumeSettings = localSettings['resume_visibility'] || {};
   const jobSettings = localSettings['job_moderation'] || {};
   const employerSettings = localSettings['employer_verification'] || {};
+  const aiVerificationSettings = localSettings['ai_verification'] || {};
 
   return (
     <AdminLayout title="Settings">
@@ -174,6 +177,86 @@ export default function AdminSettings() {
                 />
               </div>
             ))}
+          </CardContent>
+        </Card>
+
+        {/* AI Verification Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bot className="h-5 w-5" />
+              AI Employer Verification
+            </CardTitle>
+            <CardDescription>
+              Configure AI-driven auto-approval system for employers
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label>Auto Approval Enabled</Label>
+                <p className="text-sm text-muted-foreground">
+                  Automatically approve employers with high trust scores
+                </p>
+              </div>
+              <Switch
+                checked={aiVerificationSettings.auto_approval_enabled as boolean}
+                onCheckedChange={(checked) => 
+                  updateLocalSetting('ai_verification', 'auto_approval_enabled', checked)
+                }
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label>Google Business Mandatory</Label>
+                <p className="text-sm text-muted-foreground">
+                  Require Google Business Profile for verification
+                </p>
+              </div>
+              <Switch
+                checked={aiVerificationSettings.google_business_mandatory as boolean}
+                onCheckedChange={(checked) => 
+                  updateLocalSetting('ai_verification', 'google_business_mandatory', checked)
+                }
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label>Documents Mandatory</Label>
+                <p className="text-sm text-muted-foreground">
+                  Require document uploads for AI verification
+                </p>
+              </div>
+              <Switch
+                checked={aiVerificationSettings.documents_mandatory as boolean}
+                onCheckedChange={(checked) => 
+                  updateLocalSetting('ai_verification', 'documents_mandatory', checked)
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Minimum Auto-Approve Score</Label>
+              <p className="text-sm text-muted-foreground">
+                Employers with scores at or above this value will be auto-approved
+              </p>
+              <Input
+                type="number"
+                value={aiVerificationSettings.min_auto_approve_score as number || 80}
+                onChange={(e) => 
+                  updateLocalSetting('ai_verification', 'min_auto_approve_score', parseInt(e.target.value) || 80)
+                }
+                className="w-32"
+                min={50}
+                max={100}
+              />
+            </div>
+            <Button 
+              onClick={() => saveSettings('ai_verification')}
+              disabled={updateSettingMutation.isPending}
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Save Changes
+            </Button>
           </CardContent>
         </Card>
 
