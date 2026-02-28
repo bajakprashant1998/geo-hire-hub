@@ -209,7 +209,7 @@ const EmployerDashboard = () => {
     } else if (value === 'company') {
       setActiveSection('company');
     } else if (value === 'settings') {
-      navigate('/employer-settings');
+      setActiveSection('security');
     } else if (value === 'upgrade-plan') {
       navigate('/plans');
       return;
