@@ -23,7 +23,7 @@ import CandidateDashboard from "./pages/CandidateDashboard";
 import CandidateSettings from "./pages/CandidateSettings";
 import CandidateProfileEdit from "./pages/CandidateProfileEdit";
 import EmployerDashboard from "./pages/EmployerDashboard";
-import EmployerSettings from "./pages/EmployerSettings";
+
 import AIResumeBuilder from "./pages/AIResumeBuilder";
 import PostJob from "./pages/PostJob";
 import Messages from "./pages/Messages";
@@ -127,7 +127,7 @@ const App = () => (
 
               {/* ==================== EMPLOYER ROUTES ==================== */}
               <Route path="/employer-dashboard" element={<EmployerDashboard />} />
-              <Route path="/employer-settings" element={<EmployerSettings />} />
+              <Route path="/employer-settings" element={<Navigate to="/employer-dashboard?tab=security" replace />} />
               <Route path="/post-job" element={<Navigate to="/employer-dashboard?tab=post-job" replace />} />
               <Route path="/edit-job/:jobId" element={<PostJob />} />
               <Route path="/company-profile" element={<Navigate to="/employer-dashboard?tab=company" replace />} />

@@ -181,7 +181,7 @@ export const EmployerHeader = ({
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/employer-settings" className="flex items-center gap-2 cursor-pointer">
+                    <Link to="/employer-dashboard?tab=security" className="flex items-center gap-2 cursor-pointer">
                       <Settings className="w-4 h-4" />
                       Settings
                     </Link>

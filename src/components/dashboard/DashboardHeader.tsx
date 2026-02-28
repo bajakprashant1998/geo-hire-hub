@@ -43,7 +43,7 @@ export const DashboardHeader = ({
   onNotificationClick
 }: DashboardHeaderProps) => {
   const profilePath = type === 'employer' ? '/company-profile' : '/candidate-profile';
-  const settingsPath = type === 'employer' ? '/employer-settings' : '/candidate-settings';
+  const settingsPath = type === 'employer' ? '/employer-dashboard?tab=security' : '/candidate-settings';
   const firstName = userName?.split(' ')[0] || 'User';
   const { theme, setTheme } = useTheme();
   const { t } = useTranslation();
