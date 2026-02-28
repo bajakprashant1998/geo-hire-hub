@@ -208,11 +208,8 @@ const EmployerDashboard = () => {
       setActiveSection('chat');
     } else if (value === 'company') {
       setActiveSection('company');
-    } else if (value === 'settings') {
-      setActiveSection('security');
     } else if (value === 'upgrade-plan') {
       navigate('/plans');
-      return;
     } else {
       setActiveSection(value === 'home' ? null : value);
     }
