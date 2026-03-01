@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import type { ScoredJob } from '@/hooks/useJobRadar';
 import { formatDistanceToNow } from 'date-fns';
+import { SalaryBadge } from '@/components/SalaryBadge';
 
 interface JobRadarCardProps {
   job: ScoredJob;
@@ -89,6 +90,7 @@ export const JobRadarCard = memo(({ job, index, onToggleSave, isApplied }: JobRa
               {job.salaryCurrency || '₹'} {job.salaryRange}
             </span>
           )}
+          {job.salaryRange && <SalaryBadge salaryRange={job.salaryRange} compact />}
           {job.jobType && (
             <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-medium">
               {job.jobType}

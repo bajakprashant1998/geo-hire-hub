@@ -55,8 +55,41 @@ import { HiringPipeline } from '@/components/employer/HiringPipeline';
 import { PendingTasksWidget } from '@/components/dashboard/PendingTasksWidget';
 import { AIScreeningPanel } from '@/components/employer/AIScreeningPanel';
 import { SkillAssessmentManager } from '@/components/employer/SkillAssessmentManager';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { Brain } from 'lucide-react';
+
+const AIScreeningWithJobSelector = ({ jobs }: { jobs: any[] }) => {
+  const [selectedJobId, setSelectedJobId] = useState('');
+  const selectedJob = jobs.find(j => j.id === selectedJobId);
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <Brain className="w-5 h-5 text-primary" />
+        <Select value={selectedJobId} onValueChange={setSelectedJobId}>
+          <SelectTrigger className="w-full max-w-md rounded-xl">
+            <SelectValue placeholder="Select a job to screen applicants" />
+          </SelectTrigger>
+          <SelectContent>
+            {jobs.filter(j => j.is_active).map(j => (
+              <SelectItem key={j.id} value={j.id}>{j.title}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      {selectedJobId ? (
+        <AIScreeningPanel jobId={selectedJobId} jobTitle={selectedJob?.title || ''} />
+      ) : (
+        <div className="text-center p-8 text-muted-foreground border rounded-xl border-dashed">
+          <Brain className="w-10 h-10 mx-auto mb-3 opacity-30" />
+          <p>Select a job above to run AI screening on its applicants</p>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const EmployerDashboard = () => {
   const navigate = useNavigate();
@@ -786,7 +819,7 @@ const EmployerDashboard = () => {
       case 'security':
         return <SecuritySettings />;
       case 'ai-screening':
-        return employer && <AIScreeningPanel jobId="" jobTitle="Select a job" />;
+        return employer && <AIScreeningWithJobSelector jobs={jobs} />;
       case 'assessments':
         return employer && <SkillAssessmentManager employerId={employer.id} />;
       case 'post-job':
