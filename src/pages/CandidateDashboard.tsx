@@ -42,6 +42,8 @@ import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 import { AutoApplyManager } from '@/components/candidate/AutoApplyManager';
 import { RecentlyViewedJobs } from '@/components/candidate/RecentlyViewedJobs';
 import { JobRadar } from '@/components/candidate/JobRadar';
+import { ApplicationTracker } from '@/components/candidate/ApplicationTracker';
+import { ReferralDashboard } from '@/components/candidate/ReferralDashboard';
 import { PendingTasksWidget } from '@/components/dashboard/PendingTasksWidget';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -212,7 +214,9 @@ const CandidateDashboard = () => {
     { icon: Shield, label: 'Security', value: 'security' },
     { icon: Zap, label: 'Auto Apply', value: 'auto-apply' },
     { icon: DollarSign, label: 'Salary Insights', value: 'salary-insights' },
-    { icon: Bot, label: 'Talk to My Buddy', value: 'career-buddy' }
+    { icon: Bot, label: 'Talk to My Buddy', value: 'career-buddy' },
+    { icon: TrendingUp, label: 'Application Tracker', value: 'app-tracker' },
+    { icon: Star, label: 'Referrals & Rewards', value: 'referrals' },
   ];
 
   // Quick action buttons for dashboard home — full 8-item grid
@@ -467,6 +471,8 @@ const CandidateDashboard = () => {
       case 'job-radar': return candidate && <JobRadar candidateId={candidate.id} candidate={candidate} profile={profile} />;
       case 'salary-insights': return <SalaryInsights />;
       case 'career-buddy': return <CareerBuddyChat />;
+      case 'app-tracker': return candidate && <ApplicationTracker candidateId={candidate.id} />;
+      case 'referrals': return profile && <ReferralDashboard profileId={profile.id} />;
       case 'ai-resume': return (
         <Suspense fallback={<div className="flex items-center justify-center p-8"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>}>
           <AIResumeBuilder embedded />
