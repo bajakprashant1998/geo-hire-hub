@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import {
   Briefcase, Bell, Shield, FileText, Sparkles, Loader2,
   Eye, Calendar, Star, ChevronRight, User, MessageSquare, Bookmark, Mic,
-  MapPin, TrendingUp, Zap, DollarSign, Bot, Radar
+  MapPin, TrendingUp, Zap, DollarSign, Bot, Radar, GraduationCap
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -44,6 +44,7 @@ import { RecentlyViewedJobs } from '@/components/candidate/RecentlyViewedJobs';
 import { JobRadar } from '@/components/candidate/JobRadar';
 import { ApplicationTracker } from '@/components/candidate/ApplicationTracker';
 import { ReferralDashboard } from '@/components/candidate/ReferralDashboard';
+import { TakeAssessment } from '@/components/candidate/TakeAssessment';
 import { PendingTasksWidget } from '@/components/dashboard/PendingTasksWidget';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -217,6 +218,7 @@ const CandidateDashboard = () => {
     { icon: Bot, label: 'Talk to My Buddy', value: 'career-buddy' },
     { icon: TrendingUp, label: 'Application Tracker', value: 'app-tracker' },
     { icon: Star, label: 'Referrals & Rewards', value: 'referrals' },
+    { icon: GraduationCap, label: 'Assessments', value: 'assessments' },
   ];
 
   // Quick action buttons for dashboard home — full 8-item grid
@@ -477,6 +479,12 @@ const CandidateDashboard = () => {
         <Suspense fallback={<div className="flex items-center justify-center p-8"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>}>
           <AIResumeBuilder embedded />
         </Suspense>
+      );
+      case 'assessments': return candidate && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold">Skill Assessments</h2>
+          <p className="text-sm text-muted-foreground">Take assessments linked to jobs you've applied for. Check job details for available assessments.</p>
+        </div>
       );
       default: return null;
     }

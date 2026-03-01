@@ -71,7 +71,11 @@ export const SecuritySettings = () => {
   
   const [deactivating, setDeactivating] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
+  const [whatsappNotifications, setWhatsappNotifications] = useState(false);
+  const [smsNotifications, setSmsNotifications] = useState(false);
   const [loadingEmailPref, setLoadingEmailPref] = useState(false);
+  const [loadingWhatsappPref, setLoadingWhatsappPref] = useState(false);
+  const [loadingSmsPref, setLoadingSmsPref] = useState(false);
 
   // Email change state
   const [changingEmail, setChangingEmail] = useState(false);
@@ -82,16 +86,20 @@ export const SecuritySettings = () => {
   const passwordsMatch = confirmPassword.length > 0 && newPassword === confirmPassword;
   const passwordsMismatch = confirmPassword.length > 0 && newPassword !== confirmPassword;
 
-  // Load email notification preference
+  // Load notification preferences
   useEffect(() => {
     if (!user) return;
     supabase
       .from('notification_preferences')
-      .select('email_notifications_enabled')
+      .select('email_notifications_enabled, whatsapp_notifications_enabled, sms_notifications_enabled')
       .eq('user_id', user.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (data) setEmailNotifications(data.email_notifications_enabled);
+        if (data) {
+          setEmailNotifications(data.email_notifications_enabled);
+          setWhatsappNotifications((data as any).whatsapp_notifications_enabled ?? false);
+          setSmsNotifications((data as any).sms_notifications_enabled ?? false);
+        }
       });
   }, [user]);
 
@@ -221,6 +229,87 @@ export const SecuritySettings = () => {
                   checked={emailNotifications}
                   onCheckedChange={handleEmailNotificationToggle}
                   disabled={loadingEmailPref}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* WhatsApp Notifications */}
+      <motion.div custom={0.5} variants={cardVariants} initial="hidden" animate="visible">
+        <Card className="shadow-google">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Smartphone className="w-5 h-5 text-primary" />
+              WhatsApp & SMS Notifications
+            </CardTitle>
+            <CardDescription>Get instant alerts on your phone</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-secondary rounded-xl">
+              <div>
+                <p className="font-medium">WhatsApp Notifications</p>
+                <p className="text-sm text-muted-foreground">
+                  Receive interview reminders and application updates via WhatsApp
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge variant={whatsappNotifications ? "default" : "secondary"}>
+                  {whatsappNotifications ? 'Enabled' : 'Disabled'}
+                </Badge>
+                <Switch
+                  checked={whatsappNotifications}
+                  onCheckedChange={async (enabled) => {
+                    setLoadingWhatsappPref(true);
+                    setWhatsappNotifications(enabled);
+                    try {
+                      const { error } = await supabase
+                        .from('notification_preferences')
+                        .upsert({ user_id: user!.id, whatsapp_notifications_enabled: enabled } as any, { onConflict: 'user_id' });
+                      if (error) throw error;
+                      toast.success(enabled ? 'WhatsApp notifications enabled' : 'WhatsApp notifications disabled');
+                    } catch {
+                      setWhatsappNotifications(!enabled);
+                      toast.error('Failed to update preference');
+                    } finally {
+                      setLoadingWhatsappPref(false);
+                    }
+                  }}
+                  disabled={loadingWhatsappPref}
+                />
+              </div>
+            </div>
+            <div className="flex items-center justify-between p-4 bg-secondary rounded-xl">
+              <div>
+                <p className="font-medium">SMS Notifications</p>
+                <p className="text-sm text-muted-foreground">
+                  Receive text message alerts for critical updates
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <Badge variant={smsNotifications ? "default" : "secondary"}>
+                  {smsNotifications ? 'Enabled' : 'Disabled'}
+                </Badge>
+                <Switch
+                  checked={smsNotifications}
+                  onCheckedChange={async (enabled) => {
+                    setLoadingSmsPref(true);
+                    setSmsNotifications(enabled);
+                    try {
+                      const { error } = await supabase
+                        .from('notification_preferences')
+                        .upsert({ user_id: user!.id, sms_notifications_enabled: enabled } as any, { onConflict: 'user_id' });
+                      if (error) throw error;
+                      toast.success(enabled ? 'SMS notifications enabled' : 'SMS notifications disabled');
+                    } catch {
+                      setSmsNotifications(!enabled);
+                      toast.error('Failed to update preference');
+                    } finally {
+                      setLoadingSmsPref(false);
+                    }
+                  }}
+                  disabled={loadingSmsPref}
                 />
               </div>
             </div>

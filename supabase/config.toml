@@ -47,3 +47,9 @@ verify_jwt = false
 
 [functions.check-reverification]
 verify_jwt = false
+
+[functions.ai-candidate-screening]
+verify_jwt = false
+
+[functions.send-whatsapp-notification]
+verify_jwt = false

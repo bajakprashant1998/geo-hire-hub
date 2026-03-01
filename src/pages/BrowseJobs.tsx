@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { SEOHead } from '@/components/SEOHead';
 import { BreadcrumbNav, buildBreadcrumbJsonLd } from '@/components/BreadcrumbNav';
+import { SalaryBadge } from '@/components/SalaryBadge';
 
 const PAGE_SIZE = 20;
 
@@ -174,6 +175,7 @@ const BrowseJobs = () => {
                         <div className="flex flex-wrap items-center gap-2 mt-2">
                           {job.job_type && <Badge variant="secondary" className="text-xs">{job.job_type}</Badge>}
                           {job.salary_range && <Badge variant="outline" className="text-xs">{job.salary_range}</Badge>}
+                          {job.salary_range && <SalaryBadge salaryRange={job.salary_range} compact />}
                           {job.job_address && (
                             <span className="text-xs text-muted-foreground flex items-center gap-1">
                               <MapPin className="w-3 h-3" />{job.job_address}

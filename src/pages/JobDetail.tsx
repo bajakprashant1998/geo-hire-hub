@@ -70,6 +70,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { SEOHead } from '@/components/SEOHead';
 import { BreadcrumbNav, buildBreadcrumbJsonLd } from '@/components/BreadcrumbNav';
 import type { BreadcrumbItem } from '@/components/BreadcrumbNav';
+import { SalaryBadge } from '@/components/SalaryBadge';
 
 interface JobDetails {
   id: string;
@@ -561,6 +562,7 @@ const JobDetail = () => {
                 {job.salary_range}
               </Badge>
             )}
+            {job.salary_range && <SalaryBadge salaryRange={job.salary_range} />}
             {job.has_bonus && (
               <Badge className="gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-warning/10 text-warning border-warning/20">
                 <Gift className="w-3.5 h-3.5" /> +Bonus

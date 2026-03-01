@@ -2163,24 +2163,30 @@ export type Database = {
           email_digest_frequency: string
           email_notifications_enabled: boolean
           id: string
+          sms_notifications_enabled: boolean | null
           updated_at: string
           user_id: string
+          whatsapp_notifications_enabled: boolean | null
         }
         Insert: {
           created_at?: string
           email_digest_frequency?: string
           email_notifications_enabled?: boolean
           id?: string
+          sms_notifications_enabled?: boolean | null
           updated_at?: string
           user_id: string
+          whatsapp_notifications_enabled?: boolean | null
         }
         Update: {
           created_at?: string
           email_digest_frequency?: string
           email_notifications_enabled?: boolean
           id?: string
+          sms_notifications_enabled?: boolean | null
           updated_at?: string
           user_id?: string
+          whatsapp_notifications_enabled?: boolean | null
         }
         Relationships: []
       }
