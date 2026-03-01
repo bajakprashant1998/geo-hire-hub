@@ -1,85 +1,53 @@
 
 
-## SEO Upgrade Plan — Google 2025/2026 Algorithm Alignment
+## Pending Tasks Across the Website — Completion Plan
 
-### Current Gaps Identified
+### Issues Found
 
-1. **Missing Core Web Vitals signals** — No `<link rel="preconnect">`, no font preloading, no `fetchpriority` on LCP image
-2. **Incomplete JSON-LD** — JobPosting missing `validThrough`, `jobLocation.address` as `PostalAddress`, `applicantLocationRequirements`, `directApply`; Organization missing `logo`, `url`, `sameAs`; No `BreadcrumbList` on any page
-3. **No `<meta name="theme-color">` for mobile** — hurts PWA SEO signal
-4. **Sitemap missing `<lastmod>` on static pages**, no `<sitemapindex>` for scalability, missing candidate URLs
-5. **`og-meta` edge function** — JobPosting JSON-LD incomplete (same gaps), no `BreadcrumbList`, no `validThrough`
-6. **`robots.txt`** leaks internal Supabase URL, missing `Disallow` for admin/dashboard/auth routes
-7. **`index.html`** — Missing `<meta name="google-site-verification">`, missing `<link rel="preconnect">` for Google Maps/Fonts, missing `theme-color`
-8. **BrowseJobs page** — No `ItemList` JSON-LD for job listing aggregation
-9. **No `hreflang` tags** despite 8 language translations (i18n)
-10. **No breadcrumb component** on detail pages — Google shows breadcrumbs in search results via `BreadcrumbList` schema
-11. **SEOHead doesn't support `og:image:width/height`** — needed for rich previews
-12. **Missing `speakable` schema** for Google Assistant integration
+1. **CandidateSettings: "Job Alerts" tab shows blank content** — The `TabsTrigger` for "alerts" exists but there is no `TabsContent value="alerts"`. The `JobAlertsManager` is incorrectly nested inside the "privacy" tab. Clicking "Job Alerts" tab renders nothing.
 
----
+2. **SEO wrapper pages not used in routing** — `SEOJobDetail`, `SEOEmployerDetail`, `SEOCandidateDetail` exist but `App.tsx` routes directly to `JobDetail`, `CandidateDetail`, `EmployerDetail`, bypassing slug resolution and canonical URL redirects.
+
+3. **2FA toggle is a placeholder** — SecuritySettings shows a 2FA toggle that just shows `toast.info('2FA setup coming soon')`. Since Supabase MFA (TOTP) is available, this should either be implemented or the section should clearly indicate it's planned with a proper "Coming Soon" badge instead of a functional-looking toggle.
+
+4. **Payment integration placeholder** — Plans page shows `toast.info('Payment integration coming soon!')` when selecting a paid plan. This is expected for now but should be clearly marked.
+
+5. **EmployerSettings page still exists as dead code** — It redirects to dashboard but the 67-line file is unnecessary weight.
 
 ### Implementation Plan
 
-#### Task 1: Upgrade `index.html` — Core Web Vitals + Meta
-- Add `<meta name="theme-color" content="#2563eb">`
-- Add `<link rel="preconnect" href="https://maps.googleapis.com">` and `dns-prefetch`
-- Add `fetchpriority="high"` concept note (SPA limitation)
-- Remove `<meta name="keywords">` (Google ignores it since 2009)
-- Add `<meta name="google-site-verification">` placeholder
+#### Task 1: Fix CandidateSettings Job Alerts tab
+**File**: `src/pages/CandidateSettings.tsx`
+- Move `JobAlertsManager` from inside `TabsContent value="privacy"` to its own `TabsContent value="alerts"` block
+- This is a simple structural fix — the component already works, it's just in the wrong tab
 
-#### Task 2: Upgrade `SEOHead.tsx`
-- Add `og:image:width`, `og:image:height`, `og:locale` support
-- Add `hreflang` alternate links for all 8 languages
-- Add `article:published_time` and `article:modified_time` for article ogType
-- Support `breadcrumbJsonLd` as separate prop for `BreadcrumbList` schema
+#### Task 2: Wire SEO wrapper pages into App.tsx routing
+**File**: `src/App.tsx`
+- Import `SEOJobDetail`, `SEOEmployerDetail`, `SEOCandidateDetail`
+- Replace `JobDetail` with `SEOJobDetail` on SEO-friendly slug routes (`/jobs/:country/:slug`, etc.)
+- Replace `EmployerDetail` with `SEOEmployerDetail` on company slug routes
+- Replace `CandidateDetail` with `SEOCandidateDetail` on candidate slug routes
+- Keep UUID routes (`/jobs/:id`, `/candidates/:id`, `/employers/:id`) pointing to the original components for backward compatibility
 
-#### Task 3: Upgrade `robots.txt`
-- Remove raw Supabase URL (keep only `hireforjob.com/sitemap.xml`)
-- Add `Disallow` for `/admin`, `/candidate-dashboard`, `/employer-dashboard`, `/candidate-settings`, `/employer-settings`, `/profile-setup`, `/messages`, `/auth/callback`, `/select-role`, `/video-call`
-- Add `Crawl-delay: 1` for generic bots
+#### Task 3: Fix 2FA section to be honest UI
+**File**: `src/components/candidate/SecuritySettings.tsx`
+- Replace the functional-looking Switch toggle with a clear "Coming Soon" badge
+- Remove the misleading toggle that pretends to enable/disable 2FA
+- Add a brief note: "Two-factor authentication will be available soon"
 
-#### Task 4: Upgrade JobDetail JSON-LD (client-side)
-- Add `validThrough` (30 days from `created_at` or actual expiry)
-- Structure `jobLocation` as proper `PostalAddress` with `addressLocality`, `addressRegion`, `addressCountry`
-- Add `directApply: true`
-- Add `applicantLocationRequirements` when location data exists
-- Add `identifier` with employer name + job ID
-- Add `BreadcrumbList` JSON-LD (Home > Jobs > Country > City > Job Title)
+#### Task 4: Clean up dead EmployerSettings page
+**File**: `src/pages/EmployerSettings.tsx`
+- The route already redirects in App.tsx; the standalone page is unused dead code
+- Remove the file or keep it minimal (it's only 67 lines and already redirects, so low priority)
 
-#### Task 5: Upgrade EmployerDetail JSON-LD
-- Add `logo`, `url`, `address`, `numberOfEmployees`
-- Add `BreadcrumbList` (Home > Companies > Company Name)
+### Technical Details
 
-#### Task 6: Upgrade BrowseJobs page
-- Add `ItemList` JSON-LD schema for job listing aggregation
-- Add breadcrumb schema (Home > Browse Jobs)
+**Task 1 — CandidateSettings fix**: Lines 432-433 have `JobAlertsManager` inside `TabsContent value="privacy"`. Need to add a new `TabsContent value="alerts">` block after the security tab content with the `JobAlertsManager` inside it, and remove it from the privacy tab.
 
-#### Task 7: Upgrade `og-meta` edge function
-- Mirror all JSON-LD improvements from Tasks 4-5
-- Add `validThrough`, proper `PostalAddress`, `directApply`
-- Fetch `salary_min`, `salary_max`, `salary_currency` for proper `baseSalary`
-- Add `datePosted` from actual `created_at` instead of `new Date()`
+**Task 2 — SEO routing**: The SEO wrappers use `useSlugResolver` to resolve slugs and redirect UUIDs to canonical paths. Currently all routes bypass this. The fix maps:
+- `/jobs/:country/:slug` → `SEOJobDetail` (instead of `JobDetail`)
+- `/companies/:country/:slug` → `SEOEmployerDetail` (instead of `EmployerDetail`)
+- `/candidates/:country/:slug` → `SEOCandidateDetail` (instead of `CandidateDetail`)
 
-#### Task 8: Upgrade sitemap edge function
-- Add candidate profile URLs (public profiles)
-- Add `<lastmod>` to static pages
-- Add proper XML namespace for images if employer has logo
-- Cap at 50,000 URLs per sitemap, add `<sitemapindex>` wrapper if needed
-
-#### Task 9: Create `BreadcrumbNav` UI component
-- Visible breadcrumb navigation on JobDetail, EmployerDetail, CandidateDetail, BrowseJobs
-- Renders as accessible `<nav aria-label="Breadcrumb">` with `<ol>` markup
-- Matches the `BreadcrumbList` JSON-LD for consistency
-
-### Files to Create/Modify
-- **Edit**: `index.html`
-- **Edit**: `src/components/SEOHead.tsx`
-- **Edit**: `public/robots.txt`
-- **Edit**: `src/pages/JobDetail.tsx` (JSON-LD + breadcrumb)
-- **Edit**: `src/pages/EmployerDetail.tsx` (JSON-LD + breadcrumb)
-- **Edit**: `src/pages/BrowseJobs.tsx` (JSON-LD + breadcrumb)
-- **Edit**: `supabase/functions/og-meta/index.ts`
-- **Edit**: `supabase/functions/sitemap/index.ts`
-- **Create**: `src/components/BreadcrumbNav.tsx`
+**Task 3 — 2FA**: Replace the `Switch` + `Badge` combo with a static "Coming Soon" indicator using a disabled badge, removing the false interactivity.
 
