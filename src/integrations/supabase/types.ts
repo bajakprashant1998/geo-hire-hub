@@ -116,28 +116,40 @@ export type Database = {
       applications: {
         Row: {
           candidate_id: string
+          candidate_notes: string | null
           cover_letter: string | null
           created_at: string | null
+          follow_up_date: string | null
           id: string
           job_id: string
+          kanban_stage: string
+          priority: string | null
           status: string | null
           updated_at: string | null
         }
         Insert: {
           candidate_id: string
+          candidate_notes?: string | null
           cover_letter?: string | null
           created_at?: string | null
+          follow_up_date?: string | null
           id?: string
           job_id: string
+          kanban_stage?: string
+          priority?: string | null
           status?: string | null
           updated_at?: string | null
         }
         Update: {
           candidate_id?: string
+          candidate_notes?: string | null
           cover_letter?: string | null
           created_at?: string | null
+          follow_up_date?: string | null
           id?: string
           job_id?: string
+          kanban_stage?: string
+          priority?: string | null
           status?: string | null
           updated_at?: string | null
         }
@@ -151,6 +163,123 @@ export type Database = {
           },
           {
             foreignKeyName: "applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_questions: {
+        Row: {
+          assessment_id: string
+          correct_answer: string
+          created_at: string
+          explanation: string | null
+          id: string
+          options: Json
+          points: number
+          question_text: string
+          question_type: string
+          sort_order: number
+        }
+        Insert: {
+          assessment_id: string
+          correct_answer: string
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          options?: Json
+          points?: number
+          question_text: string
+          question_type?: string
+          sort_order?: number
+        }
+        Update: {
+          assessment_id?: string
+          correct_answer?: string
+          created_at?: string
+          explanation?: string | null
+          id?: string
+          options?: Json
+          points?: number
+          question_text?: string
+          question_type?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_questions_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "skill_assessments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_results: {
+        Row: {
+          answers: Json
+          assessment_id: string
+          candidate_id: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          job_id: string | null
+          max_score: number
+          passed: boolean
+          percentage: number
+          score: number
+          started_at: string
+          time_taken_seconds: number | null
+        }
+        Insert: {
+          answers?: Json
+          assessment_id: string
+          candidate_id: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          max_score?: number
+          passed?: boolean
+          percentage?: number
+          score?: number
+          started_at?: string
+          time_taken_seconds?: number | null
+        }
+        Update: {
+          answers?: Json
+          assessment_id?: string
+          candidate_id?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          max_score?: number
+          passed?: boolean
+          percentage?: number
+          score?: number
+          started_at?: string
+          time_taken_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_results_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "skill_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_results_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_results_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
@@ -530,6 +659,94 @@ export type Database = {
             foreignKeyName: "candidates_profile_id_fkey"
             columns: ["profile_id"]
             isOneToOne: true
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_reviews: {
+        Row: {
+          cons: string | null
+          created_at: string
+          culture_rating: number | null
+          employer_id: string
+          growth_rating: number | null
+          helpful_count: number
+          id: string
+          is_anonymous: boolean
+          is_approved: boolean
+          is_flagged: boolean
+          management_rating: number | null
+          overall_rating: number
+          pros: string | null
+          relationship: string
+          reviewer_id: string
+          salary_rating: number | null
+          title: string
+          updated_at: string
+          worklife_rating: number | null
+        }
+        Insert: {
+          cons?: string | null
+          created_at?: string
+          culture_rating?: number | null
+          employer_id: string
+          growth_rating?: number | null
+          helpful_count?: number
+          id?: string
+          is_anonymous?: boolean
+          is_approved?: boolean
+          is_flagged?: boolean
+          management_rating?: number | null
+          overall_rating: number
+          pros?: string | null
+          relationship: string
+          reviewer_id: string
+          salary_rating?: number | null
+          title: string
+          updated_at?: string
+          worklife_rating?: number | null
+        }
+        Update: {
+          cons?: string | null
+          created_at?: string
+          culture_rating?: number | null
+          employer_id?: string
+          growth_rating?: number | null
+          helpful_count?: number
+          id?: string
+          is_anonymous?: boolean
+          is_approved?: boolean
+          is_flagged?: boolean
+          management_rating?: number | null
+          overall_rating?: number
+          pros?: string | null
+          relationship?: string
+          reviewer_id?: string
+          salary_rating?: number | null
+          title?: string
+          updated_at?: string
+          worklife_rating?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_reviews_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "employers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_reviews_reviewer_id_fkey"
+            columns: ["reviewer_id"]
+            isOneToOne: false
             referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
@@ -1466,6 +1683,7 @@ export type Database = {
       }
       job_matches: {
         Row: {
+          ai_screening_score: number | null
           candidate_id: string
           created_at: string
           experience_match: boolean | null
@@ -1475,11 +1693,15 @@ export type Database = {
           match_reasons: Json | null
           match_score: number
           missing_skills: string[] | null
+          recommendation: string | null
           salary_match: boolean | null
+          screening_summary: string | null
+          skill_gaps: Json | null
           skill_overlap: string[] | null
           updated_at: string
         }
         Insert: {
+          ai_screening_score?: number | null
           candidate_id: string
           created_at?: string
           experience_match?: boolean | null
@@ -1489,11 +1711,15 @@ export type Database = {
           match_reasons?: Json | null
           match_score: number
           missing_skills?: string[] | null
+          recommendation?: string | null
           salary_match?: boolean | null
+          screening_summary?: string | null
+          skill_gaps?: Json | null
           skill_overlap?: string[] | null
           updated_at?: string
         }
         Update: {
+          ai_screening_score?: number | null
           candidate_id?: string
           created_at?: string
           experience_match?: boolean | null
@@ -1503,7 +1729,10 @@ export type Database = {
           match_reasons?: Json | null
           match_score?: number
           missing_skills?: string[] | null
+          recommendation?: string | null
           salary_match?: boolean | null
+          screening_summary?: string | null
+          skill_gaps?: Json | null
           skill_overlap?: string[] | null
           updated_at?: string
         }
@@ -1602,6 +1831,7 @@ export type Database = {
         Row: {
           additional_notes: string | null
           admin_notes: string | null
+          assessment_id: string | null
           category: string | null
           certifications: string | null
           contact_email: string | null
@@ -1656,6 +1886,7 @@ export type Database = {
         Insert: {
           additional_notes?: string | null
           admin_notes?: string | null
+          assessment_id?: string | null
           category?: string | null
           certifications?: string | null
           contact_email?: string | null
@@ -1710,6 +1941,7 @@ export type Database = {
         Update: {
           additional_notes?: string | null
           admin_notes?: string | null
+          assessment_id?: string | null
           category?: string | null
           certifications?: string | null
           contact_email?: string | null
@@ -1762,6 +1994,13 @@ export type Database = {
           work_days?: string[] | null
         }
         Relationships: [
+          {
+            foreignKeyName: "jobs_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "skill_assessments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "jobs_employer_id_fkey"
             columns: ["employer_id"]
@@ -2119,6 +2358,133 @@ export type Database = {
         }
         Relationships: []
       }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          job_id: string | null
+          points_earned: number
+          referral_code: string
+          referred_email: string | null
+          referred_user_id: string | null
+          referrer_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          points_earned?: number
+          referral_code: string
+          referred_email?: string | null
+          referred_user_id?: string | null
+          referrer_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_id?: string | null
+          points_earned?: number
+          referral_code?: string
+          referred_email?: string | null
+          referred_user_id?: string | null
+          referrer_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referred_user_id_fkey"
+            columns: ["referred_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referred_user_id_fkey"
+            columns: ["referred_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reward_points: {
+        Row: {
+          action: string
+          created_at: string
+          description: string | null
+          id: string
+          points: number
+          referral_id: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          points?: number
+          referral_id?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          points?: number
+          referral_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reward_points_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reward_points_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reward_points_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       saved_candidates: {
         Row: {
           candidate_id: string
@@ -2263,6 +2629,62 @@ export type Database = {
         }
         Relationships: []
       }
+      skill_assessments: {
+        Row: {
+          avg_score: number | null
+          created_at: string
+          description: string | null
+          difficulty: string
+          employer_id: string
+          id: string
+          is_active: boolean
+          passing_score: number
+          skill_category: string
+          time_limit_minutes: number
+          title: string
+          total_attempts: number
+          updated_at: string
+        }
+        Insert: {
+          avg_score?: number | null
+          created_at?: string
+          description?: string | null
+          difficulty?: string
+          employer_id: string
+          id?: string
+          is_active?: boolean
+          passing_score?: number
+          skill_category: string
+          time_limit_minutes?: number
+          title: string
+          total_attempts?: number
+          updated_at?: string
+        }
+        Update: {
+          avg_score?: number | null
+          created_at?: string
+          description?: string | null
+          difficulty?: string
+          employer_id?: string
+          id?: string
+          is_active?: boolean
+          passing_score?: number
+          skill_category?: string
+          time_limit_minutes?: number
+          title?: string
+          total_attempts?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skill_assessments_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "employers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           candidate_id: string
@@ -2362,6 +2784,27 @@ export type Database = {
       }
     }
     Views: {
+      employer_ratings: {
+        Row: {
+          avg_culture: number | null
+          avg_growth: number | null
+          avg_management: number | null
+          avg_overall: number | null
+          avg_salary: number | null
+          avg_worklife: number | null
+          employer_id: string | null
+          review_count: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_reviews_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "employers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       public_profiles: {
         Row: {
           avatar_url: string | null

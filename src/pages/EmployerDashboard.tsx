@@ -53,6 +53,8 @@ import { CompanyProfileSection } from '@/components/employer/CompanyProfileSecti
 import { RecentActivityFeed } from '@/components/employer/RecentActivityFeed';
 import { HiringPipeline } from '@/components/employer/HiringPipeline';
 import { PendingTasksWidget } from '@/components/dashboard/PendingTasksWidget';
+import { AIScreeningPanel } from '@/components/employer/AIScreeningPanel';
+import { SkillAssessmentManager } from '@/components/employer/SkillAssessmentManager';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -256,6 +258,8 @@ const EmployerDashboard = () => {
     { icon: Eye, label: 'Public Profile', value: 'public-profile' },
     { icon: Bell, label: 'Notifications', value: 'notifications', badge: stats.notificationCount },
     { icon: Shield, label: 'Security', value: 'security' },
+    { icon: Sparkles, label: 'AI Screening', value: 'ai-screening' },
+    { icon: CheckCircle2, label: 'Assessments', value: 'assessments' },
     { icon: CreditCard, label: 'Upgrade Plan', value: 'upgrade-plan' }
   ];
 
@@ -781,6 +785,10 @@ const EmployerDashboard = () => {
         return <NotificationCenter />;
       case 'security':
         return <SecuritySettings />;
+      case 'ai-screening':
+        return employer && <AIScreeningPanel jobId="" jobTitle="Select a job" />;
+      case 'assessments':
+        return employer && <SkillAssessmentManager employerId={employer.id} />;
       case 'post-job':
         return <PostJob embedded />;
       default:
