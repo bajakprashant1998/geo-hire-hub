@@ -1,53 +1,94 @@
 
 
-## Pending Tasks Across the Website — Completion Plan
+## Remaining Feature Implementation Plan
 
-### Issues Found
+### 4 Tasks to Complete
 
-1. **CandidateSettings: "Job Alerts" tab shows blank content** — The `TabsTrigger` for "alerts" exists but there is no `TabsContent value="alerts"`. The `JobAlertsManager` is incorrectly nested inside the "privacy" tab. Clicking "Job Alerts" tab renders nothing.
+---
 
-2. **SEO wrapper pages not used in routing** — `SEOJobDetail`, `SEOEmployerDetail`, `SEOCandidateDetail` exist but `App.tsx` routes directly to `JobDetail`, `CandidateDetail`, `EmployerDetail`, bypassing slug resolution and canonical URL redirects.
+### Task 1: AI Screening Job Selector in Employer Dashboard
 
-3. **2FA toggle is a placeholder** — SecuritySettings shows a 2FA toggle that just shows `toast.info('2FA setup coming soon')`. Since Supabase MFA (TOTP) is available, this should either be implemented or the section should clearly indicate it's planned with a proper "Coming Soon" badge instead of a functional-looking toggle.
+**Problem**: The AI Screening section currently renders `<AIScreeningPanel jobId="" jobTitle="Select a job" />` with an empty jobId — it's unusable. Also, `ai-candidate-screening` is missing from `supabase/config.toml`.
 
-4. **Payment integration placeholder** — Plans page shows `toast.info('Payment integration coming soon!')` when selecting a paid plan. This is expected for now but should be clearly marked.
+**Fix**:
+- Add `ai-candidate-screening` to `supabase/config.toml` with `verify_jwt = false`
+- Update the `ai-screening` case in `EmployerDashboard.tsx` (line 788-789) to render a job selector dropdown above the `AIScreeningPanel`, populated from the employer's `jobs` array
+- When a job is selected, pass its `id` and `title` to `AIScreeningPanel`
+- Show a placeholder prompt when no job is selected
 
-5. **EmployerSettings page still exists as dead code** — It redirects to dashboard but the 67-line file is unnecessary weight.
+---
 
-### Implementation Plan
+### Task 2: Candidate-Facing Assessment Test-Taking UI
 
-#### Task 1: Fix CandidateSettings Job Alerts tab
-**File**: `src/pages/CandidateSettings.tsx`
-- Move `JobAlertsManager` from inside `TabsContent value="privacy"` to its own `TabsContent value="alerts"` block
-- This is a simple structural fix — the component already works, it's just in the wrong tab
+**Problem**: Employers can create assessments via `SkillAssessmentManager`, and `assessment_results` table exists, but there is no UI for candidates to actually take a test.
 
-#### Task 2: Wire SEO wrapper pages into App.tsx routing
-**File**: `src/App.tsx`
-- Import `SEOJobDetail`, `SEOEmployerDetail`, `SEOCandidateDetail`
-- Replace `JobDetail` with `SEOJobDetail` on SEO-friendly slug routes (`/jobs/:country/:slug`, etc.)
-- Replace `EmployerDetail` with `SEOEmployerDetail` on company slug routes
-- Replace `CandidateDetail` with `SEOCandidateDetail` on candidate slug routes
-- Keep UUID routes (`/jobs/:id`, `/candidates/:id`, `/employers/:id`) pointing to the original components for backward compatibility
+**Build**:
+- Create `src/components/candidate/TakeAssessment.tsx` — a timed test UI that:
+  - Loads questions from `assessment_questions` for a given `assessment_id`
+  - Shows a countdown timer based on `time_limit_minutes`
+  - Renders multiple-choice questions one at a time or all at once
+  - On submit, calculates score, compares to `passing_score`, and inserts result into `assessment_results`
+  - Shows pass/fail result with score breakdown
+- Add a route or entry point: link from job detail page when the job has an `assessment_id`, and/or add an "Assessments" section in candidate dashboard sidebar
+- Add "Take Assessment" button on `JobDetail.tsx` when the job has a linked assessment and the candidate hasn't already taken it
 
-#### Task 3: Fix 2FA section to be honest UI
-**File**: `src/components/candidate/SecuritySettings.tsx`
-- Replace the functional-looking Switch toggle with a clear "Coming Soon" badge
-- Remove the misleading toggle that pretends to enable/disable 2FA
-- Add a brief note: "Two-factor authentication will be available soon"
+---
 
-#### Task 4: Clean up dead EmployerSettings page
-**File**: `src/pages/EmployerSettings.tsx`
-- The route already redirects in App.tsx; the standalone page is unused dead code
-- Remove the file or keep it minimal (it's only 67 lines and already redirects, so low priority)
+### Task 3: Salary Transparency Badges on Job Listings
+
+**Problem**: Job cards on BrowseJobs and JobRadar show salary as plain text. No visual indicator of how competitive the salary is.
+
+**Build**:
+- Create a small `SalaryBadge` component that shows a color-coded badge based on the salary range:
+  - Green "Competitive" for higher ranges
+  - Amber "Market Rate" for average
+  - Simple display with currency symbol for all
+- Add this badge to:
+  - `BrowseJobs.tsx` job cards (line ~176, where `salary_range` badge already exists — enhance it)
+  - `JobDetail.tsx` salary pill (line ~558-562 — add a "Competitive" / "Market Rate" indicator next to the salary)
+  - `JobRadarCard.tsx` salary section
+- Since we already have the `salary-insights` edge function, we can use simple heuristic thresholds client-side (e.g., salary > 25000 = competitive) rather than calling AI for every listing
+
+---
+
+### Task 4: WhatsApp/SMS Notifications
+
+**Problem**: Currently only email notifications exist. Users want WhatsApp/SMS alerts for interviews and application updates.
+
+**Build**:
+- Create `supabase/functions/send-whatsapp-notification/index.ts` edge function that:
+  - Accepts `{ phone_number, message, template_name }` 
+  - Calls the WhatsApp Business API (or Twilio) to send messages
+  - This requires a third-party API key (Twilio or WhatsApp Business API)
+- Add notification preference toggles in `SecuritySettings.tsx`:
+  - "WhatsApp notifications" toggle (stored in `notification_preferences`)
+  - "SMS notifications" toggle
+- Add `whatsapp_notifications_enabled` and `sms_notifications_enabled` columns to `notification_preferences` table
+- Wire the existing `notify_interview_event` and `notify_application_status_change` triggers to optionally call the WhatsApp function when enabled
+- **API Key Required**: Will need to set up a Twilio or WhatsApp Business API connector. Will prompt for API key setup before proceeding.
+
+---
 
 ### Technical Details
 
-**Task 1 — CandidateSettings fix**: Lines 432-433 have `JobAlertsManager` inside `TabsContent value="privacy"`. Need to add a new `TabsContent value="alerts">` block after the security tab content with the `JobAlertsManager` inside it, and remove it from the privacy tab.
+**Database changes needed**:
+- Add columns to `notification_preferences`: `whatsapp_notifications_enabled boolean default false`, `sms_notifications_enabled boolean default false`
+- Add `assessment_id` column to `jobs` table if not already present (to link assessments to jobs)
 
-**Task 2 — SEO routing**: The SEO wrappers use `useSlugResolver` to resolve slugs and redirect UUIDs to canonical paths. Currently all routes bypass this. The fix maps:
-- `/jobs/:country/:slug` → `SEOJobDetail` (instead of `JobDetail`)
-- `/companies/:country/:slug` → `SEOEmployerDetail` (instead of `EmployerDetail`)
-- `/candidates/:country/:slug` → `SEOCandidateDetail` (instead of `CandidateDetail`)
+**Config changes**:
+- Add `[functions.ai-candidate-screening]` and `[functions.send-whatsapp-notification]` to `supabase/config.toml`
 
-**Task 3 — 2FA**: Replace the `Switch` + `Badge` combo with a static "Coming Soon" indicator using a disabled badge, removing the false interactivity.
+**New files**:
+- `src/components/candidate/TakeAssessment.tsx` — test-taking UI
+- `src/components/SalaryBadge.tsx` — reusable salary indicator
+- `supabase/functions/send-whatsapp-notification/index.ts` — WhatsApp/SMS sender
+
+**Modified files**:
+- `supabase/config.toml` — register new edge functions
+- `src/pages/EmployerDashboard.tsx` — job selector for AI screening
+- `src/pages/JobDetail.tsx` — salary badge + assessment link
+- `src/pages/BrowseJobs.tsx` — salary badge
+- `src/pages/CandidateDashboard.tsx` — assessment section in sidebar
+- `src/components/candidate/JobRadarCard.tsx` — salary badge
+- `src/components/candidate/SecuritySettings.tsx` — WhatsApp/SMS toggles
 
