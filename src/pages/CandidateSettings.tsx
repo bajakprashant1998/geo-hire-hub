@@ -429,13 +429,16 @@ const CandidateSettings = () => {
                 </CardContent>
               </Card>
 
-              {/* Job Alerts */}
-              {candidate && <JobAlertsManager candidateId={candidate.id} />}
             </TabsContent>
 
             {/* Security Tab */}
             <TabsContent value="security">
               <SecuritySettings />
+            </TabsContent>
+
+            {/* Job Alerts Tab */}
+            <TabsContent value="alerts">
+              {candidate && <JobAlertsManager candidateId={candidate.id} />}
             </TabsContent>
           </Tabs>
         </div>

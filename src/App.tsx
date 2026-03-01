@@ -31,6 +31,9 @@ import CandidateDetail from "./pages/CandidateDetail";
 import CandidateResumeRedirect from "./pages/CandidateResumeRedirect";
 import EmployerDetail from "./pages/EmployerDetail";
 import JobDetail from "./pages/JobDetail";
+import SEOJobDetail from "./pages/SEOJobDetail";
+import SEOEmployerDetail from "./pages/SEOEmployerDetail";
+import SEOCandidateDetail from "./pages/SEOCandidateDetail";
 import Plans from "./pages/Plans";
 import CompanyProfileEdit from "./pages/CompanyProfileEdit";
 import VideoCall from "./pages/VideoCall";
@@ -101,23 +104,23 @@ const App = () => (
               {/* ==================== SEO-FRIENDLY DETAIL PAGES ==================== */}
               {/* Jobs: /jobs/:slug or /jobs/:country/:slug or /jobs/:country/:state/:slug or /jobs/:country/:state/:city/:slug */}
               <Route path="/jobs/:id" element={<JobDetail />} />
-              <Route path="/jobs/:country/:slug" element={<JobDetail />} />
-              <Route path="/jobs/:country/:state/:slug" element={<JobDetail />} />
-              <Route path="/jobs/:country/:state/:city/:slug" element={<JobDetail />} />
+              <Route path="/jobs/:country/:slug" element={<SEOJobDetail />} />
+              <Route path="/jobs/:country/:state/:slug" element={<SEOJobDetail />} />
+              <Route path="/jobs/:country/:state/:city/:slug" element={<SEOJobDetail />} />
 
               {/* Candidates: /candidates/:slug or with location hierarchy */}
               <Route path="/candidates/:id/resume.pdf" element={<CandidateResumeRedirect />} />
               <Route path="/candidates/:id" element={<CandidateDetail />} />
-              <Route path="/candidates/:country/:slug" element={<CandidateDetail />} />
-              <Route path="/candidates/:country/:state/:slug" element={<CandidateDetail />} />
-              <Route path="/candidates/:country/:state/:city/:slug" element={<CandidateDetail />} />
+              <Route path="/candidates/:country/:slug" element={<SEOCandidateDetail />} />
+              <Route path="/candidates/:country/:state/:slug" element={<SEOCandidateDetail />} />
+              <Route path="/candidates/:country/:state/:city/:slug" element={<SEOCandidateDetail />} />
 
               {/* Companies/Employers: /companies/:slug or with location hierarchy */}
               <Route path="/employers/:id" element={<EmployerDetail />} />
               <Route path="/companies/:slug" element={<EmployerDetail />} />
-              <Route path="/companies/:country/:slug" element={<EmployerDetail />} />
-              <Route path="/companies/:country/:state/:slug" element={<EmployerDetail />} />
-              <Route path="/companies/:country/:state/:city/:slug" element={<EmployerDetail />} />
+              <Route path="/companies/:country/:slug" element={<SEOEmployerDetail />} />
+              <Route path="/companies/:country/:state/:slug" element={<SEOEmployerDetail />} />
+              <Route path="/companies/:country/:state/:city/:slug" element={<SEOEmployerDetail />} />
 
               {/* ==================== CANDIDATE ROUTES ==================== */}
               <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
