@@ -68,7 +68,7 @@ export const SecuritySettings = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  
   const [deactivating, setDeactivating] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [loadingEmailPref, setLoadingEmailPref] = useState(false);
@@ -424,23 +424,14 @@ export const SecuritySettings = () => {
           <CardContent>
             <div className="flex items-center justify-between p-4 bg-secondary rounded-xl">
               <div>
-                <p className="font-medium">Enable 2FA</p>
+                <p className="font-medium">Two-Factor Authentication</p>
                 <p className="text-sm text-muted-foreground">
                   Use an authenticator app for additional security
                 </p>
               </div>
-              <div className="flex items-center gap-3">
-                <Badge variant={twoFactorEnabled ? "default" : "secondary"}>
-                  {twoFactorEnabled ? 'Enabled' : 'Disabled'}
-                </Badge>
-                <Switch
-                  checked={twoFactorEnabled}
-                  onCheckedChange={(checked) => {
-                    setTwoFactorEnabled(checked);
-                    toast.info(checked ? '2FA setup coming soon' : '2FA disabled');
-                  }}
-                />
-              </div>
+              <Badge variant="outline" className="text-muted-foreground border-muted-foreground/30">
+                Coming Soon
+              </Badge>
             </div>
             <div className="flex items-start gap-2 mt-3 p-3 bg-primary/5 rounded-xl border border-primary/10">
               <Info className="w-4 h-4 text-primary mt-0.5 shrink-0" />
