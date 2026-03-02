@@ -1,14 +1,14 @@
+/// <reference types="google.maps" />
 import { useCallback, useMemo, useState, useEffect, useRef, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GoogleMap, useJsApiLoader, Marker, Circle, MarkerClusterer, InfoWindow, OverlayView } from '@react-google-maps/api';
+import { Map as GoogleMapView, AdvancedMarker, useMap, InfoWindow } from '@vis.gl/react-google-maps';
+import { MarkerClusterer, type Cluster } from '@googlemaps/markerclusterer';
 import { ViewMode, Candidate, Job } from '@/types';
-import { useGoogleMapsKey } from '@/hooks/useGoogleMapsKey';
-import { GoogleMapsLoaderBoundary } from '@/components/map/GoogleMapsLoaderBoundary';
-import { Loader2, MapPin, CheckCircle2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { motion } from 'framer-motion';
+import { GoogleMapsProvider } from '@/components/map/GoogleMapsProvider';
+import { Loader2, MapPin } from 'lucide-react';
 
-const MAPS_LIBRARIES: ('visualization')[] = ['visualization'];
+// Map ID required for AdvancedMarkerElement — use a generic one or your own
+const MAP_ID = 'hireforjob-map';
 
 interface GoogleMapContainerProps {
   mode: ViewMode;
@@ -23,80 +23,26 @@ interface GoogleMapContainerProps {
   heatmapEnabled?: boolean;
 }
 
-const mapContainerStyle = {
-  width: '100%',
-  height: '100%',
-};
-
 const defaultCenter = { lat: 20.5937, lng: 78.9629 };
 
-// Modern minimal map style
-const modernMapStyle: google.maps.MapTypeStyle[] = [
-  { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] },
-  { featureType: 'transit', elementType: 'labels', stylers: [{ visibility: 'off' }] },
-  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#c9e7f5' }] },
-  { featureType: 'landscape', elementType: 'geometry', stylers: [{ color: '#f0f4f0' }] },
-  { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#e0e4e0' }] },
-  { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#e8ece8' }] },
-  { featureType: 'road.local', elementType: 'geometry', stylers: [{ color: '#f0f4f0' }] },
-  { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#6b7280' }] },
-  { featureType: 'administrative', elementType: 'labels.text.fill', stylers: [{ color: '#9ca3af' }] },
-];
-
-const mapOptions: google.maps.MapOptions = {
-  disableDefaultUI: false,
-  zoomControl: true,
-  mapTypeControl: false,
-  streetViewControl: false,
-  fullscreenControl: false,
-  gestureHandling: 'greedy',
-  styles: modernMapStyle,
-};
-
-// Pre-computed marker icon URLs
-const markerIconCache = new Map<string, string>();
-const getMarkerIconUrl = (color: string, isCandidate: boolean): string => {
-  const key = `${color}-${isCandidate}`;
-  if (markerIconCache.has(key)) return markerIconCache.get(key)!;
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><defs><filter id="s" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.25"/></filter></defs><circle cx="20" cy="20" r="16" fill="#${color}" stroke="white" stroke-width="3" filter="url(#s)"/>${
-    isCandidate
-      ? '<path d="M24 26v-1a3 3 0 0 0-3-3h-2a3 3 0 0 0-3 3v1" stroke="white" stroke-width="1.5" fill="none"/><circle cx="20" cy="16" r="2.5" stroke="white" stroke-width="1.5" fill="none"/>'
-      : '<rect x="13" y="16" width="14" height="9" rx="1.5" fill="white" opacity="0.9"/><path d="M18 16V14a2 2 0 0 1 4 0v2" stroke="white" stroke-width="1.5" fill="none"/>'
-  }</svg>`;
-  const url = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
-  markerIconCache.set(key, url);
-  return url;
-};
-
-// Pre-computed cluster icon URLs with gradient
-const clusterIconCache = new Map<string, string>();
-const getClusterIconUrl = (mode: string, size: number): string => {
-  const key = `${mode}-${size}`;
-  if (clusterIconCache.has(key)) return clusterIconCache.get(key)!;
-  const r = size / 2;
-  const innerR = Math.round(r * 0.77);
-  const fill = mode === 'hiring' ? 'hsl(217,89%,61%)' : 'hsl(4,90%,58%)';
-  const innerFill = mode === 'hiring' ? 'hsl(217,89%,51%)' : 'hsl(4,90%,48%)';
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}"><defs><filter id="cs" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.2"/></filter></defs><circle cx="${r}" cy="${r}" r="${r}" fill="${fill}" opacity="0.85" filter="url(#cs)"/><circle cx="${r}" cy="${r}" r="${innerR}" fill="${innerFill}" stroke="white" stroke-width="2.5"/></svg>`;
-  const url = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
-  clusterIconCache.set(key, url);
-  return url;
-};
-
-// Inner component
-const GoogleMapInner = (props: GoogleMapContainerProps & { apiKey: string }) => {
+const GoogleMapInner = (props: GoogleMapContainerProps) => {
   const {
     mode, candidates, jobs, userLocation, radius,
     onMarkerClick, selectedItem, isEmployer,
-    centerTrigger = 0, apiKey, heatmapEnabled = false,
+    centerTrigger = 0, heatmapEnabled = false,
   } = props;
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-  const heatmapLayerRef = useRef<google.maps.visualization.HeatmapLayer | null>(null);
-  const [hoveredItem, setHoveredItem] = useState<Candidate | Job | null>(null);
-  const [spiderfiedCluster, setSpiderfiedCluster] = useState<{ center: google.maps.LatLng; markers: google.maps.Marker[] } | null>(null);
-  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const clustererRef = useRef<any>(null);
+
+  const map = useMap();
   const navigate = useNavigate();
+  const heatmapLayerRef = useRef<google.maps.visualization.HeatmapLayer | null>(null);
+  const clustererRef = useRef<MarkerClusterer | null>(null);
+  const markersRef = useRef<globalThis.Map<string, google.maps.marker.AdvancedMarkerElement>>(new globalThis.Map());
+  const [hoveredItem, setHoveredItem] = useState<Candidate | Job | null>(null);
+  const [spiderfiedCluster, setSpiderfiedCluster] = useState<{ center: google.maps.LatLng; items: (Candidate | Job)[] } | null>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const items = mode === 'hiring' ? candidates : jobs;
+  const center = useMemo(() => userLocation || defaultCenter, [userLocation]);
 
   const handleMouseEnter = (item: Candidate | Job) => {
     if (hoverTimeoutRef.current) {
@@ -107,9 +53,7 @@ const GoogleMapInner = (props: GoogleMapContainerProps & { apiKey: string }) => 
   };
 
   const handleMouseLeave = () => {
-    hoverTimeoutRef.current = setTimeout(() => {
-      setHoveredItem(null);
-    }, 300);
+    hoverTimeoutRef.current = setTimeout(() => setHoveredItem(null), 300);
   };
 
   const formatTimeAgo = (dateString: string): string => {
@@ -126,25 +70,97 @@ const GoogleMapInner = (props: GoogleMapContainerProps & { apiKey: string }) => 
 
   const isNewJob = (dateString: string): boolean => {
     const date = new Date(dateString);
-    const now = new Date();
-    return (now.getTime() - date.getTime()) < 24 * 60 * 60 * 1000;
+    return (Date.now() - date.getTime()) < 24 * 60 * 60 * 1000;
   };
 
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: `google-map-script-${apiKey.slice(0, 8)}`,
-    googleMapsApiKey: apiKey,
-    libraries: MAPS_LIBRARIES,
-  });
+  // Initialize clusterer
+  useEffect(() => {
+    if (!map) return;
 
-  const center = useMemo(() => userLocation || defaultCenter, [userLocation]);
+    const clusterer = new MarkerClusterer({
+      map,
+      markers: [],
+      onClusterClick: (_event: google.maps.MapMouseEvent, cluster: Cluster, _map: google.maps.Map) => {
+        const clusterMarkers = cluster.markers as google.maps.marker.AdvancedMarkerElement[];
+        if (!clusterMarkers || clusterMarkers.length === 0) return;
 
-  const onLoad = useCallback((map: google.maps.Map) => {
-    setMap(map);
-    map.addListener('click', () => setSpiderfiedCluster(null));
-  }, []);
-  const onUnmount = useCallback(() => setMap(null), []);
+        if (clusterMarkers.length <= 20) {
+          // Spiderfy: find matching items
+          const clusterItems: (Candidate | Job)[] = [];
+          clusterMarkers.forEach(m => {
+            const pos = m.position as google.maps.LatLngLiteral;
+            if (!pos) return;
+            const matched = items.find(
+              it => Math.abs(it.latitude - pos.lat) < 0.0001 && Math.abs(it.longitude - pos.lng) < 0.0001
+            );
+            if (matched) clusterItems.push(matched);
+          });
 
-  // Smooth pan to selected item
+          const clusterCenter = cluster.position;
+          setSpiderfiedCluster(prev => {
+            if (prev && Math.abs(prev.center.lat() - clusterCenter.lat()) < 0.0001) return null;
+            return { center: clusterCenter, items: clusterItems };
+          });
+        } else {
+          // Zoom in
+          setSpiderfiedCluster(null);
+          const bounds = cluster.bounds;
+          if (bounds) _map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
+        }
+      },
+      renderer: {
+        render: ({ count, position }: Cluster, _stats: any, _map: google.maps.Map) => {
+          const size = count > 50 ? 66 : 54;
+          const color = mode === 'hiring' ? '#3B82F6' : '#EF4444';
+          const innerColor = mode === 'hiring' ? '#2563EB' : '#DC2626';
+          
+          const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+            <circle cx="${size/2}" cy="${size/2}" r="${size/2}" fill="${color}" opacity="0.85"/>
+            <circle cx="${size/2}" cy="${size/2}" r="${Math.round(size * 0.38)}" fill="${innerColor}" stroke="white" stroke-width="2.5"/>
+            <text x="${size/2}" y="${size/2}" text-anchor="middle" dominant-baseline="central" fill="white" font-size="${count > 99 ? 13 : 14}" font-weight="600" font-family="system-ui, sans-serif">${count}</text>
+          </svg>`;
+
+          const marker = new google.maps.marker.AdvancedMarkerElement({
+            position,
+            content: (() => {
+              const div = document.createElement('div');
+              div.innerHTML = svg;
+              div.style.cursor = 'pointer';
+              div.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))';
+              return div;
+            })(),
+            zIndex: 1000 + count,
+          });
+
+          return marker;
+        },
+      },
+    });
+
+    clustererRef.current = clusterer;
+
+    return () => {
+      clusterer.clearMarkers();
+      (clusterer as any).setMap?.(null);
+    };
+  }, [map, mode]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Sync markers with clusterer
+  useEffect(() => {
+    if (!clustererRef.current) return;
+    const newMarkers = Array.from(markersRef.current.values());
+    clustererRef.current.clearMarkers();
+    clustererRef.current.addMarkers(newMarkers);
+  }, [items]);
+
+  // Close spiderfier on map click
+  useEffect(() => {
+    if (!map) return;
+    const listener = map.addListener('click', () => setSpiderfiedCluster(null));
+    return () => google.maps.event.removeListener(listener);
+  }, [map]);
+
+  // Pan to selected item
   useEffect(() => {
     if (!map || !selectedItem) return;
     const lat = (selectedItem as any).latitude;
@@ -155,7 +171,7 @@ const GoogleMapInner = (props: GoogleMapContainerProps & { apiKey: string }) => 
     }
   }, [map, selectedItem]);
 
-  // Handle center trigger with smooth animation
+  // Handle center trigger
   useEffect(() => {
     if (!map || !userLocation || centerTrigger === 0) return;
     map.panTo(userLocation);
@@ -165,23 +181,22 @@ const GoogleMapInner = (props: GoogleMapContainerProps & { apiKey: string }) => 
   // Fit bounds
   useEffect(() => {
     if (!map) return;
-    const items = mode === 'hiring' ? candidates : jobs;
     if (items.length === 0) return;
     const bounds = new google.maps.LatLngBounds();
-    items.forEach((item) => bounds.extend({ lat: item.latitude, lng: item.longitude }));
+    items.forEach(item => bounds.extend({ lat: item.latitude, lng: item.longitude }));
     if (userLocation) bounds.extend(userLocation);
     map.fitBounds(bounds, { top: 100, right: 50, bottom: 50, left: 50 });
   }, [map, mode, candidates, jobs, userLocation]);
 
   // Heatmap layer
   useEffect(() => {
-    if (!map || !isLoaded) return;
+    if (!map) return;
     if (heatmapLayerRef.current) {
       heatmapLayerRef.current.setMap(null);
       heatmapLayerRef.current = null;
     }
     if (!heatmapEnabled) return;
-    const points = (mode === 'hiring' ? candidates : jobs).map(item => ({
+    const points = items.map(item => ({
       location: new google.maps.LatLng(item.latitude, item.longitude),
       weight: 1,
     }));
@@ -197,206 +212,132 @@ const GoogleMapInner = (props: GoogleMapContainerProps & { apiKey: string }) => 
     });
     heatmapLayerRef.current = heatmap;
     return () => { heatmap.setMap(null); };
-  }, [map, isLoaded, heatmapEnabled, mode, candidates, jobs]);
+  }, [map, heatmapEnabled, mode, items]);
 
-  const items = mode === 'hiring' ? candidates : jobs;
+  // Marker ref callback
+  const setMarkerRef = useCallback((marker: google.maps.marker.AdvancedMarkerElement | null, id: string) => {
+    if (marker) {
+      markersRef.current.set(id, marker);
+    } else {
+      markersRef.current.delete(id);
+    }
+  }, []);
+
   const isGovt = hoveredItem && 'job_category' in hoveredItem ? hoveredItem.job_category === 'government' : false;
-  const isSaved = false;
-
-  if (loadError) {
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-muted/30">
-        <div className="text-center p-8 rounded-2xl bg-card shadow-lg border border-border/30">
-          <div className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center mx-auto mb-3">
-            <MapPin className="w-6 h-6 text-destructive" />
-          </div>
-          <p className="text-destructive font-semibold">Failed to load map</p>
-          <p className="text-sm text-muted-foreground mt-1">Please check your connection</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isLoaded) {
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-muted/10">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
 
   return (
-    <GoogleMap
-      mapContainerStyle={mapContainerStyle}
-      center={center}
-      zoom={userLocation ? 12 : 5}
-      onLoad={onLoad}
-      onUnmount={onUnmount}
-      options={mapOptions}
+    <GoogleMapView
+      defaultCenter={center}
+      defaultZoom={userLocation ? 12 : 5}
+      mapId={MAP_ID}
+      gestureHandling="greedy"
+      disableDefaultUI={false}
+      zoomControl
+      mapTypeControl={false}
+      streetViewControl={false}
+      fullscreenControl={false}
+      clickableIcons={false}
+      style={{ width: '100%', height: '100%' }}
     >
-      {/* User location marker with pulse */}
+      {/* User location marker */}
       {userLocation && (
-        <>
-          {/* Outer pulse ring */}
-          <Circle
-            center={userLocation}
-            radius={150}
-            options={{
-              fillColor: '#22C55E',
-              fillOpacity: 0.15,
-              strokeColor: '#22C55E',
-              strokeOpacity: 0.3,
-              strokeWeight: 1,
-            }}
-          />
-          <Marker
-            position={userLocation}
-            icon={{
-              path: google.maps.SymbolPath.CIRCLE,
-              scale: 10,
-              fillColor: '#22C55E',
-              fillOpacity: 1,
-              strokeColor: '#ffffff',
-              strokeWeight: 3,
-            }}
-            zIndex={1000}
-          />
-          {/* Radius circle with gradient feel */}
-          <Circle
-            center={userLocation}
-            radius={radius * 1000}
-            options={{
-              fillColor: mode === 'hiring' ? '#4285F4' : '#EA4335',
-              fillOpacity: 0.06,
-              strokeColor: mode === 'hiring' ? '#4285F4' : '#EA4335',
-              strokeOpacity: 0.3,
-              strokeWeight: 2,
-              strokePosition: google.maps.StrokePosition.INSIDE,
-            }}
-          />
-        </>
+        <AdvancedMarker position={userLocation} zIndex={1000}>
+          <div style={{ position: 'relative' }}>
+            <div style={{
+              width: 20, height: 20, borderRadius: '50%',
+              background: '#22C55E', border: '3px solid white',
+              boxShadow: '0 0 0 6px rgba(34,197,94,0.2), 0 2px 8px rgba(0,0,0,0.3)',
+            }} />
+          </div>
+        </AdvancedMarker>
       )}
 
-      {/* Clustered Markers */}
-      <MarkerClusterer
-        key={`cluster-${mode}`}
-        onLoad={(clusterer) => {
-          clustererRef.current = clusterer;
-        }}
-        options={{
-          maxZoom: 18,
-          gridSize: 60,
-          zoomOnClick: false,
-          minimumClusterSize: 2,
-          styles: [
-            {
-              textColor: 'white',
-              textSize: 14,
-              url: getClusterIconUrl(mode, 54),
-              width: 54,
-              height: 54,
-            },
-            {
-              textColor: 'white',
-              textSize: 15,
-              url: getClusterIconUrl(mode, 66),
-              width: 66,
-              height: 66,
-            },
-          ],
-        }}
-        onClick={(cluster) => {
-          const markers = cluster.getMarkers();
-          const center = cluster.getCenter();
-          // If small cluster, spiderfy; otherwise zoom in
-          if (markers && center && markers.length <= 20) {
-            setSpiderfiedCluster(prev => {
-              // Toggle off if clicking same cluster
-              if (prev && prev.center.lat() === center.lat() && prev.center.lng() === center.lng()) {
-                return null;
-              }
-              return { center, markers };
-            });
-          } else {
-            setSpiderfiedCluster(null);
-            if (map) {
-              const bounds = cluster.getBounds();
-              if (bounds) {
-                map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
-              }
-            }
-          }
-        }}
-      >
-        {(clusterer) => (
-          <>
-            {items.map((item) => {
-              const isCandidate = mode === 'hiring';
-              const job = item as Job;
-              const markerColor = isCandidate ? '3B82F6' : (job.job_category === 'government' ? '16A34A' : 'EF4444');
+      {/* Item markers */}
+      {items.map(item => {
+        const isCandidate = mode === 'hiring';
+        const job = item as Job;
+        const bgColor = isCandidate ? '#3B82F6' : (job.job_category === 'government' ? '#16A34A' : '#EF4444');
+        const isSelected = selectedItem?.id === item.id;
 
-              return (
-                <Marker
-                  key={item.id}
-                  position={{ lat: item.latitude, lng: item.longitude }}
-                  clusterer={clusterer}
-                  icon={{
-                    url: getMarkerIconUrl(markerColor, isCandidate),
-                    scaledSize: new google.maps.Size(40, 40),
-                    anchor: new google.maps.Point(20, 20),
-                  }}
-                  onClick={() => onMarkerClick(item)}
-                  onMouseOver={() => handleMouseEnter(item)}
-                  onMouseOut={handleMouseLeave}
-                  animation={selectedItem?.id === item.id ? google.maps.Animation.BOUNCE : undefined}
-                />
-              );
-            })}
-          </>
-        )}
-      </MarkerClusterer>
+        return (
+          <AdvancedMarker
+            key={item.id}
+            position={{ lat: item.latitude, lng: item.longitude }}
+            onClick={() => { setSpiderfiedCluster(null); onMarkerClick(item); }}
+            ref={(marker) => setMarkerRef(marker as unknown as google.maps.marker.AdvancedMarkerElement, item.id)}
+            zIndex={isSelected ? 999 : 1}
+          >
+            <div
+              onMouseEnter={() => handleMouseEnter(item)}
+              onMouseLeave={handleMouseLeave}
+              style={{
+                width: isSelected ? 44 : 38,
+                height: isSelected ? 44 : 38,
+                borderRadius: '50%',
+                background: bgColor,
+                border: `3px solid white`,
+                boxShadow: isSelected
+                  ? `0 0 0 4px ${bgColor}44, 0 4px 12px rgba(0,0,0,0.3)`
+                  : '0 2px 8px rgba(0,0,0,0.25)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                transform: isSelected ? 'scale(1.15)' : 'scale(1)',
+              }}
+            >
+              {isCandidate ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+                  <rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                </svg>
+              )}
+            </div>
+          </AdvancedMarker>
+        );
+      })}
 
       {/* Spiderfied cluster overlay */}
-      {spiderfiedCluster && spiderfiedCluster.markers.length > 0 && (
-        <OverlayView
+      {spiderfiedCluster && spiderfiedCluster.items.length > 0 && (
+        <AdvancedMarker
           position={{ lat: spiderfiedCluster.center.lat(), lng: spiderfiedCluster.center.lng() }}
-          mapPaneName={OverlayView.OVERLAY_MOUSE_TARGET}
-          getPixelPositionOffset={() => ({ x: 0, y: 0 })}
+          zIndex={900}
         >
-          <div
-            style={{ position: 'relative', width: 0, height: 0 }}
-          >
+          <div style={{ position: 'relative', width: 0, height: 0 }}>
+            {/* Background circle */}
             <div style={{
               position: 'absolute', left: '-100px', top: '-100px',
               width: '200px', height: '200px', borderRadius: '50%',
-              background: 'rgba(0,0,0,0.08)', border: '2px solid rgba(255,255,255,0.3)',
+              background: 'rgba(0,0,0,0.06)', border: '2px solid rgba(255,255,255,0.4)',
               pointerEvents: 'none',
             }} />
-            {spiderfiedCluster.markers.map((marker, i) => {
-              const count = spiderfiedCluster.markers.length;
+            {spiderfiedCluster.items.map((spiderItem, i) => {
+              const count = spiderfiedCluster.items.length;
               const angle = (2 * Math.PI * i) / count - Math.PI / 2;
-              const legLen = Math.min(80, 40 + count * 5);
+              const legLen = Math.min(85, 40 + count * 5);
               const x = Math.cos(angle) * legLen;
               const y = Math.sin(angle) * legLen;
-              const pos = marker.getPosition();
-              const matchedItem = items.find(
-                (it) => Math.abs(it.latitude - (pos?.lat() || 0)) < 0.0001 && Math.abs(it.longitude - (pos?.lng() || 0)) < 0.0001
-              );
               const isCandidate = mode === 'hiring';
-              const job = matchedItem as Job;
-              const bgColor = isCandidate ? 'hsl(217, 89%, 61%)' : job?.job_category === 'government' ? 'hsl(152, 69%, 31%)' : 'hsl(4, 90%, 58%)';
+              const job = spiderItem as Job;
+              const bgColor = isCandidate ? '#3B82F6' : (job?.job_category === 'government' ? '#16A34A' : '#EF4444');
               const label = isCandidate
-                ? (matchedItem as Candidate)?.full_name?.split(' ')[0] || ''
-                : (matchedItem as Job)?.title?.split(' ').slice(0, 2).join(' ') || '';
+                ? (spiderItem as Candidate)?.full_name?.split(' ')[0] || ''
+                : (spiderItem as Job)?.title?.split(' ').slice(0, 2).join(' ') || '';
 
               return (
-                <div key={marker.getTitle?.() || i}>
+                <div key={spiderItem.id}>
+                  {/* Connecting line */}
                   <svg style={{ position: 'absolute', left: 0, top: 0, overflow: 'visible', pointerEvents: 'none' }} width="0" height="0">
                     <line x1="0" y1="0" x2={x} y2={y} stroke="rgba(255,255,255,0.7)" strokeWidth="2" />
                   </svg>
+                  {/* Spider marker */}
                   <div
-                    onClick={() => matchedItem && onMarkerClick(matchedItem)}
-                    onMouseEnter={() => matchedItem && handleMouseEnter(matchedItem)}
+                    onClick={() => { setSpiderfiedCluster(null); onMarkerClick(spiderItem); }}
+                    onMouseEnter={() => handleMouseEnter(spiderItem)}
                     onMouseLeave={handleMouseLeave}
                     style={{
                       position: 'absolute', left: `${x - 18}px`, top: `${y - 18}px`,
@@ -406,18 +347,18 @@ const GoogleMapInner = (props: GoogleMapContainerProps & { apiKey: string }) => 
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       transition: 'transform 0.2s ease', zIndex: 10,
                     }}
-                    title={label}
                   >
                     {isCandidate ? (
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
                       </svg>
                     ) : (
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+                        <rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
                       </svg>
                     )}
                   </div>
+                  {/* Label */}
                   <div style={{
                     position: 'absolute', left: `${x - 40}px`, top: `${y + 20}px`,
                     width: '80px', textAlign: 'center', fontSize: '11px', fontWeight: 600,
@@ -430,15 +371,16 @@ const GoogleMapInner = (props: GoogleMapContainerProps & { apiKey: string }) => 
               );
             })}
           </div>
-        </OverlayView>
+        </AdvancedMarker>
       )}
 
-      {/* Enhanced InfoWindow for hover preview */}
+      {/* Hover InfoWindow */}
       {hoveredItem && (
         <InfoWindow
           position={{ lat: hoveredItem.latitude, lng: hoveredItem.longitude }}
-          options={{ disableAutoPan: true, pixelOffset: new google.maps.Size(0, -32) }}
+          pixelOffset={[0, -32]}
           onCloseClick={() => setHoveredItem(null)}
+          headerDisabled
         >
           <div
             onMouseEnter={() => {
@@ -451,9 +393,8 @@ const GoogleMapInner = (props: GoogleMapContainerProps & { apiKey: string }) => 
             style={{
               minWidth: '280px', maxWidth: '320px',
               fontFamily: "'Inter', -apple-system, sans-serif",
-              background: 'white', borderRadius: '16px', overflow: 'hidden',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.12)',
-            }}>
+            }}
+          >
             {mode === 'hiring' ? (
               <>
                 <div style={{ padding: '16px 16px 12px', display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
@@ -481,7 +422,7 @@ const GoogleMapInner = (props: GoogleMapContainerProps & { apiKey: string }) => 
                 </div>
                 {isEmployer ? (
                   <div style={{ padding: '0 16px 14px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                    {(hoveredItem as Candidate).experience_years && (
+                    {(hoveredItem as Candidate).experience_years > 0 && (
                       <span style={{ padding: '5px 10px', background: 'hsl(217, 89%, 96%)', color: 'hsl(217, 89%, 40%)', fontSize: '12px', borderRadius: '8px', fontWeight: 600 }}>
                         {(hoveredItem as Candidate).experience_years}+ yrs
                       </span>
@@ -506,7 +447,7 @@ const GoogleMapInner = (props: GoogleMapContainerProps & { apiKey: string }) => 
                   {isEmployer ? (
                     <>
                       <button onClick={() => navigate(`/candidates/${hoveredItem.id}?action=contact`)}
-                        style={{ flex: 1, padding: '10px', background: 'hsl(217, 89%, 51%)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s' }}>
+                        style={{ flex: 1, padding: '10px', background: 'hsl(217, 89%, 51%)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
                         💬 Contact
                       </button>
                       <button onClick={() => navigate(`/candidates/${hoveredItem.id}`)}
@@ -537,7 +478,7 @@ const GoogleMapInner = (props: GoogleMapContainerProps & { apiKey: string }) => 
                         {(hoveredItem as Job).title}
                       </h4>
                       {(hoveredItem as Job).created_at && isNewJob((hoveredItem as Job).created_at) && (
-                        <span style={{ padding: '2px 8px', background: 'linear-gradient(135deg, #f59e0b, #f97316)', color: 'white', fontSize: '9px', borderRadius: '6px', fontWeight: 800, letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                        <span style={{ padding: '2px 8px', background: 'linear-gradient(135deg, #f59e0b, #f97316)', color: 'white', fontSize: '9px', borderRadius: '6px', fontWeight: 800, letterSpacing: '0.5px', textTransform: 'uppercase' as const }}>
                           NEW
                         </span>
                       )}
@@ -569,7 +510,7 @@ const GoogleMapInner = (props: GoogleMapContainerProps & { apiKey: string }) => 
                 </div>
                 <div style={{ padding: '10px 16px', borderTop: '1px solid #f3f4f6', display: 'flex', gap: '8px' }}>
                   <button onClick={() => navigate(`/jobs/${hoveredItem.id}?action=apply`)}
-                    style={{ flex: 1, padding: '10px', background: isGovt ? 'hsl(152, 69%, 36%)' : 'hsl(4, 90%, 55%)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s' }}>
+                    style={{ flex: 1, padding: '10px', background: isGovt ? 'hsl(152, 69%, 36%)' : 'hsl(4, 90%, 55%)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
                     ⚡ Apply Now
                   </button>
                   <button onClick={() => navigate(`/jobs/${hoveredItem.id}`)}
@@ -582,29 +523,15 @@ const GoogleMapInner = (props: GoogleMapContainerProps & { apiKey: string }) => 
           </div>
         </InfoWindow>
       )}
-    </GoogleMap>
+    </GoogleMapView>
   );
 };
 
-// Wrapper component
+// Wrapper
 export const GoogleMapContainer = memo((props: GoogleMapContainerProps) => {
-  const { apiKey, error } = useGoogleMapsKey();
-
-  if (error || !apiKey) {
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-muted/30">
-        <div className="text-center p-8 rounded-2xl bg-card shadow-lg border border-border/30">
-          <MapPin className="w-8 h-8 text-destructive mx-auto mb-3" />
-          <p className="text-destructive font-semibold">Map unavailable</p>
-          <p className="text-sm text-muted-foreground mt-1">{error || 'API key missing'}</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <GoogleMapsLoaderBoundary>
-      <GoogleMapInner {...props} apiKey={apiKey} />
-    </GoogleMapsLoaderBoundary>
+    <GoogleMapsProvider>
+      <GoogleMapInner {...props} />
+    </GoogleMapsProvider>
   );
 });
