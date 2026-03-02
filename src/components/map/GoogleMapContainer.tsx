@@ -380,9 +380,10 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
       {hoveredItem && (
         <InfoWindow
           position={{ lat: hoveredItem.latitude, lng: hoveredItem.longitude }}
-          pixelOffset={[0, -32]}
+          pixelOffset={[0, -40]}
           onCloseClick={() => setHoveredItem(null)}
-          headerContent={<></>}
+          headerContent={<span />}
+          maxWidth={320}
         >
           <div
             onMouseEnter={() => {
@@ -392,135 +393,127 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
               }
             }}
             onMouseLeave={handleMouseLeave}
-            style={{
-              minWidth: '280px', maxWidth: '320px',
-              fontFamily: "'Inter', -apple-system, sans-serif",
-            }}
+            className="map-infowindow-card"
           >
             {mode === 'hiring' ? (
-              <>
-                <div style={{ padding: '16px 16px 12px', display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
+              <div className="p-0 m-0">
+                <div className="flex items-start gap-3 p-3 pb-2">
                   {(hoveredItem as Candidate).avatar_url ? (
                     <img src={(hoveredItem as Candidate).avatar_url} alt={(hoveredItem as Candidate).full_name}
-                      style={{ width: '48px', height: '48px', borderRadius: '14px', objectFit: 'cover', border: '2px solid hsl(217, 89%, 85%)' }} />
+                      className="w-11 h-11 rounded-xl object-cover border-2 border-blue-200 shrink-0" />
                   ) : (
-                    <div style={{
-                      width: '48px', height: '48px', borderRadius: '14px',
-                      background: 'linear-gradient(135deg, hsl(217, 89%, 95%), hsl(217, 89%, 88%))',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      color: 'hsl(217, 89%, 51%)', fontWeight: 700, fontSize: '18px'
-                    }}>
+                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-blue-600 font-bold text-base shrink-0">
                       {(hoveredItem as Candidate).full_name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'C'}
                     </div>
                   )}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#111827', lineHeight: 1.3 }}>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-sm font-bold text-gray-900 leading-tight truncate m-0">
                       {(hoveredItem as Candidate).full_name}
                     </h4>
-                    <p style={{ margin: '3px 0 0', fontSize: '13px', color: 'hsl(217, 89%, 51%)', fontWeight: 500 }}>
+                    <p className="text-xs text-blue-600 font-medium mt-0.5 m-0 truncate">
                       {(hoveredItem as Candidate).job_title || 'Job Seeker'}
                     </p>
                   </div>
                 </div>
                 {isEmployer ? (
-                  <div style={{ padding: '0 16px 14px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  <div className="flex flex-wrap gap-1.5 px-3 pb-2">
                     {(hoveredItem as Candidate).experience_years > 0 && (
-                      <span style={{ padding: '5px 10px', background: 'hsl(217, 89%, 96%)', color: 'hsl(217, 89%, 40%)', fontSize: '12px', borderRadius: '8px', fontWeight: 600 }}>
+                      <span className="px-2 py-1 bg-blue-50 text-blue-700 text-[11px] rounded-md font-semibold">
                         {(hoveredItem as Candidate).experience_years}+ yrs
                       </span>
                     )}
                     {(hoveredItem as Candidate).skills?.length > 0 && (
-                      <span style={{ padding: '5px 10px', background: 'hsl(142, 70%, 96%)', color: 'hsl(142, 76%, 30%)', fontSize: '12px', borderRadius: '8px', fontWeight: 600 }}>
+                      <span className="px-2 py-1 bg-green-50 text-green-700 text-[11px] rounded-md font-semibold">
                         {(hoveredItem as Candidate).skills!.length} skills
                       </span>
                     )}
                     {(hoveredItem as Candidate).distance_km !== undefined && (
-                      <span style={{ padding: '5px 10px', background: 'hsl(280, 60%, 96%)', color: 'hsl(280, 60%, 40%)', fontSize: '12px', borderRadius: '8px', fontWeight: 600 }}>
+                      <span className="px-2 py-1 bg-purple-50 text-purple-700 text-[11px] rounded-md font-semibold">
                         📍 {(hoveredItem as Candidate).distance_km?.toFixed(1)} km
                       </span>
                     )}
                   </div>
                 ) : (
-                  <div style={{ padding: '0 16px 14px' }}>
-                    <p style={{ margin: 0, fontSize: '12px', color: '#6b7280', lineHeight: 1.5 }}>Sign in as employer to view profile</p>
+                  <div className="px-3 pb-2">
+                    <p className="text-[11px] text-gray-500 m-0">Sign in as employer to view profile</p>
                   </div>
                 )}
-                <div style={{ padding: '10px 16px', borderTop: '1px solid #f3f4f6', display: 'flex', gap: '8px' }}>
+                <div className="flex gap-2 px-3 py-2 border-t border-gray-100">
                   {isEmployer ? (
                     <>
                       <button onClick={() => navigate(`/candidates/${hoveredItem.id}?action=contact`)}
-                        style={{ flex: 1, padding: '10px', background: 'hsl(217, 89%, 51%)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
+                        className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg border-none cursor-pointer transition-colors">
                         💬 Contact
                       </button>
                       <button onClick={() => navigate(`/candidates/${hoveredItem.id}`)}
-                        style={{ padding: '10px 16px', background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>
+                        className="py-2 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-lg border-none cursor-pointer transition-colors">
                         View →
                       </button>
                     </>
                   ) : (
                     <button onClick={() => navigate(`/candidates/${hoveredItem.id}`)}
-                      style={{ flex: 1, padding: '10px', background: 'hsl(217, 89%, 51%)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
+                      className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg border-none cursor-pointer transition-colors">
                       🔒 Sign In to View
                     </button>
                   )}
                 </div>
-              </>
+              </div>
             ) : (
-              <>
-                <div style={{ height: '4px', background: isGovt ? 'hsl(152, 69%, 36%)' : 'hsl(4, 90%, 55%)' }} />
-                <div style={{ padding: '14px 16px 10px', display: 'flex', gap: '14px', alignItems: 'flex-start' }}>
-                  <div style={{ position: 'relative', width: '48px', height: '48px', borderRadius: '14px', background: isGovt ? 'linear-gradient(135deg, hsl(152, 69%, 95%), hsl(152, 69%, 88%))' : 'linear-gradient(135deg, hsl(4, 90%, 96%), hsl(4, 90%, 90%))', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill={isGovt ? 'hsl(152, 69%, 31%)' : 'hsl(4, 90%, 55%)'} stroke="none">
-                      <rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" fill={isGovt ? 'hsl(152, 69%, 95%)' : 'hsl(4, 90%, 96%)'} />
+              <div className="p-0 m-0">
+                <div className={`h-1 ${isGovt ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                <div className="flex items-start gap-3 p-3 pb-2">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isGovt ? 'bg-emerald-50' : 'bg-red-50'}`}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill={isGovt ? '#059669' : '#ef4444'} stroke="none">
+                      <rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" fill={isGovt ? '#d1fae5' : '#fee2e2'} />
                     </svg>
                   </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                      <h4 style={{ margin: 0, fontSize: '15px', fontWeight: 700, color: '#111827', lineHeight: 1.3, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="text-sm font-bold text-gray-900 leading-tight truncate m-0 flex-1">
                         {(hoveredItem as Job).title}
                       </h4>
                       {(hoveredItem as Job).created_at && isNewJob((hoveredItem as Job).created_at) && (
-                        <span style={{ padding: '2px 8px', background: 'linear-gradient(135deg, #f59e0b, #f97316)', color: 'white', fontSize: '9px', borderRadius: '6px', fontWeight: 800, letterSpacing: '0.5px', textTransform: 'uppercase' as const }}>
+                        <span className="px-1.5 py-0.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[9px] rounded font-extrabold uppercase tracking-wide shrink-0">
                           NEW
                         </span>
                       )}
                     </div>
-                    <p style={{ margin: '3px 0 0', fontSize: '13px', color: '#6b7280' }}>{(hoveredItem as Job).company_name || 'Company'}</p>
+                    <p className="text-xs text-gray-500 mt-0.5 m-0 truncate">{(hoveredItem as Job).company_name || 'Company'}</p>
                   </div>
                 </div>
-                <div style={{ padding: '0 16px 14px', display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
+                <div className="flex flex-wrap items-center gap-1.5 px-3 pb-2">
                   {(hoveredItem as Job).job_type && (
-                    <span style={{ padding: '5px 10px', background: '#f3f4f6', color: '#374151', fontSize: '12px', borderRadius: '8px', fontWeight: 500 }}>
+                    <span className="px-2 py-1 bg-gray-100 text-gray-700 text-[11px] rounded-md font-medium">
                       {(hoveredItem as Job).job_type}
                     </span>
                   )}
                   {(hoveredItem as Job).salary_range && (
-                    <span style={{ padding: '5px 10px', background: 'hsl(142, 70%, 96%)', color: 'hsl(142, 76%, 28%)', fontSize: '12px', borderRadius: '8px', fontWeight: 600 }}>
+                    <span className="px-2 py-1 bg-green-50 text-green-800 text-[11px] rounded-md font-semibold">
                       ₹{(hoveredItem as Job).salary_range}
                     </span>
                   )}
                   {(hoveredItem as Job).distance_km !== undefined && (
-                    <span style={{ padding: '5px 10px', background: 'hsl(280, 60%, 96%)', color: 'hsl(280, 60%, 40%)', fontSize: '12px', borderRadius: '8px', fontWeight: 600 }}>
+                    <span className="px-2 py-1 bg-purple-50 text-purple-700 text-[11px] rounded-md font-semibold">
                       📍 {(hoveredItem as Job).distance_km?.toFixed(1)} km
                     </span>
                   )}
                   {(hoveredItem as Job).created_at && (
-                    <span style={{ marginLeft: 'auto', fontSize: '11px', color: '#9ca3af' }}>
+                    <span className="ml-auto text-[10px] text-gray-400">
                       {formatTimeAgo((hoveredItem as Job).created_at)}
                     </span>
                   )}
                 </div>
-                <div style={{ padding: '10px 16px', borderTop: '1px solid #f3f4f6', display: 'flex', gap: '8px' }}>
+                <div className="flex gap-2 px-3 py-2 border-t border-gray-100">
                   <button onClick={() => navigate(`/jobs/${hoveredItem.id}?action=apply`)}
-                    style={{ flex: 1, padding: '10px', background: isGovt ? 'hsl(152, 69%, 36%)' : 'hsl(4, 90%, 55%)', color: 'white', border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}>
+                    className={`flex-1 py-2 text-white text-xs font-semibold rounded-lg border-none cursor-pointer transition-colors ${isGovt ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-500 hover:bg-red-600'}`}>
                     ⚡ Apply Now
                   </button>
                   <button onClick={() => navigate(`/jobs/${hoveredItem.id}`)}
-                    style={{ padding: '10px 16px', background: '#f3f4f6', color: '#374151', border: 'none', borderRadius: '10px', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>
+                    className="py-2 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-lg border-none cursor-pointer transition-colors">
                     Details →
                   </button>
                 </div>
-              </>
+              </div>
             )}
           </div>
         </InfoWindow>
