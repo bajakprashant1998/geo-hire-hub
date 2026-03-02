@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Navigation, List, Search, X, Radar, Flame } from 'lucide-react';
+import { Navigation, List, Search, X, Radar, Flame, Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { SearchBar } from './SearchBar';
@@ -24,6 +24,7 @@ const FAB = ({
   label,
   delay = 0,
   children,
+  isActive = false,
 }: {
   icon?: any;
   onClick: () => void;
@@ -31,6 +32,7 @@ const FAB = ({
   label: string;
   delay?: number;
   children?: React.ReactNode;
+  isActive?: boolean;
 }) => (
   <Tooltip>
     <TooltipTrigger asChild>
@@ -38,20 +40,24 @@ const FAB = ({
         initial={{ opacity: 0, x: 10 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay }}
-        whileTap={{ scale: 0.88 }}
-        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.85 }}
+        whileHover={{ scale: 1.08 }}
         onClick={onClick}
         className={cn(
-          "w-11 h-11 rounded-xl flex items-center justify-center",
-          "bg-card/95 backdrop-blur-xl border border-border/30 shadow-xl",
-          "hover:shadow-2xl hover:bg-card transition-all duration-200",
+          "w-11 h-11 rounded-2xl flex items-center justify-center",
+          "bg-card/95 backdrop-blur-xl border border-border/20 shadow-xl",
+          "hover:shadow-2xl transition-all duration-200",
+          isActive && "ring-2 ring-primary/30 bg-primary/5",
           className
         )}
       >
-        {children || (Icon && <Icon className="w-[18px] h-[18px] text-foreground" />)}
+        {children || (Icon && <Icon className={cn(
+          "w-[18px] h-[18px] transition-colors",
+          isActive ? "text-primary" : "text-foreground"
+        )} />)}
       </motion.button>
     </TooltipTrigger>
-    <TooltipContent side="left" className="text-xs">{label}</TooltipContent>
+    <TooltipContent side="left" className="text-xs rounded-lg">{label}</TooltipContent>
   </Tooltip>
 );
 
@@ -79,13 +85,13 @@ export const FloatingControls = ({
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
             className="absolute top-[100px] left-3 right-3 z-[95]"
           >
-            <div className="bg-card/95 backdrop-blur-2xl rounded-2xl border border-border/30 shadow-2xl p-3">
+            <div className="bg-card/95 backdrop-blur-2xl rounded-2xl border border-border/20 shadow-2xl p-3">
               <div className="flex items-center gap-2 mb-2">
                 <Search className="w-3.5 h-3.5 text-primary" />
-                <span className="text-xs font-semibold text-foreground flex-1">Search nearby</span>
+                <span className="text-xs font-bold text-foreground flex-1">Search nearby</span>
                 <button
                   onClick={() => setSearchOpen(false)}
-                  className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+                  className="p-1.5 rounded-xl hover:bg-muted transition-colors"
                 >
                   <X className="w-3.5 h-3.5 text-muted-foreground" />
                 </button>
@@ -108,14 +114,14 @@ export const FloatingControls = ({
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.4, duration: 0.3 }}
-        className="absolute right-3 top-[35%] -translate-y-1/2 z-[90] flex flex-col gap-2"
+        className="absolute right-3 top-[35%] -translate-y-1/2 z-[90] flex flex-col gap-2.5"
       >
         <FAB
           icon={searchOpen ? X : Search}
           onClick={() => setSearchOpen(!searchOpen)}
           label={searchOpen ? 'Close search' : 'Search'}
           delay={0.36}
-          className={searchOpen ? 'ring-2 ring-primary/40 bg-primary/10' : ''}
+          isActive={searchOpen}
         />
 
         <FAB
@@ -123,7 +129,7 @@ export const FloatingControls = ({
           onClick={onCenterOnUser}
           label="My location"
           delay={0.44}
-          className="ring-2 ring-primary/20"
+          className="ring-2 ring-emerald-500/20"
         />
 
         <FAB
