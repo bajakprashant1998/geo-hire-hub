@@ -21,14 +21,14 @@ export const QuickFilterChips = ({
       label: `${jobCount} Jobs`,
       active: mode === 'seeking',
       onClick: () => onModeChange('seeking'),
-      activeClass: 'bg-destructive text-destructive-foreground border-destructive shadow-destructive/20',
+      activeClass: 'bg-destructive text-destructive-foreground border-destructive/80 shadow-destructive/25',
     },
     {
       icon: Users,
       label: `${candidateCount} Talent`,
       active: mode === 'hiring',
       onClick: () => onModeChange('hiring'),
-      activeClass: 'bg-primary text-primary-foreground border-primary shadow-primary/20',
+      activeClass: 'bg-primary text-primary-foreground border-primary/80 shadow-primary/25',
     },
     {
       icon: Landmark,
@@ -67,15 +67,15 @@ export const QuickFilterChips = ({
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.08 * i + 0.2 }}
-            whileTap={{ scale: 0.92 }}
+            whileTap={{ scale: 0.9 }}
             onClick={chip.onClick}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-semibold whitespace-nowrap",
+              "flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-semibold whitespace-nowrap",
               "shadow-lg backdrop-blur-xl transition-all duration-200",
               "border",
               chip.active
                 ? cn(chip.activeClass, "shadow-lg")
-                : "bg-card/90 text-foreground border-border/30 hover:bg-card active:bg-muted"
+                : "bg-card/90 text-foreground border-border/20 hover:bg-card active:bg-muted"
             )}
           >
             <chip.icon className="w-3 h-3" />

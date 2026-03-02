@@ -153,7 +153,7 @@ const Index = () => {
 
       {/* Desktop Layout */}
       <div className="hidden md:flex h-full">
-        <div className="w-[300px] h-full border-r border-border bg-background z-20 flex-shrink-0">
+        <div className="w-[320px] h-full border-r border-border/30 bg-background/95 backdrop-blur-sm z-20 flex-shrink-0 shadow-xl">
           <LeftSidebarPanel
             mode={mode}
             onModeChange={handleModeChange}
@@ -183,12 +183,12 @@ const Index = () => {
                 variant="secondary"
                 size="icon"
                 onClick={handleCenterOnUser}
-                className="absolute bottom-6 right-6 z-10 rounded-full w-12 h-12 shadow-xl hover:shadow-2xl bg-background border border-border/50"
+                className="absolute bottom-6 right-6 z-10 rounded-2xl w-12 h-12 shadow-xl hover:shadow-2xl bg-card/95 backdrop-blur-xl border border-border/20 hover:scale-105 transition-all"
               >
                 <Navigation className="w-5 h-5 text-primary" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Center on my location</TooltipContent>
+            <TooltipContent className="rounded-lg">Center on my location</TooltipContent>
           </Tooltip>
         </div>
       </div>
