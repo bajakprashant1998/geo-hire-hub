@@ -23,7 +23,7 @@ export const NearbyAvatarRow = ({ mode, candidates, jobs, onSelect, onViewAll }:
       transition={{ delay: 0.3, type: 'spring', damping: 25 }}
       className="fixed bottom-[68px] left-0 right-[56px] z-[45] px-2 pb-2 md:hidden pointer-events-none"
     >
-      <div className="bg-card/95 backdrop-blur-xl rounded-2xl border border-border/20 shadow-2xl py-2.5 px-2.5 pointer-events-auto">
+      <div className="bg-card/95 backdrop-blur-xl rounded-2xl border border-border/20 shadow-2xl py-2 px-2 pointer-events-auto">
         {/* Section label */}
         <div className="flex items-center justify-between px-2 pb-2">
           <div className="flex items-center gap-1.5">
@@ -52,14 +52,14 @@ export const NearbyAvatarRow = ({ mode, candidates, jobs, onSelect, onViewAll }:
           </button>
         </div>
 
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide items-center pb-0.5">
+        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide items-center pb-0.5">
           {/* View all button */}
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={onViewAll}
-            className="flex-shrink-0 w-12 h-12 rounded-xl border-2 border-dashed border-border/40 flex items-center justify-center bg-muted/20 hover:bg-muted/40 transition-colors"
+            className="flex-shrink-0 w-10 h-10 rounded-xl border-2 border-dashed border-border/40 flex items-center justify-center bg-muted/20 hover:bg-muted/40 transition-colors"
           >
-            <Users className="w-4 h-4 text-muted-foreground" />
+            <Users className="w-3.5 h-3.5 text-muted-foreground" />
           </motion.button>
 
           {items.map((item, i) => {
@@ -78,11 +78,11 @@ export const NearbyAvatarRow = ({ mode, candidates, jobs, onSelect, onViewAll }:
                 transition={{ delay: 0.04 * i + 0.3 }}
                 whileTap={{ scale: 0.88 }}
                 onClick={() => onSelect(item)}
-                className="flex flex-col items-center gap-0.5 flex-shrink-0 w-14"
+                className="flex flex-col items-center gap-0.5 flex-shrink-0 w-12"
               >
                 <div className="relative">
                   <Avatar className={cn(
-                    "w-11 h-11 border-2 shadow-md transition-all duration-200 hover:scale-110 hover:shadow-lg",
+                    "w-9 h-9 border-2 shadow-md transition-all duration-200 hover:scale-110",
                     isCandidate ? "border-primary/25" : "border-destructive/25"
                   )}>
                     <AvatarImage src={avatarUrl || undefined} alt={name} />
