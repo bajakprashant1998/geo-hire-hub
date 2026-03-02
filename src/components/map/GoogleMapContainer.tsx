@@ -5,7 +5,7 @@ import { Map as GoogleMapView, AdvancedMarker, useMap, InfoWindow } from '@vis.g
 import { MarkerClusterer, type Cluster } from '@googlemaps/markerclusterer';
 import { ViewMode, Candidate, Job } from '@/types';
 import { GoogleMapsProvider } from '@/components/map/GoogleMapsProvider';
-import { Loader2, MapPin } from 'lucide-react';
+
 
 // Map ID required for AdvancedMarkerElement — use a generic one or your own
 const MAP_ID = 'hireforjob-map';
@@ -42,6 +42,8 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const items = mode === 'hiring' ? candidates : jobs;
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
   const center = useMemo(() => userLocation || defaultCenter, [userLocation]);
 
   const handleMouseEnter = (item: Candidate | Job) => {
@@ -90,7 +92,7 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
           clusterMarkers.forEach(m => {
             const pos = m.position as google.maps.LatLngLiteral;
             if (!pos) return;
-            const matched = items.find(
+            const matched = itemsRef.current.find(
               it => Math.abs(it.latitude - pos.lat) < 0.0001 && Math.abs(it.longitude - pos.lng) < 0.0001
             );
             if (matched) clusterItems.push(matched);
@@ -380,7 +382,7 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
           position={{ lat: hoveredItem.latitude, lng: hoveredItem.longitude }}
           pixelOffset={[0, -32]}
           onCloseClick={() => setHoveredItem(null)}
-          headerDisabled
+          headerContent={<></>}
         >
           <div
             onMouseEnter={() => {
