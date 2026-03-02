@@ -380,10 +380,10 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
       {hoveredItem && (
         <InfoWindow
           position={{ lat: hoveredItem.latitude, lng: hoveredItem.longitude }}
-          pixelOffset={[0, -40]}
+          pixelOffset={[0, -44]}
           onCloseClick={() => setHoveredItem(null)}
           headerContent={<span />}
-          maxWidth={320}
+          maxWidth={340}
         >
           <div
             onMouseEnter={() => {
@@ -395,126 +395,180 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
             onMouseLeave={handleMouseLeave}
             className="map-infowindow-card"
           >
-            {mode === 'hiring' ? (
-              <div className="p-0 m-0">
-                <div className="flex items-start gap-3 p-3 pb-2">
-                  {(hoveredItem as Candidate).avatar_url ? (
-                    <img src={(hoveredItem as Candidate).avatar_url} alt={(hoveredItem as Candidate).full_name}
-                      className="w-11 h-11 rounded-xl object-cover border-2 border-blue-200 shrink-0" />
-                  ) : (
-                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center text-blue-600 font-bold text-base shrink-0">
-                      {(hoveredItem as Candidate).full_name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'C'}
-                    </div>
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <h4 className="text-sm font-bold text-gray-900 leading-tight truncate m-0">
-                      {(hoveredItem as Candidate).full_name}
-                    </h4>
-                    <p className="text-xs text-blue-600 font-medium mt-0.5 m-0 truncate">
-                      {(hoveredItem as Candidate).job_title || 'Job Seeker'}
-                    </p>
-                  </div>
-                </div>
-                {isEmployer ? (
-                  <div className="flex flex-wrap gap-1.5 px-3 pb-2">
-                    {(hoveredItem as Candidate).experience_years > 0 && (
-                      <span className="px-2 py-1 bg-blue-50 text-blue-700 text-[11px] rounded-md font-semibold">
-                        {(hoveredItem as Candidate).experience_years}+ yrs
-                      </span>
+            {mode === 'hiring' ? (() => {
+              const c = hoveredItem as Candidate;
+              const initials = c.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'C';
+              return (
+                <div>
+                  {/* Blue accent bar */}
+                  <div className="iw-accent-bar" style={{ background: 'linear-gradient(90deg, #4285F4, #60a5fa)' }} />
+                  
+                  {/* Header */}
+                  <div className="flex items-center gap-3 p-3.5 pb-2.5">
+                    {c.avatar_url ? (
+                      <img src={c.avatar_url} alt={c.full_name}
+                        className="w-12 h-12 rounded-2xl object-cover ring-2 ring-blue-100 shrink-0" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm">
+                        {initials}
+                      </div>
                     )}
-                    {(hoveredItem as Candidate).skills?.length > 0 && (
-                      <span className="px-2 py-1 bg-green-50 text-green-700 text-[11px] rounded-md font-semibold">
-                        {(hoveredItem as Candidate).skills!.length} skills
-                      </span>
-                    )}
-                    {(hoveredItem as Candidate).distance_km !== undefined && (
-                      <span className="px-2 py-1 bg-purple-50 text-purple-700 text-[11px] rounded-md font-semibold">
-                        📍 {(hoveredItem as Candidate).distance_km?.toFixed(1)} km
-                      </span>
-                    )}
-                  </div>
-                ) : (
-                  <div className="px-3 pb-2">
-                    <p className="text-[11px] text-gray-500 m-0">Sign in as employer to view profile</p>
-                  </div>
-                )}
-                <div className="flex gap-2 px-3 py-2 border-t border-gray-100">
-                  {isEmployer ? (
-                    <>
-                      <button onClick={() => navigate(`/candidates/${hoveredItem.id}?action=contact`)}
-                        className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg border-none cursor-pointer transition-colors">
-                        💬 Contact
-                      </button>
-                      <button onClick={() => navigate(`/candidates/${hoveredItem.id}`)}
-                        className="py-2 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-lg border-none cursor-pointer transition-colors">
-                        View →
-                      </button>
-                    </>
-                  ) : (
-                    <button onClick={() => navigate(`/candidates/${hoveredItem.id}`)}
-                      className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg border-none cursor-pointer transition-colors">
-                      🔒 Sign In to View
-                    </button>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="p-0 m-0">
-                <div className={`h-1 ${isGovt ? 'bg-emerald-500' : 'bg-red-500'}`} />
-                <div className="flex items-start gap-3 p-3 pb-2">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${isGovt ? 'bg-emerald-50' : 'bg-red-50'}`}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill={isGovt ? '#059669' : '#ef4444'} stroke="none">
-                      <rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" fill={isGovt ? '#d1fae5' : '#fee2e2'} />
-                    </svg>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <h4 className="text-sm font-bold text-gray-900 leading-tight truncate m-0 flex-1">
-                        {(hoveredItem as Job).title}
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-[13px] font-bold text-foreground leading-tight truncate m-0">
+                        {c.full_name}
                       </h4>
-                      {(hoveredItem as Job).created_at && isNewJob((hoveredItem as Job).created_at) && (
-                        <span className="px-1.5 py-0.5 bg-gradient-to-r from-amber-400 to-orange-500 text-white text-[9px] rounded font-extrabold uppercase tracking-wide shrink-0">
-                          NEW
+                      <p className="text-xs text-primary font-medium mt-0.5 m-0 truncate">
+                        {c.job_title || 'Job Seeker'}
+                      </p>
+                      {(c as any).availability_status && (
+                        <div className="flex items-center gap-1 mt-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                          <span className="text-[10px] text-muted-foreground capitalize">{(c as any).availability_status}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Stats badges */}
+                  {isEmployer ? (
+                    <div className="flex flex-wrap gap-1.5 px-3.5 pb-2.5">
+                      {c.experience_years != null && c.experience_years > 0 && (
+                        <span className="iw-badge bg-blue-50 text-blue-700">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                          {c.experience_years}+ yrs
+                        </span>
+                      )}
+                      {c.skills && c.skills.length > 0 && (
+                        <span className="iw-badge bg-emerald-50 text-emerald-700">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                          {c.skills.length} skills
+                        </span>
+                      )}
+                      {c.distance_km !== undefined && (
+                        <span className="iw-badge bg-violet-50 text-violet-700">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                          {c.distance_km?.toFixed(1)} km
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 mt-0.5 m-0 truncate">{(hoveredItem as Job).company_name || 'Company'}</p>
+                  ) : (
+                    <div className="px-3.5 pb-2.5">
+                      <p className="text-[11px] text-muted-foreground m-0 flex items-center gap-1">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        Sign in as employer to view details
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="flex gap-2 px-3.5 py-2.5 border-t border-border/60 bg-muted/30">
+                    {isEmployer ? (
+                      <>
+                        <button onClick={() => navigate(`/candidates/${hoveredItem.id}?action=contact`)}
+                          className="iw-action-btn flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                          Contact
+                        </button>
+                        <button onClick={() => navigate(`/candidates/${hoveredItem.id}`)}
+                          className="iw-action-btn bg-secondary hover:bg-accent text-secondary-foreground">
+                          View Profile
+                        </button>
+                      </>
+                    ) : (
+                      <button onClick={() => navigate(`/candidates/${hoveredItem.id}`)}
+                        className="iw-action-btn flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        Sign In to View
+                      </button>
+                    )}
                   </div>
                 </div>
-                <div className="flex flex-wrap items-center gap-1.5 px-3 pb-2">
-                  {(hoveredItem as Job).job_type && (
-                    <span className="px-2 py-1 bg-gray-100 text-gray-700 text-[11px] rounded-md font-medium">
-                      {(hoveredItem as Job).job_type}
-                    </span>
-                  )}
-                  {(hoveredItem as Job).salary_range && (
-                    <span className="px-2 py-1 bg-green-50 text-green-800 text-[11px] rounded-md font-semibold">
-                      ₹{(hoveredItem as Job).salary_range}
-                    </span>
-                  )}
-                  {(hoveredItem as Job).distance_km !== undefined && (
-                    <span className="px-2 py-1 bg-purple-50 text-purple-700 text-[11px] rounded-md font-semibold">
-                      📍 {(hoveredItem as Job).distance_km?.toFixed(1)} km
-                    </span>
-                  )}
-                  {(hoveredItem as Job).created_at && (
-                    <span className="ml-auto text-[10px] text-gray-400">
-                      {formatTimeAgo((hoveredItem as Job).created_at)}
-                    </span>
-                  )}
+              );
+            })() : (() => {
+              const j = hoveredItem as Job;
+              const govt = j.job_category === 'government';
+              const accentColor = govt ? '#059669' : '#ef4444';
+              const accentGrad = govt
+                ? 'linear-gradient(90deg, #059669, #34d399)'
+                : 'linear-gradient(90deg, #ef4444, #f87171)';
+              return (
+                <div>
+                  {/* Accent bar */}
+                  <div className="iw-accent-bar" style={{ background: accentGrad }} />
+
+                  {/* Header */}
+                  <div className="flex items-start gap-3 p-3.5 pb-2">
+                    <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-sm"
+                      style={{ background: govt ? '#ecfdf5' : '#fef2f2' }}>
+                      {govt ? (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="1.8"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg>
+                      ) : (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <h4 className="text-[13px] font-bold text-foreground leading-tight truncate m-0 flex-1">
+                          {j.title}
+                        </h4>
+                        {j.created_at && isNewJob(j.created_at) && (
+                          <span className="px-1.5 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider shrink-0 text-white shadow-sm"
+                            style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}>
+                            NEW
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5 m-0 truncate flex items-center gap-1">
+                        {j.company_name || 'Company'}
+                        {govt && (
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="#059669" stroke="white" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                        )}
+                      </p>
+                      {j.created_at && (
+                        <p className="text-[10px] text-muted-foreground/60 mt-0.5 m-0">
+                          {formatTimeAgo(j.created_at)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Meta badges */}
+                  <div className="flex flex-wrap items-center gap-1.5 px-3.5 pb-2.5">
+                    {j.job_type && (
+                      <span className="iw-badge bg-secondary text-secondary-foreground">
+                        {j.job_type}
+                      </span>
+                    )}
+                    {j.salary_range && (
+                      <span className="iw-badge bg-emerald-50 text-emerald-700">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        ₹{j.salary_range}
+                      </span>
+                    )}
+                    {j.distance_km !== undefined && (
+                      <span className="iw-badge bg-violet-50 text-violet-700">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        {j.distance_km?.toFixed(1)} km
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-2 px-3.5 py-2.5 border-t border-border/60 bg-muted/30">
+                    <button onClick={() => navigate(`/jobs/${hoveredItem.id}?action=apply`)}
+                      className="iw-action-btn flex-1 text-white shadow-sm"
+                      style={{ background: accentColor }}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                      Quick Apply
+                    </button>
+                    <button onClick={() => navigate(`/jobs/${hoveredItem.id}`)}
+                      className="iw-action-btn bg-secondary hover:bg-accent text-secondary-foreground">
+                      Details
+                    </button>
+                  </div>
                 </div>
-                <div className="flex gap-2 px-3 py-2 border-t border-gray-100">
-                  <button onClick={() => navigate(`/jobs/${hoveredItem.id}?action=apply`)}
-                    className={`flex-1 py-2 text-white text-xs font-semibold rounded-lg border-none cursor-pointer transition-colors ${isGovt ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-red-500 hover:bg-red-600'}`}>
-                    ⚡ Apply Now
-                  </button>
-                  <button onClick={() => navigate(`/jobs/${hoveredItem.id}`)}
-                    className="py-2 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-lg border-none cursor-pointer transition-colors">
-                    Details →
-                  </button>
-                </div>
-              </div>
-            )}
+              );
+            })()}
           </div>
         </InfoWindow>
       )}
