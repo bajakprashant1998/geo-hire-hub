@@ -21,7 +21,7 @@ export const NearbyAvatarRow = ({ mode, candidates, jobs, onSelect, onViewAll }:
       initial={{ y: 40, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ delay: 0.3, type: 'spring', damping: 25 }}
-      className="fixed bottom-[68px] left-0 right-0 z-[45] px-2 pb-2 md:hidden pointer-events-none"
+      className="fixed bottom-[68px] left-0 right-[56px] z-[45] px-2 pb-2 md:hidden pointer-events-none"
     >
       <div className="bg-card/95 backdrop-blur-xl rounded-2xl border border-border/20 shadow-2xl py-2.5 px-2.5 pointer-events-auto">
         {/* Section label */}
