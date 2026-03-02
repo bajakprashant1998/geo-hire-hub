@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Navigation, List, Search, X, Radar, Flame, Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -67,7 +66,6 @@ export const FloatingControls = ({
   heatmapEnabled = false, onHeatmapToggle,
 }: FloatingControlsProps) => {
   const [searchOpen, setSearchOpen] = useState(false);
-  const navigate = useNavigate();
   const radiusCycle = [5, 10, 25, 50, 100, 500];
 
   const cycleRadius = () => {
@@ -116,7 +114,7 @@ export const FloatingControls = ({
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.4, duration: 0.3 }}
-        className="absolute right-3 top-[28%] -translate-y-1/2 z-[90] flex flex-col gap-2.5"
+        className="absolute right-3 top-[35%] -translate-y-1/2 z-[90] flex flex-col gap-2.5"
       >
         <FAB
           icon={searchOpen ? X : Search}
@@ -154,14 +152,6 @@ export const FloatingControls = ({
           onClick={onToggleSidebar}
           label="View list"
           delay={0.6}
-        />
-
-        <FAB
-          icon={Search}
-          onClick={() => navigate('/browse-jobs')}
-          label="Browse jobs"
-          delay={0.68}
-          className="ring-2 ring-primary/20"
         />
       </motion.div>
     </>
