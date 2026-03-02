@@ -95,7 +95,6 @@ const GoogleMapInner = (props: GoogleMapContainerProps & { apiKey: string }) => 
   const [hoveredItem, setHoveredItem] = useState<Candidate | Job | null>(null);
   const [spiderfiedCluster, setSpiderfiedCluster] = useState<{ center: google.maps.LatLng; markers: google.maps.Marker[] } | null>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const clusterHoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const clustererRef = useRef<any>(null);
   const navigate = useNavigate();
 
@@ -139,7 +138,10 @@ const GoogleMapInner = (props: GoogleMapContainerProps & { apiKey: string }) => 
 
   const center = useMemo(() => userLocation || defaultCenter, [userLocation]);
 
-  const onLoad = useCallback((map: google.maps.Map) => setMap(map), []);
+  const onLoad = useCallback((map: google.maps.Map) => {
+    setMap(map);
+    map.addListener('click', () => setSpiderfiedCluster(null));
+  }, []);
   const onUnmount = useCallback(() => setMap(null), []);
 
   // Smooth pan to selected item
@@ -280,38 +282,11 @@ const GoogleMapInner = (props: GoogleMapContainerProps & { apiKey: string }) => 
         key={`cluster-${mode}`}
         onLoad={(clusterer) => {
           clustererRef.current = clusterer;
-          google.maps.event.addListener(clusterer, 'clusteringend', () => {
-            const clusters = clusterer.getClusters();
-            clusters.forEach((cluster: any) => {
-              const icon = cluster.clusterIcon_;
-              const el = icon?.div_ || icon?.element_ || icon?.div || icon?.container_;
-              if (!el) return;
-              el.style.cursor = 'pointer';
-              if (el._spiderListenerAttached) return;
-              el._spiderListenerAttached = true;
-              el.addEventListener('mouseenter', () => {
-                if (clusterHoverTimeoutRef.current) {
-                  clearTimeout(clusterHoverTimeoutRef.current);
-                  clusterHoverTimeoutRef.current = null;
-                }
-                const markers = cluster.getMarkers();
-                const center = cluster.getCenter();
-                if (markers && center && markers.length <= 20) {
-                  setSpiderfiedCluster({ center, markers });
-                }
-              });
-              el.addEventListener('mouseleave', () => {
-                clusterHoverTimeoutRef.current = setTimeout(() => {
-                  setSpiderfiedCluster(null);
-                }, 400);
-              });
-            });
-          });
         }}
         options={{
           maxZoom: 18,
           gridSize: 60,
-          zoomOnClick: true,
+          zoomOnClick: false,
           minimumClusterSize: 2,
           styles: [
             {
@@ -331,13 +306,24 @@ const GoogleMapInner = (props: GoogleMapContainerProps & { apiKey: string }) => 
           ],
         }}
         onClick={(cluster) => {
-          setSpiderfiedCluster(null);
-          if (map) {
-            const bounds = cluster.getBounds();
-            if (bounds) {
-              map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
-              const currentZoom = map.getZoom();
-              if (currentZoom && currentZoom >= 17) map.setZoom(currentZoom + 1);
+          const markers = cluster.getMarkers();
+          const center = cluster.getCenter();
+          // If small cluster, spiderfy; otherwise zoom in
+          if (markers && center && markers.length <= 20) {
+            setSpiderfiedCluster(prev => {
+              // Toggle off if clicking same cluster
+              if (prev && prev.center.lat() === center.lat() && prev.center.lng() === center.lng()) {
+                return null;
+              }
+              return { center, markers };
+            });
+          } else {
+            setSpiderfiedCluster(null);
+            if (map) {
+              const bounds = cluster.getBounds();
+              if (bounds) {
+                map.fitBounds(bounds, { top: 50, right: 50, bottom: 50, left: 50 });
+              }
             }
           }
         }}
@@ -379,17 +365,6 @@ const GoogleMapInner = (props: GoogleMapContainerProps & { apiKey: string }) => 
         >
           <div
             style={{ position: 'relative', width: 0, height: 0 }}
-            onMouseEnter={() => {
-              if (clusterHoverTimeoutRef.current) {
-                clearTimeout(clusterHoverTimeoutRef.current);
-                clusterHoverTimeoutRef.current = null;
-              }
-            }}
-            onMouseLeave={() => {
-              clusterHoverTimeoutRef.current = setTimeout(() => {
-                setSpiderfiedCluster(null);
-              }, 400);
-            }}
           >
             <div style={{
               position: 'absolute', left: '-100px', top: '-100px',
