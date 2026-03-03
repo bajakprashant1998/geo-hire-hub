@@ -79,9 +79,12 @@ const Login = () => {
     setGoogleLoading(true);
     try {
       sessionStorage.setItem('preferred_role', userType);
-      const { error } = await lovable.auth.signInWithOAuth('google', {
-        redirect_uri: `${window.location.origin}/auth/callback`,
-        extraParams: { prompt: 'select_account' },
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: { prompt: 'select_account' },
+        }
       });
       if (error) throw error;
     } catch (error: any) {
@@ -107,7 +110,7 @@ const Login = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-primary/70" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-primary/50 via-transparent to-transparent" />
-        
+
         {/* Animated orbs */}
         <motion.div
           animate={{ scale: [1, 1.2, 1], opacity: [0.08, 0.15, 0.08] }}
@@ -255,11 +258,10 @@ const Login = () => {
                   key={tab.type}
                   type="button"
                   onClick={() => setUserType(tab.type)}
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${
-                    userType === tab.type
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${userType === tab.type
                       ? 'bg-background text-foreground shadow-md shadow-black/5'
                       : 'text-muted-foreground hover:text-foreground'
-                  }`}
+                    }`}
                 >
                   <tab.icon className="w-4 h-4" />
                   {tab.label}

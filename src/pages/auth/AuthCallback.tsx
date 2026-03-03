@@ -8,107 +8,117 @@ const AuthCallback = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handleAuthCallback = async () => {
-      const { data: { session }, error } = await supabase.auth.getSession();
+    let mounted = true;
 
-      if (error) {
-        console.error('Error handling auth callback:', error);
-        navigate('/login');
-        return;
-      }
-
-      if (!session) {
-        navigate('/login');
-        return;
-      }
-
-      // Check if user has a profile and user_type
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('user_type, profile_completed')
-        .eq('user_id', session.user.id)
-        .maybeSingle();
-
-      if (profileError) {
-        console.error('Error fetching profile:', profileError);
-      }
-
-      // CROSS-ROLE RESTRICTION FOR GOOGLE LOGIN
-      const preferredRole = sessionStorage.getItem('preferred_role');
-      let effectiveProfile = profile;
-
-      // Determine if profile was auto-created by trigger (user_type will be null)
-      // or manually set during email signup (user_type will have a value)
-      const hasEstablishedRole = profile && profile.user_type;
-      const isNewUser = !profile || !profile.user_type;
-
-      if (hasEstablishedRole && preferredRole) {
-        // Existing user with an established role trying to log in
-        if (profile.user_type !== preferredRole) {
-          // Role mismatch — they selected wrong tab
-          console.warn(`Role mismatch: Registered as ${profile.user_type}, tried to login as ${preferredRole}`);
-          await supabase.auth.signOut();
-          sessionStorage.removeItem('preferred_role');
-
-          const expectedTab = profile.user_type === 'employer' ? 'Employer' : 'Job Seeker';
-          setTimeout(() => {
-            toast.error(`This email is registered as an ${expectedTab}. Please switch tabs to log in.`);
-          }, 100);
-
-          navigate('/login');
-          return;
-        }
-        // Role matches, proceed normally
-        sessionStorage.removeItem('preferred_role');
-
-      } else if (isNewUser && preferredRole && (preferredRole === 'candidate' || preferredRole === 'employer')) {
-        // New Google user — assign their preferred role
-        console.log(`Assigning initial role for new Google user: ${preferredRole}`);
-
-        const fullName = session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User';
-
-        const { error: upsertError } = await supabase
+    const processProfile = async (session: any) => {
+      try {
+        // Check if user has a profile and user_type
+        const { data: profile, error: profileError } = await supabase
           .from('profiles')
-          .upsert({
-            user_id: session.user.id,
-            user_type: preferredRole,
-            full_name: fullName,
-          } as any, {
-            onConflict: 'user_id'
-          });
+          .select('user_type, profile_completed')
+          .eq('user_id', session.user.id)
+          .maybeSingle();
 
-        if (upsertError) {
-          console.error('Error assigning initial role:', upsertError);
-        } else {
-          effectiveProfile = { user_type: preferredRole, profile_completed: false } as any;
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
         }
 
-        sessionStorage.removeItem('preferred_role');
+        // CROSS-ROLE RESTRICTION FOR GOOGLE LOGIN
+        const preferredRole = sessionStorage.getItem('preferred_role');
+        let effectiveProfile = profile;
 
-      } else if (isNewUser && !preferredRole) {
-        // New user without preferred role — send to role selection
-        sessionStorage.removeItem('preferred_role');
-      } else {
-        // Existing user logging in without preferred_role (direct navigation)
-        sessionStorage.removeItem('preferred_role');
-      }
+        const hasEstablishedRole = profile && profile.user_type;
+        const isNewUser = !profile || !profile.user_type;
 
-      if (effectiveProfile?.user_type) {
-        // User has a role. Check if their profile is complete
-        if (!effectiveProfile.profile_completed) {
-          navigate('/profile-setup');
-        } else if (effectiveProfile.user_type === 'employer') {
-          navigate('/employer-dashboard');
+        if (hasEstablishedRole && preferredRole) {
+          // Existing user with an established role trying to log in
+          if (profile.user_type !== preferredRole) {
+            console.warn(`Role mismatch: Registered as ${profile.user_type}, tried to login as ${preferredRole}`);
+            await supabase.auth.signOut();
+            sessionStorage.removeItem('preferred_role');
+
+            const expectedTab = profile.user_type === 'employer' ? 'Employer' : 'Job Seeker';
+            setTimeout(() => {
+              toast.error(`This email is registered as an ${expectedTab}. Please switch tabs to log in.`);
+            }, 100);
+
+            if (mounted) navigate('/login');
+            return;
+          }
+          sessionStorage.removeItem('preferred_role');
+        } else if (isNewUser && preferredRole && (preferredRole === 'candidate' || preferredRole === 'employer')) {
+          console.log(`Assigning initial role for new Google user: ${preferredRole}`);
+
+          const fullName = session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User';
+
+          const { error: upsertError } = await supabase
+            .from('profiles')
+            .upsert({
+              user_id: session.user.id,
+              user_type: preferredRole,
+              full_name: fullName,
+            } as any, {
+              onConflict: 'user_id'
+            });
+
+          if (upsertError) {
+            console.error('Error assigning initial role:', upsertError);
+          } else {
+            effectiveProfile = { user_type: preferredRole, profile_completed: false } as any;
+          }
+
+          sessionStorage.removeItem('preferred_role');
+        } else if (isNewUser && !preferredRole) {
+          sessionStorage.removeItem('preferred_role');
         } else {
-          navigate('/candidate-dashboard');
+          sessionStorage.removeItem('preferred_role');
         }
-      } else {
-        // New user or no role selected, redirect to role selection
-        navigate('/select-role');
+
+        if (!mounted) return;
+
+        if (effectiveProfile?.user_type) {
+          if (!effectiveProfile.profile_completed) {
+            navigate('/profile-setup', { replace: true });
+          } else if (effectiveProfile.user_type === 'employer') {
+            navigate('/employer-dashboard', { replace: true });
+          } else {
+            navigate('/candidate-dashboard', { replace: true });
+          }
+        } else {
+          navigate('/select-role', { replace: true });
+        }
+      } catch (err) {
+        console.error('Error processing profile in auth callback:', err);
+        if (mounted) navigate('/login', { replace: true });
       }
     };
 
-    handleAuthCallback();
+    // First attempt to get an existing session
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Error handling auth callback:', error);
+        if (mounted) navigate('/login', { replace: true });
+        return;
+      }
+
+      if (session) {
+        processProfile(session);
+      }
+    });
+
+    // Also listen for auth state changes (crucial for OAuth redirects with PKCE)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        processProfile(session);
+      } else if (event === 'SIGNED_OUT') {
+        if (mounted) navigate('/login', { replace: true });
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   return (
