@@ -3,28 +3,22 @@ import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
 import { StatsCard } from '@/components/admin/StatsCard';
 import { ActionLogTable } from '@/components/admin/ActionLogTable';
+import { LiveActivityFeed } from '@/components/admin/LiveActivityFeed';
+import { SystemStatusCard } from '@/components/admin/SystemStatusCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { RegistrationTrendChart, RevenueChart } from '@/components/admin/AnalyticsCharts';
 import { Link } from 'react-router-dom';
+import { Download } from 'lucide-react';
 import {
-  Building2,
-  Briefcase,
-  Users,
-  DollarSign,
-  Clock,
-  Flag,
-  UserPlus,
-  AlertTriangle,
-  ArrowRight,
-  Eye,
-  CheckCircle,
-  ShieldAlert,
-  TrendingUp,
+  Building2, Briefcase, Users, DollarSign, Clock, Flag, UserPlus, AlertTriangle,
+  ArrowRight, Eye, CheckCircle, ShieldAlert, TrendingUp, FileText,
 } from 'lucide-react';
 import { format, subDays, eachDayOfInterval, subMonths, eachMonthOfInterval, startOfMonth } from 'date-fns';
+import { exportToCSV } from '@/lib/adminExport';
+import { toast } from 'sonner';
 
 export default function AdminDashboard() {
   const { data: stats, isLoading } = useQuery({
@@ -88,6 +82,12 @@ export default function AdminDashboard() {
   const needsAttention = !isLoading && stats && (
     (stats.pending_employers > 0) || (stats.pending_moderation > 0) || (stats.pending_reports > 0)
   );
+
+  const handleExportStats = () => {
+    if (!stats) return;
+    exportToCSV([stats as unknown as Record<string, unknown>], 'admin-dashboard-stats');
+    toast.success('Dashboard stats exported');
+  };
 
   return (
     <AdminLayout title="Dashboard">
@@ -153,7 +153,13 @@ export default function AdminDashboard() {
       {/* Quick Actions */}
       <Card className="mb-6 rounded-xl border-border/40 bg-card/80 backdrop-blur-sm">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold">Quick Actions</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base font-semibold">Quick Actions</CardTitle>
+            <Button size="sm" variant="ghost" className="gap-1.5 text-xs" onClick={handleExportStats}>
+              <Download className="h-3.5 w-3.5" />
+              Export Stats
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
@@ -195,82 +201,70 @@ export default function AdminDashboard() {
         </CardContent>
       </Card>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
-        {registrationData && <RegistrationTrendChart data={registrationData} />}
-        {revenueData && <RevenueChart data={revenueData} />}
+      {/* Charts + System Status */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
+        <div className="lg:col-span-2">
+          {registrationData && <RegistrationTrendChart data={registrationData} />}
+        </div>
+        <SystemStatusCard />
       </div>
 
-      {/* Quick Stats Summary */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
+        {revenueData && <RevenueChart data={revenueData} />}
+        
+        {/* Employer Overview */}
         <Card className="rounded-xl border-border/40 bg-card/80 backdrop-blur-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-base font-semibold flex items-center gap-2">
               <Building2 className="h-4 w-4 text-primary" />
-              Employer Overview
+              Platform Overview
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {isLoading ? <Skeleton className="h-32 w-full" /> : (
+            {isLoading ? <Skeleton className="h-48 w-full" /> : (
               <div className="space-y-3">
                 {[
-                  { label: 'Approved', value: stats?.approved_employers, color: 'text-success' },
-                  { label: 'Pending', value: stats?.pending_employers, color: 'text-warning' },
-                  { label: 'Suspended', value: stats?.suspended_employers, color: 'text-destructive' },
-                ].map((item) => (
-                  <div key={item.label} className="flex justify-between items-center py-1.5">
-                    <span className="text-sm text-muted-foreground">{item.label}</span>
-                    <span className={`font-semibold tabular-nums ${item.color}`}>{item.value}</span>
-                  </div>
-                ))}
-                <div className="flex justify-between items-center border-t border-border/40 pt-3">
-                  <span className="text-sm text-muted-foreground">Total</span>
-                  <span className="font-bold tabular-nums">{stats?.total_employers}</span>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-xl border-border/40 bg-card/80 backdrop-blur-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <Briefcase className="h-4 w-4 text-success" />
-              Job Overview
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? <Skeleton className="h-32 w-full" /> : (
-              <div className="space-y-3">
-                {[
-                  { label: 'Active', value: stats?.active_jobs, color: 'text-success' },
-                  { label: 'Pending Moderation', value: stats?.pending_moderation, color: 'text-warning' },
+                  { label: 'Approved Employers', value: stats?.approved_employers, color: 'text-success' },
+                  { label: 'Pending Employers', value: stats?.pending_employers, color: 'text-warning' },
+                  { label: 'Suspended Employers', value: stats?.suspended_employers, color: 'text-destructive' },
+                  { label: 'Active Jobs', value: stats?.active_jobs, color: 'text-success' },
                   { label: 'Total Applications', value: stats?.total_applications, color: 'text-foreground' },
+                  { label: 'Blocked Candidates', value: stats?.blocked_candidates, color: 'text-destructive' },
                 ].map((item) => (
                   <div key={item.label} className="flex justify-between items-center py-1.5">
                     <span className="text-sm text-muted-foreground">{item.label}</span>
                     <span className={`font-semibold tabular-nums ${item.color}`}>{item.value}</span>
                   </div>
                 ))}
-                <div className="flex justify-between items-center border-t border-border/40 pt-3">
-                  <span className="text-sm text-muted-foreground">Total Jobs</span>
-                  <span className="font-bold tabular-nums">{stats?.total_jobs}</span>
-                </div>
               </div>
             )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Recent Activity */}
-      <Card className="rounded-xl border-border/40 bg-card/80 backdrop-blur-sm">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-semibold">Recent Admin Activity</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ActionLogTable limit={10} />
-        </CardContent>
-      </Card>
+      {/* Live Activity + Audit Log */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <Card className="rounded-xl border-border/40 bg-card/80 backdrop-blur-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold flex items-center gap-2">
+              <FileText className="h-4 w-4 text-primary" />
+              Live Platform Activity
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <LiveActivityFeed />
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-xl border-border/40 bg-card/80 backdrop-blur-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold">Recent Admin Activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ActionLogTable limit={10} />
+          </CardContent>
+        </Card>
+      </div>
     </AdminLayout>
   );
 }
