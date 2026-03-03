@@ -37,16 +37,20 @@ const AuthCallback = () => {
       const preferredRole = sessionStorage.getItem('preferred_role');
       let effectiveProfile = profile;
 
-      if (profile && profile.user_type) {
-        // User already has an established role.
-        if (preferredRole && profile.user_type !== preferredRole) {
-          // They tried to log in via a different role tab.
+      // Determine if profile was auto-created by trigger (user_type will be null)
+      // or manually set during email signup (user_type will have a value)
+      const hasEstablishedRole = profile && profile.user_type;
+      const isNewUser = !profile || !profile.user_type;
+
+      if (hasEstablishedRole && preferredRole) {
+        // Existing user with an established role trying to log in
+        if (profile.user_type !== preferredRole) {
+          // Role mismatch — they selected wrong tab
           console.warn(`Role mismatch: Registered as ${profile.user_type}, tried to login as ${preferredRole}`);
           await supabase.auth.signOut();
           sessionStorage.removeItem('preferred_role');
 
           const expectedTab = profile.user_type === 'employer' ? 'Employer' : 'Job Seeker';
-          // Use setTimeout to ensure toast fires after potential quick unmounts/redirects
           setTimeout(() => {
             toast.error(`This email is registered as an ${expectedTab}. Please switch tabs to log in.`);
           }, 100);
@@ -54,12 +58,11 @@ const AuthCallback = () => {
           navigate('/login');
           return;
         }
-
-        // Match or no preferred role, proceed normally
+        // Role matches, proceed normally
         sessionStorage.removeItem('preferred_role');
 
-      } else if (preferredRole && (preferredRole === 'candidate' || preferredRole === 'employer')) {
-        // User does NOT have an established role (new Google signup), so we assign the preferred role
+      } else if (isNewUser && preferredRole && (preferredRole === 'candidate' || preferredRole === 'employer')) {
+        // New Google user — assign their preferred role
         console.log(`Assigning initial role for new Google user: ${preferredRole}`);
 
         const fullName = session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User';
@@ -77,10 +80,16 @@ const AuthCallback = () => {
         if (upsertError) {
           console.error('Error assigning initial role:', upsertError);
         } else {
-          effectiveProfile = { user_type: preferredRole } as any;
+          effectiveProfile = { user_type: preferredRole, profile_completed: false } as any;
         }
 
-        // Clear storage
+        sessionStorage.removeItem('preferred_role');
+
+      } else if (isNewUser && !preferredRole) {
+        // New user without preferred role — send to role selection
+        sessionStorage.removeItem('preferred_role');
+      } else {
+        // Existing user logging in without preferred_role (direct navigation)
         sessionStorage.removeItem('preferred_role');
       }
 
