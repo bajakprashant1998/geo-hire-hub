@@ -1,94 +1,76 @@
 
 
-## Remaining Feature Implementation Plan
+## Plan: Improve User Experience and Eliminate Errors
 
-### 4 Tasks to Complete
-
----
-
-### Task 1: AI Screening Job Selector in Employer Dashboard
-
-**Problem**: The AI Screening section currently renders `<AIScreeningPanel jobId="" jobTitle="Select a job" />` with an empty jobId — it's unusable. Also, `ai-candidate-screening` is missing from `supabase/config.toml`.
-
-**Fix**:
-- Add `ai-candidate-screening` to `supabase/config.toml` with `verify_jwt = false`
-- Update the `ai-screening` case in `EmployerDashboard.tsx` (line 788-789) to render a job selector dropdown above the `AIScreeningPanel`, populated from the employer's `jobs` array
-- When a job is selected, pass its `id` and `title` to `AIScreeningPanel`
-- Show a placeholder prompt when no job is selected
+### Problem Summary
+1. **Six build errors** in edge functions (TypeScript strict issues) blocking deployment
+2. **LocationGate blocks the entire app** — users who deny location can't access anything (login, signup, browse jobs)
+3. **No global error boundary** — unhandled React errors crash the entire app with a white screen
+4. **Missing error handling** in key user flows (dashboard data fetching, profile setup)
+5. **NotFound page is minimal** — no navigation back to useful places
 
 ---
 
-### Task 2: Candidate-Facing Assessment Test-Taking UI
+### Implementation Plan
 
-**Problem**: Employers can create assessments via `SkillAssessmentManager`, and `assessment_results` table exists, but there is no UI for candidates to actually take a test.
+#### 1. Fix All Build Errors (Edge Functions)
 
-**Build**:
-- Create `src/components/candidate/TakeAssessment.tsx` — a timed test UI that:
-  - Loads questions from `assessment_questions` for a given `assessment_id`
-  - Shows a countdown timer based on `time_limit_minutes`
-  - Renders multiple-choice questions one at a time or all at once
-  - On submit, calculates score, compares to `passing_score`, and inserts result into `assessment_results`
-  - Shows pass/fail result with score breakdown
-- Add a route or entry point: link from job detail page when the job has an `assessment_id`, and/or add an "Assessments" section in candidate dashboard sidebar
-- Add "Take Assessment" button on `JobDetail.tsx` when the job has a linked assessment and the candidate hasn't already taken it
+- **`ai-candidate-screening/index.ts`** (line 27): Add null check for `profile` before accessing `.id`
+- **`check-reverification/index.ts`** (line 77): Cast `error` to `Error` type — `(error as Error).message`
+- **`send-whatsapp-notification/index.ts`** (line 92): Cast `err` to `Error` — `(err as Error).message`
+- **`verify-employer/index.ts`** (lines 123, 127, 135): Change helper function signatures to use `client: any` instead of `ReturnType<typeof createClient>` to fix the generic mismatch
 
----
+#### 2. Remove LocationGate Blocking Behavior
 
-### Task 3: Salary Transparency Badges on Job Listings
+The `LocationGate` component wraps ALL routes and blocks the entire app if location is denied. This is a critical UX issue — users can't even log in or sign up.
 
-**Problem**: Job cards on BrowseJobs and JobRadar show salary as plain text. No visual indicator of how competitive the salary is.
+**Change**: Make LocationGate non-blocking. Instead of blocking the entire UI, it should:
+- Still request location permission
+- If denied, pass `null` coordinates and let the app render normally
+- Location-dependent features (map, nearby jobs) can show a prompt inline instead
 
-**Build**:
-- Create a small `SalaryBadge` component that shows a color-coded badge based on the salary range:
-  - Green "Competitive" for higher ranges
-  - Amber "Market Rate" for average
-  - Simple display with currency symbol for all
-- Add this badge to:
-  - `BrowseJobs.tsx` job cards (line ~176, where `salary_range` badge already exists — enhance it)
-  - `JobDetail.tsx` salary pill (line ~558-562 — add a "Competitive" / "Market Rate" indicator next to the salary)
-  - `JobRadarCard.tsx` salary section
-- Since we already have the `salary-insights` edge function, we can use simple heuristic thresholds client-side (e.g., salary > 25000 = competitive) rather than calling AI for every listing
+#### 3. Add Global Error Boundary
 
----
+Create `src/components/ErrorBoundary.tsx` — a React class component that catches render errors and shows a friendly fallback UI with a "Reload" button, preventing white-screen crashes.
 
-### Task 4: WhatsApp/SMS Notifications
+Wrap the app's `<Routes>` in this boundary in `App.tsx`.
 
-**Problem**: Currently only email notifications exist. Users want WhatsApp/SMS alerts for interviews and application updates.
+#### 4. Improve Dashboard Error Resilience
 
-**Build**:
-- Create `supabase/functions/send-whatsapp-notification/index.ts` edge function that:
-  - Accepts `{ phone_number, message, template_name }` 
-  - Calls the WhatsApp Business API (or Twilio) to send messages
-  - This requires a third-party API key (Twilio or WhatsApp Business API)
-- Add notification preference toggles in `SecuritySettings.tsx`:
-  - "WhatsApp notifications" toggle (stored in `notification_preferences`)
-  - "SMS notifications" toggle
-- Add `whatsapp_notifications_enabled` and `sms_notifications_enabled` columns to `notification_preferences` table
-- Wire the existing `notify_interview_event` and `notify_application_status_change` triggers to optionally call the WhatsApp function when enabled
-- **API Key Required**: Will need to set up a Twilio or WhatsApp Business API connector. Will prompt for API key setup before proceeding.
+In both `CandidateDashboard.tsx` and `EmployerDashboard.tsx`:
+- Wrap `fetchCandidate`/`fetchEmployerData` calls in try/catch with `toast.error` feedback
+- Show graceful empty states instead of blank screens when data fails to load
+- Add loading timeouts (10s) to prevent infinite loading spinners
+
+#### 5. Enhance NotFound Page
+
+Upgrade `NotFound.tsx` with:
+- Better visual design (illustration, proper layout)
+- Links to dashboard, login, browse jobs, and homepage
+- "Go Back" button using `navigate(-1)`
+
+#### 6. Add Defensive Guards in Profile Setup
+
+In `ProfileSetup.tsx`:
+- Redirect to login if `!user` after auth loads (currently silently fails)
+- Show a loading state while auth is resolving
+- Validate all form fields before submission with user-friendly messages
 
 ---
 
-### Technical Details
+### Files to Modify
 
-**Database changes needed**:
-- Add columns to `notification_preferences`: `whatsapp_notifications_enabled boolean default false`, `sms_notifications_enabled boolean default false`
-- Add `assessment_id` column to `jobs` table if not already present (to link assessments to jobs)
-
-**Config changes**:
-- Add `[functions.ai-candidate-screening]` and `[functions.send-whatsapp-notification]` to `supabase/config.toml`
-
-**New files**:
-- `src/components/candidate/TakeAssessment.tsx` — test-taking UI
-- `src/components/SalaryBadge.tsx` — reusable salary indicator
-- `supabase/functions/send-whatsapp-notification/index.ts` — WhatsApp/SMS sender
-
-**Modified files**:
-- `supabase/config.toml` — register new edge functions
-- `src/pages/EmployerDashboard.tsx` — job selector for AI screening
-- `src/pages/JobDetail.tsx` — salary badge + assessment link
-- `src/pages/BrowseJobs.tsx` — salary badge
-- `src/pages/CandidateDashboard.tsx` — assessment section in sidebar
-- `src/components/candidate/JobRadarCard.tsx` — salary badge
-- `src/components/candidate/SecuritySettings.tsx` — WhatsApp/SMS toggles
+| File | Change |
+|------|--------|
+| `supabase/functions/ai-candidate-screening/index.ts` | Null check for profile |
+| `supabase/functions/check-reverification/index.ts` | Type cast error |
+| `supabase/functions/send-whatsapp-notification/index.ts` | Type cast err |
+| `supabase/functions/verify-employer/index.ts` | Fix helper function param types |
+| `src/components/LocationGate.tsx` | Make non-blocking |
+| `src/components/ErrorBoundary.tsx` | **New** — global error boundary |
+| `src/App.tsx` | Wrap routes in ErrorBoundary |
+| `src/pages/NotFound.tsx` | Enhanced 404 page |
+| `src/pages/CandidateDashboard.tsx` | Add try/catch + timeout |
+| `src/pages/EmployerDashboard.tsx` | Add try/catch + timeout |
+| `src/pages/ProfileSetup.tsx` | Auth guard + validation |
 
