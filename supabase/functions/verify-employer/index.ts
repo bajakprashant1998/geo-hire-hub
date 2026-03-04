@@ -240,7 +240,7 @@ serve(async (req) => {
 
 // ----- Document Verification -----
 async function verifyDocuments(
-  client: ReturnType<typeof createClient>,
+  client: any,
   employer: Record<string, unknown>,
   settings: Record<string, unknown>
 ): Promise<VerificationResult> {
@@ -394,7 +394,7 @@ Respond with a JSON object:
 
 // ----- Domain & Email Validation -----
 async function verifyDomainEmail(
-  client: ReturnType<typeof createClient>,
+  client: any,
   employer: Record<string, unknown>
 ): Promise<VerificationResult> {
   const hrEmail = (employer.hr_contact_email as string) || "";
@@ -600,7 +600,7 @@ Respond with JSON:
 
 // ----- Fraud Detection -----
 async function detectFraud(
-  client: ReturnType<typeof createClient>,
+  client: any,
   employer: Record<string, unknown>
 ): Promise<VerificationResult> {
   let penalty = 0;

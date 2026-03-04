@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { MessageNotificationProvider } from "@/components/messaging/MessageNotificationProvider";
 import { EmailVerificationBanner } from "@/components/auth/EmailVerificationBanner";
 import { LocationGate } from "@/components/LocationGate";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -81,6 +82,7 @@ const App = () => (
           <MessageNotificationProvider>
             <EmailVerificationBanner />
             <LocationGate>
+            <ErrorBoundary>
             <Routes>
               {/* ==================== PUBLIC ROUTES ==================== */}
               <Route path="/" element={<Index />} />
@@ -170,6 +172,7 @@ const App = () => (
               {/* ==================== CATCH-ALL ==================== */}
               <Route path="*" element={<NotFound />} />
             </Routes >
+            </ErrorBoundary>
             </LocationGate>
           </MessageNotificationProvider >
         </BrowserRouter >
