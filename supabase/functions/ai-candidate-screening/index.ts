@@ -24,6 +24,7 @@ serve(async (req) => {
     if (!user) throw new Error("Not authenticated");
 
     const { data: profile } = await supabase.from("profiles").select("id").eq("user_id", user.id).single();
+    if (!profile) throw new Error("Profile not found");
     const { data: employer } = await supabase.from("employers").select("id").eq("profile_id", profile.id).single();
     if (!employer) throw new Error("Not an employer");
 

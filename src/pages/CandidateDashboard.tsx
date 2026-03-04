@@ -110,62 +110,67 @@ const CandidateDashboard = () => {
 
   const fetchCandidate = async () => {
     if (!profile || !user) return;
-    const { data } = await supabase
-      .from('candidates')
-      .select('*')
-      .eq('profile_id', profile.id)
-      .maybeSingle();
-    setCandidate(data);
-
-    if (data) {
-      const [appsRes, messagesRes, interviewsRes] = await Promise.all([
-        supabase.from('applications').select('id, status, job_id').eq('candidate_id', data.id),
-        supabase.from('messages').select('id').eq('is_read', false).neq('sender_id', user.id),
-        supabase.from('interviews').select('id', { count: 'exact', head: true }).eq('candidate_id', data.id).in('status', ['requested', 'confirmed', 'scheduled'])
-      ]);
-
-      const applications = appsRes.data || [];
-      const interviews = interviewsRes.count || 0;
-
-      const { count: viewCount } = await supabase
-        .from('profile_views')
-        .select('*', { count: 'exact', head: true })
-        .eq('profile_id', profile.id);
-
-      const { count: notifCount } = await supabase
-        .from('notifications')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('is_read', false);
-
-      const { data: nextInterview } = await supabase
-        .from('interviews')
-        .select('scheduled_date')
-        .eq('candidate_id', data.id)
-        .eq('status', 'scheduled')
-        .gte('scheduled_date', new Date().toISOString().split('T')[0])
-        .order('scheduled_date', { ascending: true })
-        .limit(1)
+    try {
+      const { data } = await supabase
+        .from('candidates')
+        .select('*')
+        .eq('profile_id', profile.id)
         .maybeSingle();
+      setCandidate(data);
 
-      if (nextInterview?.scheduled_date) {
-        const d = new Date(nextInterview.scheduled_date);
-        if (isToday(d)) setNextInterviewLabel('Next: Today');
-        else if (isTomorrow(d)) setNextInterviewLabel('Next: Tomorrow');
-        else setNextInterviewLabel(`Next: ${format(d, 'MMM d')}`);
-      } else {
-        setNextInterviewLabel('None scheduled');
+      if (data) {
+        const [appsRes, messagesRes, interviewsRes] = await Promise.all([
+          supabase.from('applications').select('id, status, job_id').eq('candidate_id', data.id),
+          supabase.from('messages').select('id').eq('is_read', false).neq('sender_id', user.id),
+          supabase.from('interviews').select('id', { count: 'exact', head: true }).eq('candidate_id', data.id).in('status', ['requested', 'confirmed', 'scheduled'])
+        ]);
+
+        const applications = appsRes.data || [];
+        const interviews = interviewsRes.count || 0;
+
+        const { count: viewCount } = await supabase
+          .from('profile_views')
+          .select('*', { count: 'exact', head: true })
+          .eq('profile_id', profile.id);
+
+        const { count: notifCount } = await supabase
+          .from('notifications')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('is_read', false);
+
+        const { data: nextInterview } = await supabase
+          .from('interviews')
+          .select('scheduled_date')
+          .eq('candidate_id', data.id)
+          .eq('status', 'scheduled')
+          .gte('scheduled_date', new Date().toISOString().split('T')[0])
+          .order('scheduled_date', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+
+        if (nextInterview?.scheduled_date) {
+          const d = new Date(nextInterview.scheduled_date);
+          if (isToday(d)) setNextInterviewLabel('Next: Today');
+          else if (isTomorrow(d)) setNextInterviewLabel('Next: Tomorrow');
+          else setNextInterviewLabel(`Next: ${format(d, 'MMM d')}`);
+        } else {
+          setNextInterviewLabel('None scheduled');
+        }
+
+        setStats({
+          applications: applications.length,
+          views: viewCount || 0,
+          unreadMessages: messagesRes.data?.length || 0,
+          interviews,
+          unreadNotifications: notifCount || 0,
+        });
       }
-
-      setStats({
-        applications: applications.length,
-        views: viewCount || 0,
-        unreadMessages: messagesRes.data?.length || 0,
-        interviews,
-        unreadNotifications: notifCount || 0,
-      });
+    } catch (error) {
+      console.error('Error fetching candidate data:', error);
+    } finally {
+      setDataLoading(false);
     }
-    setDataLoading(false);
   };
 
   const handleProfileSave = () => {

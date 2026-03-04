@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { JobCategorySearch } from '@/components/JobCategorySearch';
 import { Button } from '@/components/ui/button';
@@ -30,8 +30,14 @@ const industries = [
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile, loading: authLoading, profileLoading, refreshProfile } = useAuth();
   const geolocation = useGeolocation();
+
+  useEffect(() => {
+    if (!authLoading && !profileLoading && !user) {
+      navigate('/login');
+    }
+  }, [authLoading, profileLoading, user, navigate]);
 
   // Profile photo
   const [avatarUrl, setAvatarUrl] = useState<string>(profile?.avatar_url || '');
@@ -82,7 +88,19 @@ const ProfileSetup = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !profile) return;
+    if (!user || !profile) {
+      toast.error('Please sign in first');
+      return;
+    }
+
+    if (isCandidate && !jobTitle.trim()) {
+      toast.error('Please enter your job title');
+      return;
+    }
+    if (!isCandidate && !companyName.trim()) {
+      toast.error('Please enter your company name');
+      return;
+    }
 
     setLoading(true);
 
