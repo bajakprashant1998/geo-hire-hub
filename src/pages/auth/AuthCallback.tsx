@@ -9,8 +9,12 @@ const AuthCallback = () => {
 
   useEffect(() => {
     let mounted = true;
+    let processing = false;
 
     const processProfile = async (session: any) => {
+      if (processing) return;
+      processing = true;
+
       try {
         // Check if user has a profile and user_type
         const { data: profile, error: profileError } = await supabase
@@ -33,17 +37,8 @@ const AuthCallback = () => {
         if (hasEstablishedRole && preferredRole) {
           // Existing user with an established role trying to log in
           if (profile.user_type !== preferredRole) {
-            console.warn(`Role mismatch: Registered as ${profile.user_type}, tried to login as ${preferredRole}`);
-            await supabase.auth.signOut();
-            sessionStorage.removeItem('preferred_role');
-
-            const expectedTab = profile.user_type === 'employer' ? 'Employer' : 'Job Seeker';
-            setTimeout(() => {
-              toast.error(`This email is registered as an ${expectedTab}. Please switch tabs to log in.`);
-            }, 100);
-
-            if (mounted) navigate('/login');
-            return;
+            console.warn(`Role mismatch: Registered as ${profile.user_type}, tried to login as ${preferredRole}. Proceeding with actual role.`);
+            // Removed the aggressive signOut and bounce. Just let them log in!
           }
           sessionStorage.removeItem('preferred_role');
         } else if (isNewUser && preferredRole && (preferredRole === 'candidate' || preferredRole === 'employer')) {
@@ -79,10 +74,9 @@ const AuthCallback = () => {
         if (effectiveProfile?.user_type) {
           if (!effectiveProfile.profile_completed) {
             navigate('/profile-setup', { replace: true });
-          } else if (effectiveProfile.user_type === 'employer') {
-            navigate('/employer-dashboard', { replace: true });
           } else {
-            navigate('/candidate-dashboard', { replace: true });
+            // Existing users go to home page
+            navigate('/', { replace: true });
           }
         } else {
           navigate('/select-role', { replace: true });

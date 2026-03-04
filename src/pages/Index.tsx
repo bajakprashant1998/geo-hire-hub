@@ -29,7 +29,7 @@ const LazyMapContainer = lazy(() =>
 );
 
 const Index = () => {
-  const { user, profile } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const [mode, setMode] = useState<ViewMode>('seeking');
   const [radius, setRadius] = useState(10);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -149,7 +149,7 @@ const Index = () => {
     <div className="relative w-full h-screen overflow-hidden bg-background">
       <SEOHead title="HireForJob - Find Jobs & Talent Near You" description="Discover jobs and talent on an interactive map. Connect with employers and candidates in your area." canonicalUrl="https://www.hireforjob.com/" ogImage="https://www.hireforjob.com/logo.png" />
       {loading && <MapLoadingSkeleton mode={mode === 'hiring' ? 'hiring' : 'job'} />}
-      {!user && <GoogleSignInPrompt />}
+      {!authLoading && !user && <GoogleSignInPrompt />}
 
       {/* Desktop Layout */}
       <div className="hidden md:flex h-full">
@@ -197,18 +197,18 @@ const Index = () => {
       <div className="md:hidden h-full">
         <div className="absolute inset-0 z-0">{mapElement}</div>
         <Header mode={mode} onModeChange={handleModeChange} onSearch={setSearchQuery} onMenuClick={() => setSidebarOpen(true)} userLocation={userLocation} />
-          <QuickFilterChips mode={mode} onModeChange={handleModeChange} jobCount={filteredJobs.length} candidateCount={filteredCandidates.length} governmentJobCount={jobCounts.government} privateJobCount={jobCounts.private} />
-          <FloatingControls
-              onCenterOnUser={handleCenterOnUser}
-              onToggleSidebar={() => setSidebarOpen(true)}
-              radius={radius}
-              onRadiusChange={setRadius}
-              onSearch={setSearchQuery}
-              searchQuery={searchQuery}
-              heatmapEnabled={heatmapEnabled}
-              onHeatmapToggle={() => setHeatmapEnabled(!heatmapEnabled)}
-            />
-          <NearbyAvatarRow mode={mode} candidates={filteredCandidates} jobs={filteredJobs} onSelect={handleSelectFromSidebar} onViewAll={() => setSidebarOpen(true)} />
+        <QuickFilterChips mode={mode} onModeChange={handleModeChange} jobCount={filteredJobs.length} candidateCount={filteredCandidates.length} governmentJobCount={jobCounts.government} privateJobCount={jobCounts.private} />
+        <FloatingControls
+          onCenterOnUser={handleCenterOnUser}
+          onToggleSidebar={() => setSidebarOpen(true)}
+          radius={radius}
+          onRadiusChange={setRadius}
+          onSearch={setSearchQuery}
+          searchQuery={searchQuery}
+          heatmapEnabled={heatmapEnabled}
+          onHeatmapToggle={() => setHeatmapEnabled(!heatmapEnabled)}
+        />
+        <NearbyAvatarRow mode={mode} candidates={filteredCandidates} jobs={filteredJobs} onSelect={handleSelectFromSidebar} onViewAll={() => setSidebarOpen(true)} />
         <MobileFAB mode={mode} />
         <BottomNavBar />
       </div>
@@ -216,7 +216,7 @@ const Index = () => {
       {/* Overlay Layer */}
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} mode={mode} candidates={filteredCandidates} jobs={filteredJobs} onSelectCandidate={handleSelectFromSidebar} onSelectJob={handleSelectFromSidebar} />
       <MarkerPreviewSheet isOpen={previewOpen} onClose={() => setPreviewOpen(false)} mode={mode} item={selectedItem} isEmployer={profile?.user_type === 'employer'} />
-      {!user && showWelcome && (
+      {!authLoading && !user && showWelcome && (
         <WelcomeOverlay onDismiss={() => setShowWelcome(false)} onFindJobs={() => setMode('seeking')} onFindTalent={() => setMode('hiring')} />
       )}
     </div>

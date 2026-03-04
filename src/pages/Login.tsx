@@ -79,9 +79,12 @@ const Login = () => {
     setGoogleLoading(true);
     try {
       sessionStorage.setItem('preferred_role', userType);
-      const { error } = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-        extraParams: { prompt: 'select_account' },
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: { prompt: 'select_account' },
+        }
       });
       if (error) throw error;
     } catch (error: any) {
@@ -256,8 +259,8 @@ const Login = () => {
                   type="button"
                   onClick={() => setUserType(tab.type)}
                   className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${userType === tab.type
-                      ? 'bg-background text-foreground shadow-md shadow-black/5'
-                      : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-background text-foreground shadow-md shadow-black/5'
+                    : 'text-muted-foreground hover:text-foreground'
                     }`}
                 >
                   <tab.icon className="w-4 h-4" />
