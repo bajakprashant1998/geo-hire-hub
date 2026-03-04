@@ -160,6 +160,17 @@ const ProfileSetup = () => {
 
   const isCandidate = profile?.user_type === 'candidate';
 
+  if (authLoading || profileLoading) {
+    return (
+      <div className="min-h-screen bg-secondary flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground font-medium">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-secondary py-12 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
