@@ -149,8 +149,22 @@ const ProfileSetup = () => {
       }
 
       await refreshProfile();
-      toast.success('Profile completed successfully!');
-      navigate(profile?.user_type === 'employer' ? '/employer-dashboard' : '/candidate-profile');
+      toast.success('Profile completed successfully! 🎉');
+      
+      // Smart redirect based on what was just filled
+      if (profile?.user_type === 'employer') {
+        navigate('/employer-dashboard');
+      } else {
+        // Candidate just filled profile - check if enough to go to job radar
+        const hasSkills = skills.length > 0;
+        const hasBio = bio.trim().length > 10;
+        const hasTitle = jobTitle.trim().length > 0;
+        if (hasTitle && hasSkills && hasBio) {
+          navigate('/candidate-dashboard?tab=job-radar');
+        } else {
+          navigate('/candidate-dashboard');
+        }
+      }
     } catch (error: any) {
       toast.error(error.message || 'Failed to complete profile');
     } finally {
