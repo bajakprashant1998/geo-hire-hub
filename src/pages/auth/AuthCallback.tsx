@@ -3,52 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 const getSmartRedirect = async (userId: string, userType: string, profileCompleted: boolean) => {
   if (!profileCompleted) return '/profile-setup';
-
-  try {
-    const { data: prof } = await supabase
-      .from('profiles')
-      .select('id')
-      .eq('user_id', userId)
-      .single();
-
-    if (!prof) return userType === 'employer' ? '/employer-dashboard' : '/candidate-dashboard';
-
-    if (userType === 'employer') {
-      const { data: emp } = await supabase
-        .from('employers')
-        .select('profile_completeness')
-        .eq('profile_id', prof.id)
-        .maybeSingle();
-      if (emp && (emp.profile_completeness ?? 0) >= 80) {
-        return '/employer-dashboard?tab=candidates';
-      }
-      return '/employer-dashboard';
-    } else {
-      const { data: cand } = await supabase
-        .from('candidates')
-        .select('job_title, skills, bio, experience_years')
-        .eq('profile_id', prof.id)
-        .maybeSingle();
-      if (cand) {
-        let score = 0;
-        if (cand.job_title && cand.job_title !== 'Not specified') score += 30;
-        if (cand.skills && (cand.skills as string[]).length > 0) score += 25;
-        if (cand.bio && cand.bio.length > 10) score += 25;
-        if (cand.experience_years != null) score += 20;
-        if (score >= 80) return '/candidate-dashboard?tab=job-radar';
-      }
-      return '/candidate-dashboard';
-    }
-  } catch {
-    return userType === 'employer' ? '/employer-dashboard' : '/candidate-dashboard';
-  }
+  return '/';
 };
 
 const AuthCallback = () => {
   const navigate = useNavigate();
+  const { refreshProfile } = useAuth();
 
   useEffect(() => {
     let mounted = true;
@@ -73,9 +37,9 @@ const AuthCallback = () => {
         let effectiveProfile = profile;
 
         const hasEstablishedRole = profile && profile.user_type;
-        const isNewUser = !profile || !profile.user_type;
+        const isNewUser = !profile || !profile.user_type || profile.profile_completed === false;
 
-        if (hasEstablishedRole && preferredRole) {
+        if (hasEstablishedRole && preferredRole && !isNewUser) {
           if (profile.user_type !== preferredRole) {
             console.warn(`Role mismatch: Registered as ${profile.user_type}, tried to login as ${preferredRole}. Proceeding with actual role.`);
             toast.info(`You're signed in as ${profile.user_type === 'employer' ? 'an Employer' : 'a Job Seeker'}.`);
@@ -90,12 +54,14 @@ const AuthCallback = () => {
               user_id: session.user.id,
               user_type: preferredRole,
               full_name: fullName,
+              profile_completed: false
             } as any, { onConflict: 'user_id' });
 
           if (upsertError) {
             console.error('Error assigning initial role:', upsertError);
           } else {
             effectiveProfile = { user_type: preferredRole, profile_completed: false } as any;
+            await refreshProfile();
           }
           sessionStorage.removeItem('preferred_role');
         } else {
@@ -105,12 +71,16 @@ const AuthCallback = () => {
         if (!mounted) return;
 
         if (effectiveProfile?.user_type) {
-          const redirect = await getSmartRedirect(
-            session.user.id,
-            effectiveProfile.user_type,
-            effectiveProfile.profile_completed ?? false
-          );
-          navigate(redirect, { replace: true });
+          if (!effectiveProfile.profile_completed) {
+            navigate('/profile-setup', { replace: true });
+          } else {
+            const redirect = await getSmartRedirect(
+              session.user.id,
+              effectiveProfile.user_type,
+              effectiveProfile.profile_completed ?? false
+            );
+            navigate(redirect, { replace: true });
+          }
         } else {
           navigate('/select-role', { replace: true });
         }
@@ -143,7 +113,7 @@ const AuthCallback = () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, refreshProfile]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background">

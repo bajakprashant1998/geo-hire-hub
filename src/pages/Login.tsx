@@ -119,9 +119,12 @@ const Login = () => {
     setGoogleLoading(true);
     try {
       sessionStorage.setItem('preferred_role', userType);
-      const { error } = await lovable.auth.signInWithOAuth('google', {
-        redirect_uri: window.location.origin,
-        extraParams: { prompt: 'select_account' },
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: { prompt: 'select_account' },
+        }
       });
       if (error) throw error;
     } catch (error: any) {
