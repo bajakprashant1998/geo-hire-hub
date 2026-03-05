@@ -4,11 +4,13 @@ import { toast } from 'sonner';
 import { lovable } from '@/integrations/lovable/index';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useGoogleOAuthSettings } from '@/hooks/useGoogleOAuthSettings';
 
 const GoogleSignInPrompt = () => {
   const [visible, setVisible] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [userType, setUserType] = useState<'candidate' | 'employer'>('candidate');
+  const { isEnabledFor: isGoogleEnabledFor } = useGoogleOAuthSettings();
 
   useEffect(() => {
     // Don't show if already dismissed this session
@@ -41,7 +43,7 @@ const GoogleSignInPrompt = () => {
     }
   };
 
-  if (!visible) return null;
+  if (!visible || !isGoogleEnabledFor(userType)) return null;
 
   return (
     <div className="fixed top-4 right-4 z-[9999] animate-in slide-in-from-top-4 fade-in duration-300 max-w-[calc(100vw-2rem)]">

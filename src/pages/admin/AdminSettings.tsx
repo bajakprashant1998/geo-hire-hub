@@ -17,6 +17,7 @@ import {
   ToggleLeft,
   Bot,
   Sliders,
+  Chrome,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -144,6 +145,7 @@ export default function AdminSettings() {
   const jobSettings = localSettings['job_moderation'] || {};
   const employerSettings = localSettings['employer_verification'] || {};
   const aiVerificationSettings = localSettings['ai_verification'] || {};
+  const googleOAuthSettings = localSettings['google_oauth'] || { enabled_for_candidates: true, enabled_for_employers: true, force_account_select: true };
 
   return (
     <AdminLayout title="Settings">
@@ -180,7 +182,74 @@ export default function AdminSettings() {
           </CardContent>
         </Card>
 
-        {/* AI Verification Settings */}
+        {/* Google OAuth Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Chrome className="h-5 w-5" />
+              Google Sign-In Configuration
+            </CardTitle>
+            <CardDescription>
+              Control Google OAuth sign-in for candidates and employers on hireforjob.com
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label>Enable for Candidates</Label>
+                <p className="text-sm text-muted-foreground">
+                  Allow candidates to sign in / sign up with Google
+                </p>
+              </div>
+              <Switch
+                checked={googleOAuthSettings.enabled_for_candidates as boolean}
+                onCheckedChange={(checked) => 
+                  updateLocalSetting('google_oauth', 'enabled_for_candidates', checked)
+                }
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label>Enable for Employers</Label>
+                <p className="text-sm text-muted-foreground">
+                  Allow employers to sign in / sign up with Google
+                </p>
+              </div>
+              <Switch
+                checked={googleOAuthSettings.enabled_for_employers as boolean}
+                onCheckedChange={(checked) => 
+                  updateLocalSetting('google_oauth', 'enabled_for_employers', checked)
+                }
+              />
+            </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <Label>Force Account Selection</Label>
+                <p className="text-sm text-muted-foreground">
+                  Always show Google account picker (recommended)
+                </p>
+              </div>
+              <Switch
+                checked={googleOAuthSettings.force_account_select as boolean}
+                onCheckedChange={(checked) => 
+                  updateLocalSetting('google_oauth', 'force_account_select', checked)
+                }
+              />
+            </div>
+            <div className="rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground">
+              <p className="font-medium text-foreground mb-1">ℹ️ Custom Google OAuth Credentials</p>
+              <p>To use your own Google Client ID & Secret for <strong>hireforjob.com</strong> branding, go to Lovable Cloud → Users → Authentication Settings → Google.</p>
+            </div>
+            <Button 
+              onClick={() => saveSettings('google_oauth')}
+              disabled={updateSettingMutation.isPending}
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Save Google OAuth Settings
+            </Button>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
