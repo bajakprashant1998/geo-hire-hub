@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Users, Briefcase, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { lovable } from '@/integrations/lovable/index';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -11,12 +11,15 @@ const GoogleSignInPrompt = () => {
   const [userType, setUserType] = useState<'candidate' | 'employer'>('candidate');
 
   useEffect(() => {
+    // Don't show if already dismissed this session
+    if (sessionStorage.getItem('google_prompt_dismissed')) return;
     const timer = setTimeout(() => setVisible(true), 1200);
     return () => clearTimeout(timer);
   }, []);
 
   const handleDismiss = () => {
     setVisible(false);
+    sessionStorage.setItem('google_prompt_dismissed', 'true');
   };
 
   const handleSignIn = async () => {
@@ -25,12 +28,9 @@ const GoogleSignInPrompt = () => {
     try {
       sessionStorage.setItem('preferred_role', userType);
 
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: { prompt: 'select_account' },
-        }
+      const { error } = await lovable.auth.signInWithOAuth('google', {
+        redirect_uri: window.location.origin,
+        extraParams: { prompt: 'select_account' },
       });
 
       if (error) throw error;
