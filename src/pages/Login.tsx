@@ -37,6 +37,49 @@ const Login = () => {
     fetchStats();
   }, []);
 
+  const getSmartRedirect = async (userId: string, userTypeVal: string, profileCompleted: boolean) => {
+    if (!profileCompleted) return '/profile-setup';
+
+    try {
+      if (userTypeVal === 'employer') {
+        const { data: emp } = await supabase
+          .from('employers')
+          .select('profile_completeness')
+          .eq('profile_id', (await supabase.from('profiles').select('id').eq('user_id', userId).single()).data?.id || '')
+          .maybeSingle();
+        if (emp && (emp.profile_completeness ?? 0) >= 80) {
+          return '/employer-dashboard?tab=candidates';
+        }
+        return '/employer-dashboard';
+      } else {
+        // For candidates, check if key fields are filled
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', userId)
+          .single();
+        if (prof) {
+          const { data: cand } = await supabase
+            .from('candidates')
+            .select('job_title, skills, bio, experience_years')
+            .eq('profile_id', prof.id)
+            .maybeSingle();
+          if (cand) {
+            let score = 0;
+            if (cand.job_title && cand.job_title !== 'Not specified') score += 30;
+            if (cand.skills && (cand.skills as string[]).length > 0) score += 25;
+            if (cand.bio && cand.bio.length > 10) score += 25;
+            if (cand.experience_years != null) score += 20;
+            if (score >= 80) return '/candidate-dashboard?tab=job-radar';
+          }
+        }
+        return '/candidate-dashboard';
+      }
+    } catch {
+      return userTypeVal === 'employer' ? '/employer-dashboard' : '/candidate-dashboard';
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -61,13 +104,8 @@ const Login = () => {
       }
 
       toast.success('Welcome back!');
-      if (!profileData?.profile_completed) {
-        navigate('/profile-setup');
-      } else if (profileData?.user_type === 'employer') {
-        navigate('/employer-dashboard');
-      } else {
-        navigate('/candidate-dashboard');
-      }
+      const redirect = await getSmartRedirect(data.user.id, profileData?.user_type || userType, profileData?.profile_completed ?? false);
+      navigate(redirect);
     } catch (error: any) {
       toast.error(error.message || 'Login failed');
     } finally {
@@ -79,12 +117,9 @@ const Login = () => {
     setGoogleLoading(true);
     try {
       sessionStorage.setItem('preferred_role', userType);
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: { prompt: 'select_account' },
-        }
+      const { error } = await lovable.auth.signInWithOAuth('google', {
+        redirect_uri: window.location.origin,
+        extraParams: { prompt: 'select_account' },
       });
       if (error) throw error;
     } catch (error: any) {
