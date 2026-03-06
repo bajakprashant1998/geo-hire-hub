@@ -1,5 +1,5 @@
 /// <reference types="google.maps" />
-import { useCallback, useMemo, useState, useEffect, useRef, memo } from 'react';
+import React, { useCallback, useMemo, useState, useEffect, useRef, memo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Map as GoogleMapView, AdvancedMarker, useMap, InfoWindow } from '@vis.gl/react-google-maps';
 import { MarkerClusterer, type Cluster } from '@googlemaps/markerclusterer';
@@ -576,11 +576,42 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
   );
 };
 
+// Map-specific error boundary to prevent map crashes from taking down the whole app
+class MapErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error: Error) {
+    console.error('Map error caught:', error.message);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="w-full h-full flex items-center justify-center bg-muted/30">
+          <div className="text-center p-8">
+            <p className="text-destructive font-semibold">Map encountered an error</p>
+            <button onClick={() => this.setState({ hasError: false })} className="mt-2 text-sm text-primary underline">
+              Retry
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // Wrapper
 export const GoogleMapContainer = memo((props: GoogleMapContainerProps) => {
   return (
-    <GoogleMapsProvider>
-      <GoogleMapInner {...props} />
-    </GoogleMapsProvider>
+    <MapErrorBoundary>
+      <GoogleMapsProvider>
+        <GoogleMapInner {...props} />
+      </GoogleMapsProvider>
+    </MapErrorBoundary>
   );
 });

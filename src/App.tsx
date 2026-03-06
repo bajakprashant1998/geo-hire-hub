@@ -72,6 +72,19 @@ const JobRedirect = () => {
   return <Navigate to={`/jobs/${id}`} replace />;
 };
 
+// Global handler for unhandled promise rejections (e.g. Google Maps AdvancedMarker cleanup)
+if (typeof window !== 'undefined') {
+  window.addEventListener('unhandledrejection', (event) => {
+    const msg = event.reason?.message || '';
+    // Suppress known Google Maps cleanup errors
+    if (msg.includes('getRootNode') || msg.includes('AdvancedMarker')) {
+      event.preventDefault();
+      return;
+    }
+    console.error('Unhandled rejection:', event.reason);
+  });
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>

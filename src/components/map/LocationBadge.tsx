@@ -21,10 +21,13 @@ export const LocationBadge = ({ latitude, longitude, className }: LocationBadgeP
 
     const fetchCityName = async () => {
       setLoading(true);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+
       try {
-        // Use reverse geocoding API
         const response = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`,
+          { signal: controller.signal }
         );
         const data = await response.json();
         
@@ -33,13 +36,14 @@ export const LocationBadge = ({ latitude, longitude, className }: LocationBadgeP
                      data.address?.village ||
                      data.address?.state_district ||
                      data.address?.state ||
-                     'Your Location';
+                     'Near you';
         
         setCityName(city);
-      } catch (error) {
-        console.error('Failed to fetch city name:', error);
-        setCityName('Your Location');
+      } catch {
+        // Silently fallback — no console error
+        setCityName('Near you');
       } finally {
+        clearTimeout(timeout);
         setLoading(false);
       }
     };

@@ -9,6 +9,7 @@ import {
   MapPin, TrendingUp, Zap, DollarSign, Bot, Radar, GraduationCap
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useRealtimeDashboard } from '@/hooks/useRealtimeDashboard';
 import { EmailVerificationGuard } from '@/components/auth/EmailVerificationGuard';
@@ -110,6 +111,10 @@ const CandidateDashboard = () => {
 
   const fetchCandidate = async () => {
     if (!profile || !user) return;
+    const loadingTimeout = setTimeout(() => {
+      setDataLoading(false);
+      toast.error('Dashboard data is taking too long. Some info may be missing.');
+    }, 10000);
     try {
       const { data } = await supabase
         .from('candidates')
@@ -168,7 +173,9 @@ const CandidateDashboard = () => {
       }
     } catch (error) {
       console.error('Error fetching candidate data:', error);
+      toast.error('Failed to load some dashboard data. Please refresh.');
     } finally {
+      clearTimeout(loadingTimeout);
       setDataLoading(false);
     }
   };
