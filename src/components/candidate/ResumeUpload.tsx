@@ -18,6 +18,7 @@ export const ResumeUpload = ({ candidate, onUpdate }: ResumeUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [visibility, setVisibility] = useState(candidate?.resume_visibility || 'approved_employers');
+  const [inputKey, setInputKey] = useState(Date.now());
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -87,6 +88,7 @@ export const ResumeUpload = ({ candidate, onUpdate }: ResumeUploadProps) => {
       if (updateError) throw updateError;
 
       toast.success('Resume uploaded successfully');
+      setInputKey(Date.now());
       onUpdate();
     } catch (error) {
       console.error('Error uploading resume:', error);
@@ -115,6 +117,7 @@ export const ResumeUpload = ({ candidate, onUpdate }: ResumeUploadProps) => {
       if (error) throw error;
 
       toast.success('Resume deleted');
+      setInputKey(Date.now());
       onUpdate();
     } catch (error) {
       console.error('Error deleting resume:', error);
@@ -209,6 +212,7 @@ export const ResumeUpload = ({ candidate, onUpdate }: ResumeUploadProps) => {
                 <p className="text-sm text-muted-foreground">PDF, DOC, or DOCX (max 25MB)</p>
               </div>
               <input
+                key={`upload-${inputKey}`}
                 type="file"
                 className="hidden"
                 accept=".pdf,.doc,.docx"
@@ -236,6 +240,7 @@ export const ResumeUpload = ({ candidate, onUpdate }: ResumeUploadProps) => {
                 Replace Resume
               </div>
               <input
+                key={`replace-${inputKey}`}
                 type="file"
                 className="hidden"
                 accept=".pdf,.doc,.docx"
