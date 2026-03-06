@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -18,7 +18,6 @@ export const ResumeUpload = ({ candidate, onUpdate }: ResumeUploadProps) => {
   const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [visibility, setVisibility] = useState(candidate?.resume_visibility || 'approved_employers');
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -184,19 +183,15 @@ export const ResumeUpload = ({ candidate, onUpdate }: ResumeUploadProps) => {
               </div>
             </div>
           ) : (
-            <div
-              className="block cursor-pointer"
-              onClick={() => !uploading && fileInputRef.current?.click()}
-            >
-              <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary transition-colors">
+            <div className="relative block">
+              <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer">
                 <Upload className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
                 <p className="font-medium mb-1">Upload your resume</p>
                 <p className="text-sm text-muted-foreground">PDF, DOC, or DOCX (max 25MB)</p>
               </div>
               <input
-                ref={fileInputRef}
                 type="file"
-                className="hidden"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
                 accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 onChange={handleUpload}
                 disabled={uploading}
@@ -212,11 +207,10 @@ export const ResumeUpload = ({ candidate, onUpdate }: ResumeUploadProps) => {
           )}
 
           {candidate?.resume_url && (
-            <div className="block">
+            <div className="relative block">
               <Button
                 variant="outline"
-                className="w-full"
-                onClick={() => !uploading && fileInputRef.current?.click()}
+                className="w-full relative pointer-events-none"
               >
                 <span>
                   <Upload className="w-4 h-4 mr-2" />
@@ -224,9 +218,8 @@ export const ResumeUpload = ({ candidate, onUpdate }: ResumeUploadProps) => {
                 </span>
               </Button>
               <input
-                ref={fileInputRef}
                 type="file"
-                className="hidden"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
                 accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 onChange={handleUpload}
                 disabled={uploading}
