@@ -23,13 +23,12 @@ export const ResumeUpload = ({ candidate, onUpdate }: ResumeUploadProps) => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
-    const allowedTypes = [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    ];
+    // Mobile browsers often supply incorrect or blank MIME types for Word docs.
+    // Use extension-based validation as the source of truth if MIME is missing or standard check fails.
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || '';
+    const allowedExts = ['pdf', 'doc', 'docx'];
 
-    if (!allowedTypes.includes(file.type)) {
+    if (!allowedExts.includes(fileExt)) {
       toast.error('Please upload a PDF or Word document');
       return;
     }
@@ -183,20 +182,20 @@ export const ResumeUpload = ({ candidate, onUpdate }: ResumeUploadProps) => {
               </div>
             </div>
           ) : (
-            <div className="relative block">
-              <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer">
+            <label className="block w-full cursor-pointer relative group">
+              <div className="border-2 border-dashed border-border rounded-lg p-8 text-center group-hover:border-primary transition-colors">
                 <Upload className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
                 <p className="font-medium mb-1">Upload your resume</p>
                 <p className="text-sm text-muted-foreground">PDF, DOC, or DOCX (max 25MB)</p>
               </div>
               <input
                 type="file"
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
-                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                className="hidden"
+                accept=".pdf,.doc,.docx"
                 onChange={handleUpload}
                 disabled={uploading}
               />
-            </div>
+            </label>
           )}
 
           {uploading && (
@@ -207,24 +206,23 @@ export const ResumeUpload = ({ candidate, onUpdate }: ResumeUploadProps) => {
           )}
 
           {candidate?.resume_url && (
-            <div className="relative block">
-              <Button
-                variant="outline"
-                className="w-full relative pointer-events-none"
+            <label className="block w-full cursor-pointer relative">
+              <div
+                className="flex items-center justify-center w-full rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 text-sm font-medium transition-colors"
+                role="button"
+                tabIndex={0}
               >
-                <span>
-                  <Upload className="w-4 h-4 mr-2" />
-                  Replace Resume
-                </span>
-              </Button>
+                <Upload className="w-4 h-4 mr-2" />
+                Replace Resume
+              </div>
               <input
                 type="file"
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
-                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                className="hidden"
+                accept=".pdf,.doc,.docx"
                 onChange={handleUpload}
                 disabled={uploading}
               />
-            </div>
+            </label>
           )}
         </div>
 

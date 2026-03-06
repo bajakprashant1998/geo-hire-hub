@@ -60,6 +60,7 @@ export function DatePicker({
                     captionLayout="dropdown-buttons"
                     fromYear={fromYear}
                     toYear={toYear}
+                    classNames={{ caption_label: "hidden" }}
                 />
             </PopoverContent>
         </Popover>
