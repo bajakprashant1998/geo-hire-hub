@@ -1,76 +1,94 @@
 
 
-## Plan: Improve User Experience and Eliminate Errors
+## Plan: Complete All Pending Tasks and Fixes
 
-### Problem Summary
-1. **Six build errors** in edge functions (TypeScript strict issues) blocking deployment
-2. **LocationGate blocks the entire app** — users who deny location can't access anything (login, signup, browse jobs)
-3. **No global error boundary** — unhandled React errors crash the entire app with a white screen
-4. **Missing error handling** in key user flows (dashboard data fetching, profile setup)
-5. **NotFound page is minimal** — no navigation back to useful places
+### 7 Tasks to Implement
 
 ---
 
-### Implementation Plan
+#### 1. Fix Nominatim Geocoding CORS Error (High Priority)
 
-#### 1. Fix All Build Errors (Edge Functions)
+The `LocationBadge.tsx` and `AIResumeBuilder.tsx` make direct browser calls to `nominatim.openstreetmap.org` which fails with CORS/network errors on every page load.
 
-- **`ai-candidate-screening/index.ts`** (line 27): Add null check for `profile` before accessing `.id`
-- **`check-reverification/index.ts`** (line 77): Cast `error` to `Error` type — `(error as Error).message`
-- **`send-whatsapp-notification/index.ts`** (line 92): Cast `err` to `Error` — `(err as Error).message`
-- **`verify-employer/index.ts`** (lines 123, 127, 135): Change helper function signatures to use `client: any` instead of `ReturnType<typeof createClient>` to fix the generic mismatch
+**Fix**: Replace direct Nominatim calls with Google Maps Geocoder (already available via the Google Maps API key). For `LocationBadge`, use the existing Google Maps Geocoding REST API through a simple edge function proxy. As a simpler alternative, silently catch errors and use coordinate-based fallback text.
 
-#### 2. Remove LocationGate Blocking Behavior
-
-The `LocationGate` component wraps ALL routes and blocks the entire app if location is denied. This is a critical UX issue — users can't even log in or sign up.
-
-**Change**: Make LocationGate non-blocking. Instead of blocking the entire UI, it should:
-- Still request location permission
-- If denied, pass `null` coordinates and let the app render normally
-- Location-dependent features (map, nearby jobs) can show a prompt inline instead
-
-#### 3. Add Global Error Boundary
-
-Create `src/components/ErrorBoundary.tsx` — a React class component that catches render errors and shows a friendly fallback UI with a "Reload" button, preventing white-screen crashes.
-
-Wrap the app's `<Routes>` in this boundary in `App.tsx`.
-
-#### 4. Improve Dashboard Error Resilience
-
-In both `CandidateDashboard.tsx` and `EmployerDashboard.tsx`:
-- Wrap `fetchCandidate`/`fetchEmployerData` calls in try/catch with `toast.error` feedback
-- Show graceful empty states instead of blank screens when data fails to load
-- Add loading timeouts (10s) to prevent infinite loading spinners
-
-#### 5. Enhance NotFound Page
-
-Upgrade `NotFound.tsx` with:
-- Better visual design (illustration, proper layout)
-- Links to dashboard, login, browse jobs, and homepage
-- "Go Back" button using `navigate(-1)`
-
-#### 6. Add Defensive Guards in Profile Setup
-
-In `ProfileSetup.tsx`:
-- Redirect to login if `!user` after auth loads (currently silently fails)
-- Show a loading state while auth is resolving
-- Validate all form fields before submission with user-friendly messages
+**Files**: `src/components/map/LocationBadge.tsx`, `src/pages/AIResumeBuilder.tsx`
+- Wrap fetch in try/catch, on failure show "Near you" instead of logging error
+- Add `AbortController` with 5s timeout to prevent hanging requests
 
 ---
 
-### Files to Modify
+#### 2. Add 10s Loading Timeout to Dashboards (Medium Priority)
+
+Both dashboards already have try/catch and `setDataLoading(false)` in finally blocks. Missing: a timeout that forces loading to stop if API hangs.
+
+**Files**: `src/pages/CandidateDashboard.tsx`, `src/pages/EmployerDashboard.tsx`
+- Add a 10s `setTimeout` in the `fetchCandidate`/`fetchEmployerData` that sets `dataLoading = false` and shows a toast if still loading
+- Add `toast.error` in the catch blocks (currently only `console.error`)
+
+---
+
+#### 3. Add PWA Offline Fallback Page (Medium Priority)
+
+`public/sw.js` exists but returns nothing when offline and no cached page matches.
+
+**Files**: `public/offline.html` (new), `public/sw.js`
+- Create a simple offline HTML page with branding
+- Update service worker to cache `offline.html` and serve it as fallback for navigation requests
+
+---
+
+#### 4. Add Email Verification Reminder on Dashboard (Medium Priority)
+
+`EmailVerificationBanner` exists in `App.tsx` but an inline dashboard prompt would be more visible.
+
+**Files**: `src/pages/CandidateDashboard.tsx`, `src/pages/EmployerDashboard.tsx`
+- Add a dismissible card in the dashboard home view when `!isEmailVerified` with resend button
+- Reuse logic from existing `EmailVerificationBanner`
+
+---
+
+#### 5. Add Skeleton Loading to ProfileSetup (Medium Priority)
+
+Currently shows nothing while auth resolves.
+
+**Files**: `src/pages/ProfileSetup.tsx`
+- Show a skeleton card layout while `authLoading || profileLoading` instead of blank screen
+
+---
+
+#### 6. Add Global Unhandled Rejection Handler (Medium Priority)
+
+The Google Maps `AdvancedMarker` crash (`getRootNode` error) triggers ErrorBoundary. A global handler can catch async errors gracefully.
+
+**Files**: `src/App.tsx`
+- Add `useEffect` with `window.addEventListener('unhandledrejection', ...)` that logs and shows toast
+- Prevents white-screen crashes from async Google Maps errors
+
+---
+
+#### 7. Fix Google Maps AdvancedMarker Crash (High Priority)
+
+The console shows `Cannot read properties of undefined (reading 'getRootNode')` from `AdvancedMarker` cleanup. This crashes the entire app via ErrorBoundary.
+
+**Files**: `src/components/map/GoogleMapContainer.tsx`
+- Wrap the map rendering in its own error boundary so map crashes don't take down the whole app
+- Add null checks before rendering `AdvancedMarker` components
+- Ensure markers are only rendered when the map instance is ready
+
+---
+
+### Files Summary
 
 | File | Change |
 |------|--------|
-| `supabase/functions/ai-candidate-screening/index.ts` | Null check for profile |
-| `supabase/functions/check-reverification/index.ts` | Type cast error |
-| `supabase/functions/send-whatsapp-notification/index.ts` | Type cast err |
-| `supabase/functions/verify-employer/index.ts` | Fix helper function param types |
-| `src/components/LocationGate.tsx` | Make non-blocking |
-| `src/components/ErrorBoundary.tsx` | **New** — global error boundary |
-| `src/App.tsx` | Wrap routes in ErrorBoundary |
-| `src/pages/NotFound.tsx` | Enhanced 404 page |
-| `src/pages/CandidateDashboard.tsx` | Add try/catch + timeout |
-| `src/pages/EmployerDashboard.tsx` | Add try/catch + timeout |
-| `src/pages/ProfileSetup.tsx` | Auth guard + validation |
+| `src/components/map/LocationBadge.tsx` | Silent error handling, timeout |
+| `src/pages/AIResumeBuilder.tsx` | Silent error handling for Nominatim |
+| `src/pages/CandidateDashboard.tsx` | 10s timeout + toast error + email verify card |
+| `src/pages/EmployerDashboard.tsx` | 10s timeout + toast error + email verify card |
+| `public/offline.html` | **New** - offline fallback page |
+| `public/sw.js` | Cache offline.html, serve as fallback |
+| `src/pages/ProfileSetup.tsx` | Skeleton loading state |
+| `src/App.tsx` | Global unhandled rejection handler |
+| `src/components/map/GoogleMapContainer.tsx` | Map-specific error boundary, marker null checks |
 
