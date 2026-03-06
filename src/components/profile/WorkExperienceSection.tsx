@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { MonthYearPicker } from '@/components/ui/month-year-picker';
 import { Briefcase, Plus, X, Building2 } from 'lucide-react';
 
 export interface WorkExperience {
@@ -41,12 +42,12 @@ export const WorkExperienceSection = ({ experiences, onChange }: WorkExperienceS
   const updateExperience = (index: number, field: keyof WorkExperience, value: string | boolean) => {
     const updated = [...experiences];
     updated[index] = { ...updated[index], [field]: value };
-    
+
     // If setting current, clear end date
     if (field === 'isCurrent' && value === true) {
       updated[index].endDate = '';
     }
-    
+
     onChange(updated);
   };
 
@@ -122,21 +123,21 @@ export const WorkExperienceSection = ({ experiences, onChange }: WorkExperienceS
               <div className="grid md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Start Date</Label>
-                  <Input
-                    type="month"
+                  <MonthYearPicker
                     value={exp.startDate}
-                    onChange={(e) => updateExperience(index, 'startDate', e.target.value)}
+                    onChange={(value) => updateExperience(index, 'startDate', value)}
                   />
                 </div>
                 <div className="space-y-2">
                   <Label>End Date</Label>
-                  <Input
-                    type="month"
-                    value={exp.endDate}
-                    onChange={(e) => updateExperience(index, 'endDate', e.target.value)}
-                    disabled={exp.isCurrent}
-                    placeholder={exp.isCurrent ? 'Present' : ''}
-                  />
+                  {exp.isCurrent ? (
+                    <Input disabled placeholder="Present" className="w-full text-muted-foreground" />
+                  ) : (
+                    <MonthYearPicker
+                      value={exp.endDate}
+                      onChange={(value) => updateExperience(index, 'endDate', value)}
+                    />
+                  )}
                 </div>
               </div>
 

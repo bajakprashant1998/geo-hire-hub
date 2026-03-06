@@ -25,6 +25,7 @@ import { PhotoUpload } from '@/components/PhotoUpload';
 import { ResumeUpload } from '@/components/candidate/ResumeUpload';
 import { AudioResumeCard } from '@/components/candidate/AudioResumeCard';
 import { EmailVerificationGuard } from '@/components/auth/EmailVerificationGuard';
+import { DatePicker } from '@/components/ui/date-picker';
 import {
     WorkExperienceSection, SocialLinksSection, LanguagesSection,
     CertificationsSection, AvailabilitySection,
@@ -564,7 +565,19 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                         <CardContent className="space-y-5">
                             <div className="grid md:grid-cols-3 gap-4">
                                 <div className="space-y-2"><Label>Date of Birth</Label>
-                                    <Input type="date" value={dateOfBirth} onChange={e => setDateOfBirth(e.target.value)} /></div>
+                                    <DatePicker
+                                        date={dateOfBirth ? new Date(dateOfBirth) : null}
+                                        setDate={(d) => {
+                                            if (d) {
+                                                const offset = d.getTimezoneOffset()
+                                                const adjustedDate = new Date(d.getTime() - (offset * 60 * 1000))
+                                                setDateOfBirth(adjustedDate.toISOString().split('T')[0]);
+                                            } else {
+                                                setDateOfBirth('');
+                                            }
+                                        }}
+                                    />
+                                </div>
                                 <div className="space-y-2"><Label>Gender</Label>
                                     <Select value={gender} onValueChange={setGender}>
                                         <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
