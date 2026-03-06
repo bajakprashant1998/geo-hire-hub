@@ -205,8 +205,8 @@ export const ResumeUpload = ({ candidate, onUpdate }: ResumeUploadProps) => {
               </div>
             </div>
           ) : (
-            <label className="block w-full cursor-pointer relative group">
-              <div className="border-2 border-dashed border-border rounded-lg p-8 text-center group-hover:border-primary transition-colors">
+            <div className="relative block w-full group">
+              <div className="border-2 border-dashed border-border rounded-lg p-8 text-center group-hover:border-primary transition-colors cursor-pointer">
                 <Upload className="w-10 h-10 mx-auto mb-3 text-muted-foreground" />
                 <p className="font-medium mb-1">Upload your resume</p>
                 <p className="text-sm text-muted-foreground">PDF, DOC, or DOCX (max 25MB)</p>
@@ -214,12 +214,12 @@ export const ResumeUpload = ({ candidate, onUpdate }: ResumeUploadProps) => {
               <input
                 key={`upload-${inputKey}`}
                 type="file"
-                className="hidden"
-                accept=".pdf,.doc,.docx"
+                className="absolute inset-0 w-full h-full opacity-0 z-50 cursor-pointer disabled:cursor-not-allowed"
+                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 onChange={handleUpload}
                 disabled={uploading}
               />
-            </label>
+            </div>
           )}
 
           {uploading && (
@@ -230,24 +230,25 @@ export const ResumeUpload = ({ candidate, onUpdate }: ResumeUploadProps) => {
           )}
 
           {candidate?.resume_url && (
-            <label className="block w-full cursor-pointer relative">
-              <div
-                className="flex items-center justify-center w-full rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 text-sm font-medium transition-colors"
-                role="button"
-                tabIndex={0}
+            <div className="relative block w-full group">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full relative pointer-events-none flex items-center justify-center font-medium"
+                disabled={uploading}
               >
                 <Upload className="w-4 h-4 mr-2" />
                 Replace Resume
-              </div>
+              </Button>
               <input
                 key={`replace-${inputKey}`}
                 type="file"
-                className="hidden"
-                accept=".pdf,.doc,.docx"
+                className="absolute inset-0 w-full h-full opacity-0 z-50 cursor-pointer disabled:cursor-not-allowed"
+                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 onChange={handleUpload}
                 disabled={uploading}
               />
-            </label>
+            </div>
           )}
         </div>
 
