@@ -21,6 +21,12 @@ export const ResumeUpload = ({ candidate, onUpdate }: ResumeUploadProps) => {
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+
+    // Reset input immediately so the exact same file can be selected again later
+    if (e.target) {
+      e.target.value = '';
+    }
+
     if (!file || !user) return;
 
     // Mobile browsers often supply incorrect or blank MIME types for Word docs.
