@@ -313,13 +313,20 @@ const AIResumeBuilder = ({ embedded = false }: { embedded?: boolean }) => {
       return;
     }
     setLocationLoading(true);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
     try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`);
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`,
+        { signal: controller.signal }
+      );
       const data = await response.json();
       setLocationPredictions(data);
-    } catch (e) {
-      console.error(e);
+    } catch {
+      // Silently fail — user can type location manually
+      setLocationPredictions([]);
     } finally {
+      clearTimeout(timeout);
       setLocationLoading(false);
     }
   };

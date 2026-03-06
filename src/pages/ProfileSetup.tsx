@@ -176,10 +176,22 @@ const ProfileSetup = () => {
 
   if (authLoading || profileLoading) {
     return (
-      <div className="min-h-screen bg-secondary flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground font-medium">Loading...</p>
+      <div className="min-h-screen bg-secondary py-12 px-4">
+        <div className="max-w-2xl mx-auto space-y-6">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-muted rounded-2xl mx-auto mb-4 animate-pulse" />
+            <div className="h-8 w-48 bg-muted rounded-lg mx-auto mb-2 animate-pulse" />
+            <div className="h-4 w-64 bg-muted rounded mx-auto animate-pulse" />
+          </div>
+          <div className="h-32 bg-card rounded-xl border animate-pulse" />
+          <div className="h-12 bg-muted rounded-lg animate-pulse" />
+          <div className="bg-card rounded-xl border p-6 space-y-4">
+            <div className="h-6 w-32 bg-muted rounded animate-pulse" />
+            <div className="h-10 bg-muted rounded animate-pulse" />
+            <div className="h-10 bg-muted rounded animate-pulse" />
+            <div className="h-24 bg-muted rounded animate-pulse" />
+            <div className="h-10 bg-muted rounded animate-pulse" />
+          </div>
         </div>
       </div>
     );

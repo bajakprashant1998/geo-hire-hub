@@ -155,7 +155,10 @@ const EmployerDashboard = () => {
 
   const fetchEmployerData = async () => {
     if (!profile || !user) return;
-
+    const loadingTimeout = setTimeout(() => {
+      setDataLoading(false);
+      toast.error('Dashboard data is taking too long. Some info may be missing.');
+    }, 10000);
     try {
       const { data: employerData } = await supabase
         .from('employers')
@@ -232,7 +235,9 @@ const EmployerDashboard = () => {
       }
     } catch (error) {
       console.error('Error fetching employer data:', error);
+      toast.error('Failed to load some dashboard data. Please refresh.');
     } finally {
+      clearTimeout(loadingTimeout);
       setDataLoading(false);
     }
   };
