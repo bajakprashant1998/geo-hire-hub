@@ -48,7 +48,7 @@ export function DatePicker({
                     {date ? format(date, "PPP") : <span>{label}</span>}
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 z-[100]" align="start">
+            <PopoverContent className="w-auto p-0 z-[100] max-w-[95vw] overflow-x-auto" align="start">
                 <Calendar
                     mode="single"
                     selected={date || undefined}

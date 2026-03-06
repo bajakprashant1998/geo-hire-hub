@@ -27,15 +27,28 @@ export const ResumeUpload = ({ candidate, onUpdate }: ResumeUploadProps) => {
       e.target.value = '';
     }
 
-    if (!file || !user) return;
+    if (!file) return;
+    if (!user) {
+      toast.error('Authentication error. Please login again.');
+      return;
+    }
 
     // Mobile browsers often supply incorrect or blank MIME types for Word docs.
     // Use extension-based validation as the source of truth if MIME is missing or standard check fails.
-    const fileExt = file.name.split('.').pop()?.toLowerCase() || '';
-    const allowedExts = ['pdf', 'doc', 'docx'];
+    const fileName = file.name || 'uploaded_document';
 
-    if (!allowedExts.includes(fileExt)) {
-      toast.error('Please upload a PDF or Word document');
+    // Attempt to extract extension, or fallback to file type substring, or default to pdf if unknown (Supabase will process it)
+    let fileExt = fileName.split('.').pop()?.toLowerCase() || '';
+    if (!fileExt && file.type) {
+      fileExt = file.type.split('/').pop()?.toLowerCase() || '';
+    }
+
+    // Broadening allowed extensions to catch obscure mobile formats
+    const allowedExts = ['pdf', 'doc', 'docx', 'document', 'msword'];
+
+    if (!allowedExts.includes(fileExt) && !file.type.includes('pdf') && !file.type.includes('word')) {
+      console.log('Upload rejected. Ext:', fileExt, 'Type:', file.type, 'Name:', fileName);
+      toast.error(`Invalid format: ${fileExt || file.type || 'Unknown'}. Please use standard PDF or DOC.`);
       return;
     }
 
@@ -46,8 +59,9 @@ export const ResumeUpload = ({ candidate, onUpdate }: ResumeUploadProps) => {
 
     setUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${user.id}/resume.${fileExt}`;
+      // Ensure we always have a valid extension for the storage path
+      const finalExt = ['doc', 'docx'].includes(fileExt) || file.type.includes('word') ? 'docx' : 'pdf';
+      const filePath = `${user.id}/resume_${Date.now()}.${finalExt}`;
 
       // Delete old resume if exists
       if (candidate?.resume_url) {
@@ -65,7 +79,7 @@ export const ResumeUpload = ({ candidate, onUpdate }: ResumeUploadProps) => {
         .from('candidates')
         .update({
           resume_url: filePath,
-          resume_filename: file.name,
+          resume_filename: file.name || `resume.${finalExt}`,
           resume_uploaded_at: new Date().toISOString(),
         })
         .eq('id', candidate.id);
