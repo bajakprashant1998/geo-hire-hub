@@ -465,34 +465,47 @@ const CandidateDashboard = () => {
   const completeness = calculateCompleteness();
 
   const renderSectionContent = () => {
+    // Show a message when candidate record is missing for sections that need it
+    const requiresCandidate = ['jobs', 'saved', 'interviews', 'resume', 'audio-resume', 'alerts', 'tasks', 'public-profile', 'recommended', 'auto-apply', 'job-radar', 'app-tracker', 'assessments'];
+    if (requiresCandidate.includes(activeSection || '') && !candidate) {
+      return (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <User className="w-12 h-12 text-muted-foreground/40 mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Profile Setup Required</h3>
+          <p className="text-sm text-muted-foreground mb-4">Please complete your profile setup to access this feature.</p>
+          <Button onClick={() => navigate('/profile-setup')}>Complete Profile</Button>
+        </div>
+      );
+    }
+
     switch (activeSection) {
-      case 'jobs': return candidate && <JobActivityTabs candidateId={candidate.id} />;
-      case 'saved': return candidate && <SavedJobsSection candidateId={candidate.id} />;
-      case 'interviews': return candidate && <CandidateInterviewManager candidateId={candidate.id} />;
+      case 'jobs': return <JobActivityTabs candidateId={candidate.id} />;
+      case 'saved': return <SavedJobsSection candidateId={candidate.id} />;
+      case 'interviews': return <CandidateInterviewManager candidateId={candidate.id} />;
       case 'profile': return <CandidateProfileEdit embedded />;
-      case 'resume': return candidate && <ResumeAndDocumentManager candidate={candidate} onUpdate={fetchCandidate} />;
-      case 'audio-resume': return candidate && <AudioResumeCard candidate={candidate} onUpdate={fetchCandidate} />;
-      case 'alerts': return candidate && <JobAlertsManager candidateId={candidate.id} />;
+      case 'resume': return <ResumeAndDocumentManager candidate={candidate} onUpdate={fetchCandidate} />;
+      case 'audio-resume': return <AudioResumeCard candidate={candidate} onUpdate={fetchCandidate} />;
+      case 'alerts': return <JobAlertsManager candidateId={candidate.id} />;
       case 'security': return <SecuritySettings />;
-      case 'tasks': return candidate && <TaskList candidateId={candidate.id} />;
+      case 'tasks': return <TaskList candidateId={candidate.id} />;
       case 'messages': return <DashboardMessaging />;
       case 'notifications': return <NotificationCenter />;
-      case 'public-profile': return candidate && <CandidateDetail id={candidate.id} />;
-      case 'recommended': return candidate && (
+      case 'public-profile': return <CandidateDetail id={candidate.id} />;
+      case 'recommended': return (
         <RecommendedJobs candidateId={candidate.id} skills={candidate.skills || []} latitude={profile.latitude} longitude={profile.longitude} />
       );
-      case 'auto-apply': return candidate && <AutoApplyManager candidateId={candidate.id} />;
-      case 'job-radar': return candidate && <JobRadar candidateId={candidate.id} candidate={candidate} profile={profile} />;
+      case 'auto-apply': return <AutoApplyManager candidateId={candidate.id} />;
+      case 'job-radar': return <JobRadar candidateId={candidate.id} candidate={candidate} profile={profile} />;
       case 'salary-insights': return <SalaryInsights />;
       case 'career-buddy': return <CareerBuddyChat />;
-      case 'app-tracker': return candidate && <ApplicationTracker candidateId={candidate.id} />;
+      case 'app-tracker': return <ApplicationTracker candidateId={candidate.id} />;
       case 'referrals': return profile && <ReferralDashboard profileId={profile.id} />;
       case 'ai-resume': return (
         <Suspense fallback={<div className="flex items-center justify-center p-8"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>}>
           <AIResumeBuilder embedded />
         </Suspense>
       );
-      case 'assessments': return candidate && (
+      case 'assessments': return (
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Skill Assessments</h2>
           <p className="text-sm text-muted-foreground">Take assessments linked to jobs you've applied for. Check job details for available assessments.</p>

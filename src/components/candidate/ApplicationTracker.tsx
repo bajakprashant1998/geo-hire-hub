@@ -71,6 +71,7 @@ export const ApplicationTracker = ({ candidateId }: { candidateId: string }) => 
       setApplications(mapped);
     } catch (err) {
       console.error('Error fetching applications:', err);
+      toast.error('Failed to load applications.');
     } finally {
       setLoading(false);
     }
