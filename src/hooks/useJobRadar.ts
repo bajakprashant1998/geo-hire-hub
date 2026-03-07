@@ -142,21 +142,26 @@ export function useJobRadar(
     if (!candidateId) return;
     const fetchData = async () => {
       setLoading(true);
-      const [jobsRes, savedRes, appsRes] = await Promise.all([
-        supabase
-          .from('jobs')
-          .select('id, title, description, salary_range, salary_currency, job_type, latitude, longitude, skills, min_experience, max_experience, hiring_urgency, created_at, location_city, location_state, location_country, status, is_active, slug, employer_id, employers(company_name, verification_status, profile_completeness, work_life_balance_rating, slug, industry)')
-          .eq('status', 'open')
-          .eq('is_active', true)
-          .order('created_at', { ascending: false }),
-        supabase.from('saved_jobs').select('job_id').eq('candidate_id', candidateId),
-        supabase.from('applications').select('job_id').eq('candidate_id', candidateId),
-      ]);
+      try {
+        const [jobsRes, savedRes, appsRes] = await Promise.all([
+          supabase
+            .from('jobs')
+            .select('id, title, description, salary_range, salary_currency, job_type, latitude, longitude, skills, min_experience, max_experience, hiring_urgency, created_at, location_city, location_state, location_country, status, is_active, slug, employer_id, employers(company_name, verification_status, profile_completeness, work_life_balance_rating, slug, industry)')
+            .eq('status', 'open')
+            .eq('is_active', true)
+            .order('created_at', { ascending: false }),
+          supabase.from('saved_jobs').select('job_id').eq('candidate_id', candidateId),
+          supabase.from('applications').select('job_id').eq('candidate_id', candidateId),
+        ]);
 
-      setRawJobs((jobsRes.data as any) || []);
-      setSavedJobIds(new Set((savedRes.data || []).map((s: any) => s.job_id)));
-      setAppliedJobIds(new Set((appsRes.data || []).map((a: any) => a.job_id)));
-      setLoading(false);
+        setRawJobs((jobsRes.data as any) || []);
+        setSavedJobIds(new Set((savedRes.data || []).map((s: any) => s.job_id)));
+        setAppliedJobIds(new Set((appsRes.data || []).map((a: any) => a.job_id)));
+      } catch (error) {
+        console.error('Job Radar fetch error:', error);
+      } finally {
+        setLoading(false);
+      }
     };
     fetchData();
   }, [candidateId]);
