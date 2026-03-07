@@ -318,7 +318,7 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
                             <input
                                 type="file"
                                 className="hidden"
-                                accept=".pdf,.doc,.docx"
+                                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                                 onChange={handleUpload}
                                 disabled={uploading || isStorageFull}
                             />
