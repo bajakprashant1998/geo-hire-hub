@@ -118,7 +118,10 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
         ];
 
-        if (!allowedTypes.includes(file.type)) {
+        // On mobile, file.type can be empty or incorrect - also check extension
+        const fileExt = file.name.split('.').pop()?.toLowerCase() || '';
+        const allowedExts = ['pdf', 'doc', 'docx'];
+        if (!allowedTypes.includes(file.type) && !allowedExts.includes(fileExt)) {
             toast.error('Please upload a PDF or Word document');
             return;
         }
