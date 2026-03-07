@@ -37,37 +37,44 @@ export const JobActivityTabs = ({ candidateId }: JobActivityTabsProps) => {
 
   const fetchData = async () => {
     setLoading(true);
-    
-    // Fetch applications
-    const { data: appsData } = await supabase
-      .from('applications')
-      .select(`
-        *,
-        jobs (
-          id, title, salary_range, job_type, latitude, longitude,
-          employers (company_name)
-        )
-      `)
-      .eq('candidate_id', candidateId)
-      .order('created_at', { ascending: false });
-    
-    setApplications(appsData || []);
+    try {
+      // Fetch applications
+      const { data: appsData, error: appsError } = await supabase
+        .from('applications')
+        .select(`
+          *,
+          jobs (
+            id, title, salary_range, job_type, latitude, longitude,
+            employers (company_name)
+          )
+        `)
+        .eq('candidate_id', candidateId)
+        .order('created_at', { ascending: false });
+      
+      if (appsError) console.error('Applications fetch error:', appsError);
+      setApplications(appsData || []);
 
-    // Fetch saved jobs
-    const { data: savedData } = await supabase
-      .from('saved_jobs')
-      .select(`
-        *,
-        jobs (
-          id, title, salary_range, job_type, latitude, longitude, status,
-          employers (company_name)
-        )
-      `)
-      .eq('candidate_id', candidateId)
-      .order('created_at', { ascending: false });
-    
-    setSavedJobs(savedData || []);
-    setLoading(false);
+      // Fetch saved jobs
+      const { data: savedData, error: savedError } = await supabase
+        .from('saved_jobs')
+        .select(`
+          *,
+          jobs (
+            id, title, salary_range, job_type, latitude, longitude, status,
+            employers (company_name)
+          )
+        `)
+        .eq('candidate_id', candidateId)
+        .order('created_at', { ascending: false });
+      
+      if (savedError) console.error('Saved jobs fetch error:', savedError);
+      setSavedJobs(savedData || []);
+    } catch (error) {
+      console.error('Error fetching job activity:', error);
+      toast.error('Failed to load job activity. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const removeSavedJob = async (savedJobId: string) => {
