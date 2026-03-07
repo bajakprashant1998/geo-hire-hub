@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { MapPin, Briefcase, Users, X, Sparkles, ArrowRight, Shield, Globe2, TrendingUp, UserPlus, LogIn } from 'lucide-react';
+import { MapPin, Briefcase, Users, X, Sparkles, ArrowRight, Shield, Globe2, TrendingUp, UserPlus, LogIn, Zap, Building2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 interface WelcomeOverlayProps {
   onDismiss: () => void;
@@ -15,6 +16,7 @@ const STORAGE_KEY = 'hfj_welcome_dismissed';
 
 export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeOverlayProps) => {
   const [isVisible, setIsVisible] = useState(false);
+  const [liveStats, setLiveStats] = useState({ jobs: 0, candidates: 0, employers: 0 });
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,6 +25,25 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
       const timer = setTimeout(() => setIsVisible(true), 600);
       return () => clearTimeout(timer);
     }
+  }, []);
+
+  // Fetch live stats
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const [jobsRes, candidatesRes, employersRes] = await Promise.all([
+          supabase.from('jobs').select('id', { count: 'exact', head: true }).eq('status', 'open').eq('is_active', true),
+          supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('user_type', 'candidate'),
+          supabase.from('employers').select('id', { count: 'exact', head: true }),
+        ]);
+        setLiveStats({
+          jobs: jobsRes.count || 0,
+          candidates: candidatesRes.count || 0,
+          employers: employersRes.count || 0,
+        });
+      } catch { /* silent */ }
+    };
+    fetchStats();
   }, []);
 
   const handleDismiss = (dontShowAgain = false) => {
@@ -46,7 +67,13 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
     { icon: MapPin, text: 'Nearby Jobs', iconClass: 'text-destructive', bgClass: 'bg-destructive/20' },
     { icon: Sparkles, text: 'AI Matching', iconClass: 'text-primary', bgClass: 'bg-primary/20' },
     { icon: Shield, text: 'Verified', iconClass: 'text-[hsl(142,71%,35%)]', bgClass: 'bg-[hsl(142,71%,35%)]/20' },
-    { icon: TrendingUp, text: 'Real-time', iconClass: 'text-[hsl(38,92%,45%)]', bgClass: 'bg-[hsl(38,92%,45%)]/20' },
+    { icon: Zap, text: 'Auto Apply', iconClass: 'text-[hsl(38,92%,45%)]', bgClass: 'bg-[hsl(38,92%,45%)]/20' },
+  ];
+
+  const stats = [
+    { value: liveStats.jobs || '10+', label: 'Active Jobs', color: 'text-destructive' },
+    { value: liveStats.candidates || '30+', label: 'Candidates', color: 'text-primary' },
+    { value: liveStats.employers || '5+', label: 'Companies', color: 'text-[hsl(142,71%,35%)]' },
   ];
 
   return (
@@ -132,8 +159,20 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
                 </motion.div>
               </div>
 
+              {/* Live Stats Bar */}
+              <motion.div variants={itemVariants} className="px-4 pt-4">
+                <div className="flex items-center justify-around p-3 rounded-xl bg-muted/50 border border-border/30">
+                  {stats.map((s, i) => (
+                    <div key={i} className="text-center">
+                      <p className={cn("text-lg font-bold", s.color)}>{s.value}</p>
+                      <p className="text-[10px] text-muted-foreground font-medium">{s.label}</p>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+
               {/* Action area */}
-              <div className="px-4 pt-4 pb-5 space-y-3">
+              <div className="px-4 pt-3 pb-5 space-y-3">
                 {/* Primary: Register */}
                 <motion.div variants={itemVariants}>
                   <Button
@@ -196,7 +235,9 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
                       </div>
                     ))}
                   </div>
-                  <span className="text-[11px] text-muted-foreground">10,000+ users finding local jobs</span>
+                  <span className="text-[11px] text-muted-foreground">
+                    {liveStats.candidates > 0 ? `${liveStats.candidates}+ users` : '10,000+ users'} finding local jobs
+                  </span>
                 </motion.div>
 
                 <motion.button
