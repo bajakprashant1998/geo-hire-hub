@@ -41,9 +41,9 @@ export const DocumentUpload = ({
       return;
     }
 
-    // Validate file size (5MB max)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File size must be less than 5MB');
+    // Validate file size (25MB max)
+    if (file.size > 25 * 1024 * 1024) {
+      toast.error('File size must be less than 25MB');
       return;
     }
 

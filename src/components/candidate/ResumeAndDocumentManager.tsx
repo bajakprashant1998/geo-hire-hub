@@ -30,8 +30,8 @@ interface AIResume {
     updated_at: string;
 }
 
-const MAX_FILE_SIZE_MB = 5;
-const MAX_TOTAL_STORAGE_MB = 50;
+const MAX_FILE_SIZE_MB = 25;
+const MAX_TOTAL_STORAGE_MB = 100;
 const BYTES_PER_MB = 1024 * 1024;
 
 export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocumentManagerProps) => {
@@ -118,7 +118,10 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
         ];
 
-        if (!allowedTypes.includes(file.type)) {
+        // On mobile, file.type can be empty or incorrect - also check extension
+        const fileExt = file.name.split('.').pop()?.toLowerCase() || '';
+        const allowedExts = ['pdf', 'doc', 'docx'];
+        if (!allowedTypes.includes(file.type) && !allowedExts.includes(fileExt)) {
             toast.error('Please upload a PDF or Word document');
             return;
         }
@@ -315,7 +318,7 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
                             <input
                                 type="file"
                                 className="hidden"
-                                accept=".pdf,.doc,.docx"
+                                accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                                 onChange={handleUpload}
                                 disabled={uploading || isStorageFull}
                             />
