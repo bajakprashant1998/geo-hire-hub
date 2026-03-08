@@ -1115,6 +1115,8 @@ const EmployerDashboard = () => {
         return employer && <TeamCollaborationNotes employerId={employer.id} />;
       case 'accessibility-check':
         return <AccessibilityScoreChecker />;
+      case 'branding':
+        return employer && <BrandingPageBuilder employerId={employer.id} />;
       case 'post-job':
         return <PostJob embedded />;
       default:
