@@ -801,9 +801,16 @@ const Plans = () => {
             </p>
           </motion.div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
-            <BillingToggle billingCycle={billingCycle} onChange={setBillingCycle} />
-            <CurrencySelector currency={currency} onChange={setCurrency} />
+          <div className="flex flex-col items-center gap-3 mt-8">
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <BillingToggle billingCycle={billingCycle} onChange={setBillingCycle} />
+              <CurrencySelector currency={currency} onChange={setCurrency} />
+            </div>
+            {currency !== 'USD' && (
+              <p className="text-[11px] text-muted-foreground/60">
+                Prices shown in {EXCHANGE_RATES[currency]?.name} are approximate
+              </p>
+            )}
           </div>
         </div>
       </div>
