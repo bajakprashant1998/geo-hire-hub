@@ -229,6 +229,7 @@ const JobDetail = () => {
       if (!data) { setLoading(false); return; }
       setJob({
         ...data,
+        translations: data.translations as Record<string, { title: string; description: string }> | null,
         employer: {
           id: data.employers.id, company_name: data.employers.company_name, industry: data.employers.industry,
           website_url: data.employers.website_url, avatar_url: data.employers.profiles?.avatar_url,
