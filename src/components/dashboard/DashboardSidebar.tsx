@@ -52,7 +52,7 @@ const EMPLOYER_GROUPS: SidebarGroup[] = [
   { label: 'Jobs & Hiring', items: ['jobs', 'candidates', 'drafts', 'post-job'] },
   { label: 'Communication', items: ['chat', 'interviews', 'tasks'] },
   { label: 'AI & Analytics', items: ['ai-screening', 'analytics', 'jd-optimizer', 'ab-testing'] },
-  { label: 'Company', items: ['company', 'spotlight', 'offer-letters', 'compare-candidates', 'talent-pool'] },
+  { label: 'Company', items: ['company', 'branding', 'spotlight', 'offer-letters', 'compare-candidates', 'talent-pool'] },
   { label: 'Settings', items: ['notifications', 'security', 'upgrade-plan'] },
 ];
 
