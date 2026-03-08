@@ -801,7 +801,10 @@ const Plans = () => {
             </p>
           </motion.div>
 
-          <BillingToggle billingCycle={billingCycle} onChange={setBillingCycle} />
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
+            <BillingToggle billingCycle={billingCycle} onChange={setBillingCycle} />
+            <CurrencySelector currency={currency} onChange={setCurrency} />
+          </div>
         </div>
       </div>
 
