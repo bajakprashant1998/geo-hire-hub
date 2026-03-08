@@ -293,6 +293,7 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
         }
         
         setHasBonus(jobData.has_bonus || false);
+        setReferralBounty(jobData.referral_bounty ? String(jobData.referral_bounty) : '');
         setDescription(jobData.description || '');
         setSkills(jobData.skills || []);
         setGender((jobData.gender_preference as 'Any' | 'Male' | 'Female') || 'Any');
