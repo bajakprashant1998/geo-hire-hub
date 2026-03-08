@@ -20,7 +20,7 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight,
-  DollarSign,
+  Banknote,
   Crown,
   AlertTriangle,
   Clock,
