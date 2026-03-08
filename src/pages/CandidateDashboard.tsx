@@ -520,6 +520,7 @@ const CandidateDashboard = () => {
       );
       case 'interview-prep': return <InterviewPrepCoach candidateId={candidate.id} />;
       case 'market-value': return <MarketValueScore />;
+      case 'badges': return <ProfileBadges />;
       default: return null;
     }
   };
