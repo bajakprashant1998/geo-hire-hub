@@ -32,7 +32,7 @@ import {
   Trophy, CalendarDays, Sparkles, ChevronDown, ChevronUp, Eye,
   Mail, StickyNote, Loader2, ArrowUpDown, X, SlidersHorizontal,
   TrendingUp, Target, Zap, Download, Brain, Lightbulb, AlertTriangle,
-  UserCheck, BarChart3, RefreshCw, Globe, Languages, Heart
+  UserCheck, BarChart3, RefreshCw, Globe, Languages, Heart, Bell, BookmarkPlus
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -406,6 +406,54 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
   };
   const clearFilters = () => { setFilters(defaultFilters); setSkillInput(''); };
 
+  // Save Search Alert
+  const [saveSearchOpen, setSaveSearchOpen] = useState(false);
+  const [searchName, setSearchName] = useState('');
+  const [savingSearch, setSavingSearch] = useState(false);
+  const [savedSearches, setSavedSearches] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (employerId) {
+      supabase
+        .from('employer_saved_searches')
+        .select('*')
+        .eq('employer_id', employerId)
+        .order('created_at', { ascending: false })
+        .then(({ data }) => { if (data) setSavedSearches(data); });
+    }
+  }, [employerId]);
+
+  const handleSaveSearch = async () => {
+    if (!searchName.trim()) { toast.error('Please enter a name'); return; }
+    setSavingSearch(true);
+    const { data, error } = await supabase
+      .from('employer_saved_searches')
+      .insert({
+        employer_id: employerId,
+        name: searchName.trim(),
+        filters: filters as any,
+      })
+      .select()
+      .single();
+    setSavingSearch(false);
+    if (error) { toast.error('Failed to save search'); return; }
+    setSavedSearches(prev => [data, ...prev]);
+    setSearchName('');
+    setSaveSearchOpen(false);
+    toast.success('Search alert saved! You\'ll be notified when matching candidates join.');
+  };
+
+  const toggleSearchActive = async (id: string, isActive: boolean) => {
+    await supabase.from('employer_saved_searches').update({ is_active: !isActive }).eq('id', id);
+    setSavedSearches(prev => prev.map(s => s.id === id ? { ...s, is_active: !isActive } : s));
+  };
+
+  const deleteSearch = async (id: string) => {
+    await supabase.from('employer_saved_searches').delete().eq('id', id);
+    setSavedSearches(prev => prev.filter(s => s.id !== id));
+    toast.success('Search alert deleted');
+  };
+
   const activeFilterCount = useMemo(() => {
     let count = 0;
     if (filters.search) count++;
@@ -711,12 +759,80 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
       </AnimatePresence>
 
       {activeFilterCount > 0 && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-2">
           <Button variant="ghost" size="sm" onClick={clearFilters} className="w-full text-xs text-destructive hover:text-destructive hover:bg-destructive/5 rounded-xl gap-1.5">
             <X className="w-3.5 h-3.5" /> Clear all filters ({activeFilterCount})
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setSaveSearchOpen(true)} className="w-full text-xs rounded-xl gap-1.5 border-primary/20 text-primary hover:bg-primary/5">
+            <Bell className="w-3.5 h-3.5" /> Save as alert
+          </Button>
         </motion.div>
       )}
+
+      {/* Saved Searches List */}
+      {savedSearches.length > 0 && (
+        <div className="pt-3 border-t border-border/50">
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Saved Alerts</p>
+          <div className="space-y-1.5">
+            {savedSearches.slice(0, 5).map(s => (
+              <div key={s.id} className="flex items-center gap-1.5 group">
+                <button
+                  onClick={() => { setFilters({ ...defaultFilters, ...s.filters }); }}
+                  className="flex-1 text-left text-xs text-foreground hover:text-primary truncate"
+                  title={s.name}
+                >
+                  <Bell className={cn('w-3 h-3 inline mr-1', s.is_active ? 'text-primary' : 'text-muted-foreground')} />
+                  {s.name}
+                  {s.matched_count > 0 && (
+                    <span className="ml-1 text-[10px] text-muted-foreground">({s.matched_count})</span>
+                  )}
+                </button>
+                <button onClick={() => toggleSearchActive(s.id, s.is_active)} className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5" title={s.is_active ? 'Pause' : 'Resume'}>
+                  {s.is_active ? <Bell className="w-3 h-3 text-primary" /> : <Bell className="w-3 h-3 text-muted-foreground" />}
+                </button>
+                <button onClick={() => deleteSearch(s.id)} className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5" title="Delete">
+                  <X className="w-3 h-3 text-destructive" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Save Search Dialog */}
+      <Dialog open={saveSearchOpen} onOpenChange={setSaveSearchOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Bell className="w-5 h-5 text-primary" /> Save Search Alert</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div>
+              <p className="text-sm text-muted-foreground mb-3">
+                Get notified via push & email when new candidates match your current filters.
+              </p>
+              <Input
+                placeholder="Alert name (e.g. Senior React Devs)"
+                value={searchName}
+                onChange={e => setSearchName(e.target.value)}
+                className="rounded-xl"
+                onKeyDown={e => e.key === 'Enter' && handleSaveSearch()}
+              />
+            </div>
+            {activeFilterCount > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {activeFilterChips.slice(0, 5).map(c => (
+                  <Badge key={c.key} variant="secondary" className="text-[10px]">{c.label}</Badge>
+                ))}
+                {activeFilterChips.length > 5 && <Badge variant="outline" className="text-[10px]">+{activeFilterChips.length - 5} more</Badge>}
+              </div>
+            )}
+            <Button onClick={handleSaveSearch} disabled={savingSearch || !searchName.trim()} className="w-full rounded-xl gap-2">
+              {savingSearch ? <Loader2 className="w-4 h-4 animate-spin" /> : <BookmarkPlus className="w-4 h-4" />}
+              Save Alert
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 

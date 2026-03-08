@@ -1462,6 +1462,56 @@ export type Database = {
         }
         Relationships: []
       }
+      employer_saved_searches: {
+        Row: {
+          created_at: string
+          employer_id: string
+          filters: Json
+          id: string
+          is_active: boolean
+          last_notified_at: string | null
+          matched_count: number
+          name: string
+          notify_email: boolean
+          notify_push: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          employer_id: string
+          filters?: Json
+          id?: string
+          is_active?: boolean
+          last_notified_at?: string | null
+          matched_count?: number
+          name: string
+          notify_email?: boolean
+          notify_push?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          employer_id?: string
+          filters?: Json
+          id?: string
+          is_active?: boolean
+          last_notified_at?: string | null
+          matched_count?: number
+          name?: string
+          notify_email?: boolean
+          notify_push?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employer_saved_searches_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "employers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employer_subscriptions: {
         Row: {
           billing_cycle: string | null
@@ -3380,6 +3430,42 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      saved_search_notifications: {
+        Row: {
+          candidate_id: string
+          id: string
+          notified_at: string
+          search_id: string
+        }
+        Insert: {
+          candidate_id: string
+          id?: string
+          notified_at?: string
+          search_id: string
+        }
+        Update: {
+          candidate_id?: string
+          id?: string
+          notified_at?: string
+          search_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_search_notifications_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "saved_search_notifications_search_id_fkey"
+            columns: ["search_id"]
+            isOneToOne: false
+            referencedRelation: "employer_saved_searches"
             referencedColumns: ["id"]
           },
         ]
