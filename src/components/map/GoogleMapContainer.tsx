@@ -258,8 +258,11 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
       {items.map(item => {
         const isCandidate = mode === 'hiring';
         const job = item as Job;
-        const bgColor = isCandidate ? '#3B82F6' : (job.job_category === 'government' ? '#16A34A' : '#EF4444');
+        const isGovJob = !isCandidate && job.job_category === 'government';
+        const bgColor = isCandidate ? '#3B82F6' : (isGovJob ? '#16A34A' : '#EF4444');
+        const gradientEnd = isCandidate ? '#2563EB' : (isGovJob ? '#059669' : '#DC2626');
         const isSelected = selectedItem?.id === item.id;
+        const isNew = !isCandidate && job.created_at && isNewJob(job.created_at);
 
         return (
           <AdvancedMarker
@@ -267,26 +270,29 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
             position={{ lat: item.latitude, lng: item.longitude }}
             onClick={() => { setSpiderfiedCluster(null); onMarkerClick(item); }}
             ref={(marker) => setMarkerRef(marker as unknown as google.maps.marker.AdvancedMarkerElement, item.id)}
-            zIndex={isSelected ? 999 : 1}
+            zIndex={isSelected ? 999 : (isNew ? 500 : 1)}
           >
             <div
               onMouseEnter={() => handleMouseEnter(item)}
               onMouseLeave={handleMouseLeave}
               style={{
-                width: isSelected ? 44 : 38,
-                height: isSelected ? 44 : 38,
+                width: isSelected ? 48 : 40,
+                height: isSelected ? 48 : 40,
                 borderRadius: '50%',
-                background: bgColor,
+                background: `linear-gradient(135deg, ${bgColor}, ${gradientEnd})`,
                 border: `3px solid white`,
                 boxShadow: isSelected
-                  ? `0 0 0 4px ${bgColor}44, 0 4px 12px rgba(0,0,0,0.3)`
-                  : '0 2px 8px rgba(0,0,0,0.25)',
+                  ? `0 0 0 4px ${bgColor}44, 0 4px 16px rgba(0,0,0,0.3)`
+                  : isNew
+                    ? `0 0 0 3px ${bgColor}30, 0 2px 10px rgba(0,0,0,0.25)`
+                    : '0 2px 10px rgba(0,0,0,0.2)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                transform: isSelected ? 'scale(1.15)' : 'scale(1)',
+                transition: 'all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                transform: isSelected ? 'scale(1.2)' : 'scale(1)',
+                animation: isNew ? 'marker-pulse 2s ease-in-out infinite' : 'none',
               }}
             >
               {isCandidate ? (
