@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { SEOHead } from '@/components/SEOHead';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { TestimonialsSection } from '@/components/TestimonialsSection';
 import {
   Accordion,
   AccordionContent,
@@ -854,6 +855,7 @@ const Plans = () => {
         )}
 
         <TrustBar />
+        <TestimonialsSection compact />
         <ComparisonTable plans={plans} />
         <FAQSection />
         <CTASection />

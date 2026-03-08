@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { MapPin, Briefcase, Users, X, Sparkles, ArrowRight, Globe2, UserPlus, LogIn, Zap, Building2, Star, Target, Shield } from 'lucide-react';
+import { MapPin, Briefcase, Users, X, Sparkles, ArrowRight, Globe2, UserPlus, LogIn, Zap, Building2, Star, Target, Shield, Quote } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -37,6 +37,7 @@ const AnimatedNumber = ({ value }: { value: number }) => {
 export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeOverlayProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const [liveStats, setLiveStats] = useState({ jobs: 0, candidates: 0, employers: 0 });
+  const [testimonial, setTestimonial] = useState<{ author_name: string; company_name: string; quote: string } | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -63,6 +64,21 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
       } catch { /* silent */ }
     };
     fetchStats();
+  }, []);
+
+  useEffect(() => {
+    const fetchTestimonial = async () => {
+      const { data } = await supabase
+        .from('employer_testimonials')
+        .select('author_name, company_name, quote')
+        .eq('is_featured', true)
+        .eq('is_approved', true)
+        .order('sort_order')
+        .limit(1)
+        .maybeSingle();
+      if (data) setTestimonial(data);
+    };
+    fetchTestimonial();
   }, []);
 
   const handleDismiss = (dontShowAgain = false) => {
@@ -218,6 +234,25 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
                   ))}
                 </div>
               </motion.div>
+
+              {/* Testimonial quote */}
+              {testimonial && (
+                <motion.div variants={itemVariants} className="px-4 pt-3">
+                  <div className="p-3 rounded-xl bg-primary/5 border border-primary/10">
+                    <div className="flex gap-2">
+                      <Quote className="w-4 h-4 text-primary/40 shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-[11px] text-muted-foreground leading-relaxed line-clamp-2">
+                          "{testimonial.quote}"
+                        </p>
+                        <p className="text-[10px] font-semibold text-foreground mt-1.5">
+                          — {testimonial.author_name}, {testimonial.company_name}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
 
               {/* Action area */}
               <div className="px-4 pt-4 pb-5 space-y-2.5">

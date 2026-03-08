@@ -1215,6 +1215,62 @@ export type Database = {
           },
         ]
       }
+      employer_testimonials: {
+        Row: {
+          author_name: string
+          author_role: string
+          avatar_url: string | null
+          company_name: string
+          created_at: string
+          employer_id: string | null
+          id: string
+          is_approved: boolean
+          is_featured: boolean
+          quote: string
+          rating: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          author_name: string
+          author_role: string
+          avatar_url?: string | null
+          company_name: string
+          created_at?: string
+          employer_id?: string | null
+          id?: string
+          is_approved?: boolean
+          is_featured?: boolean
+          quote: string
+          rating?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          author_name?: string
+          author_role?: string
+          avatar_url?: string | null
+          company_name?: string
+          created_at?: string
+          employer_id?: string | null
+          id?: string
+          is_approved?: boolean
+          is_featured?: boolean
+          quote?: string
+          rating?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employer_testimonials_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "employers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employer_verification_checks: {
         Row: {
           check_type: string
