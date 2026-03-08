@@ -277,10 +277,6 @@ const Index = () => {
         <WelcomeOverlay onDismiss={() => setShowWelcome(false)} onFindJobs={() => setMode('seeking')} onFindTalent={() => setMode('hiring')} />
       )}
 
-      {/* SEO Content - visible below fold for crawlers */}
-      <div className="hidden md:block absolute bottom-0 left-0 right-0 z-0 pointer-events-none opacity-0 h-0 overflow-hidden" aria-hidden="false">
-        <SEOContentFooter />
-      </div>
     </div>
   );
 };

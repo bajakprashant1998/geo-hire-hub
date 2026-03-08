@@ -205,6 +205,8 @@ const BrowseJobs = () => {
           </div>
         )}
       </div>
+
+      <SEOContentFooter />
     </div>
   );
 };
