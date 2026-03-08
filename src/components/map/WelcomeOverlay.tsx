@@ -79,6 +79,7 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
       if (data) setTestimonial(data);
     };
     fetchTestimonial();
+  }, []);
 
   const handleDismiss = (dontShowAgain = false) => {
     setIsVisible(false);
