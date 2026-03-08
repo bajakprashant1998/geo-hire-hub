@@ -27,7 +27,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { SecuritySettings } from '@/components/candidate/SecuritySettings';
 import { JobAlertsManager } from '@/components/candidate/JobAlertsManager';
-import { EmailVerificationGuard } from '@/components/auth/EmailVerificationGuard';
+
 import { LocationMapPicker } from '@/components/post-job/LocationMapPicker';
 import { motion, AnimatePresence } from 'framer-motion';
 
