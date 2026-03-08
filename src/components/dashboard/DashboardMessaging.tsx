@@ -681,7 +681,7 @@ export const DashboardMessaging = () => {
                             <TooltipTrigger asChild>
                               <button
                                 onClick={(e) => { e.stopPropagation(); togglePin(conv.id); }}
-                                className="p-1.5 rounded-md bg-transparent hover:bg-amber-500/15 text-foreground/60 hover:text-amber-600 transition-colors"
+                                className="p-1.5 rounded-md bg-transparent hover:bg-[hsl(var(--warning))]/15 text-foreground/60 hover:text-[hsl(var(--warning))] transition-colors"
                               >
                                 {isPinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
                               </button>
