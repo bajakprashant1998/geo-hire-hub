@@ -561,6 +561,12 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
                 </SectionCard>
               )}
 
+              {/* Verified Skill Badges */}
+              <SectionCard title="Verified Skills" icon={ShieldCheck} delay={0.12}
+                badge={<Badge variant="outline" className="text-[10px] border-success/30 bg-success/10 text-success">Assessment Verified</Badge>}>
+                <VerifiedSkillBadges candidateId={candidate.id} />
+              </SectionCard>
+
               {/* Work Experience */}
               {candidate.work_experience && candidate.work_experience.length > 0 && (
                 <SectionCard title="Work Experience" icon={Briefcase} delay={0.15}>
