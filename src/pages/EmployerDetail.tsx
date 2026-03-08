@@ -896,6 +896,13 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
         </div>
       )}
 
+      {/* Spotlight Stories */}
+      {employer && (
+        <div className="max-w-5xl mx-auto px-4 pb-4">
+          <SpotlightStories employerId={employer.id} companyName={employer.company_name} />
+        </div>
+      )}
+
       {/* Company Reviews */}
       {employer && (
         <div className="max-w-5xl mx-auto px-4 pb-4">
