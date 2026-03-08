@@ -112,6 +112,10 @@ const App = () => (
               <Route path="/terms" element={<TermsOfService />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/browse-jobs" element={<BrowseJobs />} />
+              <Route path="/jobs-near-me" element={<JobsNearMe />} />
+              <Route path="/job-listings-near-me" element={<Navigate to="/jobs-near-me" replace />} />
+              <Route path="/jobs-hiring-near-me" element={<Navigate to="/jobs-near-me" replace />} />
+              <Route path="/hire-for-job" element={<Navigate to="/jobs-near-me" replace />} />
 
               {/* ==================== SHARED ROUTES ==================== */}
               <Route path="/messages" element={<Messages />} />
