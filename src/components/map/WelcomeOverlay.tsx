@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { MapPin, Briefcase, Users, X, Sparkles, ArrowRight, Shield, Globe2, TrendingUp, UserPlus, LogIn, Zap, Building2 } from 'lucide-react';
+import { MapPin, Briefcase, Users, X, Sparkles, ArrowRight, Shield, Globe2, TrendingUp, UserPlus, LogIn, Zap, Building2, Star, Target, Search, Award } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,7 +27,6 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
     }
   }, []);
 
-  // Fetch live stats
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -54,26 +53,26 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
 
   const containerVariants = {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.06, delayChildren: 0.1 } },
+    visible: { opacity: 1, transition: { staggerChildren: 0.05, delayChildren: 0.08 } },
     exit: { opacity: 0 },
   };
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 12 },
-    visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 300, damping: 25 } },
+    hidden: { opacity: 0, y: 14 },
+    visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 320, damping: 28 } },
   };
 
   const features = [
-    { icon: MapPin, text: 'Nearby Jobs', iconClass: 'text-destructive', bgClass: 'bg-destructive/20' },
-    { icon: Sparkles, text: 'AI Matching', iconClass: 'text-primary', bgClass: 'bg-primary/20' },
-    { icon: Shield, text: 'Verified', iconClass: 'text-[hsl(142,71%,35%)]', bgClass: 'bg-[hsl(142,71%,35%)]/20' },
-    { icon: Zap, text: 'Auto Apply', iconClass: 'text-[hsl(38,92%,45%)]', bgClass: 'bg-[hsl(38,92%,45%)]/20' },
+    { icon: Target, text: 'Nearby Jobs', desc: 'Map-based', iconClass: 'text-destructive', bgClass: 'bg-destructive/15' },
+    { icon: Sparkles, text: 'AI Match', desc: 'Smart fit', iconClass: 'text-primary', bgClass: 'bg-primary/15' },
+    { icon: Shield, text: 'Verified', desc: 'Trusted', iconClass: 'text-[hsl(var(--success,142_71%_45%))]', bgClass: 'bg-[hsl(142,71%,45%)]/15' },
+    { icon: Zap, text: 'Auto Apply', desc: 'One-click', iconClass: 'text-[hsl(38,92%,50%)]', bgClass: 'bg-[hsl(38,92%,50%)]/15' },
   ];
 
   const stats = [
-    { value: liveStats.jobs || '10+', label: 'Active Jobs', color: 'text-destructive' },
-    { value: liveStats.candidates || '30+', label: 'Candidates', color: 'text-primary' },
-    { value: liveStats.employers || '5+', label: 'Companies', color: 'text-[hsl(142,71%,35%)]' },
+    { value: liveStats.jobs || '10+', label: 'Jobs', icon: Briefcase, color: 'text-destructive', bg: 'bg-destructive/10' },
+    { value: liveStats.candidates || '30+', label: 'Talent', icon: Users, color: 'text-primary', bg: 'bg-primary/10' },
+    { value: liveStats.employers || '5+', label: 'Companies', icon: Building2, color: 'text-[hsl(142,71%,45%)]', bg: 'bg-[hsl(142,71%,45%)]/10' },
   ];
 
   return (
@@ -90,7 +89,7 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/60 backdrop-blur-md"
             onClick={() => handleDismiss(false)}
           />
 
@@ -100,89 +99,115 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="relative w-full max-w-[420px] z-10 mx-3 mb-3 sm:mb-0"
+            className="relative w-full max-w-[440px] z-10 mx-3 mb-3 sm:mb-0"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="bg-card rounded-3xl shadow-2xl border border-border/40 overflow-hidden">
-              {/* Gradient header */}
-              <div className="relative bg-gradient-to-br from-primary via-primary/85 to-destructive/70 px-5 pt-7 pb-16 text-center overflow-hidden">
-                {/* Decorative circles */}
-                <div className="absolute -top-10 -right-10 w-32 h-32 rounded-full bg-white/10 z-0" />
-                <div className="absolute -bottom-8 -left-8 w-24 h-24 rounded-full bg-white/8 z-0" />
+            <div className="bg-card rounded-[28px] shadow-2xl border border-border/30 overflow-hidden">
+              {/* Premium gradient header */}
+              <div className="relative px-5 pt-8 pb-20 text-center overflow-hidden">
+                {/* Animated gradient background */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/80 to-[hsl(var(--chart-1,220_70%_50%))]" />
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(var(--destructive)/0.3),transparent_70%)]" />
+                
+                {/* Mesh pattern */}
+                <div className="absolute inset-0 opacity-[0.06]" style={{
+                  backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`,
+                  backgroundSize: '20px 20px',
+                }} />
+
+                {/* Floating decorative elements */}
+                <motion.div 
+                  animate={{ y: [-5, 5, -5], rotate: [0, 5, 0] }}
+                  transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+                  className="absolute top-6 right-8 w-8 h-8 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center"
+                >
+                  <MapPin className="w-4 h-4 text-white/70" />
+                </motion.div>
+                <motion.div 
+                  animate={{ y: [3, -3, 3], rotate: [0, -5, 0] }}
+                  transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+                  className="absolute top-16 left-6 w-7 h-7 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center"
+                >
+                  <Star className="w-3.5 h-3.5 text-white/70" />
+                </motion.div>
 
                 {/* Close */}
                 <motion.button
                   variants={itemVariants}
                   onClick={() => handleDismiss(false)}
-                  className="absolute top-3 right-3 p-2 rounded-full bg-white/15 hover:bg-white/25 text-white/90 transition-colors"
+                  className="absolute top-3 right-3 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white/90 transition-all z-10"
                 >
                   <X className="w-4 h-4" />
                 </motion.button>
 
-                {/* Logo */}
-                <motion.div variants={itemVariants} className="mb-3">
+                {/* Logo icon */}
+                <motion.div variants={itemVariants} className="mb-4 relative z-10">
                   <motion.div
                     initial={{ scale: 0, rotate: -180 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ type: 'spring', damping: 12, stiffness: 200 }}
-                    className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto shadow-lg"
+                    className="w-16 h-16 bg-white/15 backdrop-blur-lg rounded-[20px] flex items-center justify-center mx-auto shadow-xl ring-1 ring-white/20"
                   >
-                    <Globe2 className="w-7 h-7 text-white" />
+                    <Globe2 className="w-8 h-8 text-white" />
                   </motion.div>
                 </motion.div>
 
-                <motion.h1 variants={itemVariants} className="text-2xl sm:text-3xl font-bold text-white mb-1.5 tracking-tight">
+                <motion.h1 variants={itemVariants} className="text-[26px] sm:text-3xl font-extrabold text-white mb-2 tracking-tight relative z-10 leading-tight">
                   Find Jobs Near You
                 </motion.h1>
-                <motion.p variants={itemVariants} className="text-white/70 text-sm max-w-[260px] mx-auto leading-relaxed">
+                <motion.p variants={itemVariants} className="text-white/65 text-sm max-w-[280px] mx-auto leading-relaxed relative z-10">
                   Discover opportunities within walking distance on an interactive map
                 </motion.p>
               </div>
 
               {/* Features grid – overlapping the header */}
-              <div className="px-4 -mt-8 relative z-10">
-                <motion.div variants={itemVariants} className="grid grid-cols-4 gap-2.5">
+              <div className="px-4 -mt-12 relative z-10">
+                <motion.div variants={itemVariants} className="grid grid-cols-4 gap-2">
                   {features.map((f, i) => (
                     <motion.div
                       key={i}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.35 + i * 0.06 }}
-                    className="flex flex-col items-center gap-2 p-3 rounded-xl bg-card border border-border shadow-md"
+                      initial={{ opacity: 0, y: 12, scale: 0.9 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      transition={{ delay: 0.3 + i * 0.06, type: 'spring', stiffness: 300 }}
+                      className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-card border border-border/40 shadow-lg hover:shadow-xl transition-shadow"
                     >
                       <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center', f.bgClass)}>
                         <f.icon className={cn('w-5 h-5', f.iconClass)} />
                       </div>
-                      <span className="text-[11px] font-bold text-foreground leading-tight">{f.text}</span>
+                      <span className="text-[10px] font-bold text-foreground leading-tight text-center">{f.text}</span>
                     </motion.div>
                   ))}
                 </motion.div>
               </div>
 
-              {/* Live Stats Bar */}
+              {/* Live Stats */}
               <motion.div variants={itemVariants} className="px-4 pt-4">
-                <div className="flex items-center justify-around p-3 rounded-xl bg-muted/50 border border-border/30">
+                <div className="flex items-center justify-around p-3.5 rounded-2xl bg-muted/40 border border-border/20">
                   {stats.map((s, i) => (
-                    <div key={i} className="text-center">
-                      <p className={cn("text-lg font-bold", s.color)}>{s.value}</p>
-                      <p className="text-[10px] text-muted-foreground font-medium">{s.label}</p>
+                    <div key={i} className="flex flex-col items-center gap-1">
+                      <div className={cn("w-8 h-8 rounded-xl flex items-center justify-center", s.bg)}>
+                        <s.icon className={cn("w-4 h-4", s.color)} />
+                      </div>
+                      <p className={cn("text-lg font-extrabold leading-none", s.color)}>{s.value}</p>
+                      <p className="text-[9px] text-muted-foreground font-semibold uppercase tracking-wider">{s.label}</p>
                     </div>
                   ))}
                 </div>
               </motion.div>
 
               {/* Action area */}
-              <div className="px-4 pt-3 pb-5 space-y-3">
+              <div className="px-4 pt-4 pb-5 space-y-2.5">
                 {/* Primary: Register */}
                 <motion.div variants={itemVariants}>
                   <Button
                     onClick={() => { handleDismiss(true); navigate('/signup'); }}
                     size="lg"
-                    className="w-full h-12 rounded-2xl text-sm font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg group"
+                    className="w-full h-[52px] rounded-2xl text-sm font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xl shadow-primary/20 group relative overflow-hidden"
                   >
-                    <UserPlus className="w-4 h-4 mr-2" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+                    <UserPlus className="w-4.5 h-4.5 mr-2" />
                     Create Free Account
-                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-0.5 transition-transform" />
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Button>
                 </motion.div>
 
@@ -192,7 +217,7 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
                     onClick={() => { handleDismiss(true); navigate('/login'); }}
                     size="lg"
                     variant="outline"
-                    className="w-full h-11 rounded-2xl text-sm font-semibold border-2 border-border group"
+                    className="w-full h-11 rounded-2xl text-sm font-semibold border-2 border-border/60 hover:border-primary/40 group"
                   >
                     <LogIn className="w-4 h-4 mr-2" />
                     Already have an account? Sign In
@@ -200,12 +225,12 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
                 </motion.div>
 
                 {/* Explore buttons */}
-                <motion.div variants={itemVariants} className="grid grid-cols-2 gap-2 pt-1">
+                <motion.div variants={itemVariants} className="grid grid-cols-2 gap-2 pt-0.5">
                   <Button
                     onClick={() => { handleDismiss(true); onFindJobs(); }}
                     size="sm"
                     variant="ghost"
-                    className="h-10 rounded-xl text-xs font-semibold text-destructive hover:bg-destructive/10 group"
+                    className="h-10 rounded-xl text-xs font-bold text-destructive hover:bg-destructive/10 group border border-transparent hover:border-destructive/20"
                   >
                     <Briefcase className="w-3.5 h-3.5 mr-1" />
                     Find Jobs
@@ -215,7 +240,7 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
                     onClick={() => { handleDismiss(true); onFindTalent(); }}
                     size="sm"
                     variant="ghost"
-                    className="h-10 rounded-xl text-xs font-semibold text-primary hover:bg-primary/10 group"
+                    className="h-10 rounded-xl text-xs font-bold text-primary hover:bg-primary/10 group border border-transparent hover:border-primary/20"
                   >
                     <Users className="w-3.5 h-3.5 mr-1" />
                     Hire Talent
@@ -224,26 +249,29 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
                 </motion.div>
 
                 {/* Social proof */}
-                <motion.div variants={itemVariants} className="flex items-center justify-center gap-2 pt-0.5">
-                  <div className="flex -space-x-2">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div
+                <motion.div variants={itemVariants} className="flex items-center justify-center gap-2.5 pt-1">
+                  <div className="flex -space-x-2.5">
+                    {['👨‍💻', '👩‍💼', '👨‍🔧', '👩‍🎨'].map((emoji, i) => (
+                      <motion.div
                         key={i}
-                        className="w-6 h-6 rounded-full bg-primary/20 border-2 border-card flex items-center justify-center text-[9px] font-bold text-primary"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: 0.6 + i * 0.08, type: 'spring', stiffness: 300 }}
+                        className="w-7 h-7 rounded-full bg-muted border-2 border-card flex items-center justify-center text-xs shadow-sm"
                       >
-                        {String.fromCharCode(64 + i)}
-                      </div>
+                        {emoji}
+                      </motion.div>
                     ))}
                   </div>
-                  <span className="text-[11px] text-muted-foreground">
-                    {liveStats.candidates > 0 ? `${liveStats.candidates}+ users` : '10,000+ users'} finding local jobs
+                  <span className="text-[11px] text-muted-foreground font-medium">
+                    {liveStats.candidates > 0 ? `${liveStats.candidates}+ professionals` : '10,000+ professionals'} joined
                   </span>
                 </motion.div>
 
                 <motion.button
                   variants={itemVariants}
                   onClick={() => handleDismiss(true)}
-                  className="w-full text-xs text-muted-foreground/70 hover:text-foreground transition-colors pt-0.5"
+                  className="w-full text-xs text-muted-foreground/60 hover:text-foreground transition-colors pt-0.5 font-medium"
                 >
                   Skip and explore the map →
                 </motion.button>
