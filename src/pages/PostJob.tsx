@@ -604,6 +604,7 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
         min_experience: minExperience ? parseInt(minExperience) : null,
         max_experience: maxExperience ? parseInt(maxExperience) : null,
         has_bonus: hasBonus,
+        referral_bounty: referralBounty ? parseInt(referralBounty) : 0,
         skills,
         gender_preference: gender,
         min_age: ageMin ? parseInt(ageMin) : null,
