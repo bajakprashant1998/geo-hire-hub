@@ -10,7 +10,7 @@ import {
   Brain,
   MapPin,
   Building2,
-  DollarSign,
+  Banknote,
   Clock,
   CheckCircle2,
   XCircle,
