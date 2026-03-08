@@ -37,7 +37,7 @@ import {
   Plus,
   Edit,
   Trash2,
-  DollarSign,
+  Banknote,
   TrendingUp,
   Users
 } from 'lucide-react';
