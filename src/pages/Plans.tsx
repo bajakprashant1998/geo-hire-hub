@@ -585,6 +585,10 @@ const Plans = () => {
   const { user, profile } = useAuth();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [currentPlanId, setCurrentPlanId] = useState<string | null>(null);
+  const [currentPlanName, setCurrentPlanName] = useState<string | null>(null);
+  const [activeJobCount, setActiveJobCount] = useState(0);
+  const [maxActiveJobs, setMaxActiveJobs] = useState(0);
+  const [periodEnd, setPeriodEnd] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
