@@ -9,7 +9,7 @@ import {
   ApplicationFunnelChart, GeographicDistributionChart,
   JobPostingTrendChart, StatsTrendCard
 } from '@/components/admin/AnalyticsCharts';
-import { Users, Briefcase, DollarSign, TrendingUp } from 'lucide-react';
+import { Users, Briefcase, Banknote, TrendingUp } from 'lucide-react';
 import { format, subDays, startOfMonth, eachDayOfInterval, eachMonthOfInterval, subMonths } from 'date-fns';
 
 export default function AdminAnalytics() {
