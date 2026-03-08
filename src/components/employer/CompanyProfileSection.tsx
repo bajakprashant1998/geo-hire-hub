@@ -199,16 +199,35 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
   const initialFetchDone = useRef(false);
 
   const steps = [
-    { label: 'Basic Info', icon: Building2 },
-    { label: 'Location', icon: MapPin },
-    { label: 'Hiring', icon: Briefcase },
-    { label: 'Compensation', icon: Banknote },
-    { label: 'Growth', icon: TrendingUp },
-    { label: 'Skills Match', icon: Target },
-    { label: 'Culture', icon: Heart },
-    { label: 'Documents', icon: FileText },
-    { label: 'Contact', icon: Phone },
+    { label: 'Basic Info', icon: Building2, fields: ['companyName', 'industry', 'description', 'countryCode', 'taxId', 'teamSize', 'websiteUrl'] },
+    { label: 'Location', icon: MapPin, fields: ['officeLocations'] },
+    { label: 'Hiring', icon: Briefcase, fields: ['hiringProcess', 'interviewRoundsCount', 'hiringTimeline', 'assessmentTypes'] },
+    { label: 'Compensation', icon: Banknote, fields: ['avgSalaryRange', 'benefits', 'paidLeavesPolicy'] },
+    { label: 'Growth', icon: TrendingUp, fields: ['promotionFrequency', 'careerGrowthPaths', 'employeeRetentionRate'] },
+    { label: 'Skills Match', icon: Target, fields: ['keySkillsHiring', 'techStack', 'educationPreference'] },
+    { label: 'Culture', icon: Heart, fields: ['workCultureType', 'cultureDescription', 'companyValues'] },
+    { label: 'Documents', icon: FileText, fields: ['officePhotoUrl', 'businessCardUrl'] },
+    { label: 'Contact', icon: Phone, fields: ['hrContactEmail'] },
   ];
+
+  // Calculate per-step completion
+  const getStepCompletion = (stepIdx: number): 'complete' | 'partial' | 'empty' => {
+    const fieldValues: Record<string, any> = {
+      companyName: companyName && companyName !== 'My Company', industry, description: description?.length >= 20,
+      countryCode, taxId, teamSize, websiteUrl, officeLocations: officeLocations.length > 0,
+      hiringProcess, interviewRoundsCount, hiringTimeline, assessmentTypes: assessmentTypes.length > 0,
+      avgSalaryRange, benefits: benefits.length > 0, paidLeavesPolicy,
+      promotionFrequency, careerGrowthPaths, employeeRetentionRate,
+      keySkillsHiring: keySkillsHiring.length > 0, techStack: techStack.length > 0, educationPreference,
+      workCultureType, cultureDescription, companyValues: companyValues.length > 0,
+      officePhotoUrl, businessCardUrl, hrContactEmail,
+    };
+    const stepFields = steps[stepIdx].fields;
+    const filled = stepFields.filter(f => !!fieldValues[f]).length;
+    if (filled === stepFields.length) return 'complete';
+    if (filled > 0) return 'partial';
+    return 'empty';
+  };
 
   useEffect(() => {
     if (profile && !initialFetchDone.current) {
@@ -498,18 +517,25 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
     );
   }
 
+  const completedSteps = steps.filter((_, i) => getStepCompletion(i) === 'complete').length;
+
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-lg sm:text-2xl font-bold text-foreground">Company Profile</h2>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">Complete your profile to attract top talent & enable AI matching</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/10">
+            <Building2 className="w-6 h-6 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-lg sm:text-xl font-bold text-foreground">Company Profile</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">Complete your profile to attract top talent & enable AI matching</p>
+          </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <VerificationBadge status={verificationStatus} verificationMethod={verificationMethod} googleBusinessVerified={googleBusinessVerified} />
           {onViewPublicProfile && (
-            <Button variant="outline" size="sm" onClick={onViewPublicProfile} className="gap-1.5 text-xs sm:text-sm h-8 sm:h-9">
+            <Button variant="outline" size="sm" onClick={onViewPublicProfile} className="gap-1.5 text-xs h-8 rounded-xl">
               <Eye className="w-3.5 h-3.5" /> Preview
             </Button>
           )}
@@ -518,9 +544,25 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
 
       {/* Completeness */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-        <Card className="border-border bg-gradient-to-br from-primary/5 via-transparent to-transparent">
-          <CardContent className="p-3 sm:p-5">
+        <Card className="border-border/40 bg-gradient-to-br from-primary/5 via-transparent to-transparent shadow-lg overflow-hidden relative">
+          <div className="absolute -top-16 -right-16 w-40 h-40 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+          <CardContent className="p-3 sm:p-5 relative z-10">
             <ProfileCompletenessBar completeness={completeness} missingFields={calculateMissingFields()} />
+            {/* Quick stats */}
+            <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border/30 flex-wrap">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Check className="w-3.5 h-3.5 text-success" />
+                <span><strong className="text-foreground">{completedSteps}</strong>/{steps.length} sections complete</span>
+              </div>
+              {trustScore > 0 && (
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Shield className="w-3.5 h-3.5 text-primary" />
+                  <span>Trust Score: <strong className={cn(
+                    trustScore >= 80 ? "text-success" : trustScore >= 50 ? "text-warning" : "text-destructive"
+                  )}>{trustScore}/100</strong></span>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </motion.div>
@@ -538,23 +580,34 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
         </Card>
       )}
 
-      {/* Step Navigation - mobile: 2-row grid, desktop: horizontal scroll */}
+      {/* Step Navigation */}
       <div className="grid grid-cols-3 sm:grid-cols-5 md:flex gap-1.5 sm:gap-2 sm:overflow-x-auto sm:pb-1 scrollbar-hide">
-        {steps.map((step, idx) => (
-          <button
-            key={step.label}
-            onClick={() => setActiveStep(idx)}
-            className={cn(
-              "flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-2 sm:py-2 rounded-lg text-[10px] sm:text-xs font-medium transition-all whitespace-nowrap border shrink-0",
-              activeStep === idx
-                ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
-            )}
-          >
-            <step.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span className="leading-tight text-center sm:text-left">{step.label}</span>
-          </button>
-        ))}
+        {steps.map((step, idx) => {
+          const status = getStepCompletion(idx);
+          return (
+            <button
+              key={step.label}
+              onClick={() => setActiveStep(idx)}
+              className={cn(
+                "flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-medium transition-all whitespace-nowrap border shrink-0 relative",
+                activeStep === idx
+                  ? "bg-primary text-primary-foreground border-primary shadow-md"
+                  : "bg-card text-muted-foreground border-border/40 hover:bg-muted hover:text-foreground hover:border-border"
+              )}
+            >
+              <div className="relative">
+                <step.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                {activeStep !== idx && status === 'complete' && (
+                  <div className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-success border-2 border-card" />
+                )}
+                {activeStep !== idx && status === 'partial' && (
+                  <div className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-warning border-2 border-card" />
+                )}
+              </div>
+              <span className="leading-tight text-center sm:text-left">{step.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Step Content */}
@@ -1083,27 +1136,48 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
       </AnimatePresence>
 
       {/* Navigation & Save - sticky on mobile */}
-      <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t border-border -mx-3 sm:-mx-4 lg:-mx-6 px-3 sm:px-4 lg:px-6 py-3 sm:py-4 flex items-center justify-between gap-2 z-10">
-        <div className="flex gap-1.5 sm:gap-2">
-          {activeStep > 0 && (
-            <Button variant="outline" size="sm" onClick={() => setActiveStep(activeStep - 1)} className="text-xs sm:text-sm h-8 sm:h-9 px-2.5 sm:px-3">
-              ← Back
-            </Button>
-          )}
-          {activeStep < steps.length - 1 && (
-            <Button variant="outline" size="sm" onClick={() => setActiveStep(activeStep + 1)} className="text-xs sm:text-sm h-8 sm:h-9 px-2.5 sm:px-3">
-              Next →
-            </Button>
-          )}
+      <div className="sticky bottom-0 bg-background/95 backdrop-blur-xl border-t border-border/60 -mx-3 sm:-mx-4 lg:-mx-6 px-3 sm:px-4 lg:px-6 py-3 sm:py-4 z-10">
+        {/* Step progress dots */}
+        <div className="flex items-center justify-center gap-1 mb-3">
+          {steps.map((_, idx) => {
+            const status = getStepCompletion(idx);
+            return (
+              <button
+                key={idx}
+                onClick={() => setActiveStep(idx)}
+                className={cn(
+                  "w-2 h-2 rounded-full transition-all",
+                  activeStep === idx ? "w-6 bg-primary" :
+                  status === 'complete' ? "bg-success" :
+                  status === 'partial' ? "bg-warning" :
+                  "bg-muted-foreground/20"
+                )}
+              />
+            );
+          })}
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:inline">
-            Step {activeStep + 1} of {steps.length}
-          </span>
-          <Button onClick={handleSave} disabled={saving} className="gap-1.5 text-xs sm:text-sm h-8 sm:h-9 px-3 sm:px-4">
-            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-            Save
-          </Button>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex gap-1.5 sm:gap-2">
+            {activeStep > 0 && (
+              <Button variant="outline" size="sm" onClick={() => setActiveStep(activeStep - 1)} className="text-xs sm:text-sm h-8 sm:h-9 px-2.5 sm:px-3 rounded-xl">
+                ← Back
+              </Button>
+            )}
+            {activeStep < steps.length - 1 && (
+              <Button variant="outline" size="sm" onClick={() => setActiveStep(activeStep + 1)} className="text-xs sm:text-sm h-8 sm:h-9 px-2.5 sm:px-3 rounded-xl">
+                Next →
+              </Button>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:inline">
+              {steps[activeStep].label} · {activeStep + 1}/{steps.length}
+            </span>
+            <Button onClick={handleSave} disabled={saving} className="gap-1.5 text-xs sm:text-sm h-8 sm:h-9 px-3 sm:px-5 rounded-xl">
+              {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              Save Profile
+            </Button>
+          </div>
         </div>
       </div>
 
