@@ -531,8 +531,16 @@ export const DashboardMessaging = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search conversations..."
-                className="pl-9 h-9 bg-muted/50 border-border/50 text-sm"
+                className="pl-9 h-9 bg-secondary/50 border-border/50 text-sm rounded-xl"
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
             {/* Filter Chips */}
             <div className="flex gap-1.5">
