@@ -48,6 +48,7 @@ export const JobBasicsSection = ({
   isGovernmentEmployer,
   workMode,
   setWorkMode,
+  onGeoComponents,
 }: JobBasicsSectionProps) => {
   return (
     <div className="space-y-8">
