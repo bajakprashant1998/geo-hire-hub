@@ -147,6 +147,28 @@ const getPlanTheme = (name: string) => {
 
 // --- Sub-components ---
 
+const CurrencySelector = ({ currency, onChange }: { currency: string; onChange: (v: string) => void }) => (
+  <Select value={currency} onValueChange={onChange}>
+    <SelectTrigger className="w-[180px] h-10 rounded-full bg-muted/80 backdrop-blur-sm border-border/50 text-sm">
+      <div className="flex items-center gap-2">
+        <Globe className="w-4 h-4 text-muted-foreground" />
+        <SelectValue />
+      </div>
+    </SelectTrigger>
+    <SelectContent className="max-h-[300px]">
+      {Object.entries(EXCHANGE_RATES).map(([code, info]) => (
+        <SelectItem key={code} value={code}>
+          <span className="flex items-center gap-2">
+            <span>{info.flag}</span>
+            <span className="font-medium">{code}</span>
+            <span className="text-muted-foreground text-xs">({info.symbol})</span>
+          </span>
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+);
+
 const BillingToggle = ({ billingCycle, onChange }: { billingCycle: 'monthly' | 'yearly'; onChange: (v: 'monthly' | 'yearly') => void }) => (
   <motion.div
     initial={{ opacity: 0, y: 10 }}
