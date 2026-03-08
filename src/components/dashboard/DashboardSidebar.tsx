@@ -44,7 +44,7 @@ const CANDIDATE_GROUPS: SidebarGroup[] = [
   { label: 'Job Search', items: ['map', 'job-radar', 'jobs', 'saved', 'recommended', 'auto-apply', 'compare-jobs', 'watchlist'] },
   { label: 'Communication', items: ['messages', 'interviews', 'tasks', 'follow-ups', 'availability'] },
   { label: 'Career Tools', items: ['career-buddy', 'app-tracker', 'salary-insights', 'interview-prep', 'skill-gap', 'career-path', 'culture-match', 'market-value'] },
-  { label: 'Profile & Docs', items: ['resume', 'audio-resume', 'ai-resume', 'profile', 'public-profile', 'badges', 'referrals'] },
+  { label: 'Profile & Docs', items: ['resume', 'audio-resume', 'ai-resume', 'profile', 'public-profile', 'portfolio', 'badges', 'referrals'] },
   { label: 'Settings', items: ['notifications', 'alerts', 'security', 'smart-digest', 'leaderboard', 'assessments'] },
 ];
 
