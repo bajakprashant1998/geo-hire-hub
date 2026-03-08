@@ -462,7 +462,7 @@ const CandidateSettings = () => {
           )}
         </AnimatePresence>
       </div>
-    </EmailVerificationGuard>
+    </div>
   );
 };
 
