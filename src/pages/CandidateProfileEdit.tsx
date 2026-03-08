@@ -721,9 +721,19 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                                         <JobCategorySearch value={jobTitle} onChange={setJobTitle} placeholder="e.g., Software Engineer" />
                                         {(!jobTitle.trim() || jobTitle === 'Not specified') && <p className="text-[11px] text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Required</p>}
                                     </div>
-                                    <div className="space-y-2"><Label className="text-sm font-medium">Professional Headline</Label>
-                                        <Input value={headline} onChange={e => setHeadline(e.target.value)} placeholder="e.g., Senior Full Stack Developer | React & Node.js" className="bg-background/50" /></div>
-                                </div>
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <Label className="text-sm font-medium">Professional Headline</Label>
+                                            <AIGenerateButton
+                                                type="headline"
+                                                context={{ jobTitle, skills, experienceYears, currentCompany }}
+                                                onGenerated={setHeadline}
+                                                label="AI Generate"
+                                                disabled={!jobTitle.trim() || jobTitle === 'Not specified'}
+                                            />
+                                        </div>
+                                        <Input value={headline} onChange={e => setHeadline(e.target.value)} placeholder="e.g., Senior Full Stack Developer | React & Node.js" className="bg-background/50" />
+                                    </div>
                                 <div className="grid md:grid-cols-2 gap-4">
                                     <div className="space-y-2"><Label className="text-sm font-medium">Current Company</Label>
                                         <Input value={currentCompany} onChange={e => setCurrentCompany(e.target.value)} placeholder="Where you currently work" className="bg-background/50" /></div>
