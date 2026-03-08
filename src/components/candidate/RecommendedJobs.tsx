@@ -370,9 +370,9 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
     }
 
     // Match filter
-    if (matchFilter === 'perfect') result = result.filter(j => j.relevanceScore >= 25);
-    else if (matchFilter === 'great') result = result.filter(j => j.relevanceScore >= 15);
-    else if (matchFilter === 'good') result = result.filter(j => j.relevanceScore >= 5);
+    if (matchFilter === 'perfect') result = result.filter(j => j.relevanceScore >= 70);
+    else if (matchFilter === 'great') result = result.filter(j => j.relevanceScore >= 50);
+    else if (matchFilter === 'good') result = result.filter(j => j.relevanceScore >= 30);
 
     // Sort
     if (sortBy === 'newest') result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
