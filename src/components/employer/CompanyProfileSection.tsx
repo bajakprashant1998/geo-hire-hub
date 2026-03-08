@@ -202,7 +202,7 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
     { label: 'Basic Info', icon: Building2 },
     { label: 'Location', icon: MapPin },
     { label: 'Hiring', icon: Briefcase },
-    { label: 'Compensation', icon: DollarSign },
+    { label: 'Compensation', icon: Banknote },
     { label: 'Growth', icon: TrendingUp },
     { label: 'Skills Match', icon: Target },
     { label: 'Culture', icon: Heart },
