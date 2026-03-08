@@ -68,3 +68,6 @@ verify_jwt = false
 
 [functions.search-cities]
 verify_jwt = false
+
+[functions.ai-content-moderator]
+verify_jwt = false
