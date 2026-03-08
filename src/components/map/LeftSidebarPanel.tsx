@@ -706,19 +706,34 @@ export const LeftSidebarPanel = ({
       </ScrollArea>
 
       {/* Footer */}
-      {user && (
-        <div className="p-3 border-t border-border/30 bg-muted/10">
-          <Button
-            variant="ghost"
-            onClick={handleSignOut}
-            size="sm"
-            className="w-full justify-start gap-2 h-9 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 rounded-xl"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            Sign Out
-          </Button>
+      <div className="border-t border-border/30 bg-muted/10">
+        {user && (
+          <div className="p-3">
+            <Button
+              variant="ghost"
+              onClick={handleSignOut}
+              size="sm"
+              className="w-full justify-start gap-2 h-9 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 rounded-xl"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              Sign Out
+            </Button>
+          </div>
+        )}
+        <div className="px-3 py-2 border-t border-border/20">
+          <p className="text-[10px] text-muted-foreground text-center">
+            Developed and maintained by{' '}
+            <a
+              href="https://www.dibull.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline font-medium transition-colors"
+            >
+              dibull
+            </a>
+          </p>
         </div>
-      )}
+      </div>
     </div>
   );
 };
