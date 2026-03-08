@@ -69,6 +69,14 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Plan {
   id: string;
@@ -679,6 +687,7 @@ const Plans = () => {
   const [loading, setLoading] = useState(true);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [currency, setCurrency] = useState('USD');
+  const [confirmPlan, setConfirmPlan] = useState<Plan | null>(null);
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -744,12 +753,61 @@ const Plans = () => {
     fetchPlans();
   }, [profile]);
 
-  const handleSelectPlan = async (plan: Plan) => {
+  const handleSelectPlan = (plan: Plan) => {
     if (!user) { navigate('/login'); return; }
     if (profile?.user_type !== 'employer') { toast.error('Only employers can subscribe to plans'); return; }
     if (plan.id === currentPlanId) { toast.info('You are already on this plan'); return; }
-    if (plan.price_monthly === 0) { toast.info('You are on the free plan by default'); return; }
+    if (plan.price_monthly === 0 && !currentPlanId) { toast.info('You are on the free plan by default'); return; }
+    setConfirmPlan(plan);
+  };
+
+  const handleConfirmPlanChange = async () => {
+    if (!confirmPlan) return;
     toast.info('Payment integration coming soon! Contact us for enterprise plans.');
+    setConfirmPlan(null);
+  };
+
+  // Pro-ration calculation helpers
+  const getProrationDetails = (targetPlan: Plan) => {
+    const now = new Date();
+    const isYearly = billingCycle === 'yearly';
+    const currentPlan = plans.find(p => p.id === currentPlanId);
+    const currentPrice = currentPlan
+      ? (isYearly && currentPlan.price_yearly ? currentPlan.price_yearly / 12 : currentPlan.price_monthly)
+      : 0;
+    const newPrice = isYearly && targetPlan.price_yearly
+      ? targetPlan.price_yearly / 12
+      : targetPlan.price_monthly;
+    const isUpgrade = newPrice > currentPrice;
+    const isDowngrade = newPrice < currentPrice && currentPrice > 0;
+
+    // Estimate days remaining in billing period
+    let daysRemaining = 15; // default estimate
+    let totalDays = 30;
+    if (periodEnd) {
+      const end = new Date(periodEnd);
+      const diff = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+      daysRemaining = diff;
+      totalDays = isYearly ? 365 : 30;
+    }
+
+    const usedFraction = 1 - (daysRemaining / totalDays);
+    const creditFromCurrent = currentPrice * (1 - usedFraction) * (isYearly ? 12 : 1);
+    const chargeForNew = newPrice * (daysRemaining / totalDays) * (isYearly ? 12 : 1);
+    const proratedAmount = Math.max(0, chargeForNew - creditFromCurrent);
+
+    return {
+      isUpgrade,
+      isDowngrade,
+      currentPrice,
+      newPrice,
+      daysRemaining,
+      totalDays,
+      creditFromCurrent,
+      chargeForNew,
+      proratedAmount,
+      nextBillingAmount: isYearly && targetPlan.price_yearly ? targetPlan.price_yearly : targetPlan.price_monthly,
+    };
   };
 
   if (loading) {
@@ -941,6 +999,174 @@ const Plans = () => {
         <FAQSection />
         <CTASection />
       </div>
+
+      {/* Plan Change Confirmation Modal */}
+      <Dialog open={!!confirmPlan} onOpenChange={(open) => !open && setConfirmPlan(null)}>
+        <DialogContent className="sm:max-w-[480px]">
+          {confirmPlan && (() => {
+            const details = getProrationDetails(confirmPlan);
+            const currentPlan = plans.find(p => p.id === currentPlanId);
+            const isFreeToUpgrade = !currentPlan || currentPlan.price_monthly === 0;
+            const isDowngradeToFree = confirmPlan.price_monthly === 0;
+
+            return (
+              <>
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2 text-lg">
+                    {details.isDowngrade ? (
+                      <ArrowLeft className="w-5 h-5 text-muted-foreground" />
+                    ) : (
+                      <Sparkles className="w-5 h-5 text-primary" />
+                    )}
+                    {details.isDowngrade ? 'Downgrade' : 'Upgrade'} to {confirmPlan.name}
+                  </DialogTitle>
+                  <DialogDescription>
+                    {details.isUpgrade
+                      ? 'You\'ll get immediate access to all new features.'
+                      : details.isDowngrade
+                        ? 'Changes take effect at the end of your current billing cycle.'
+                        : 'Review your plan change details below.'}
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-4 py-2">
+                  {/* Plan comparison summary */}
+                  <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/50 border border-border/50">
+                    <div className="flex-1 text-center">
+                      <p className="text-xs text-muted-foreground mb-1">Current</p>
+                      <p className="text-sm font-semibold text-foreground">{currentPlan?.name || 'Free'}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {currentPlan ? formatPrice(convertPrice(details.currentPrice, currency), currency) : 'Free'}/mo
+                      </p>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <div className="flex-1 text-center">
+                      <p className="text-xs text-muted-foreground mb-1">New</p>
+                      <p className="text-sm font-semibold text-primary">{confirmPlan.name}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {isDowngradeToFree ? 'Free' : formatPrice(convertPrice(details.newPrice, currency), currency)}/mo
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Slot change */}
+                  <div className="flex items-center justify-between px-1">
+                    <span className="text-sm text-muted-foreground">Active Job Slots</span>
+                    <span className="text-sm font-semibold text-foreground">
+                      {currentPlan?.max_active_jobs ?? 1} → {confirmPlan.max_active_jobs === -1 ? '∞' : confirmPlan.max_active_jobs}
+                    </span>
+                  </div>
+
+                  <Separator />
+
+                  {/* Pro-rated billing breakdown */}
+                  {!isFreeToUpgrade && !isDowngradeToFree && (
+                    <div className="space-y-2.5">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Billing Preview</p>
+                      
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Days remaining in cycle</span>
+                          <span className="font-medium text-foreground">{details.daysRemaining} of {details.totalDays}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Credit from {currentPlan?.name}</span>
+                          <span className="font-medium text-emerald-600 dark:text-emerald-400">
+                            −{formatPrice(convertPrice(details.creditFromCurrent, currency), currency)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Charge for {confirmPlan.name}</span>
+                          <span className="font-medium text-foreground">
+                            {formatPrice(convertPrice(details.chargeForNew, currency), currency)}
+                          </span>
+                        </div>
+                        <Separator />
+                        <div className="flex justify-between font-semibold">
+                          <span className="text-foreground">Due today (pro-rated)</span>
+                          <span className="text-primary text-base">
+                            {formatPrice(convertPrice(details.proratedAmount, currency), currency)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {isFreeToUpgrade && !isDowngradeToFree && (
+                    <div className="space-y-2.5">
+                      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Billing Preview</p>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between font-semibold">
+                          <span className="text-foreground">Due today</span>
+                          <span className="text-primary text-base">
+                            {formatPrice(convertPrice(
+                              billingCycle === 'yearly' && confirmPlan.price_yearly
+                                ? confirmPlan.price_yearly
+                                : confirmPlan.price_monthly,
+                              currency
+                            ), currency)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between text-muted-foreground">
+                          <span>Billing cycle</span>
+                          <span className="font-medium text-foreground capitalize">{billingCycle}</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {isDowngradeToFree && (
+                    <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                      <p className="text-sm text-amber-700 dark:text-amber-400">
+                        Your {currentPlan?.name} features will remain active until the end of your current billing period.
+                        No further charges will be made.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Next billing */}
+                  {!isDowngradeToFree && (
+                    <div className="p-3 rounded-lg bg-muted/50 border border-border/50">
+                      <p className="text-xs text-muted-foreground">
+                        Next billing: <span className="font-medium text-foreground">
+                          {formatPrice(convertPrice(details.nextBillingAmount, currency), currency)}/{billingCycle === 'yearly' ? 'year' : 'month'}
+                        </span>
+                        {currency !== 'USD' && (
+                          <span className="text-muted-foreground/60"> · Charged in USD, converted amounts are approximate</span>
+                        )}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <DialogFooter className="gap-2 sm:gap-0">
+                  <Button variant="outline" onClick={() => setConfirmPlan(null)} className="rounded-xl">
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleConfirmPlanChange}
+                    className={cn(
+                      "rounded-xl gap-2",
+                      details.isDowngrade
+                        ? 'bg-muted text-foreground hover:bg-muted/80'
+                        : ''
+                    )}
+                  >
+                    {details.isDowngrade ? (
+                      <>Confirm Downgrade</>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4" />
+                        Confirm & Pay
+                      </>
+                    )}
+                  </Button>
+                </DialogFooter>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
