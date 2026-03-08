@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Bookmark, MapPin, DollarSign, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { Bookmark, MapPin, Banknote, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 
