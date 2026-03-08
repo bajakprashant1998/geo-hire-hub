@@ -90,6 +90,7 @@ interface Filters {
   resumeKeyword: string;
   pipelineStatus: string;
   availability: string;
+  jobId: string;
 }
 
 interface AIInsights {
@@ -126,6 +127,7 @@ const defaultFilters: Filters = {
   resumeKeyword: '',
   pipelineStatus: 'all',
   availability: '',
+  jobId: 'all',
 };
 
 export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
