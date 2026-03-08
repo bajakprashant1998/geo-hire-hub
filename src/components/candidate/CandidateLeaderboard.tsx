@@ -403,7 +403,7 @@ export const CandidateLeaderboard = () => {
 
       {/* Sort Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-4 w-full h-10 bg-muted/30 rounded-xl p-0.5">
+        <TabsList className="grid grid-cols-5 w-full h-10 bg-muted/30 rounded-xl p-0.5">
           <TabsTrigger value="overall" className="rounded-lg text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1">
             <Trophy className="w-3.5 h-3.5" /> Overall
           </TabsTrigger>
@@ -415,6 +415,9 @@ export const CandidateLeaderboard = () => {
           </TabsTrigger>
           <TabsTrigger value="activity" className="rounded-lg text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1">
             <Zap className="w-3.5 h-3.5" /> Activity
+          </TabsTrigger>
+          <TabsTrigger value="portfolio" className="rounded-lg text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1">
+            <Layout className="w-3.5 h-3.5" /> Portfolio
           </TabsTrigger>
         </TabsList>
       </Tabs>
