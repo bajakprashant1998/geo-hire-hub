@@ -147,6 +147,7 @@ const App = () => (
               <Route path="/jobs/:country/:state/:city/:slug" element={<PageTransition><SEOJobDetail /></PageTransition>} />
 
               <Route path="/candidates/:id/resume.pdf" element={<CandidateResumeRedirect />} />
+              <Route path="/candidates/:id/portfolio" element={<PageTransition><CandidatePortfolio /></PageTransition>} />
               <Route path="/candidates/:id" element={<PageTransition><CandidateDetail /></PageTransition>} />
               <Route path="/candidates/:country/:slug" element={<PageTransition><SEOCandidateDetail /></PageTransition>} />
               <Route path="/candidates/:country/:state/:slug" element={<PageTransition><SEOCandidateDetail /></PageTransition>} />
