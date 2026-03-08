@@ -1241,8 +1241,18 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                             </SectionCard>
 
                             <SectionCard icon={FileText} title="Default Cover Letter" subtitle="Pre-filled when you apply to jobs">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-sm text-muted-foreground">This will be pre-filled when applying to jobs</span>
+                                    <AIGenerateButton
+                                        type="cover_letter"
+                                        context={{ jobTitle, skills, experienceYears, currentCompany }}
+                                        onGenerated={setCoverLetterDefault}
+                                        label="AI Write"
+                                        disabled={!jobTitle.trim() || jobTitle === 'Not specified'}
+                                    />
+                                </div>
                                 <Textarea value={coverLetterDefault} onChange={e => setCoverLetterDefault(e.target.value)}
-                                    placeholder="Write a default cover letter..." rows={5} className="bg-background/50" />
+                                    placeholder="Write a default cover letter..." rows={6} className="bg-background/50" />
                                 <p className="text-[11px] text-muted-foreground">{coverLetterDefault?.length || 0} characters</p>
                             </SectionCard>
                         </>
