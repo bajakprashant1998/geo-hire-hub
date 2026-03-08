@@ -7,12 +7,13 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Shield, Key, Clock, Smartphone, Trash2, AlertTriangle, Loader2, Eye, EyeOff, LogOut, Mail, AtSign, CheckCircle2, XCircle, Info } from 'lucide-react';
+import { Shield, Key, Clock, Smartphone, Trash2, AlertTriangle, Loader2, Eye, EyeOff, LogOut, Mail, AtSign, CheckCircle2, XCircle, Info, Bell } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PushNotificationToggle } from '@/components/candidate/PushNotificationToggle';
 
 // Forward ref wrapper for AlertDialogTrigger buttons
 const TriggerButton = forwardRef<HTMLButtonElement, React.ComponentPropsWithoutRef<typeof Button>>(
@@ -236,7 +237,22 @@ export const SecuritySettings = () => {
         </Card>
       </motion.div>
 
-      {/* WhatsApp Notifications */}
+      {/* Push Notifications */}
+      <motion.div custom={0.45} variants={cardVariants} initial="hidden" animate="visible">
+        <Card className="shadow-google">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="w-5 h-5 text-primary" />
+              Browser Push Notifications
+            </CardTitle>
+            <CardDescription>Get real-time alerts in your browser</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <PushNotificationToggle />
+          </CardContent>
+        </Card>
+      </motion.div>
+
       <motion.div custom={0.5} variants={cardVariants} initial="hidden" animate="visible">
         <Card className="shadow-google">
           <CardHeader>
