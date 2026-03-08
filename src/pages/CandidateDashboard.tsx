@@ -558,6 +558,7 @@ const CandidateDashboard = () => {
       case 'culture-match': return <CultureMatchScore candidateId={candidate.id} />;
       case 'smart-digest': return <SmartNotificationDigest />;
       case 'watchlist': return candidate && <CompanyWatchlist candidateId={candidate.id} />;
+      case 'negotiation-coach': return <SalaryNegotiationCoach candidateId={candidate.id} />;
       default: return null;
     }
   };
