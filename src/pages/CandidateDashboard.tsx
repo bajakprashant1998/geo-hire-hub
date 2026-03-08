@@ -535,6 +535,12 @@ const CandidateDashboard = () => {
       case 'market-value': return <MarketValueScore />;
       case 'badges': return <ProfileBadges />;
       case 'leaderboard': return <CandidateLeaderboard />;
+      case 'follow-ups': return <FollowUpReminders candidateId={candidate.id} />;
+      case 'skill-gap': return <SkillGapAnalyzer candidateSkills={candidate.skills || []} />;
+      case 'availability': return <InterviewAvailability candidateId={candidate.id} />;
+      case 'compare-jobs': return <JobComparisonTool candidateId={candidate.id} />;
+      case 'career-path': return <CareerPathVisualizer currentJobTitle={candidate.job_title || ''} currentSkills={candidate.skills || []} />;
+      case 'culture-match': return <CultureMatchScore candidateId={candidate.id} />;
       default: return null;
     }
   };
