@@ -94,8 +94,8 @@ const SectionLabel = ({ label }: { label: string }) => (
   </div>
 );
 
-const ACTIVITY_ITEMS = ['map', 'job-radar', 'jobs', 'messages', 'chat', 'interviews', 'tasks', 'saved', 'recommended', 'candidates', 'drafts', 'career-buddy', 'auto-apply'];
-const PROFILE_ITEMS = ['resume', 'audio-resume', 'ai-resume', 'profile', 'public-profile', 'company', 'analytics'];
+const ACTIVITY_ITEMS = ['map', 'job-radar', 'jobs', 'messages', 'chat', 'interviews', 'tasks', 'saved', 'recommended', 'candidates', 'drafts', 'career-buddy', 'auto-apply', 'follow-ups', 'compare-jobs'];
+const PROFILE_ITEMS = ['resume', 'audio-resume', 'ai-resume', 'profile', 'public-profile', 'company', 'analytics', 'skill-gap', 'career-path', 'availability', 'culture-match'];
 const SETTINGS_ITEMS = ['notifications', 'alerts', 'security', 'upgrade-plan', 'salary-insights'];
 
 export const DashboardSidebar = ({

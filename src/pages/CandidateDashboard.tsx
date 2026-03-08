@@ -50,6 +50,12 @@ import { InterviewPrepCoach } from '@/components/candidate/InterviewPrepCoach';
 import { MarketValueScore } from '@/components/candidate/MarketValueScore';
 import { ProfileBadges } from '@/components/candidate/ProfileBadges';
 import { CandidateLeaderboard } from '@/components/candidate/CandidateLeaderboard';
+import { FollowUpReminders } from '@/components/candidate/FollowUpReminders';
+import { SkillGapAnalyzer } from '@/components/candidate/SkillGapAnalyzer';
+import { InterviewAvailability } from '@/components/candidate/InterviewAvailability';
+import { JobComparisonTool } from '@/components/candidate/JobComparisonTool';
+import { CareerPathVisualizer } from '@/components/candidate/CareerPathVisualizer';
+import { CultureMatchScore } from '@/components/candidate/CultureMatchScore';
 import { PendingTasksWidget } from '@/components/dashboard/PendingTasksWidget';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -239,6 +245,12 @@ const CandidateDashboard = () => {
     { icon: BarChart3, label: 'Market Value', value: 'market-value' },
     { icon: Award, label: 'Badges', value: 'badges' },
     { icon: Trophy, label: 'Leaderboard', value: 'leaderboard' },
+    { icon: Bell, label: 'Follow-Up Reminders', value: 'follow-ups' },
+    { icon: Brain, label: 'Skill Gap Analyzer', value: 'skill-gap' },
+    { icon: Calendar, label: 'Availability Slots', value: 'availability' },
+    { icon: BarChart3, label: 'Compare Jobs', value: 'compare-jobs' },
+    { icon: TrendingUp, label: 'Career Path', value: 'career-path' },
+    { icon: Star, label: 'Culture Match', value: 'culture-match' },
   ];
 
   // Quick action buttons for dashboard home — full 8-item grid
@@ -474,7 +486,7 @@ const CandidateDashboard = () => {
 
   const renderSectionContent = () => {
     // Show a message when candidate record is missing for sections that need it
-    const requiresCandidate = ['jobs', 'saved', 'interviews', 'resume', 'audio-resume', 'alerts', 'tasks', 'public-profile', 'recommended', 'auto-apply', 'job-radar', 'app-tracker', 'assessments', 'interview-prep'];
+    const requiresCandidate = ['jobs', 'saved', 'interviews', 'resume', 'audio-resume', 'alerts', 'tasks', 'public-profile', 'recommended', 'auto-apply', 'job-radar', 'app-tracker', 'assessments', 'interview-prep', 'follow-ups', 'skill-gap', 'availability', 'compare-jobs', 'career-path', 'culture-match'];
     if (requiresCandidate.includes(activeSection || '') && !candidate) {
       return (
         <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -523,6 +535,12 @@ const CandidateDashboard = () => {
       case 'market-value': return <MarketValueScore />;
       case 'badges': return <ProfileBadges />;
       case 'leaderboard': return <CandidateLeaderboard />;
+      case 'follow-ups': return <FollowUpReminders candidateId={candidate.id} />;
+      case 'skill-gap': return <SkillGapAnalyzer candidateSkills={candidate.skills || []} />;
+      case 'availability': return <InterviewAvailability candidateId={candidate.id} />;
+      case 'compare-jobs': return <JobComparisonTool candidateId={candidate.id} />;
+      case 'career-path': return <CareerPathVisualizer currentJobTitle={candidate.job_title || ''} currentSkills={candidate.skills || []} />;
+      case 'culture-match': return <CultureMatchScore candidateId={candidate.id} />;
       default: return null;
     }
   };
