@@ -910,6 +910,42 @@ export type Database = {
           },
         ]
       }
+      company_watchlist: {
+        Row: {
+          candidate_id: string
+          created_at: string | null
+          employer_id: string
+          id: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string | null
+          employer_id: string
+          id?: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string | null
+          employer_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_watchlist_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_watchlist_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "employers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           created_at: string | null
@@ -1076,6 +1112,53 @@ export type Database = {
           value?: string
         }
         Relationships: []
+      }
+      employer_branding_sections: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          employer_id: string
+          id: string
+          is_visible: boolean | null
+          media_url: string | null
+          section_type: string
+          sort_order: number | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          employer_id: string
+          id?: string
+          is_visible?: boolean | null
+          media_url?: string | null
+          section_type?: string
+          sort_order?: number | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          employer_id?: string
+          id?: string
+          is_visible?: boolean | null
+          media_url?: string | null
+          section_type?: string
+          sort_order?: number | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employer_branding_sections_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "employers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       employer_plans: {
         Row: {
@@ -2500,6 +2583,57 @@ export type Database = {
           title?: string
           type?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      platform_banners: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          ends_at: string | null
+          id: string
+          is_active: boolean | null
+          is_dismissible: boolean | null
+          link_text: string | null
+          link_url: string | null
+          message: string
+          starts_at: string | null
+          target_audience: string
+          title: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          ends_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_dismissible?: boolean | null
+          link_text?: string | null
+          link_url?: string | null
+          message: string
+          starts_at?: string | null
+          target_audience?: string
+          title: string
+          type?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          ends_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_dismissible?: boolean | null
+          link_text?: string | null
+          link_url?: string | null
+          message?: string
+          starts_at?: string | null
+          target_audience?: string
+          title?: string
+          type?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
