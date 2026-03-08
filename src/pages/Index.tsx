@@ -201,7 +201,7 @@ const Index = () => {
 
       {/* Desktop Layout */}
       <div className="hidden md:flex h-full">
-        <div className="w-[320px] h-full border-r border-border/30 bg-background/95 backdrop-blur-sm z-20 flex-shrink-0 shadow-xl">
+        <div className="w-[368px] h-full border-r border-border/30 bg-background/95 backdrop-blur-sm z-20 flex-shrink-0 shadow-xl">
           <LeftSidebarPanel
             mode={mode}
             onModeChange={handleModeChange}
