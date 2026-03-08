@@ -348,11 +348,26 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                         <p className="text-muted-foreground text-sm">Manage how employers see you</p>
                     </div>
                 </div>
-                <Button onClick={handleSave} disabled={saving}>
-                    {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                    Save
-                </Button>
+                <div className="flex items-center gap-3">
+                    {saving && <span className="text-xs text-muted-foreground animate-pulse">Saving...</span>}
+                    <Button onClick={handleSave} disabled={saving} className="gap-2">
+                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                        Save
+                    </Button>
+                </div>
             </div>
+
+            {/* Validation hints */}
+            {(!fullName.trim() || !jobTitle.trim() || jobTitle === 'Not specified') && (
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 text-sm text-amber-800 dark:text-amber-200">
+                    <Flag className="w-4 h-4 shrink-0" />
+                    <span>
+                        {!fullName.trim() && 'Full name is required. '}
+                        {(!jobTitle.trim() || jobTitle === 'Not specified') && 'Please set your job title. '}
+                        {skills.length === 0 && 'Add at least one skill for better visibility.'}
+                    </span>
+                </div>
+            )}
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                 <TabsList className="grid grid-cols-3 sm:grid-cols-6 w-full h-auto gap-1">
