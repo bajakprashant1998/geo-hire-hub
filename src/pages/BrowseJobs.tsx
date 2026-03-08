@@ -1,12 +1,16 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Search, Briefcase, MapPin, Clock, Building2, Filter, LayoutDashboard } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Search, Briefcase, MapPin, Clock, Building2, Filter, LayoutDashboard,
+  ChevronRight, Bookmark, TrendingUp, Sparkles, ArrowUpDown, LayoutGrid, LayoutList, X
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { SEOHead } from '@/components/SEOHead';
@@ -14,41 +18,70 @@ import { SEOContentFooter } from '@/components/SEOContentFooter';
 import { BreadcrumbNav, buildBreadcrumbJsonLd } from '@/components/BreadcrumbNav';
 import { SalaryBadge } from '@/components/SalaryBadge';
 import { DeadlineCountdown } from '@/components/DeadlineCountdown';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const PAGE_SIZE = 20;
-
 const JOB_TYPES = ['Full-time', 'Part-time', 'Contract', 'Internship', 'Freelance'];
+const SORT_OPTIONS = [
+  { value: 'newest', label: 'Newest First' },
+  { value: 'oldest', label: 'Oldest First' },
+];
 
 const BrowseJobs = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // URL-synced state
+  const [search, setSearch] = useState(searchParams.get('q') || '');
+  const [jobType, setJobType] = useState(searchParams.get('type') || 'all');
+  const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'newest');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>(
+    (searchParams.get('view') as 'list' | 'grid') || 'list'
+  );
+
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [jobType, setJobType] = useState('all');
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [total, setTotal] = useState(0);
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
 
+  // Debounce search input
   useEffect(() => {
-    fetchJobs(true);
-  }, [search, jobType]);
+    const t = setTimeout(() => setDebouncedSearch(search), 350);
+    return () => clearTimeout(t);
+  }, [search]);
 
-  const fetchJobs = async (reset = false) => {
+  // Sync filters to URL
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (search) params.set('q', search);
+    if (jobType !== 'all') params.set('type', jobType);
+    if (sortBy !== 'newest') params.set('sort', sortBy);
+    if (viewMode !== 'list') params.set('view', viewMode);
+    setSearchParams(params, { replace: true });
+  }, [search, jobType, sortBy, viewMode, setSearchParams]);
+
+  // Fetch jobs
+  const fetchJobs = useCallback(async (reset = false) => {
     const currentPage = reset ? 0 : page;
     if (reset) setPage(0);
     setLoading(true);
 
     let query = supabase
       .from('jobs')
-      .select('id, title, job_type, salary_range, created_at, job_address, slug, location_country, location_state, location_city, expires_at, employers!inner(company_name)', { count: 'exact' })
+      .select(
+        'id, title, job_type, salary_range, created_at, job_address, slug, location_country, location_state, location_city, expires_at, description, employers!inner(company_name, industry, slug)',
+        { count: 'exact' }
+      )
       .eq('status', 'open')
       .eq('is_active', true)
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: sortBy === 'oldest' })
       .range(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE - 1);
 
-    if (search) {
-      query = query.or(`title.ilike.%${search}%,job_address.ilike.%${search}%`);
+    if (debouncedSearch) {
+      query = query.or(`title.ilike.%${debouncedSearch}%,job_address.ilike.%${debouncedSearch}%`);
     }
     if (jobType !== 'all') {
       query = query.eq('job_type', jobType);
@@ -61,11 +94,35 @@ const BrowseJobs = () => {
       setHasMore((data?.length || 0) === PAGE_SIZE);
     }
     setLoading(false);
-  };
+  }, [page, debouncedSearch, jobType, sortBy, jobs]);
+
+  useEffect(() => {
+    fetchJobs(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch, jobType, sortBy]);
 
   const loadMore = () => {
-    setPage(p => p + 1);
-    fetchJobs(false);
+    const nextPage = page + 1;
+    setPage(nextPage);
+    // Fetch with next page
+    setLoading(true);
+    supabase
+      .from('jobs')
+      .select(
+        'id, title, job_type, salary_range, created_at, job_address, slug, location_country, location_state, location_city, expires_at, description, employers!inner(company_name, industry, slug)',
+        { count: 'exact' }
+      )
+      .eq('status', 'open')
+      .eq('is_active', true)
+      .order('created_at', { ascending: sortBy === 'oldest' })
+      .range(nextPage * PAGE_SIZE, (nextPage + 1) * PAGE_SIZE - 1)
+      .then(({ data, error }) => {
+        if (!error && data) {
+          setJobs(prev => [...prev, ...data]);
+          setHasMore(data.length === PAGE_SIZE);
+        }
+        setLoading(false);
+      });
   };
 
   const formatDate = (d: string) => {
@@ -88,7 +145,22 @@ const BrowseJobs = () => {
     return `/jobs/${job.id}`;
   };
 
+  const getDescription = (job: any) => {
+    if (!job.description) return null;
+    const plain = job.description.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    return plain.length > 120 ? plain.slice(0, 120) + '…' : plain;
+  };
+
   const dashboardPath = profile?.user_type === 'employer' ? '/employer-dashboard' : '/candidate-dashboard';
+  const activeFilters = [
+    ...(jobType !== 'all' ? [{ key: 'type', label: jobType }] : []),
+    ...(debouncedSearch ? [{ key: 'search', label: `"${debouncedSearch}"` }] : []),
+  ];
+
+  const clearFilter = (key: string) => {
+    if (key === 'type') setJobType('all');
+    if (key === 'search') setSearch('');
+  };
 
   const browseJsonLd = {
     '@context': 'https://schema.org',
@@ -102,107 +174,291 @@ const BrowseJobs = () => {
       name: job.title,
     })),
   };
-  const browseBreadcrumb = buildBreadcrumbJsonLd([{ label: 'Browse Jobs' }]);
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="Job Listings Near Me – Browse & Hire For Job" description="Browse job listings near me. Find jobs hiring near me by type, location, and keywords. Hire for job opportunities updated daily." jsonLd={browseJsonLd} breadcrumbJsonLd={browseBreadcrumb} canonicalUrl="https://www.hireforjob.com/browse-jobs" />
+      <SEOHead
+        title="Job Listings Near Me – Browse & Hire For Job"
+        description="Browse job listings near me. Find jobs hiring near me by type, location, and keywords. Hire for job opportunities updated daily."
+        jsonLd={browseJsonLd}
+        breadcrumbJsonLd={buildBreadcrumbJsonLd([{ label: 'Browse Jobs' }])}
+        canonicalUrl="https://www.hireforjob.com/browse-jobs"
+      />
 
-      {/* Header */}
-      <div className="border-b bg-card">
-        <div className="container mx-auto px-4 py-6 max-w-5xl">
-          <div className="flex items-center gap-2 mb-4">
+      {/* Hero Header */}
+      <div className="border-b bg-gradient-to-br from-primary/5 via-background to-primary/3">
+        <div className="container mx-auto px-4 py-6 max-w-6xl">
+          <div className="flex items-center justify-between mb-4">
             <BreadcrumbNav items={[{ label: 'Browse Jobs' }]} />
-          </div>
-          <div className="flex items-center gap-2 mb-4">
             {user && (
-              <Button variant="outline" size="sm" onClick={() => navigate(dashboardPath)} className="gap-2 text-muted-foreground">
+              <Button variant="outline" size="sm" onClick={() => navigate(dashboardPath)} className="gap-2 text-muted-foreground hover:text-foreground transition-colors">
                 <LayoutDashboard className="w-4 h-4" /> Dashboard
               </Button>
             )}
           </div>
-          <h1 className="text-2xl font-bold text-foreground mb-1">Job Listings Near Me</h1>
-          <p className="text-muted-foreground">{total} jobs hiring near me — updated daily</p>
 
-          {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-3 mt-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by title or location..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                className="pl-10"
-              />
+          <div className="flex items-start justify-between gap-4 mb-5">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
+                Find Your Next Opportunity
+              </h1>
+              <p className="text-muted-foreground mt-1 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-primary" />
+                <span>
+                  <strong className="text-foreground">{total.toLocaleString()}</strong> jobs available — updated daily
+                </span>
+              </p>
             </div>
-            <Select value={jobType} onValueChange={setJobType}>
-              <SelectTrigger className="w-full sm:w-44">
-                <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
-                <SelectValue placeholder="Job Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                {JOB_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-              </SelectContent>
-            </Select>
+          </div>
+
+          {/* Search & Filters Bar */}
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search job title, company, or location..."
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="pl-10 h-11 bg-card border-border/60 shadow-sm focus-visible:ring-primary/30"
+                />
+                {search && (
+                  <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              <Select value={jobType} onValueChange={setJobType}>
+                <SelectTrigger className="w-full sm:w-44 h-11 bg-card shadow-sm">
+                  <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="Job Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  {JOB_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-full sm:w-44 h-11 bg-card shadow-sm">
+                  <ArrowUpDown className="w-4 h-4 mr-2 text-muted-foreground" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SORT_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Active Filters & View Toggle */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <AnimatePresence>
+                  {activeFilters.map(f => (
+                    <motion.div key={f.key} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}>
+                      <Badge variant="secondary" className="gap-1 pl-2.5 pr-1.5 py-1 cursor-pointer hover:bg-muted" onClick={() => clearFilter(f.key)}>
+                        {f.label}
+                        <X className="w-3 h-3 ml-0.5" />
+                      </Badge>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+                {activeFilters.length > 0 && (
+                  <button
+                    onClick={() => { setSearch(''); setJobType('all'); }}
+                    className="text-xs text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Clear all
+                  </button>
+                )}
+              </div>
+              <div className="hidden sm:flex items-center gap-1 bg-muted rounded-lg p-0.5">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => setViewMode('list')}
+                      className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      <LayoutList className="w-4 h-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>List view</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => setViewMode('grid')}
+                      className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-card shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      <LayoutGrid className="w-4 h-4" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>Grid view</TooltipContent>
+                </Tooltip>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Job List */}
-      <div className="container mx-auto px-4 py-6 max-w-5xl">
+      <div className="container mx-auto px-4 py-6 max-w-6xl">
         {loading && jobs.length === 0 ? (
-          <div className="space-y-4">
-            {[1,2,3,4,5].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
+          <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4' : 'space-y-3'}>
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <Skeleton key={i} className={viewMode === 'grid' ? 'h-48 rounded-xl' : 'h-28 rounded-xl'} />
+            ))}
           </div>
         ) : jobs.length === 0 ? (
-          <div className="text-center py-16">
-            <Briefcase className="w-16 h-16 mx-auto mb-4 text-muted-foreground/30" />
-            <h2 className="text-lg font-semibold mb-2">No jobs found</h2>
-            <p className="text-muted-foreground">Try adjusting your search or filters.</p>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-20"
+          >
+            <div className="w-20 h-20 mx-auto mb-5 rounded-2xl bg-muted flex items-center justify-center">
+              <Briefcase className="w-10 h-10 text-muted-foreground/40" />
+            </div>
+            <h2 className="text-xl font-semibold mb-2 text-foreground">No jobs found</h2>
+            <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+              Try adjusting your search terms or removing filters to see more results.
+            </p>
+            <Button variant="outline" onClick={() => { setSearch(''); setJobType('all'); }}>
+              Clear All Filters
+            </Button>
+          </motion.div>
         ) : (
-          <div className="space-y-3">
-            {jobs.map(job => (
-              <Link key={job.id} to={getJobUrl(job)}>
-                <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-foreground truncate">{job.title}</h3>
-                        <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                          <Building2 className="w-3.5 h-3.5" />
-                          {(job.employers as any)?.company_name || 'Company'}
-                        </p>
-                        <div className="flex flex-wrap items-center gap-2 mt-2">
-                          {job.job_type && <Badge variant="secondary" className="text-xs">{job.job_type}</Badge>}
-                          {job.salary_range && <Badge variant="outline" className="text-xs">{job.salary_range}</Badge>}
-                          {job.salary_range && <SalaryBadge salaryRange={job.salary_range} compact />}
-                          {job.job_address && (
-                            <span className="text-xs text-muted-foreground flex items-center gap-1">
-                              <MapPin className="w-3 h-3" />{job.job_address}
-                            </span>
-                          )}
-                          {job.expires_at && <DeadlineCountdown expiresAt={job.expires_at} variant="inline" />}
-                        </div>
-                      </div>
-                      <span className="text-xs text-muted-foreground whitespace-nowrap flex items-center gap-1">
-                        <Clock className="w-3 h-3" />{formatDate(job.created_at)}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+          <>
+            {/* Results count */}
+            <p className="text-sm text-muted-foreground mb-4">
+              Showing <strong className="text-foreground">{jobs.length}</strong> of {total.toLocaleString()} jobs
+            </p>
 
+            <div className={viewMode === 'grid'
+              ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4'
+              : 'space-y-3'
+            }>
+              <AnimatePresence mode="popLayout">
+                {jobs.map((job, i) => (
+                  <motion.div
+                    key={job.id}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: Math.min(i * 0.03, 0.3) }}
+                    layout
+                  >
+                    <Link to={getJobUrl(job)} className="block group">
+                      <Card className="overflow-hidden border-border/60 bg-card hover:shadow-md hover:border-primary/20 transition-all duration-200 group-hover:translate-y-[-1px]">
+                        <CardContent className={viewMode === 'grid' ? 'p-4 flex flex-col h-full' : 'p-4'}>
+                          {viewMode === 'grid' ? (
+                            /* Grid Card */
+                            <>
+                              <div className="flex items-start justify-between gap-2 mb-3">
+                                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                                  <Building2 className="w-5 h-5 text-primary" />
+                                </div>
+                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />{formatDate(job.created_at)}
+                                </span>
+                              </div>
+                              <h3 className="font-semibold text-foreground line-clamp-2 mb-1 group-hover:text-primary transition-colors">
+                                {job.title}
+                              </h3>
+                              <p className="text-sm text-muted-foreground mb-2 flex items-center gap-1">
+                                <Building2 className="w-3.5 h-3.5 shrink-0" />
+                                <span className="truncate">{(job.employers as any)?.company_name || 'Company'}</span>
+                              </p>
+                              {getDescription(job) && (
+                                <p className="text-xs text-muted-foreground/80 line-clamp-2 mb-3">{getDescription(job)}</p>
+                              )}
+                              <div className="mt-auto flex flex-wrap items-center gap-1.5">
+                                {job.job_type && <Badge variant="secondary" className="text-xs">{job.job_type}</Badge>}
+                                {job.salary_range && <SalaryBadge salaryRange={job.salary_range} compact />}
+                                {job.expires_at && <DeadlineCountdown expiresAt={job.expires_at} variant="inline" />}
+                              </div>
+                              {job.job_address && (
+                                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-2">
+                                  <MapPin className="w-3 h-3 shrink-0" />
+                                  <span className="truncate">{job.job_address}</span>
+                                </p>
+                              )}
+                            </>
+                          ) : (
+                            /* List Card */
+                            <div className="flex items-start gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                                <Building2 className="w-5 h-5 text-primary" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-start justify-between gap-2">
+                                  <div className="min-w-0">
+                                    <h3 className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+                                      {job.title}
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                                      <span className="truncate">{(job.employers as any)?.company_name || 'Company'}</span>
+                                      {(job.employers as any)?.industry && (
+                                        <>
+                                          <span className="text-border">•</span>
+                                          <span className="truncate text-xs">{(job.employers as any).industry}</span>
+                                        </>
+                                      )}
+                                    </p>
+                                  </div>
+                                  <div className="flex items-center gap-2 shrink-0">
+                                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                      <Clock className="w-3 h-3" />{formatDate(job.created_at)}
+                                    </span>
+                                    <ChevronRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
+                                  </div>
+                                </div>
+                                {getDescription(job) && (
+                                  <p className="text-xs text-muted-foreground/80 mt-1.5 line-clamp-1">{getDescription(job)}</p>
+                                )}
+                                <div className="flex flex-wrap items-center gap-2 mt-2">
+                                  {job.job_type && <Badge variant="secondary" className="text-xs">{job.job_type}</Badge>}
+                                  {job.salary_range && (
+                                    <Badge variant="outline" className="text-xs">{job.salary_range}</Badge>
+                                  )}
+                                  {job.salary_range && <SalaryBadge salaryRange={job.salary_range} compact />}
+                                  {job.job_address && (
+                                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                      <MapPin className="w-3 h-3" />
+                                      <span className="truncate max-w-[200px]">{job.job_address}</span>
+                                    </span>
+                                  )}
+                                  {job.expires_at && <DeadlineCountdown expiresAt={job.expires_at} variant="inline" />}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+
+            {/* Load More */}
             {hasMore && (
-              <div className="text-center pt-4">
-                <Button variant="outline" onClick={loadMore} disabled={loading}>
-                  {loading ? 'Loading...' : 'Load More'}
+              <div className="text-center pt-8">
+                <Button
+                  variant="outline"
+                  onClick={loadMore}
+                  disabled={loading}
+                  className="min-w-[200px] h-11"
+                >
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <span className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                      Loading...
+                    </span>
+                  ) : (
+                    `Show More Jobs (${Math.max(0, total - jobs.length)} remaining)`
+                  )}
                 </Button>
               </div>
             )}
-          </div>
+          </>
         )}
       </div>
 
