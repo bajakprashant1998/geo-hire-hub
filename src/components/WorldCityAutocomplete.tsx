@@ -139,7 +139,7 @@ export const WorldCityAutocomplete = ({
             );
           })}
           <div className="px-3 py-1.5 text-[10px] text-muted-foreground/50 border-t border-border/30 bg-secondary/30">
-            {suggestions.some(s => s.source === 'geonames') ? 'Results from database + GeoNames' : `${suggestions.length} cities found`}
+            {suggestions.some(s => s.source === 'google') ? 'Results from database + Google Maps' : `${suggestions.length} cities found`}
           </div>
         </div>
       )}
