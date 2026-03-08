@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   Video, Calendar, Clock, MapPin, ArrowLeft, ExternalLink, Mic, Camera,
   CheckCircle2, User, Briefcase, Circle, Square, FileText, Loader2, Sparkles, 
-  ClipboardCopy, Download, AlertTriangle
+  ClipboardCopy, Download, AlertTriangle, MonitorUp, MonitorOff
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
