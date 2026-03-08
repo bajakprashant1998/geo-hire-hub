@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   TrendingUp, TrendingDown, Minus, Sparkles, Target, Zap, Shield,
-  ArrowUpRight, Loader2, RefreshCw, DollarSign, Star, BookOpen,
+  ArrowUpRight, Loader2, RefreshCw, Banknote, Star, BookOpen,
   BarChart3, Users, Briefcase, Share2, Download, ChevronRight,
   Award, Rocket, CheckCircle2, Info, Trophy, Flame, Crown, Medal,
   LightbulbIcon, ArrowRight, GraduationCap, LineChart
