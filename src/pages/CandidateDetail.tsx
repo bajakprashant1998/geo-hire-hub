@@ -16,7 +16,7 @@ import {
   Loader2, Languages, BadgeCheck, Building2, Github, Linkedin, Twitter,
   Instagram, Youtube, Lock, LogIn, ChevronRight, Sparkles,
   Star, TrendingUp, Zap, FileText, CheckCircle2, BookOpen,
-  Target, Shield, Lightbulb, FolderOpen, Coffee, Bell,
+  Target, Shield, ShieldCheck, Lightbulb, FolderOpen, Coffee, Bell,
   Home, Timer, Plane, Code, Gamepad2, Music, Palette, Camera
 } from 'lucide-react';
 import { toast } from 'sonner';
