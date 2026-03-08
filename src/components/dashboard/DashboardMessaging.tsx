@@ -663,13 +663,13 @@ export const DashboardMessaging = () => {
                                 <Badge
                                   variant="secondary"
                                   className={cn(
-                                    "text-[10px] px-2 py-0 h-4 capitalize mt-1",
+                                    "text-[10px] px-2 py-0 h-4 capitalize mt-1 rounded-full",
                                     conv.otherProfile.user_type === 'employer'
-                                      ? 'bg-blue-500/10 text-blue-600'
-                                      : 'bg-green-500/10 text-green-600'
+                                      ? 'bg-primary/10 text-primary border border-primary/20'
+                                      : 'bg-[hsl(var(--success))]/10 text-[hsl(var(--success))] border border-[hsl(var(--success))]/20'
                                   )}
                                 >
-                                  {conv.otherProfile.user_type}
+                                  {conv.otherProfile.user_type === 'employer' ? '🏢 Employer' : '👤 Candidate'}
                                 </Badge>
                               )}
                             </div>
