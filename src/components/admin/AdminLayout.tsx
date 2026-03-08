@@ -97,6 +97,7 @@ const navSections = [
       { href: '/admin/email-templates', label: 'Email Templates', icon: Mail },
       { href: '/admin/tasks', label: 'Tasks', icon: FileText },
       { href: '/admin/auto-apply', label: 'Auto Apply', icon: Activity },
+      { href: '/admin/banners', label: 'Announcements', icon: Megaphone },
       { href: '/admin/system-health', label: 'System Health', icon: Activity },
       { href: '/admin/settings', label: 'Settings', icon: Settings },
     ],
