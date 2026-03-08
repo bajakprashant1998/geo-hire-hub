@@ -483,6 +483,23 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
         </CardHeader>
 
         <CardContent className="p-4 space-y-4">
+          {/* AI Insight Banner */}
+          {aiInsight && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-start gap-3 p-3.5 rounded-xl bg-gradient-to-r from-primary/5 via-primary/8 to-[hsl(var(--warning))]/5 border border-primary/15"
+            >
+              <div className="p-1.5 bg-primary/10 rounded-lg shrink-0">
+                <Brain className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-foreground mb-0.5">AI Insight</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{aiInsight}</p>
+              </div>
+            </motion.div>
+          )}
+
           {/* Stats row */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <StatCard icon={Briefcase} label="Total Matches" value={stats.total} color="bg-primary/10 text-primary" />
