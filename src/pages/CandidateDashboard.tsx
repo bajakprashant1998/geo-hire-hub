@@ -242,6 +242,7 @@ const CandidateDashboard = () => {
     { icon: Shield, label: 'Security', value: 'security' },
     { icon: Zap, label: 'Auto Apply', value: 'auto-apply' },
     { icon: Banknote, label: 'Salary Insights', value: 'salary-insights' },
+    { icon: Banknote, label: 'Negotiation Coach', value: 'negotiation-coach' },
     { icon: Bot, label: 'Talk to My Buddy', value: 'career-buddy' },
     { icon: TrendingUp, label: 'Application Tracker', value: 'app-tracker' },
     { icon: Star, label: 'Referrals & Rewards', value: 'referrals' },
