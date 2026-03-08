@@ -108,6 +108,7 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
   const [salaryMin, setSalaryMin] = useState('');
   const [salaryMax, setSalaryMax] = useState('');
   const [hasBonus, setHasBonus] = useState(false);
+  const [referralBounty, setReferralBounty] = useState('');
   const [description, setDescription] = useState('');
   const [skills, setSkills] = useState<string[]>([]);
   const [salaryCurrency, setSalaryCurrency] = useState('INR');
