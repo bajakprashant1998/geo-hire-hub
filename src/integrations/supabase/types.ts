@@ -2579,6 +2579,7 @@ export type Database = {
           start_time: string | null
           status: Database["public"]["Enums"]["job_status"] | null
           title: string
+          translations: Json | null
           updated_at: string | null
           view_count: number | null
           work_days: string[] | null
@@ -2636,6 +2637,7 @@ export type Database = {
           start_time?: string | null
           status?: Database["public"]["Enums"]["job_status"] | null
           title: string
+          translations?: Json | null
           updated_at?: string | null
           view_count?: number | null
           work_days?: string[] | null
@@ -2693,6 +2695,7 @@ export type Database = {
           start_time?: string | null
           status?: Database["public"]["Enums"]["job_status"] | null
           title?: string
+          translations?: Json | null
           updated_at?: string | null
           view_count?: number | null
           work_days?: string[] | null
