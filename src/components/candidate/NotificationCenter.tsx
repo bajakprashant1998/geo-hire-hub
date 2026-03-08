@@ -1,17 +1,23 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect, useMemo } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Switch } from '@/components/ui/switch';
 import {
-  Bell, MessageSquare, Briefcase, Eye, Star, X, Check, Loader2, Sparkles, Clock, Trash2
+  Bell, MessageSquare, Briefcase, Eye, Star, X, Check, Loader2, Sparkles, Clock,
+  Trash2, BellOff, CheckCheck, Filter, ChevronRight, ArrowRight, Calendar,
+  UserCheck, FileText, Zap, Settings, BellRing
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { isToday, isYesterday } from 'date-fns';
+import { isToday, isYesterday, formatDistanceToNow } from 'date-fns';
+import { toast } from 'sonner';
 
 interface Notification {
   id: string;
@@ -23,35 +29,176 @@ interface Notification {
   created_at: string;
 }
 
-const notificationConfig: Record<string, { icon: React.ReactNode; iconBg: string }> = {
-  application_update: {
-    icon: <Briefcase className="w-4 h-4" />,
-    iconBg: 'bg-primary/10 text-primary'
-  },
-  message: {
-    icon: <MessageSquare className="w-4 h-4" />,
-    iconBg: 'bg-[hsl(262,83%,58%)]/10 text-[hsl(262,83%,58%)]'
-  },
-  shortlisted: {
-    icon: <Star className="w-4 h-4" />,
-    iconBg: 'bg-warning/10 text-warning-foreground'
-  },
-  rejected: {
-    icon: <X className="w-4 h-4" />,
-    iconBg: 'bg-destructive/10 text-destructive'
-  },
-  viewed: {
-    icon: <Eye className="w-4 h-4" />,
-    iconBg: 'bg-success/10 text-success'
-  },
-  default: {
-    icon: <Bell className="w-4 h-4" />,
-    iconBg: 'bg-muted text-muted-foreground'
-  },
+const NOTIFICATION_CONFIG: Record<string, { icon: React.ElementType; bg: string; color: string; label: string }> = {
+  application_update: { icon: Briefcase, bg: 'bg-primary/10', color: 'text-primary', label: 'Application' },
+  message: { icon: MessageSquare, bg: 'bg-[hsl(262,83%,58%)]/10', color: 'text-[hsl(262,83%,58%)]', label: 'Message' },
+  shortlisted: { icon: Star, bg: 'bg-warning/15', color: 'text-warning-foreground', label: 'Shortlisted' },
+  rejected: { icon: X, bg: 'bg-destructive/10', color: 'text-destructive', label: 'Rejected' },
+  viewed: { icon: Eye, bg: 'bg-success/10', color: 'text-success', label: 'Profile View' },
+  interview: { icon: Calendar, bg: 'bg-primary/10', color: 'text-primary', label: 'Interview' },
+  task: { icon: FileText, bg: 'bg-warning/10', color: 'text-warning-foreground', label: 'Task' },
+  match: { icon: Zap, bg: 'bg-success/10', color: 'text-success', label: 'Job Match' },
+  default: { icon: Bell, bg: 'bg-muted', color: 'text-muted-foreground', label: 'Update' },
 };
 
-type FilterTab = 'all' | 'unread' | 'applications';
+type FilterTab = 'all' | 'unread' | 'applications' | 'messages';
 
+/* ── Stats summary ── */
+const NotificationStats = ({ total, unread, todayCount }: { total: number; unread: number; todayCount: number }) => (
+  <div className="grid grid-cols-3 gap-3">
+    {[
+      { label: 'Total', value: total, icon: Bell, color: 'text-muted-foreground', bg: 'bg-muted/50' },
+      { label: 'Unread', value: unread, icon: BellRing, color: 'text-primary', bg: 'bg-primary/10' },
+      { label: 'Today', value: todayCount, icon: Zap, color: 'text-success', bg: 'bg-success/10' },
+    ].map((stat, i) => (
+      <motion.div
+        key={stat.label}
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: i * 0.05 }}
+      >
+        <Card className="border border-border/40">
+          <CardContent className="p-3 flex items-center gap-3">
+            <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center shrink-0', stat.bg)}>
+              <stat.icon className={cn('w-4 h-4', stat.color)} />
+            </div>
+            <div>
+              <p className="text-lg font-extrabold text-foreground leading-none">{stat.value}</p>
+              <p className="text-[10px] text-muted-foreground">{stat.label}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    ))}
+  </div>
+);
+
+/* ── Notification row ── */
+const NotificationRow = ({
+  notification,
+  onMarkRead,
+}: {
+  notification: Notification;
+  onMarkRead: (id: string) => void;
+}) => {
+  const config = NOTIFICATION_CONFIG[notification.type] || NOTIFICATION_CONFIG.default;
+  const Icon = config.icon;
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins}m ago`;
+    const diffHours = Math.floor(diffMs / 3600000);
+    if (diffHours < 24) return `${diffHours}h ago`;
+    const diffDays = Math.floor(diffMs / 86400000);
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
+  };
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, height: 0, marginTop: 0 }}
+      className={cn(
+        'group flex items-start gap-3 p-3.5 rounded-xl transition-all cursor-pointer mx-2',
+        !notification.is_read
+          ? 'bg-primary/5 hover:bg-primary/8 border border-primary/10'
+          : 'hover:bg-muted/50'
+      )}
+      onClick={() => !notification.is_read && onMarkRead(notification.id)}
+    >
+      {/* Icon */}
+      <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5', config.bg)}>
+        <Icon className={cn('w-5 h-5', config.color)} />
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <p className={cn('text-sm leading-tight line-clamp-1', !notification.is_read ? 'font-bold text-foreground' : 'font-medium text-foreground')}>
+                {notification.title}
+              </p>
+              {!notification.is_read && (
+                <span className="w-2 h-2 rounded-full bg-primary shrink-0 animate-pulse" />
+              )}
+            </div>
+            {notification.message && (
+              <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5 leading-relaxed">
+                {notification.message}
+              </p>
+            )}
+          </div>
+          <span className="text-[10px] text-muted-foreground whitespace-nowrap shrink-0 mt-0.5">
+            {formatTime(notification.created_at)}
+          </span>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2 mt-2">
+          <Badge variant="outline" className={cn('text-[10px] h-5 border-0 px-1.5', config.bg, config.color)}>
+            {config.label}
+          </Badge>
+          {notification.link && (
+            <Link
+              to={notification.link === '/candidate-dashboard' ? '/candidate-dashboard?tab=jobs' : notification.link}
+              className="text-xs text-primary hover:underline font-medium flex items-center gap-0.5"
+              onClick={(e) => e.stopPropagation()}
+            >
+              View <ArrowRight className="w-3 h-3" />
+            </Link>
+          )}
+          {!notification.is_read && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onMarkRead(notification.id); }}
+              className="ml-auto text-[10px] text-muted-foreground hover:text-primary flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Check className="w-3 h-3" /> Mark read
+            </button>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+/* ── Empty state ── */
+const EmptyState = ({ filter }: { filter: FilterTab }) => {
+  const config = {
+    all: { icon: Sparkles, title: 'No notifications yet', desc: "We'll notify you when something happens" },
+    unread: { icon: CheckCheck, title: 'All caught up!', desc: 'You have no unread notifications' },
+    applications: { icon: Briefcase, title: 'No application updates', desc: 'Apply to jobs to see updates here' },
+    messages: { icon: MessageSquare, title: 'No message notifications', desc: "You'll see message alerts here" },
+  }[filter];
+
+  const Icon = config.icon;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="text-center py-16 px-6"
+    >
+      <motion.div
+        animate={{ y: [0, -6, 0] }}
+        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+        className="w-16 h-16 bg-muted/50 rounded-2xl flex items-center justify-center mx-auto mb-4"
+      >
+        <Icon className="w-8 h-8 text-muted-foreground/40" />
+      </motion.div>
+      <h3 className="font-bold text-foreground mb-1">{config.title}</h3>
+      <p className="text-sm text-muted-foreground">{config.desc}</p>
+    </motion.div>
+  );
+};
+
+/* ── Main Component ── */
 export const NotificationCenter = () => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -92,201 +239,183 @@ export const NotificationCenter = () => {
   const markAllAsRead = async () => {
     if (!user) return;
     const { error } = await supabase.from('notifications').update({ is_read: true }).eq('user_id', user.id).eq('is_read', false);
-    if (!error) setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+    if (!error) {
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+      toast.success('All notifications marked as read');
+    }
   };
 
   const clearAll = async () => {
     if (!user) return;
     const { error } = await supabase.from('notifications').delete().eq('user_id', user.id);
-    if (!error) setNotifications([]);
+    if (!error) {
+      setNotifications([]);
+      toast.success('All notifications cleared');
+    }
   };
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
 
-  const filtered = notifications.filter((n) => {
-    if (filter === 'unread') return !n.is_read;
-    if (filter === 'applications') return ['application_update', 'shortlisted', 'rejected', 'viewed'].includes(n.type);
-    return true;
-  });
+  const filtered = useMemo(() => {
+    return notifications.filter((n) => {
+      if (filter === 'unread') return !n.is_read;
+      if (filter === 'applications') return ['application_update', 'shortlisted', 'rejected', 'viewed', 'interview'].includes(n.type);
+      if (filter === 'messages') return n.type === 'message';
+      return true;
+    });
+  }, [notifications, filter]);
 
   // Group by date
-  const grouped: { label: string; items: Notification[] }[] = [];
-  const todayItems: Notification[] = [];
-  const yesterdayItems: Notification[] = [];
-  const earlierItems: Notification[] = [];
+  const grouped = useMemo(() => {
+    const groups: { label: string; items: Notification[] }[] = [];
+    const today: Notification[] = [];
+    const yesterday: Notification[] = [];
+    const earlier: Notification[] = [];
 
-  filtered.forEach((n) => {
-    const d = new Date(n.created_at);
-    if (isToday(d)) todayItems.push(n);
-    else if (isYesterday(d)) yesterdayItems.push(n);
-    else earlierItems.push(n);
-  });
+    filtered.forEach((n) => {
+      const d = new Date(n.created_at);
+      if (isToday(d)) today.push(n);
+      else if (isYesterday(d)) yesterday.push(n);
+      else earlier.push(n);
+    });
 
-  if (todayItems.length) grouped.push({ label: 'Today', items: todayItems });
-  if (yesterdayItems.length) grouped.push({ label: 'Yesterday', items: yesterdayItems });
-  if (earlierItems.length) grouped.push({ label: 'Earlier', items: earlierItems });
+    if (today.length) groups.push({ label: 'Today', items: today });
+    if (yesterday.length) groups.push({ label: 'Yesterday', items: yesterday });
+    if (earlier.length) groups.push({ label: 'Earlier', items: earlier });
+    return groups;
+  }, [filtered]);
 
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString();
-  };
+  const todayCount = notifications.filter(n => isToday(new Date(n.created_at))).length;
 
   if (loading) {
     return (
-      <Card className="border-0 shadow-xl bg-card/50 backdrop-blur-2xl">
-        <CardContent className="p-8 flex justify-center">
-          <Loader2 className="w-6 h-6 animate-spin text-primary" />
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <div className="grid grid-cols-3 gap-3">
+          {[1, 2, 3].map(i => <div key={i} className="h-16 rounded-xl bg-muted/30 animate-pulse" />)}
+        </div>
+        <div className="h-96 rounded-2xl bg-muted/20 animate-pulse" />
+      </div>
     );
   }
 
   return (
-    <Card className="border border-border/40 shadow-xl overflow-hidden bg-card/50 backdrop-blur-2xl relative rounded-2xl">
-      {/* Decorative orbs */}
-      <div className="absolute -top-16 -right-16 w-40 h-40 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-[hsl(262,83%,58%)]/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 dark:ring-white/5 pointer-events-none" />
+    <div className="space-y-4">
+      {/* Stats */}
+      <NotificationStats total={notifications.length} unread={unreadCount} todayCount={todayCount} />
 
-      <CardHeader className="flex flex-row items-center justify-between pb-3 bg-gradient-to-r from-primary/5 to-[hsl(262,83%,58%)]/5 relative z-10">
-        <CardTitle className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-xl relative">
-            <Bell className="w-5 h-5 text-primary" />
+      {/* Main card */}
+      <Card className="border border-border/40 overflow-hidden rounded-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-border/30 bg-gradient-to-r from-primary/5 to-transparent">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center relative">
+              <Bell className="w-5 h-5 text-primary" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive rounded-full text-[10px] text-white flex items-center justify-center font-bold">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </div>
+            <div>
+              <h3 className="font-bold text-foreground">Notifications</h3>
+              <p className="text-xs text-muted-foreground">Stay updated on your job search</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-destructive rounded-full text-[10px] text-white flex items-center justify-center font-bold animate-pulse">
-                {unreadCount}
-              </span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={markAllAsRead} className="h-8 w-8 rounded-lg">
+                    <CheckCheck className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Mark all as read</TooltipContent>
+              </Tooltip>
+            )}
+            {notifications.length > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={clearAll} className="h-8 w-8 rounded-lg text-destructive hover:text-destructive">
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Clear all</TooltipContent>
+              </Tooltip>
             )}
           </div>
-          <div>
-            <span>Notifications</span>
-            <p className="text-xs font-normal text-muted-foreground mt-0.5">Stay updated on your applications</p>
-          </div>
-        </CardTitle>
-        <div className="flex items-center gap-1.5">
-          {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={markAllAsRead} className="rounded-xl text-xs">
-              <Check className="w-3.5 h-3.5 mr-1" /> Mark all read
-            </Button>
-          )}
-          {notifications.length > 0 && (
-            <Button variant="ghost" size="sm" onClick={clearAll} className="rounded-xl text-xs text-destructive hover:text-destructive">
-              <Trash2 className="w-3.5 h-3.5 mr-1" /> Clear All
-            </Button>
-          )}
         </div>
-      </CardHeader>
 
-      <div className="px-4 pt-2 pb-1 relative z-10">
-        <Tabs value={filter} onValueChange={(v) => setFilter(v as FilterTab)}>
-          <TabsList className="w-full bg-muted/50 rounded-xl">
-            <TabsTrigger value="all" className="flex-1 rounded-lg text-xs">All</TabsTrigger>
-            <TabsTrigger value="unread" className="flex-1 rounded-lg text-xs">
-              Unread {unreadCount > 0 && `(${unreadCount})`}
-            </TabsTrigger>
-            <TabsTrigger value="applications" className="flex-1 rounded-lg text-xs">Applications</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
+        {/* Tabs */}
+        <div className="px-3 pt-3">
+          <Tabs value={filter} onValueChange={(v) => setFilter(v as FilterTab)}>
+            <TabsList className="w-full grid grid-cols-4 h-10 bg-muted/30 rounded-xl p-1">
+              <TabsTrigger value="all" className="rounded-lg text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm">
+                All
+              </TabsTrigger>
+              <TabsTrigger value="unread" className="rounded-lg text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1">
+                Unread
+                {unreadCount > 0 && (
+                  <Badge className="h-4 px-1 text-[9px] bg-primary text-primary-foreground border-0">{unreadCount}</Badge>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="applications" className="rounded-lg text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm">
+                Jobs
+              </TabsTrigger>
+              <TabsTrigger value="messages" className="rounded-lg text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm">
+                Messages
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
 
-      <CardContent className="p-0 relative z-10">
-        <ScrollArea className="h-[380px]">
-          {filtered.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ type: 'spring', stiffness: 120, damping: 14 }}
-              className="text-center py-12 px-6"
-            >
-              <motion.div
-                animate={{ y: [0, -6, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4"
-              >
-                <Sparkles className="w-8 h-8 text-muted-foreground/50" />
-              </motion.div>
-              <h3 className="font-medium mb-1">
-                {filter === 'unread' ? 'All caught up!' : filter === 'applications' ? 'No application updates' : 'No notifications yet'}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                {filter === 'unread' ? 'You have no unread notifications' : "We'll notify you when something happens"}
-              </p>
-            </motion.div>
-          ) : (
-            <div>
-              {grouped.map((group) => (
+        {/* Notification list */}
+        <ScrollArea className="h-[420px]">
+          <div className="py-2">
+            {filtered.length === 0 ? (
+              <EmptyState filter={filter} />
+            ) : (
+              grouped.map((group) => (
                 <div key={group.label}>
-                  <div className="sticky top-0 z-10 px-4 py-1.5 bg-muted/60 backdrop-blur-md">
-                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{group.label}</p>
+                  <div className="sticky top-0 z-10 px-5 py-1.5 bg-muted/40 backdrop-blur-md">
+                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{group.label}</p>
                   </div>
-                  <AnimatePresence>
-                    {group.items.map((notification, i) => {
-                      const config = notificationConfig[notification.type] || notificationConfig.default;
-                      return (
-                        <motion.div
+                  <div className="space-y-1 py-1">
+                    <AnimatePresence>
+                      {group.items.map((notification) => (
+                        <NotificationRow
                           key={notification.id}
-                          initial={{ opacity: 0, x: -8 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: 8 }}
-                          transition={{ delay: i * 0.02 }}
-                          className={cn(
-                            "p-4 transition-all cursor-pointer hover:bg-muted/50 border-b border-border/30",
-                            !notification.is_read && "bg-primary/5"
-                          )}
-                          onClick={() => !notification.is_read && markAsRead(notification.id)}
-                        >
-                          <div className="flex items-start gap-3">
-                            <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0", config.iconBg)}>
-                              {config.icon}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-start justify-between gap-2">
-                                <p className={cn("font-medium text-sm line-clamp-1", !notification.is_read && "font-semibold")}>
-                                  {notification.title}
-                                </p>
-                                {!notification.is_read && (
-                                  <span className="w-2.5 h-2.5 rounded-full bg-primary flex-shrink-0 mt-1.5 animate-pulse" />
-                                )}
-                              </div>
-                              {notification.message && (
-                                <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">{notification.message}</p>
-                              )}
-                              <div className="flex items-center gap-3 mt-2">
-                                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <Clock className="w-3 h-3" />
-                                  {formatTime(notification.created_at)}
-                                </span>
-                                {notification.link && (
-                                  <Link
-                                    to={notification.link === '/candidate-dashboard' ? '/candidate-dashboard?tab=jobs' : notification.link}
-                                    className="text-xs text-primary hover:underline font-medium"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    View details →
-                                  </Link>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </motion.div>
-                      );
-                    })}
-                  </AnimatePresence>
+                          notification={notification}
+                          onMarkRead={markAsRead}
+                        />
+                      ))}
+                    </AnimatePresence>
+                  </div>
                 </div>
-              ))}
-            </div>
-          )}
+              ))
+            )}
+          </div>
         </ScrollArea>
-      </CardContent>
-    </Card>
+      </Card>
+
+      {/* Quick settings tip */}
+      {notifications.length > 0 && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
+          <Link to="/candidate-dashboard?tab=alerts">
+            <Card className="border border-border/40 hover:border-primary/30 transition-colors cursor-pointer group">
+              <CardContent className="p-3.5 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-muted/50 flex items-center justify-center shrink-0">
+                  <Settings className="w-4 h-4 text-muted-foreground" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground">Manage notification preferences</p>
+                  <p className="text-xs text-muted-foreground">Control what alerts you receive</p>
+                </div>
+                <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+              </CardContent>
+            </Card>
+          </Link>
+        </motion.div>
+      )}
+    </div>
   );
 };
