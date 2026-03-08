@@ -138,11 +138,12 @@ const MyStatsCard = ({ entry, rank }: { entry: LeaderboardEntry; rank: number })
         </div>
 
         {/* Score Breakdown Bars */}
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {[
-            { label: 'Profile Strength', value: entry.completeness_score, max: 100, icon: Target, weight: '40%', color: 'bg-primary' },
-            { label: 'Assessments', value: entry.assessments_passed * 10, max: 50, icon: GraduationCap, weight: '30%', color: 'bg-success' },
-            { label: 'Activity', value: entry.activity_score, max: 100, icon: Zap, weight: '30%', color: 'bg-warning' },
+            { label: 'Profile Strength', value: entry.completeness_score, max: 100, icon: Target, weight: '25%', color: 'bg-primary' },
+            { label: 'Assessments', value: entry.assessments_passed * 10, max: 50, icon: GraduationCap, weight: '25%', color: 'bg-success' },
+            { label: 'Activity', value: entry.activity_score, max: 100, icon: Zap, weight: '25%', color: 'bg-warning' },
+            { label: 'Portfolio', value: entry.portfolio_score, max: 100, icon: Layout, weight: '25%', color: 'bg-accent' },
           ].map(stat => (
             <div key={stat.label}>
               <div className="flex items-center justify-between mb-1">
