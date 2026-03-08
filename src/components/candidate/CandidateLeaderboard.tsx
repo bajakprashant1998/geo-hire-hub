@@ -265,15 +265,24 @@ export const CandidateLeaderboard = () => {
       if (!candidates) { setLoading(false); setRefreshing(false); return; }
 
       const candidateIds = candidates.map(c => c.id);
-      const [{ data: assessments }, { data: applications }] = await Promise.all([
+      const [{ data: assessments }, { data: applications }, { data: portfolios }] = await Promise.all([
         supabase.from('assessment_results').select('candidate_id, passed').in('candidate_id', candidateIds).eq('passed', true),
         supabase.from('applications').select('candidate_id').in('candidate_id', candidateIds),
+        supabase.from('portfolio_projects').select('candidate_id, is_featured, project_type').in('candidate_id', candidateIds),
       ]);
 
       const assessmentMap = new Map<string, number>();
       (assessments || []).forEach(a => assessmentMap.set(a.candidate_id, (assessmentMap.get(a.candidate_id) || 0) + 1));
       const appMap = new Map<string, number>();
       (applications || []).forEach(a => appMap.set(a.candidate_id, (appMap.get(a.candidate_id) || 0) + 1));
+      const portfolioMap = new Map<string, { count: number; featured: number; caseStudies: number }>();
+      (portfolios || []).forEach(p => {
+        const cur = portfolioMap.get(p.candidate_id) || { count: 0, featured: 0, caseStudies: 0 };
+        cur.count++;
+        if (p.is_featured) cur.featured++;
+        if (p.project_type === 'case_study') cur.caseStudies++;
+        portfolioMap.set(p.candidate_id, cur);
+      });
 
       const leaderboard: LeaderboardEntry[] = candidates
         .filter(c => (c as any).profiles)
@@ -289,7 +298,11 @@ export const CandidateLeaderboard = () => {
           const assessmentsPassed = assessmentMap.get(c.id) || 0;
           const appsCount = appMap.get(c.id) || 0;
           const activityScore = Math.min(100, appsCount * 4 + assessmentsPassed * 15);
-          const totalScore = Math.round(completeness * 0.4 + assessmentsPassed * 10 + activityScore * 0.3);
+          const pf = portfolioMap.get(c.id) || { count: 0, featured: 0, caseStudies: 0 };
+          const portfolioScore = Math.min(100, pf.count * 15 + pf.featured * 10 + pf.caseStudies * 10);
+          const totalScore = Math.round(
+            completeness * 0.25 + assessmentsPassed * 10 + activityScore * 0.25 + portfolioScore * 0.25
+          );
 
           return {
             profile_id: p.id,
@@ -300,6 +313,7 @@ export const CandidateLeaderboard = () => {
             assessments_passed: assessmentsPassed,
             applications_count: appsCount,
             activity_score: activityScore,
+            portfolio_score: portfolioScore,
             total_score: totalScore,
           };
         });
