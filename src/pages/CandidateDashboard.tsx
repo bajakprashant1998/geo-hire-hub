@@ -56,6 +56,7 @@ import { InterviewAvailability } from '@/components/candidate/InterviewAvailabil
 import { JobComparisonTool } from '@/components/candidate/JobComparisonTool';
 import { CareerPathVisualizer } from '@/components/candidate/CareerPathVisualizer';
 import { CultureMatchScore } from '@/components/candidate/CultureMatchScore';
+import { SmartNotificationDigest } from '@/components/candidate/SmartNotificationDigest';
 import { PendingTasksWidget } from '@/components/dashboard/PendingTasksWidget';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -251,6 +252,7 @@ const CandidateDashboard = () => {
     { icon: BarChart3, label: 'Compare Jobs', value: 'compare-jobs' },
     { icon: TrendingUp, label: 'Career Path', value: 'career-path' },
     { icon: Star, label: 'Culture Match', value: 'culture-match' },
+    { icon: Sparkles, label: 'Smart Digest', value: 'smart-digest' },
   ];
 
   // Quick action buttons for dashboard home — full 8-item grid
@@ -541,6 +543,7 @@ const CandidateDashboard = () => {
       case 'compare-jobs': return <JobComparisonTool candidateId={candidate.id} />;
       case 'career-path': return <CareerPathVisualizer currentJobTitle={candidate.job_title || ''} currentSkills={candidate.skills || []} />;
       case 'culture-match': return <CultureMatchScore candidateId={candidate.id} />;
+      case 'smart-digest': return <SmartNotificationDigest />;
       default: return null;
     }
   };

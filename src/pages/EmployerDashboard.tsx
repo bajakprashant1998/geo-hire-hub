@@ -64,6 +64,7 @@ import { InterviewFeedbackForms } from '@/components/employer/InterviewFeedbackF
 import { TalentPoolCRM } from '@/components/employer/TalentPoolCRM';
 import { JobABTesting } from '@/components/employer/JobABTesting';
 import { TeamCollaborationNotes } from '@/components/employer/TeamCollaborationNotes';
+import { AccessibilityScoreChecker } from '@/components/employer/AccessibilityScoreChecker';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -315,6 +316,7 @@ const EmployerDashboard = () => {
     { icon: Database, label: 'Talent Pool', value: 'talent-pool' },
     { icon: FlaskConical, label: 'A/B Testing', value: 'ab-testing' },
     { icon: MessageCircle, label: 'Team Notes', value: 'team-notes' },
+    { icon: Sparkles, label: 'Accessibility Check', value: 'accessibility-check' },
     { icon: CreditCard, label: 'Upgrade Plan', value: 'upgrade-plan' }
   ];
 
@@ -860,6 +862,8 @@ const EmployerDashboard = () => {
         return employer && <JobABTesting employerId={employer.id} />;
       case 'team-notes':
         return employer && <TeamCollaborationNotes employerId={employer.id} />;
+      case 'accessibility-check':
+        return <AccessibilityScoreChecker />;
       case 'post-job':
         return <PostJob embedded />;
       default:
