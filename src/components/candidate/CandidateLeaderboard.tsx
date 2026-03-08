@@ -90,11 +90,12 @@ const PodiumCard = ({ entry, rank, delay }: { entry: LeaderboardEntry; rank: num
           </motion.div>
 
           {/* Mini breakdown */}
-          <div className="flex justify-center gap-3 mt-2.5">
+          <div className="flex justify-center gap-2 mt-2.5">
             {[
               { val: `${entry.completeness_score}%`, tip: 'Profile' },
               { val: entry.assessments_passed, tip: 'Tests' },
               { val: entry.activity_score, tip: 'Activity' },
+              { val: entry.portfolio_score, tip: 'Portfolio' },
             ].map(s => (
               <Tooltip key={s.tip}>
                 <TooltipTrigger>
