@@ -10,6 +10,7 @@ import { ArrowLeft, Search, Briefcase, MapPin, Clock, Building2, Filter, LayoutD
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { SEOHead } from '@/components/SEOHead';
+import { SEOContentFooter } from '@/components/SEOContentFooter';
 import { BreadcrumbNav, buildBreadcrumbJsonLd } from '@/components/BreadcrumbNav';
 import { SalaryBadge } from '@/components/SalaryBadge';
 import { DeadlineCountdown } from '@/components/DeadlineCountdown';
