@@ -93,6 +93,28 @@ export const JobAnalyticsDashboard = ({ employerId }: JobAnalyticsDashboardProps
     },
   });
 
+  // Views trend from job_views table (real tracking data)
+  const { data: viewsTrend } = useQuery({
+    queryKey: ['employer-views-trend', employerId],
+    queryFn: async () => {
+      const jobIds = jobStats?.map(j => j.id) || [];
+      if (!jobIds.length) return [];
+      const { data } = await supabase
+        .from('job_views')
+        .select('viewed_at, job_id')
+        .in('job_id', jobIds)
+        .order('viewed_at', { ascending: true });
+      if (!data) return [];
+      const grouped = new Map<string, number>();
+      data.forEach(v => {
+        const day = new Date(v.viewed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        grouped.set(day, (grouped.get(day) || 0) + 1);
+      });
+      return Array.from(grouped.entries()).slice(-14).map(([date, count]) => ({ date, views: count }));
+    },
+    enabled: !!jobStats?.length,
+  });
+
   const { data: applicationTrend } = useQuery({
     queryKey: ['employer-app-trend', employerId],
     queryFn: async () => {
