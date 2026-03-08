@@ -382,6 +382,9 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
                         googleBusinessVerified={employer.google_business_verified || false}
                       />
                     )}
+                    {employer.trust_score !== null && employer.trust_score !== undefined && employer.trust_score > 0 && (
+                      <TrustScoreDisplay score={employer.trust_score} size="sm" />
+                    )}
                   </div>
 
                   {/* Info */}
