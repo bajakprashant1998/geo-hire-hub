@@ -59,6 +59,7 @@ import { JobComparisonTool } from '@/components/candidate/JobComparisonTool';
 import { CareerPathVisualizer } from '@/components/candidate/CareerPathVisualizer';
 import { CultureMatchScore } from '@/components/candidate/CultureMatchScore';
 import { SmartNotificationDigest } from '@/components/candidate/SmartNotificationDigest';
+import { CompanyWatchlist } from '@/components/candidate/CompanyWatchlist';
 import { PendingTasksWidget } from '@/components/dashboard/PendingTasksWidget';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { motion } from 'framer-motion';
