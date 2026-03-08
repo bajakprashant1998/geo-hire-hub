@@ -27,6 +27,7 @@ import { VerificationBadge } from '@/components/employer/VerificationBadge';
 import { BreadcrumbNav, buildBreadcrumbJsonLd } from '@/components/BreadcrumbNav';
 import { CompanyReviews } from '@/components/employer/CompanyReviews';
 import { CompanyQAForum } from '@/components/employer/CompanyQAForum';
+import { SpotlightStories } from '@/components/employer/SpotlightStories';
 import type { BreadcrumbItem } from '@/components/BreadcrumbNav';
 
 interface EmployerProfile {
