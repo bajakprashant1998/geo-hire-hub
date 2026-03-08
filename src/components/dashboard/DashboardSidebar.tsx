@@ -41,7 +41,7 @@ interface DashboardSidebarProps {
 }
 
 const CANDIDATE_GROUPS: SidebarGroup[] = [
-  { label: 'Job Search', items: ['map', 'job-radar', 'jobs', 'saved', 'recommended', 'auto-apply', 'compare-jobs'] },
+  { label: 'Job Search', items: ['map', 'job-radar', 'jobs', 'saved', 'recommended', 'auto-apply', 'compare-jobs', 'watchlist'] },
   { label: 'Communication', items: ['messages', 'interviews', 'tasks', 'follow-ups', 'availability'] },
   { label: 'Career Tools', items: ['career-buddy', 'app-tracker', 'salary-insights', 'interview-prep', 'skill-gap', 'career-path', 'culture-match', 'market-value'] },
   { label: 'Profile & Docs', items: ['resume', 'audio-resume', 'ai-resume', 'profile', 'public-profile', 'badges', 'referrals'] },
@@ -52,7 +52,7 @@ const EMPLOYER_GROUPS: SidebarGroup[] = [
   { label: 'Jobs & Hiring', items: ['jobs', 'candidates', 'drafts', 'post-job'] },
   { label: 'Communication', items: ['chat', 'interviews', 'tasks'] },
   { label: 'AI & Analytics', items: ['ai-screening', 'analytics', 'jd-optimizer', 'ab-testing'] },
-  { label: 'Company', items: ['company', 'spotlight', 'offer-letters', 'compare-candidates', 'talent-pool'] },
+  { label: 'Company', items: ['company', 'branding', 'spotlight', 'offer-letters', 'compare-candidates', 'talent-pool'] },
   { label: 'Settings', items: ['notifications', 'security', 'upgrade-plan'] },
 ];
 

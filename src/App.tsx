@@ -72,6 +72,7 @@ const AdminFraudDetection = lazy(() => import("./pages/admin/AdminFraudDetection
 const AdminScheduledJobs = lazy(() => import("./pages/admin/AdminScheduledJobs"));
 const AdminTasks = lazy(() => import("./pages/admin/AdminTasks"));
 const AdminSEOAgent = lazy(() => import("./pages/admin/AdminSEOAgent"));
+const AdminBanners = lazy(() => import("./pages/admin/AdminBanners"));
 
 const queryClient = new QueryClient();
 
@@ -196,6 +197,7 @@ const App = () => (
               <Route path="/admin/scheduled-jobs" element={<AdminScheduledJobs />} />
               <Route path="/admin/tasks" element={<AdminTasks />} />
               <Route path="/admin/seo-agent" element={<AdminSEOAgent />} />
+              <Route path="/admin/banners" element={<AdminBanners />} />
 
               {/* ==================== REDIRECTS & ALIASES ==================== */}
               <Route path="/dashboard" element={<Navigate to="/candidate-dashboard" replace />} />

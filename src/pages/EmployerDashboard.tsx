@@ -19,7 +19,7 @@ import {
   CheckCircle2, ChevronRight, FileEdit, CreditCard, UserCheck,
   MessageSquare, Calendar, BarChart3, User, Settings, Pencil, Trash2, Shield,
   Sparkles, Bell, Filter, Search, Clock, FileText, FlaskConical, ClipboardCheck,
-  Database, MessageCircle
+  Database, MessageCircle, Palette
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -66,6 +66,7 @@ import { TalentPoolCRM } from '@/components/employer/TalentPoolCRM';
 import { JobABTesting } from '@/components/employer/JobABTesting';
 import { TeamCollaborationNotes } from '@/components/employer/TeamCollaborationNotes';
 import { AccessibilityScoreChecker } from '@/components/employer/AccessibilityScoreChecker';
+import { BrandingPageBuilder } from '@/components/employer/BrandingPageBuilder';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
@@ -405,6 +406,7 @@ const EmployerDashboard = () => {
     { icon: FlaskConical, label: 'A/B Testing', value: 'ab-testing' },
     { icon: MessageCircle, label: 'Team Notes', value: 'team-notes' },
     { icon: Sparkles, label: 'Accessibility Check', value: 'accessibility-check' },
+    { icon: Palette, label: 'Branding Page', value: 'branding' },
     { icon: CreditCard, label: 'Upgrade Plan', value: 'upgrade-plan' }
   ];
 
@@ -1115,6 +1117,8 @@ const EmployerDashboard = () => {
         return employer && <TeamCollaborationNotes employerId={employer.id} />;
       case 'accessibility-check':
         return <AccessibilityScoreChecker />;
+      case 'branding':
+        return employer && <BrandingPageBuilder employerId={employer.id} />;
       case 'post-job':
         return <PostJob embedded />;
       default:

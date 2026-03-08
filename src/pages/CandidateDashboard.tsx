@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import {
   Briefcase, Bell, Shield, FileText, Sparkles, Loader2,
   Eye, Calendar, Star, ChevronRight, User, MessageSquare, Bookmark, Mic,
-  MapPin, TrendingUp, Zap, Banknote, Bot, Radar, GraduationCap, Brain, BarChart3, Award, Trophy
+  MapPin, TrendingUp, Zap, Banknote, Bot, Radar, GraduationCap, Brain, BarChart3, Award, Trophy, Building2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -59,6 +59,7 @@ import { JobComparisonTool } from '@/components/candidate/JobComparisonTool';
 import { CareerPathVisualizer } from '@/components/candidate/CareerPathVisualizer';
 import { CultureMatchScore } from '@/components/candidate/CultureMatchScore';
 import { SmartNotificationDigest } from '@/components/candidate/SmartNotificationDigest';
+import { CompanyWatchlist } from '@/components/candidate/CompanyWatchlist';
 import { PendingTasksWidget } from '@/components/dashboard/PendingTasksWidget';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -255,6 +256,7 @@ const CandidateDashboard = () => {
     { icon: TrendingUp, label: 'Career Path', value: 'career-path' },
     { icon: Star, label: 'Culture Match', value: 'culture-match' },
     { icon: Sparkles, label: 'Smart Digest', value: 'smart-digest' },
+    { icon: Building2, label: 'Company Watchlist', value: 'watchlist' },
   ];
 
   // Quick action buttons for dashboard home
@@ -553,6 +555,7 @@ const CandidateDashboard = () => {
       case 'career-path': return <CareerPathVisualizer currentJobTitle={candidate.job_title || ''} currentSkills={candidate.skills || []} />;
       case 'culture-match': return <CultureMatchScore candidateId={candidate.id} />;
       case 'smart-digest': return <SmartNotificationDigest />;
+      case 'watchlist': return candidate && <CompanyWatchlist candidateId={candidate.id} />;
       default: return null;
     }
   };
