@@ -206,7 +206,7 @@ export const AIJobMatches = ({ candidateId }: AIJobMatchesProps) => {
                       <div className="flex flex-wrap items-center gap-3 mt-3 text-sm">
                         {match.job?.salary_range && (
                           <span className="flex items-center gap-1 text-google-green">
-                            <DollarSign className="w-3.5 h-3.5" />
+                            <Banknote className="w-3.5 h-3.5" />
                             {match.job.salary_range}
                           </span>
                         )}
