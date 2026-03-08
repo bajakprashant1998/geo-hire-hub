@@ -137,7 +137,7 @@ export const MessageBubble = ({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <span className="inline-flex items-center cursor-help">
-                      <CheckCheck className="w-3.5 h-3.5 text-white/90" />
+                      <CheckCheck className="w-3.5 h-3.5 text-sky-300" />
                     </span>
                   </TooltipTrigger>
                   <TooltipContent side="left" className="text-xs">
@@ -145,7 +145,16 @@ export const MessageBubble = ({
                   </TooltipContent>
                 </Tooltip>
               ) : (
-                <Check className="w-3.5 h-3.5 text-white/70" />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex items-center cursor-help">
+                      <Check className="w-3.5 h-3.5 text-white/50" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="left" className="text-xs">
+                    Delivered
+                  </TooltipContent>
+                </Tooltip>
               )
             )}
           </div>
