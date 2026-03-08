@@ -7,8 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import {
   ArrowLeft, Check, Crown, Zap, Building2, X, HelpCircle, Shield, Headphones,
-  Users, Briefcase, Star, ArrowRight, Sparkles, TrendingUp, Clock, Gift,
-  ChevronDown, Globe, BarChart3, MessageSquare, Bot, Lock
+  Users, Briefcase, Star, ArrowRight, Sparkles, Gift
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
