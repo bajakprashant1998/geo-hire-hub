@@ -204,7 +204,7 @@ const App = () => (
               <Route path="/admin/bulk-import" element={<AdminBulkImport />} />
 
               {/* ==================== REDIRECTS & ALIASES ==================== */}
-              <Route path="/dashboard" element={<Navigate to="/candidate-dashboard" replace />} />
+              <Route path="/dashboard" element={<Navigate to="/" replace />} />
               <Route path="/employer/:id" element={<PageTransition><EmployerDetail /></PageTransition>} />
               <Route path="/job/:id" element={<JobRedirect />} />
 
