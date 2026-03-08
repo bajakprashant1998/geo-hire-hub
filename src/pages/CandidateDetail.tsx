@@ -26,6 +26,7 @@ import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { ProfilePDFExport } from '@/components/candidate/ProfilePDFExport';
 import { ReportDialog } from '@/components/ReportDialog';
 import { SEOHead } from '@/components/SEOHead';
+import { SkillEndorsements } from '@/components/candidate/SkillEndorsements';
 import { motion } from 'framer-motion';
 
 interface Education { institution: string; degree: string; field: string; startYear: string; endYear: string; }
