@@ -30,6 +30,37 @@ interface DashboardHeaderProps {
   onNotificationClick?: () => void;
 }
 
+const ProfileRing = ({ completeness, label }: { completeness: number; label?: string }) => {
+  const radius = 18;
+  const circumference = 2 * Math.PI * radius;
+  const filled = (completeness / 100) * circumference;
+  const color = completeness >= 80 ? 'hsl(var(--primary))' : completeness >= 50 ? 'hsl(var(--warning))' : 'hsl(var(--destructive))';
+
+  return (
+    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-card border border-border/50 shadow-sm cursor-default select-none">
+      <div className="relative w-10 h-10">
+        <svg className="w-10 h-10 -rotate-90" viewBox="0 0 44 44">
+          <circle cx="22" cy="22" r={radius} fill="none" stroke="hsl(var(--border))" strokeWidth="3" />
+          <motion.circle
+            cx="22" cy="22" r={radius} fill="none"
+            stroke={color}
+            strokeWidth="3"
+            strokeDasharray={circumference}
+            strokeLinecap="round"
+            initial={{ strokeDashoffset: circumference }}
+            animate={{ strokeDashoffset: circumference - filled }}
+            transition={{ duration: 1.2, ease: 'easeOut' }}
+          />
+        </svg>
+        <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold text-foreground">
+          {completeness}%
+        </span>
+      </div>
+      {label && <span className="text-sm font-semibold text-foreground hidden md:inline">{label}</span>}
+    </div>
+  );
+};
+
 export const DashboardHeader = ({
   type,
   userName,
@@ -56,140 +87,124 @@ export const DashboardHeader = ({
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-card/60 backdrop-blur-2xl border-b border-border/40 shadow-sm safe-area-pt">
-      <div className="h-14 sm:h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between">
-        {/* Left */}
-        <div className="flex items-center gap-3 min-w-0">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="lg:hidden shrink-0 rounded-xl"
-                onClick={onMenuClick}
-              >
-                <Menu className="w-5 h-5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Open menu</TooltipContent>
-          </Tooltip>
+    <header className="sticky top-0 z-30 bg-card/80 backdrop-blur-2xl border-b border-border/40 safe-area-pt">
+      <div className="h-14 sm:h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-2">
+        {/* Left: Menu + Greeting */}
+        <div className="flex items-center gap-2.5 min-w-0 flex-shrink">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden shrink-0 rounded-xl h-9 w-9"
+            onClick={onMenuClick}
+          >
+            <Menu className="w-5 h-5" />
+          </Button>
 
-          {/* Mobile compact */}
+          {/* Mobile greeting */}
           <h1 className="sm:hidden text-sm font-semibold text-foreground truncate">
             Hi, <span className="text-primary">{firstName}</span> 👋
           </h1>
-          {/* Desktop */}
-          <motion.div 
-            initial={{ opacity: 0, x: -10 }}
+          {/* Desktop greeting */}
+          <motion.div
+            initial={{ opacity: 0, x: -8 }}
             animate={{ opacity: 1, x: 0 }}
             className="hidden sm:block min-w-0"
           >
-            <h1 className="text-base sm:text-lg font-bold text-foreground truncate">
-              {getGreeting()}, <span className="bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">{firstName}</span> 👋
+            <h1 className="text-base font-bold text-foreground truncate leading-tight">
+              {getGreeting()}, <span className="text-primary">{firstName}</span> 👋
             </h1>
-            <p className="text-xs text-muted-foreground truncate">
+            <p className="text-[11px] text-muted-foreground truncate">
               {type === 'candidate' ? "Let's find your dream job today" : "Manage your hiring pipeline"}
             </p>
           </motion.div>
         </div>
 
-        {/* Right */}
-        <div className="flex items-center gap-1.5 sm:gap-2">
-          {/* Profile completeness ring */}
+        {/* Right: Actions */}
+        <div className="flex items-center gap-1 sm:gap-1.5">
+          {/* Profile Completeness Ring */}
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-card/80 backdrop-blur-sm border border-border/40 cursor-default">
-                <div className="relative w-7 h-7">
-                  <svg className="w-7 h-7 -rotate-90">
-                    <circle cx="50%" cy="50%" r="10" fill="none" stroke="hsl(var(--border))" strokeWidth="2.5" />
-                    <circle
-                      cx="50%" cy="50%" r="10" fill="none"
-                      stroke="hsl(var(--primary))"
-                      strokeWidth="2.5"
-                      strokeDasharray={`${profileCompleteness * 0.63} 63`}
-                      strokeLinecap="round"
-                      className="transition-all duration-1000"
-                    />
-                  </svg>
-                  <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-foreground">
-                    {profileCompleteness}%
-                  </span>
-                </div>
-                <span className="text-xs font-medium text-muted-foreground hidden md:inline">Profile</span>
+              <div className="hidden sm:block">
+                <ProfileRing completeness={profileCompleteness} label="Profile" />
               </div>
             </TooltipTrigger>
-            <TooltipContent>Profile completeness: {profileCompleteness}%</TooltipContent>
+            <TooltipContent>Profile {profileCompleteness}% complete</TooltipContent>
           </Tooltip>
 
           {/* Notifications */}
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="relative rounded-xl" onClick={onNotificationClick}>
-                <Bell className="w-5 h-5 text-muted-foreground" />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative rounded-xl h-9 w-9 sm:h-10 sm:w-10"
+                onClick={onNotificationClick}
+              >
+                <Bell className="w-[18px] h-[18px] text-muted-foreground" />
                 {notificationCount > 0 && (
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 rounded-full bg-destructive text-white text-[10px] flex items-center justify-center font-bold shadow-lg shadow-destructive/30"
+                    className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center font-bold px-1 shadow-lg"
                   >
                     {notificationCount > 9 ? '9+' : notificationCount}
                   </motion.span>
                 )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Notifications{notificationCount > 0 ? ` (${notificationCount} unread)` : ''}</TooltipContent>
+            <TooltipContent>
+              {notificationCount > 0 ? `${notificationCount} unread` : 'Notifications'}
+            </TooltipContent>
           </Tooltip>
 
+          {/* Language */}
           <LanguageSelector className="hidden sm:flex" />
 
+          {/* Theme Toggle */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="rounded-xl hidden sm:flex"
+                className="rounded-xl h-9 w-9 sm:h-10 sm:w-10 hidden sm:inline-flex"
                 onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               >
                 {theme === 'dark' ? (
-                  <Sun className="w-4.5 h-4.5 text-muted-foreground" />
+                  <Sun className="w-[18px] h-[18px] text-muted-foreground" />
                 ) : (
-                  <Moon className="w-4.5 h-4.5 text-muted-foreground" />
+                  <Moon className="w-[18px] h-[18px] text-muted-foreground" />
                 )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>{theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}</TooltipContent>
+            <TooltipContent>{theme === 'dark' ? 'Light mode' : 'Dark mode'}</TooltipContent>
           </Tooltip>
 
-          {/* Profile */}
+          {/* User Avatar */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <Avatar className="w-8 h-8 ring-2 ring-primary/20 ring-offset-1 ring-offset-card">
+              <button className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring ring-offset-2 ring-offset-card">
+                <Avatar className="w-9 h-9 sm:w-10 sm:h-10 ring-2 ring-primary/20 ring-offset-2 ring-offset-card transition-transform hover:scale-105">
                   <AvatarImage src={avatarUrl || undefined} />
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-primary/70 text-primary-foreground font-semibold text-sm">
+                  <AvatarFallback className="bg-primary text-primary-foreground font-semibold text-sm">
                     {userName?.charAt(0)}
                   </AvatarFallback>
                 </Avatar>
-              </Button>
+              </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 rounded-xl backdrop-blur-xl bg-card/95 border-border/50">
+            <DropdownMenuContent align="end" className="w-56 rounded-xl">
               <DropdownMenuLabel>
-                <div>
-                  <p className="font-semibold">{userName}</p>
-                  {userTitle && <p className="text-xs text-muted-foreground font-normal">{userTitle}</p>}
-                </div>
+                <p className="font-semibold truncate">{userName}</p>
+                {userTitle && <p className="text-xs text-muted-foreground font-normal truncate">{userTitle}</p>}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link to={profilePath} className="flex items-center gap-2 cursor-pointer">
-                  <User className="w-4 h-4" />
-                  Profile
+                  <User className="w-4 h-4" /> Profile
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link to={settingsPath} className="flex items-center gap-2 cursor-pointer">
-                  <Settings className="w-4 h-4" />
-                  Settings
+                  <Settings className="w-4 h-4" /> Settings
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -197,8 +212,7 @@ export const DashboardHeader = ({
                 onClick={onSignOut}
                 className="text-destructive focus:text-destructive cursor-pointer"
               >
-                <LogOut className="w-4 h-4 mr-2" />
-                Sign Out
+                <LogOut className="w-4 h-4 mr-2" /> Sign Out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
