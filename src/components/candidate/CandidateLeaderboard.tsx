@@ -335,6 +335,7 @@ export const CandidateLeaderboard = () => {
       case 'completeness': return copy.sort((a, b) => b.completeness_score - a.completeness_score);
       case 'assessments': return copy.sort((a, b) => b.assessments_passed - a.assessments_passed);
       case 'activity': return copy.sort((a, b) => b.activity_score - a.activity_score);
+      case 'portfolio': return copy.sort((a, b) => b.portfolio_score - a.portfolio_score);
       default: return copy.sort((a, b) => b.total_score - a.total_score);
     }
   }, [entries, activeTab]);
