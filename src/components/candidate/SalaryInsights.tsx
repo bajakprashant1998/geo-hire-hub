@@ -72,7 +72,7 @@ const QuickRoleButton = ({ role, isSelected, onClick }: {
 );
 
 const StatHighlight = ({ icon: Icon, label, value, subtext, accent }: {
-  icon: typeof DollarSign;
+  icon: typeof Banknote;
   label: string;
   value: string;
   subtext?: string;
