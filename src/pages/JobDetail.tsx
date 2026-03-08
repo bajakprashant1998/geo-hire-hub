@@ -654,7 +654,12 @@ const JobDetail = () => {
                       </DialogHeader>
                       <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                          <Label htmlFor="coverLetter">Cover Letter (Optional)</Label>
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="coverLetter">Cover Letter (Optional)</Label>
+                            <Button type="button" variant="ghost" size="sm" onClick={handleGenerateCoverLetter} disabled={generatingCL} className="h-7 text-xs gap-1.5 text-primary hover:text-primary">
+                              {generatingCL ? <><Loader2 className="w-3 h-3 animate-spin" />Generating...</> : <><Sparkles className="w-3 h-3" />Generate with AI</>}
+                            </Button>
+                          </div>
                           <Textarea id="coverLetter" placeholder="Tell the employer why you're a great fit..." rows={6} value={coverLetter} onChange={(e) => setCoverLetter(e.target.value)} className="resize-none rounded-xl" />
                         </div>
                       </div>
