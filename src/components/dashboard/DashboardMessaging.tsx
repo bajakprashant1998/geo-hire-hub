@@ -18,7 +18,7 @@ import {
 import {
   MessageCircle, Search, ArrowLeft, Send, Trash2, Phone, Video,
   Check, CheckCheck, Paperclip, Smile, MoreVertical, User, Pin, PinOff,
-  Filter, Star, Archive, Clock, MessageSquare, Users, Mail, Zap, X
+  Filter, Star, Archive, Clock, MessageSquare, Users, Mail, Zap, X, Loader2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -477,47 +477,30 @@ export const DashboardMessaging = () => {
     <div className="space-y-3">
       {/* Stats Bar */}
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-card border border-border rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2 sm:gap-3"
-        >
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-            <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">Total Chats</p>
-            <p className="text-lg sm:text-xl font-bold text-foreground">{stats.totalConversations}</p>
-          </div>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="bg-card border border-border rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2 sm:gap-3"
-        >
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
-            <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-destructive" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">Unread</p>
-            <p className="text-lg sm:text-xl font-bold text-foreground">{stats.totalUnread}</p>
-          </div>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-card border border-border rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2 sm:gap-3"
-        >
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-accent/50 flex items-center justify-center shrink-0">
-            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">Active Today</p>
-            <p className="text-lg sm:text-xl font-bold text-foreground">{stats.activeToday}</p>
-          </div>
-        </motion.div>
+        {[
+          { icon: MessageSquare, label: 'Conversations', value: stats.totalConversations, color: 'bg-primary/10 text-primary', delay: 0 },
+          { icon: Mail, label: 'Unread', value: stats.totalUnread, color: 'bg-destructive/10 text-destructive', delay: 0.05 },
+          { icon: Clock, label: 'Active Today', value: stats.activeToday, color: 'bg-[hsl(var(--success))]/10 text-[hsl(var(--success))]', delay: 0.1 },
+        ].map((stat) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: stat.delay }}
+            className="bg-card border border-border rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2 sm:gap-3 hover:shadow-[var(--shadow-sm)] transition-shadow"
+          >
+            <div className={cn("w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0", stat.color)}>
+              <stat.icon className="w-4 h-4 sm:w-5 sm:h-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">{stat.label}</p>
+              <p className="text-lg sm:text-xl font-bold text-foreground">{stat.value}</p>
+            </div>
+            {stat.label === 'Unread' && stat.value > 0 && (
+              <div className="w-2 h-2 rounded-full bg-destructive animate-pulse ml-auto shrink-0" />
+            )}
+          </motion.div>
+        ))}
       </div>
 
       {/* Main Chat Area */}
@@ -548,8 +531,16 @@ export const DashboardMessaging = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search conversations..."
-                className="pl-9 h-9 bg-muted/50 border-border/50 text-sm"
+                className="pl-9 h-9 bg-secondary/50 border-border/50 text-sm rounded-xl"
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
             {/* Filter Chips */}
             <div className="flex gap-1.5">
@@ -580,17 +571,27 @@ export const DashboardMessaging = () => {
           {/* Conversation List */}
           <ScrollArea className="flex-1">
             {loading ? (
-              <div className="p-8 text-center">
-                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+              <div className="p-4 space-y-3">
+                {[1, 2, 3, 4, 5].map(i => (
+                  <div key={i} className="flex items-center gap-3 p-3 rounded-xl">
+                    <div className="w-11 h-11 rounded-full bg-muted animate-pulse shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-2/3 bg-muted animate-pulse rounded" />
+                      <div className="h-3 w-full bg-muted animate-pulse rounded" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : filteredConversations.length === 0 ? (
               <div className="p-8 text-center">
-                <MessageCircle className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                <p className="text-sm text-muted-foreground">
-                  {searchQuery ? 'No matching conversations' : filterType === 'unread' ? 'No unread messages' : 'No conversations yet'}
+                <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center mx-auto mb-3">
+                  <MessageCircle className="w-7 h-7 text-muted-foreground/40" />
+                </div>
+                <p className="text-sm font-medium text-foreground mb-1">
+                  {searchQuery ? 'No results found' : filterType === 'unread' ? 'All caught up!' : 'No conversations yet'}
                 </p>
-                <p className="text-xs text-muted-foreground/70 mt-1">
-                  Start by applying to jobs or messaging candidates
+                <p className="text-xs text-muted-foreground">
+                  {searchQuery ? 'Try a different search term' : filterType === 'unread' ? 'You have no unread messages' : 'Apply to jobs or connect with employers to start chatting'}
                 </p>
               </div>
             ) : (
@@ -612,7 +613,7 @@ export const DashboardMessaging = () => {
                           className={cn(
                             "w-full p-3 pr-8 text-left rounded-xl transition-all duration-200 hover:bg-muted/70",
                             activeConversationId === conv.id && 'bg-primary/8 border border-primary/20',
-                            isPinned && 'border-l-2 border-l-amber-400'
+                            isPinned && 'border-l-2 border-l-[hsl(var(--warning))]'
                           )}
                         >
                           <div className="flex items-center gap-3">
@@ -633,7 +634,7 @@ export const DashboardMessaging = () => {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between gap-1 mb-0.5">
                                 <div className="flex items-center gap-1 min-w-0 flex-1">
-                                  {isPinned && <Pin className="w-3 h-3 text-amber-500 shrink-0" />}
+                                  {isPinned && <Pin className="w-3 h-3 text-[hsl(var(--warning))] shrink-0" />}
                                   <p className={cn(
                                     "font-medium truncate text-sm",
                                     conv.unreadCount > 0 && 'font-semibold text-foreground'
@@ -662,13 +663,13 @@ export const DashboardMessaging = () => {
                                 <Badge
                                   variant="secondary"
                                   className={cn(
-                                    "text-[10px] px-2 py-0 h-4 capitalize mt-1",
+                                    "text-[10px] px-2 py-0 h-4 capitalize mt-1 rounded-full",
                                     conv.otherProfile.user_type === 'employer'
-                                      ? 'bg-blue-500/10 text-blue-600'
-                                      : 'bg-green-500/10 text-green-600'
+                                      ? 'bg-primary/10 text-primary border border-primary/20'
+                                      : 'bg-[hsl(var(--success))]/10 text-[hsl(var(--success))] border border-[hsl(var(--success))]/20'
                                   )}
                                 >
-                                  {conv.otherProfile.user_type}
+                                  {conv.otherProfile.user_type === 'employer' ? '🏢 Employer' : '👤 Candidate'}
                                 </Badge>
                               )}
                             </div>
@@ -680,7 +681,7 @@ export const DashboardMessaging = () => {
                             <TooltipTrigger asChild>
                               <button
                                 onClick={(e) => { e.stopPropagation(); togglePin(conv.id); }}
-                                className="p-1.5 rounded-md bg-transparent hover:bg-amber-500/15 text-foreground/60 hover:text-amber-600 transition-colors"
+                                className="p-1.5 rounded-md bg-transparent hover:bg-[hsl(var(--warning))]/15 text-foreground/60 hover:text-[hsl(var(--warning))] transition-colors"
                               >
                                 {isPinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
                               </button>
@@ -916,6 +917,17 @@ export const DashboardMessaging = () => {
 
               {/* Input */}
               <div className="border-t border-border bg-card p-3 sm:p-4">
+                {pendingAttachment && (
+                  <div className="mb-2">
+                    <AttachmentUpload
+                      userId={user?.id || ''}
+                      conversationId={activeConversation.id}
+                      onAttachmentReady={setPendingAttachment}
+                      pendingAttachment={pendingAttachment}
+                      onClearAttachment={() => setPendingAttachment(null)}
+                    />
+                  </div>
+                )}
                 <form onSubmit={sendMessage} className="flex items-center gap-2">
                   {!pendingAttachment && (
                     <AttachmentUpload
@@ -932,7 +944,10 @@ export const DashboardMessaging = () => {
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="h-9 w-9 shrink-0 text-muted-foreground hover:text-primary"
+                        className={cn(
+                          "h-9 w-9 shrink-0 rounded-xl transition-colors",
+                          showQuickReplies ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-primary"
+                        )}
                         onClick={() => setShowQuickReplies(!showQuickReplies)}
                       >
                         <Zap className="w-4 h-4" />
@@ -940,51 +955,67 @@ export const DashboardMessaging = () => {
                     </TooltipTrigger>
                     <TooltipContent>Quick replies</TooltipContent>
                   </Tooltip>
-                  <Input
-                    ref={inputRef}
-                    value={newMessage}
-                    onChange={(e) => handleMessageChange(e.target.value)}
-                    placeholder="Type a message..."
-                    className="flex-1 h-10 bg-muted/50 border-border/50 text-sm rounded-full px-4"
-                    disabled={sending}
-                  />
+                  <div className="flex-1 relative">
+                    <Input
+                      ref={inputRef}
+                      value={newMessage}
+                      onChange={(e) => handleMessageChange(e.target.value)}
+                      placeholder="Type a message..."
+                      className="h-10 bg-secondary/50 border-border/50 text-sm rounded-full px-4 pr-12"
+                      disabled={sending}
+                    />
+                    {newMessage.length > 0 && (
+                      <span className={cn(
+                        "absolute right-3 top-1/2 -translate-y-1/2 text-[10px]",
+                        newMessage.length > MAX_MESSAGE_LENGTH * 0.9 ? "text-destructive" : "text-muted-foreground/50"
+                      )}>
+                        {newMessage.length.toLocaleString()}
+                      </span>
+                    )}
+                  </div>
                   <Button
                     type="submit"
                     size="icon"
                     disabled={(!newMessage.trim() && !pendingAttachment) || sending}
                     className={cn(
-                      "rounded-full h-10 w-10 transition-all",
+                      "rounded-full h-10 w-10 transition-all shrink-0",
                       (newMessage.trim() || pendingAttachment) && !sending
-                        ? "bg-primary hover:bg-primary/90 shadow-md"
+                        ? "bg-primary hover:bg-primary/90 shadow-[var(--shadow-sm)]"
                         : "bg-muted text-muted-foreground"
                     )}
                   >
-                    <Send className="w-4 h-4" />
+                    {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   </Button>
                 </form>
-                {pendingAttachment && (
-                  <div className="mt-2">
-                    <AttachmentUpload
-                      userId={user?.id || ''}
-                      conversationId={activeConversation.id}
-                      onAttachmentReady={setPendingAttachment}
-                      pendingAttachment={pendingAttachment}
-                      onClearAttachment={() => setPendingAttachment(null)}
-                    />
-                  </div>
-                )}
               </div>
             </>
           ) : (
             /* Empty State */
             <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-              <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
-                <MessageCircle className="w-10 h-10 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">Your Messages</h3>
-              <p className="text-sm text-muted-foreground max-w-sm">
-                Select a conversation from the list to start chatting, or connect with employers and candidates through job listings.
-              </p>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex flex-col items-center"
+              >
+                <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-5 shadow-[var(--shadow-sm)]">
+                  <MessageCircle className="w-10 h-10 text-primary" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground font-heading mb-2">Your Messages</h3>
+                <p className="text-sm text-muted-foreground max-w-sm mb-4">
+                  Select a conversation from the list to start chatting, or connect with employers through job listings.
+                </p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  <Badge variant="secondary" className="text-xs rounded-full px-3 py-1 gap-1.5">
+                    <Zap className="w-3 h-3 text-[hsl(var(--warning))]" /> Quick replies available
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs rounded-full px-3 py-1 gap-1.5">
+                    <Paperclip className="w-3 h-3 text-primary" /> File attachments
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs rounded-full px-3 py-1 gap-1.5">
+                    <Smile className="w-3 h-3 text-[hsl(var(--success))]" /> Emoji reactions
+                  </Badge>
+                </div>
+              </motion.div>
             </div>
           )}
         </div>
