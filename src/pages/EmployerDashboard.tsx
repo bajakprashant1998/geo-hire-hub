@@ -18,7 +18,8 @@ import {
   MapPin, Briefcase, Building2, Plus, Loader2, Eye, Users,
   CheckCircle2, ChevronRight, FileEdit, CreditCard, UserCheck,
   MessageSquare, Calendar, BarChart3, User, Settings, Pencil, Trash2, Shield,
-  Sparkles, Bell, Filter, Search, Clock
+  Sparkles, Bell, Filter, Search, Clock, FileText, FlaskConical, ClipboardCheck,
+  Database, MessageCircle
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
