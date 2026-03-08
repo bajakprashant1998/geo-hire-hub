@@ -1006,6 +1006,11 @@ const JobDetail = () => {
             <Button variant="outline" size="icon" onClick={handleShare} className="w-11 h-11 rounded-xl shrink-0">
               <Share2 className="w-5 h-5" />
             </Button>
+            {user && profile?.user_type === 'candidate' && (
+              <Button variant="outline" size="icon" onClick={handleReferFriend} className="w-11 h-11 rounded-xl shrink-0 text-primary border-primary/30">
+                <Trophy className="w-5 h-5" />
+              </Button>
+            )}
             {job.employer.whatsapp_number && (
               <WhatsAppButton phoneNumber={job.employer.whatsapp_number} variant="icon" className="shrink-0 w-11 h-11 rounded-xl" />
             )}
