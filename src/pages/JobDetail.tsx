@@ -597,6 +597,11 @@ const JobDetail = () => {
                 <Gift className="w-3.5 h-3.5" /> +Bonus
               </Badge>
             )}
+            {(job.referral_bounty ?? 0) > 0 && (
+              <Badge className="gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-primary/10 text-primary border-primary/20">
+                <Trophy className="w-3.5 h-3.5" /> {job.referral_bounty} pts Bounty
+              </Badge>
+            )}
           </div>
         </motion.div>
 
