@@ -55,6 +55,7 @@ import { HiringPipeline } from '@/components/employer/HiringPipeline';
 import { PendingTasksWidget } from '@/components/dashboard/PendingTasksWidget';
 import { AIScreeningPanel } from '@/components/employer/AIScreeningPanel';
 import { SkillAssessmentManager } from '@/components/employer/SkillAssessmentManager';
+import { JDOptimizer } from '@/components/employer/JDOptimizer';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
