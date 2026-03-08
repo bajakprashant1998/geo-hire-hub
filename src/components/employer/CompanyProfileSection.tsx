@@ -1136,27 +1136,48 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
       </AnimatePresence>
 
       {/* Navigation & Save - sticky on mobile */}
-      <div className="sticky bottom-0 bg-background/95 backdrop-blur-sm border-t border-border -mx-3 sm:-mx-4 lg:-mx-6 px-3 sm:px-4 lg:px-6 py-3 sm:py-4 flex items-center justify-between gap-2 z-10">
-        <div className="flex gap-1.5 sm:gap-2">
-          {activeStep > 0 && (
-            <Button variant="outline" size="sm" onClick={() => setActiveStep(activeStep - 1)} className="text-xs sm:text-sm h-8 sm:h-9 px-2.5 sm:px-3">
-              ← Back
-            </Button>
-          )}
-          {activeStep < steps.length - 1 && (
-            <Button variant="outline" size="sm" onClick={() => setActiveStep(activeStep + 1)} className="text-xs sm:text-sm h-8 sm:h-9 px-2.5 sm:px-3">
-              Next →
-            </Button>
-          )}
+      <div className="sticky bottom-0 bg-background/95 backdrop-blur-xl border-t border-border/60 -mx-3 sm:-mx-4 lg:-mx-6 px-3 sm:px-4 lg:px-6 py-3 sm:py-4 z-10">
+        {/* Step progress dots */}
+        <div className="flex items-center justify-center gap-1 mb-3">
+          {steps.map((_, idx) => {
+            const status = getStepCompletion(idx);
+            return (
+              <button
+                key={idx}
+                onClick={() => setActiveStep(idx)}
+                className={cn(
+                  "w-2 h-2 rounded-full transition-all",
+                  activeStep === idx ? "w-6 bg-primary" :
+                  status === 'complete' ? "bg-success" :
+                  status === 'partial' ? "bg-warning" :
+                  "bg-muted-foreground/20"
+                )}
+              />
+            );
+          })}
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:inline">
-            Step {activeStep + 1} of {steps.length}
-          </span>
-          <Button onClick={handleSave} disabled={saving} className="gap-1.5 text-xs sm:text-sm h-8 sm:h-9 px-3 sm:px-4">
-            {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-            Save
-          </Button>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex gap-1.5 sm:gap-2">
+            {activeStep > 0 && (
+              <Button variant="outline" size="sm" onClick={() => setActiveStep(activeStep - 1)} className="text-xs sm:text-sm h-8 sm:h-9 px-2.5 sm:px-3 rounded-xl">
+                ← Back
+              </Button>
+            )}
+            {activeStep < steps.length - 1 && (
+              <Button variant="outline" size="sm" onClick={() => setActiveStep(activeStep + 1)} className="text-xs sm:text-sm h-8 sm:h-9 px-2.5 sm:px-3 rounded-xl">
+                Next →
+              </Button>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:inline">
+              {steps[activeStep].label} · {activeStep + 1}/{steps.length}
+            </span>
+            <Button onClick={handleSave} disabled={saving} className="gap-1.5 text-xs sm:text-sm h-8 sm:h-9 px-3 sm:px-5 rounded-xl">
+              {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              Save Profile
+            </Button>
+          </div>
         </div>
       </div>
 
