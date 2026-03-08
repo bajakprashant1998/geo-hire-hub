@@ -147,12 +147,14 @@ const PlanCard = ({
   index,
   billingCycle,
   isCurrentPlan,
+  isRecommended,
   onSelect,
 }: {
   plan: Plan;
   index: number;
   billingCycle: 'monthly' | 'yearly';
   isCurrentPlan: boolean;
+  isRecommended: boolean;
   onSelect: (plan: Plan) => void;
 }) => {
   const isPro = plan.name.toLowerCase() === 'professional';
