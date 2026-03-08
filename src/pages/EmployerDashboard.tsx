@@ -19,7 +19,7 @@ import {
   CheckCircle2, ChevronRight, FileEdit, CreditCard, UserCheck,
   MessageSquare, Calendar, BarChart3, User, Settings, Pencil, Trash2, Shield,
   Sparkles, Bell, Filter, Search, Clock, FileText, FlaskConical, ClipboardCheck,
-  Database, MessageCircle
+  Database, MessageCircle, Palette
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
