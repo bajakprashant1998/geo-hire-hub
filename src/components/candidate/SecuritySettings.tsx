@@ -1,34 +1,30 @@
 import { useState, useEffect, forwardRef, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Shield, Key, Clock, Smartphone, Trash2, AlertTriangle, Loader2, Eye, EyeOff, LogOut, Mail, AtSign, CheckCircle2, XCircle, Info, Bell } from 'lucide-react';
+import {
+  Shield, Key, Clock, Smartphone, Trash2, AlertTriangle, Loader2, Eye, EyeOff, LogOut,
+  Mail, AtSign, CheckCircle2, XCircle, Info, Bell, BellRing, Lock, Fingerprint,
+  ShieldCheck, ShieldAlert, ChevronRight, Check
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PushNotificationToggle } from '@/components/candidate/PushNotificationToggle';
+import { cn } from '@/lib/utils';
 
-// Forward ref wrapper for AlertDialogTrigger buttons
 const TriggerButton = forwardRef<HTMLButtonElement, React.ComponentPropsWithoutRef<typeof Button>>(
   (props, ref) => <Button ref={ref} {...props} />
 );
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 16 },
-  visible: (i: number) => ({
-    opacity: 1, y: 0,
-    transition: { delay: i * 0.06, duration: 0.35, ease: [0, 0, 0.2, 1] as const }
-  })
-};
-
-// Password strength calculator
 const getPasswordStrength = (password: string) => {
   let score = 0;
   const checks = {
@@ -47,29 +43,161 @@ const getPasswordStrength = (password: string) => {
   if (checks.longEnough) score += 1;
 
   let label = 'Too weak';
-  let color = 'bg-destructive';
+  let color = 'text-destructive';
+  let barColor = 'bg-destructive';
   let percent = 0;
-  if (score <= 2) { label = 'Weak'; color = 'bg-destructive'; percent = 25; }
-  else if (score <= 3) { label = 'Fair'; color = 'bg-orange-500'; percent = 50; }
-  else if (score <= 4) { label = 'Good'; color = 'bg-yellow-500'; percent = 75; }
-  else { label = 'Strong'; color = 'bg-green-500'; percent = 100; }
-
+  if (score <= 2) { label = 'Weak'; percent = 25; }
+  else if (score <= 3) { label = 'Fair'; color = 'text-warning-foreground'; barColor = 'bg-warning'; percent = 50; }
+  else if (score <= 4) { label = 'Good'; color = 'text-primary'; barColor = 'bg-primary'; percent = 75; }
+  else { label = 'Strong'; color = 'text-success'; barColor = 'bg-success'; percent = 100; }
   if (password.length === 0) { label = ''; percent = 0; }
 
-  return { score, checks, label, color, percent };
+  return { score, checks, label, color, barColor, percent };
 };
 
+/* ── Security Score Hero ── */
+const SecurityScoreHero = ({ score, checks }: { score: number; checks: { label: string; passed: boolean }[] }) => {
+  const percentage = Math.round((score / checks.length) * 100);
+  const level = percentage >= 80 ? 'Excellent' : percentage >= 60 ? 'Good' : percentage >= 40 ? 'Fair' : 'Needs Attention';
+  const levelColor = percentage >= 80 ? 'text-success' : percentage >= 60 ? 'text-primary' : percentage >= 40 ? 'text-warning-foreground' : 'text-destructive';
+  const LevelIcon = percentage >= 60 ? ShieldCheck : ShieldAlert;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-card to-success/5 border border-border/50 p-5 sm:p-6"
+    >
+      <div className="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+
+      <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-5">
+        <div className="flex items-center gap-4 flex-1 min-w-0">
+          <div className="relative w-20 h-20 shrink-0">
+            <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+              <circle cx="50" cy="50" r="42" fill="none" stroke="hsl(var(--muted))" strokeWidth="8" />
+              <motion.circle
+                cx="50" cy="50" r="42" fill="none"
+                stroke={percentage >= 80 ? 'hsl(var(--success))' : percentage >= 60 ? 'hsl(var(--primary))' : 'hsl(var(--warning))'}
+                strokeWidth="8" strokeLinecap="round"
+                strokeDasharray={264}
+                initial={{ strokeDashoffset: 264 }}
+                animate={{ strokeDashoffset: 264 - (264 * percentage) / 100 }}
+                transition={{ duration: 1.2, ease: 'easeOut' }}
+              />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <LevelIcon className={cn('w-7 h-7', levelColor)} />
+            </div>
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Security Score</p>
+            <h2 className="text-xl sm:text-2xl font-extrabold text-foreground">{level}</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              <span className={cn('font-bold', levelColor)}>{score}</span> of {checks.length} security checks passed
+            </p>
+          </div>
+        </div>
+
+        {/* Quick checks */}
+        <div className="flex flex-wrap gap-1.5 sm:flex-col sm:gap-1 sm:items-end">
+          {checks.slice(0, 4).map(c => (
+            <div key={c.label} className="flex items-center gap-1.5 text-xs">
+              {c.passed ? (
+                <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" />
+              ) : (
+                <XCircle className="w-3.5 h-3.5 text-muted-foreground/40 shrink-0" />
+              )}
+              <span className={c.passed ? 'text-foreground' : 'text-muted-foreground'}>{c.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+/* ── Setting Row ── */
+const SettingRow = ({
+  icon: Icon,
+  iconBg,
+  iconColor,
+  title,
+  description,
+  action,
+  badge,
+}: {
+  icon: React.ElementType;
+  iconBg: string;
+  iconColor: string;
+  title: string;
+  description: string;
+  action: React.ReactNode;
+  badge?: React.ReactNode;
+}) => (
+  <div className="flex items-center justify-between p-3.5 rounded-xl bg-muted/20 hover:bg-muted/40 transition-colors border border-border/20">
+    <div className="flex items-center gap-3 flex-1 min-w-0">
+      <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0', iconBg)}>
+        <Icon className={cn('w-5 h-5', iconColor)} />
+      </div>
+      <div className="min-w-0">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-bold text-foreground">{title}</p>
+          {badge}
+        </div>
+        <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
+      </div>
+    </div>
+    <div className="shrink-0 ml-3">{action}</div>
+  </div>
+);
+
+/* ── Section Card ── */
+const SectionCard = ({
+  icon: Icon,
+  title,
+  description,
+  children,
+  variant = 'default',
+}: {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+  variant?: 'default' | 'danger';
+}) => (
+  <Card className={cn(
+    'border overflow-hidden rounded-2xl',
+    variant === 'danger' ? 'border-destructive/20' : 'border-border/40'
+  )}>
+    <div className={cn(
+      'flex items-center gap-3 p-4 border-b',
+      variant === 'danger' ? 'border-destructive/20 bg-destructive/5' : 'border-border/30 bg-gradient-to-r from-primary/5 to-transparent'
+    )}>
+      <div className={cn(
+        'w-9 h-9 rounded-lg flex items-center justify-center',
+        variant === 'danger' ? 'bg-destructive/10' : 'bg-primary/10'
+      )}>
+        <Icon className={cn('w-4.5 h-4.5', variant === 'danger' ? 'text-destructive' : 'text-primary')} />
+      </div>
+      <div>
+        <h3 className={cn('font-bold text-sm', variant === 'danger' ? 'text-destructive' : 'text-foreground')}>{title}</h3>
+        <p className="text-xs text-muted-foreground">{description}</p>
+      </div>
+    </div>
+    <CardContent className="p-4 space-y-3">{children}</CardContent>
+  </Card>
+);
+
+/* ── Main Component ── */
 export const SecuritySettings = () => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
   const [changingPassword, setChangingPassword] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  
   const [deactivating, setDeactivating] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [whatsappNotifications, setWhatsappNotifications] = useState(false);
@@ -77,8 +205,6 @@ export const SecuritySettings = () => {
   const [loadingEmailPref, setLoadingEmailPref] = useState(false);
   const [loadingWhatsappPref, setLoadingWhatsappPref] = useState(false);
   const [loadingSmsPref, setLoadingSmsPref] = useState(false);
-
-  // Email change state
   const [changingEmail, setChangingEmail] = useState(false);
   const [newEmail, setNewEmail] = useState('');
   const [emailLoading, setEmailLoading] = useState(false);
@@ -86,8 +212,8 @@ export const SecuritySettings = () => {
   const passwordStrength = useMemo(() => getPasswordStrength(newPassword), [newPassword]);
   const passwordsMatch = confirmPassword.length > 0 && newPassword === confirmPassword;
   const passwordsMismatch = confirmPassword.length > 0 && newPassword !== confirmPassword;
+  const canSubmitPassword = newPassword.length >= 8 && passwordsMatch && passwordStrength.score >= 3;
 
-  // Load notification preferences
   useEffect(() => {
     if (!user) return;
     supabase
@@ -104,45 +230,47 @@ export const SecuritySettings = () => {
       });
   }, [user]);
 
-  const handleEmailNotificationToggle = async (enabled: boolean) => {
+  const securityChecks = useMemo(() => [
+    { label: 'Email verified', passed: !!user?.email_confirmed_at },
+    { label: 'Strong password', passed: true },
+    { label: 'Email alerts on', passed: emailNotifications },
+    { label: 'Push notifications', passed: false },
+    { label: '2FA enabled', passed: false },
+  ], [user, emailNotifications]);
+
+  const securityScore = securityChecks.filter(c => c.passed).length;
+
+  const toggleNotifPref = async (
+    key: string,
+    enabled: boolean,
+    setter: (v: boolean) => void,
+    loadingSetter: (v: boolean) => void,
+  ) => {
     if (!user) return;
-    setLoadingEmailPref(true);
-    setEmailNotifications(enabled);
+    loadingSetter(true);
+    setter(enabled);
     try {
       const { error } = await supabase
         .from('notification_preferences')
-        .upsert({ user_id: user.id, email_notifications_enabled: enabled }, { onConflict: 'user_id' });
+        .upsert({ user_id: user.id, [key]: enabled } as any, { onConflict: 'user_id' });
       if (error) throw error;
-      toast.success(enabled ? 'Email notifications enabled' : 'Email notifications disabled');
+      toast.success(`${enabled ? 'Enabled' : 'Disabled'} successfully`);
     } catch {
-      setEmailNotifications(!enabled);
+      setter(!enabled);
       toast.error('Failed to update preference');
     } finally {
-      setLoadingEmailPref(false);
+      loadingSetter(false);
     }
   };
 
   const handleChangePassword = async () => {
-    if (newPassword !== confirmPassword) {
-      toast.error('Passwords do not match');
-      return;
-    }
-    if (newPassword.length < 8) {
-      toast.error('Password must be at least 8 characters');
-      return;
-    }
-    if (!/[A-Z]/.test(newPassword) || !/\d/.test(newPassword)) {
-      toast.error('Password must contain at least one uppercase letter and one number');
-      return;
-    }
-
+    if (!canSubmitPassword) return;
     setLoading(true);
     try {
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
       toast.success('Password changed successfully');
       setChangingPassword(false);
-      setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
     } catch (error: any) {
@@ -153,20 +281,13 @@ export const SecuritySettings = () => {
   };
 
   const handleChangeEmail = async () => {
-    if (!newEmail || !newEmail.includes('@')) {
-      toast.error('Please enter a valid email address');
-      return;
-    }
-    if (newEmail === user?.email) {
-      toast.error('New email must be different from current email');
-      return;
-    }
-
+    if (!newEmail || !newEmail.includes('@')) { toast.error('Please enter a valid email'); return; }
+    if (newEmail === user?.email) { toast.error('Must be different from current email'); return; }
     setEmailLoading(true);
     try {
       const { error } = await supabase.auth.updateUser({ email: newEmail });
       if (error) throw error;
-      toast.success('Confirmation email sent to your new address. Please verify to complete the change.');
+      toast.success('Confirmation email sent. Please verify to complete.');
       setChangingEmail(false);
       setNewEmail('');
     } catch (error: any) {
@@ -179,284 +300,135 @@ export const SecuritySettings = () => {
   const handleDeactivateAccount = async () => {
     setDeactivating(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ is_visible_on_map: false })
-        .eq('user_id', user?.id);
+      const { error } = await supabase.from('profiles').update({ is_visible_on_map: false }).eq('user_id', user?.id);
       if (error) throw error;
-      toast.success('Account deactivated. You can reactivate by logging in again.');
+      toast.success('Account deactivated');
       await signOut();
       navigate('/');
-    } catch (error) {
-      toast.error('Failed to deactivate account');
-    } finally {
-      setDeactivating(false);
-    }
+    } catch { toast.error('Failed to deactivate account'); }
+    finally { setDeactivating(false); }
   };
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Never';
-    const d = new Date(dateString);
-    return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const formatDate = (d: string | null) => {
+    if (!d) return 'Never';
+    return new Date(d).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   };
-
-  const canSubmitPassword = newPassword.length >= 8 && passwordsMatch && passwordStrength.score >= 3;
 
   return (
     <div className="space-y-5">
-      {/* Email Notification Preferences */}
-      <motion.div custom={0} variants={cardVariants} initial="hidden" animate="visible">
-        <Card className="shadow-google">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Mail className="w-5 h-5 text-primary" />
-              Email Notifications
-            </CardTitle>
-            <CardDescription>Control email notifications for dashboard events</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between p-4 bg-secondary rounded-xl">
+      {/* Security Score */}
+      <SecurityScoreHero score={securityScore} checks={securityChecks} />
+
+      {/* Tabs */}
+      <Tabs defaultValue="account">
+        <TabsList className="w-full grid grid-cols-3 h-11 bg-muted/30 rounded-xl p-1">
+          <TabsTrigger value="account" className="rounded-lg text-xs sm:text-sm data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5">
+            <Shield className="w-4 h-4" /> Account
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className="rounded-lg text-xs sm:text-sm data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5">
+            <Bell className="w-4 h-4" /> Alerts
+          </TabsTrigger>
+          <TabsTrigger value="danger" className="rounded-lg text-xs sm:text-sm data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1.5 text-destructive data-[state=active]:text-destructive">
+            <AlertTriangle className="w-4 h-4" /> Danger
+          </TabsTrigger>
+        </TabsList>
+
+        {/* ── Account Tab ── */}
+        <TabsContent value="account" className="space-y-4 mt-4">
+          {/* Email */}
+          <SectionCard icon={AtSign} title="Email Address" description="Change the email associated with your account">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium">Email Notifications</p>
-                <p className="text-sm text-muted-foreground">
-                  Receive email alerts for new messages, task assignments, and application updates
+                <p className="text-sm font-medium text-foreground">{user?.email}</p>
+                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                  {user?.email_confirmed_at ? (
+                    <><CheckCircle2 className="w-3 h-3 text-success" /> Verified</>
+                  ) : (
+                    <><XCircle className="w-3 h-3 text-warning-foreground" /> Not verified</>
+                  )}
                 </p>
               </div>
-              <div className="flex items-center gap-3">
-                <Badge variant={emailNotifications ? "default" : "secondary"}>
-                  {emailNotifications ? 'Enabled' : 'Disabled'}
-                </Badge>
-                <Switch
-                  checked={emailNotifications}
-                  onCheckedChange={handleEmailNotificationToggle}
-                  disabled={loadingEmailPref}
-                />
-              </div>
+              {!changingEmail && (
+                <Button variant="outline" size="sm" className="rounded-xl" onClick={() => setChangingEmail(true)}>
+                  Change
+                </Button>
+              )}
             </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Push Notifications */}
-      <motion.div custom={0.45} variants={cardVariants} initial="hidden" animate="visible">
-        <Card className="shadow-google">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bell className="w-5 h-5 text-primary" />
-              Browser Push Notifications
-            </CardTitle>
-            <CardDescription>Get real-time alerts in your browser</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <PushNotificationToggle />
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      <motion.div custom={0.5} variants={cardVariants} initial="hidden" animate="visible">
-        <Card className="shadow-google">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Smartphone className="w-5 h-5 text-primary" />
-              WhatsApp & SMS Notifications
-            </CardTitle>
-            <CardDescription>Get instant alerts on your phone</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-4 bg-secondary rounded-xl">
-              <div>
-                <p className="font-medium">WhatsApp Notifications</p>
-                <p className="text-sm text-muted-foreground">
-                  Receive interview reminders and application updates via WhatsApp
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <Badge variant={whatsappNotifications ? "default" : "secondary"}>
-                  {whatsappNotifications ? 'Enabled' : 'Disabled'}
-                </Badge>
-                <Switch
-                  checked={whatsappNotifications}
-                  onCheckedChange={async (enabled) => {
-                    setLoadingWhatsappPref(true);
-                    setWhatsappNotifications(enabled);
-                    try {
-                      const { error } = await supabase
-                        .from('notification_preferences')
-                        .upsert({ user_id: user!.id, whatsapp_notifications_enabled: enabled } as any, { onConflict: 'user_id' });
-                      if (error) throw error;
-                      toast.success(enabled ? 'WhatsApp notifications enabled' : 'WhatsApp notifications disabled');
-                    } catch {
-                      setWhatsappNotifications(!enabled);
-                      toast.error('Failed to update preference');
-                    } finally {
-                      setLoadingWhatsappPref(false);
-                    }
-                  }}
-                  disabled={loadingWhatsappPref}
-                />
-              </div>
-            </div>
-            <div className="flex items-center justify-between p-4 bg-secondary rounded-xl">
-              <div>
-                <p className="font-medium">SMS Notifications</p>
-                <p className="text-sm text-muted-foreground">
-                  Receive text message alerts for critical updates
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <Badge variant={smsNotifications ? "default" : "secondary"}>
-                  {smsNotifications ? 'Enabled' : 'Disabled'}
-                </Badge>
-                <Switch
-                  checked={smsNotifications}
-                  onCheckedChange={async (enabled) => {
-                    setLoadingSmsPref(true);
-                    setSmsNotifications(enabled);
-                    try {
-                      const { error } = await supabase
-                        .from('notification_preferences')
-                        .upsert({ user_id: user!.id, sms_notifications_enabled: enabled } as any, { onConflict: 'user_id' });
-                      if (error) throw error;
-                      toast.success(enabled ? 'SMS notifications enabled' : 'SMS notifications disabled');
-                    } catch {
-                      setSmsNotifications(!enabled);
-                      toast.error('Failed to update preference');
-                    } finally {
-                      setLoadingSmsPref(false);
-                    }
-                  }}
-                  disabled={loadingSmsPref}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Update Email */}
-      <motion.div custom={1} variants={cardVariants} initial="hidden" animate="visible">
-        <Card className="shadow-google">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AtSign className="w-5 h-5 text-primary" />
-              Email Address
-            </CardTitle>
-            <CardDescription>Change the email associated with your account</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-3">
-              Current email: <span className="font-semibold text-foreground">{user?.email}</span>
-            </p>
-            <AnimatePresence mode="wait">
-              {!changingEmail ? (
-                <motion.div key="btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                  <Button onClick={() => setChangingEmail(true)} variant="outline" className="rounded-xl">
-                    Change Email
-                  </Button>
-                </motion.div>
-              ) : (
-                <motion.div key="form" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>New Email Address</Label>
-                    <Input
-                      type="email"
-                      value={newEmail}
-                      onChange={(e) => setNewEmail(e.target.value)}
-                      placeholder="Enter new email address"
-                      className="rounded-xl"
-                    />
+            <AnimatePresence>
+              {changingEmail && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold">New Email</Label>
+                    <Input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="Enter new email" className="rounded-xl" />
                   </div>
                   <div className="flex gap-2">
-                    <Button onClick={handleChangeEmail} disabled={emailLoading} className="rounded-xl">
-                      {emailLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                      Update Email
+                    <Button size="sm" onClick={handleChangeEmail} disabled={emailLoading} className="rounded-xl gap-1.5">
+                      {emailLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Update
                     </Button>
-                    <Button variant="outline" className="rounded-xl" onClick={() => { setChangingEmail(false); setNewEmail(''); }}>
-                      Cancel
-                    </Button>
+                    <Button size="sm" variant="outline" className="rounded-xl" onClick={() => { setChangingEmail(false); setNewEmail(''); }}>Cancel</Button>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
-          </CardContent>
-        </Card>
-      </motion.div>
+          </SectionCard>
 
-      {/* Password Change */}
-      <motion.div custom={2} variants={cardVariants} initial="hidden" animate="visible">
-        <Card className="shadow-google">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Key className="w-5 h-5 text-primary" />
-              Password
-            </CardTitle>
-            <CardDescription>Change your account password</CardDescription>
-          </CardHeader>
-          <CardContent>
+          {/* Password */}
+          <SectionCard icon={Key} title="Password" description="Change your account password">
             <AnimatePresence mode="wait">
               {!changingPassword ? (
                 <motion.div key="btn" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                  <Button onClick={() => setChangingPassword(true)} variant="outline" className="rounded-xl">
+                  <Button variant="outline" size="sm" className="rounded-xl" onClick={() => setChangingPassword(true)}>
                     Change Password
                   </Button>
                 </motion.div>
               ) : (
-                <motion.div key="form" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>New Password</Label>
+                <motion.div key="form" initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="space-y-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold">New Password</Label>
                     <div className="relative">
                       <Input
-                        type={showNewPassword ? "text" : "password"}
+                        type={showNewPassword ? 'text' : 'password'}
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         placeholder="Enter new password"
                         className="rounded-xl pr-10"
                       />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0 h-full"
-                        onClick={() => setShowNewPassword(!showNewPassword)}
-                      >
+                      <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-full" onClick={() => setShowNewPassword(!showNewPassword)}>
                         {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </Button>
                     </div>
 
-                    {/* Password Strength Meter */}
                     {newPassword.length > 0 && (
-                      <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="space-y-2 mt-2">
+                      <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="space-y-2 mt-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">Password strength</span>
-                          <Badge variant="outline" className="text-xs">
+                          <span className="text-xs text-muted-foreground">Strength</span>
+                          <Badge variant="outline" className={cn('text-[10px] h-5 border-0', passwordStrength.color, passwordStrength.color.replace('text-', 'bg-') + '/10')}>
                             {passwordStrength.label}
                           </Badge>
                         </div>
-                        <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+                        <div className="h-2 w-full bg-muted/50 rounded-full overflow-hidden">
                           <motion.div
-                            className={`h-full rounded-full ${passwordStrength.color}`}
+                            className={cn('h-full rounded-full', passwordStrength.barColor)}
                             initial={{ width: 0 }}
                             animate={{ width: `${passwordStrength.percent}%` }}
                             transition={{ duration: 0.3 }}
                           />
                         </div>
-                        <div className="grid grid-cols-2 gap-1.5 mt-2">
+                        <div className="grid grid-cols-2 gap-1">
                           {[
                             { key: 'length', label: '8+ characters' },
-                            { key: 'uppercase', label: 'Uppercase letter' },
-                            { key: 'lowercase', label: 'Lowercase letter' },
+                            { key: 'uppercase', label: 'Uppercase' },
+                            { key: 'lowercase', label: 'Lowercase' },
                             { key: 'number', label: 'Number' },
-                            { key: 'special', label: 'Special character' },
+                            { key: 'special', label: 'Special char' },
                           ].map(({ key, label }) => (
-                            <div key={key} className="flex items-center gap-1.5 text-xs">
+                            <div key={key} className="flex items-center gap-1 text-[11px]">
                               {passwordStrength.checks[key as keyof typeof passwordStrength.checks] ? (
-                                <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                                <CheckCircle2 className="w-3 h-3 text-success shrink-0" />
                               ) : (
-                                <XCircle className="w-3.5 h-3.5 text-muted-foreground/40 shrink-0" />
+                                <XCircle className="w-3 h-3 text-muted-foreground/30 shrink-0" />
                               )}
-                              <span className={passwordStrength.checks[key as keyof typeof passwordStrength.checks] ? 'text-foreground' : 'text-muted-foreground'}>
-                                {label}
-                              </span>
+                              <span className={passwordStrength.checks[key as keyof typeof passwordStrength.checks] ? 'text-foreground' : 'text-muted-foreground/50'}>{label}</span>
                             </div>
                           ))}
                         </div>
@@ -464,252 +436,168 @@ export const SecuritySettings = () => {
                     )}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label>Confirm New Password</Label>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold">Confirm Password</Label>
                     <div className="relative">
                       <Input
-                        type={showConfirmPassword ? "text" : "password"}
+                        type={showConfirmPassword ? 'text' : 'password'}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="Confirm new password"
-                        className={`rounded-xl pr-10 ${passwordsMismatch ? 'border-destructive focus-visible:ring-destructive' : ''} ${passwordsMatch ? 'border-green-500 focus-visible:ring-green-500' : ''}`}
+                        className={cn('rounded-xl pr-10', passwordsMismatch && 'border-destructive', passwordsMatch && 'border-success')}
                       />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0 h-full"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      >
+                      <Button type="button" variant="ghost" size="icon" className="absolute right-0 top-0 h-full" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
                         {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </Button>
                     </div>
-                    {passwordsMismatch && (
-                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-destructive flex items-center gap-1">
-                        <XCircle className="w-3.5 h-3.5" /> Passwords do not match
-                      </motion.p>
-                    )}
-                    {passwordsMatch && (
-                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-green-600 flex items-center gap-1">
-                        <CheckCircle2 className="w-3.5 h-3.5" /> Passwords match
-                      </motion.p>
-                    )}
+                    {passwordsMismatch && <p className="text-[11px] text-destructive flex items-center gap-1"><XCircle className="w-3 h-3" /> Passwords don't match</p>}
+                    {passwordsMatch && <p className="text-[11px] text-success flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Passwords match</p>}
                   </div>
 
                   <div className="flex gap-2">
-                    <Button onClick={handleChangePassword} disabled={loading || !canSubmitPassword} className="rounded-xl">
-                      {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                      Update Password
+                    <Button size="sm" onClick={handleChangePassword} disabled={loading || !canSubmitPassword} className="rounded-xl gap-1.5">
+                      {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />} Update
                     </Button>
-                    <Button variant="outline" className="rounded-xl" onClick={() => {
-                      setChangingPassword(false);
-                      setNewPassword('');
-                      setConfirmPassword('');
-                    }}>
-                      Cancel
-                    </Button>
+                    <Button size="sm" variant="outline" className="rounded-xl" onClick={() => { setChangingPassword(false); setNewPassword(''); setConfirmPassword(''); }}>Cancel</Button>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
-          </CardContent>
-        </Card>
-      </motion.div>
+          </SectionCard>
 
-      {/* Two-Factor Authentication */}
-      <motion.div custom={3} variants={cardVariants} initial="hidden" animate="visible">
-        <Card className="shadow-google">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Smartphone className="w-5 h-5 text-primary" />
-              Two-Factor Authentication
-            </CardTitle>
-            <CardDescription>Add an extra layer of security to your account</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between p-4 bg-secondary rounded-xl">
-              <div>
-                <p className="font-medium">Two-Factor Authentication</p>
-                <p className="text-sm text-muted-foreground">
-                  Use an authenticator app for additional security
-                </p>
-              </div>
-              <Badge variant="outline" className="text-muted-foreground border-muted-foreground/30">
-                Coming Soon
-              </Badge>
-            </div>
-            <div className="flex items-start gap-2 mt-3 p-3 bg-primary/5 rounded-xl border border-primary/10">
+          {/* 2FA */}
+          <SectionCard icon={Fingerprint} title="Two-Factor Authentication" description="Add an extra layer of security">
+            <SettingRow
+              icon={Smartphone}
+              iconBg="bg-muted/50"
+              iconColor="text-muted-foreground"
+              title="Authenticator App"
+              description="Use an app like Google Authenticator"
+              badge={<Badge variant="outline" className="text-[10px] h-5 border-0 bg-muted text-muted-foreground">Coming Soon</Badge>}
+              action={<Lock className="w-4 h-4 text-muted-foreground/40" />}
+            />
+            <div className="flex items-start gap-2 p-3 bg-primary/5 rounded-xl border border-primary/10">
               <Info className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-              <p className="text-xs text-muted-foreground">
-                Two-factor authentication adds an extra security layer by requiring a verification code from your authenticator app each time you sign in.
+              <p className="text-[11px] text-muted-foreground">
+                2FA adds a verification code requirement each time you sign in, protecting against unauthorized access.
               </p>
             </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+          </SectionCard>
 
-      {/* Login Activity */}
-      <motion.div custom={4} variants={cardVariants} initial="hidden" animate="visible">
-        <Card className="shadow-google">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-primary" />
-              Login Activity
-            </CardTitle>
-            <CardDescription>Review your recent account activity</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-secondary rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-green-500/10 flex items-center justify-center">
-                    <CheckCircle2 className="w-4 h-4 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">Last Login</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDate(user?.last_sign_in_at || null)}
-                    </p>
-                  </div>
+          {/* Login Activity */}
+          <SectionCard icon={Clock} title="Login Activity" description="Review recent account activity">
+            {[
+              { icon: CheckCircle2, iconBg: 'bg-success/10', iconColor: 'text-success', label: 'Last Login', value: formatDate(user?.last_sign_in_at || null) },
+              { icon: Clock, iconBg: 'bg-primary/10', iconColor: 'text-primary', label: 'Account Created', value: formatDate(user?.created_at || null) },
+              { icon: Mail, iconBg: 'bg-muted/50', iconColor: 'text-muted-foreground', label: 'Email Verified', value: user?.email_confirmed_at ? formatDate(user.email_confirmed_at) : 'Not verified' },
+            ].map(item => (
+              <div key={item.label} className="flex items-center gap-3 p-3 rounded-xl bg-muted/20 border border-border/20">
+                <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center shrink-0', item.iconBg)}>
+                  <item.icon className={cn('w-4 h-4', item.iconColor)} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-muted-foreground">{item.label}</p>
+                  <p className="text-sm font-medium text-foreground">{item.value}</p>
                 </div>
               </div>
-              <div className="flex items-center justify-between p-3 bg-secondary rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Clock className="w-4 h-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">Account Created</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDate(user?.created_at || null)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-secondary rounded-xl">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-accent/20 flex items-center justify-center">
-                    <Mail className="w-4 h-4 text-accent-foreground" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm">Email Verified</p>
-                    <p className="text-xs text-muted-foreground">
-                      {user?.email_confirmed_at ? formatDate(user.email_confirmed_at) : 'Not verified'}
-                    </p>
-                  </div>
-                </div>
-                {user?.email_confirmed_at ? (
-                  <Badge variant="default" className="bg-green-500/10 text-green-700 border-green-500/20 hover:bg-green-500/15">
-                    Verified
-                  </Badge>
-                ) : (
-                  <Badge variant="secondary" className="text-orange-600">
-                    Pending
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-
-      {/* Sign Out All Sessions */}
-      <motion.div custom={5} variants={cardVariants} initial="hidden" animate="visible">
-        <Card className="shadow-google">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <LogOut className="w-5 h-5 text-primary" />
-              Active Sessions
-            </CardTitle>
-            <CardDescription>Manage your active sessions across devices</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-3">
-              If you suspect unauthorized access, sign out from all sessions to secure your account.
-            </p>
+            ))}
             <Button
               variant="outline"
-              className="rounded-xl"
+              size="sm"
+              className="rounded-xl w-full gap-1.5 mt-1"
               onClick={async () => {
                 await supabase.auth.signOut({ scope: 'global' });
                 toast.success('Signed out from all sessions');
                 navigate('/login');
               }}
             >
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign Out All Sessions
+              <LogOut className="w-4 h-4" /> Sign Out All Sessions
             </Button>
-          </CardContent>
-        </Card>
-      </motion.div>
+          </SectionCard>
+        </TabsContent>
 
-      {/* Danger Zone */}
-      <motion.div custom={6} variants={cardVariants} initial="hidden" animate="visible">
-        <Card className="shadow-google border-destructive/30">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-destructive">
-              <AlertTriangle className="w-5 h-5" />
-              Danger Zone
-            </CardTitle>
-            <CardDescription>Irreversible actions — proceed with caution</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-4 border border-destructive/20 rounded-xl">
+        {/* ── Notifications Tab ── */}
+        <TabsContent value="notifications" className="space-y-4 mt-4">
+          <SectionCard icon={Mail} title="Email Notifications" description="Control email alerts for dashboard events">
+            <SettingRow
+              icon={Mail}
+              iconBg="bg-primary/10"
+              iconColor="text-primary"
+              title="Email Alerts"
+              description="Messages, tasks, and application updates"
+              badge={<Badge variant="outline" className={cn('text-[10px] h-5 border-0', emailNotifications ? 'bg-success/15 text-success' : 'bg-muted text-muted-foreground')}>{emailNotifications ? 'On' : 'Off'}</Badge>}
+              action={<Switch checked={emailNotifications} onCheckedChange={(v) => toggleNotifPref('email_notifications_enabled', v, setEmailNotifications, setLoadingEmailPref)} disabled={loadingEmailPref} />}
+            />
+          </SectionCard>
+
+          <SectionCard icon={BellRing} title="Browser Push Notifications" description="Real-time alerts in your browser">
+            <PushNotificationToggle />
+          </SectionCard>
+
+          <SectionCard icon={Smartphone} title="WhatsApp & SMS" description="Get instant alerts on your phone">
+            <SettingRow
+              icon={Smartphone}
+              iconBg="bg-success/10"
+              iconColor="text-success"
+              title="WhatsApp Notifications"
+              description="Interview reminders and application updates"
+              badge={<Badge variant="outline" className={cn('text-[10px] h-5 border-0', whatsappNotifications ? 'bg-success/15 text-success' : 'bg-muted text-muted-foreground')}>{whatsappNotifications ? 'On' : 'Off'}</Badge>}
+              action={<Switch checked={whatsappNotifications} onCheckedChange={(v) => toggleNotifPref('whatsapp_notifications_enabled', v, setWhatsappNotifications, setLoadingWhatsappPref)} disabled={loadingWhatsappPref} />}
+            />
+            <SettingRow
+              icon={Mail}
+              iconBg="bg-warning/10"
+              iconColor="text-warning-foreground"
+              title="SMS Notifications"
+              description="Text message alerts for critical updates"
+              badge={<Badge variant="outline" className={cn('text-[10px] h-5 border-0', smsNotifications ? 'bg-success/15 text-success' : 'bg-muted text-muted-foreground')}>{smsNotifications ? 'On' : 'Off'}</Badge>}
+              action={<Switch checked={smsNotifications} onCheckedChange={(v) => toggleNotifPref('sms_notifications_enabled', v, setSmsNotifications, setLoadingSmsPref)} disabled={loadingSmsPref} />}
+            />
+          </SectionCard>
+        </TabsContent>
+
+        {/* ── Danger Tab ── */}
+        <TabsContent value="danger" className="space-y-4 mt-4">
+          <SectionCard icon={AlertTriangle} title="Danger Zone" description="Irreversible actions — proceed with caution" variant="danger">
+            <div className="flex items-center justify-between p-3.5 border border-destructive/15 rounded-xl">
               <div>
-                <p className="font-medium">Deactivate Account</p>
-                <p className="text-sm text-muted-foreground">
-                  Temporarily hide your profile and stop notifications
-                </p>
+                <p className="text-sm font-bold text-foreground">Deactivate Account</p>
+                <p className="text-xs text-muted-foreground">Temporarily hide your profile</p>
               </div>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <TriggerButton variant="outline" className="text-destructive border-destructive/50 rounded-xl">
-                    Deactivate
-                  </TriggerButton>
+                  <TriggerButton variant="outline" size="sm" className="text-destructive border-destructive/30 rounded-xl">Deactivate</TriggerButton>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Deactivate Account?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Your profile will be hidden from employers and you won't receive notifications.
-                      You can reactivate your account by logging in again.
-                    </AlertDialogDescription>
+                    <AlertDialogDescription>Your profile will be hidden. You can reactivate by logging in again.</AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={handleDeactivateAccount}
-                      className="bg-destructive hover:bg-destructive/90"
-                    >
-                      {deactivating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                      Deactivate
+                    <AlertDialogAction onClick={handleDeactivateAccount} className="bg-destructive hover:bg-destructive/90">
+                      {deactivating && <Loader2 className="w-4 h-4 mr-2 animate-spin" />} Deactivate
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
             </div>
 
-            <div className="flex items-center justify-between p-4 border border-destructive/20 rounded-xl">
+            <div className="flex items-center justify-between p-3.5 border border-destructive/15 rounded-xl">
               <div>
-                <p className="font-medium">Delete Account</p>
-                <p className="text-sm text-muted-foreground">
-                  Permanently delete your account and all data
-                </p>
+                <p className="text-sm font-bold text-foreground">Delete Account</p>
+                <p className="text-xs text-muted-foreground">Permanently delete all data</p>
               </div>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <TriggerButton variant="destructive" className="rounded-xl">
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Delete
+                  <TriggerButton variant="destructive" size="sm" className="rounded-xl gap-1.5">
+                    <Trash2 className="w-3.5 h-3.5" /> Delete
                   </TriggerButton>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>Delete Account Permanently?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. All your data including applications,
-                      messages, and saved jobs will be permanently deleted.
-                    </AlertDialogDescription>
+                    <AlertDialogDescription>This action cannot be undone. All data will be permanently deleted.</AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -721,21 +609,13 @@ export const SecuritySettings = () => {
                           if (!session) { toast.error('Not authenticated'); return; }
                           const res = await fetch(
                             `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-account`,
-                            {
-                              method: 'POST',
-                              headers: {
-                                Authorization: `Bearer ${session.access_token}`,
-                                'Content-Type': 'application/json',
-                              },
-                            }
+                            { method: 'POST', headers: { Authorization: `Bearer ${session.access_token}`, 'Content-Type': 'application/json' } }
                           );
-                          if (!res.ok) throw new Error('Failed to delete account');
-                          toast.success('Account deleted successfully');
+                          if (!res.ok) throw new Error('Failed');
+                          toast.success('Account deleted');
                           await signOut();
                           navigate('/');
-                        } catch (err: any) {
-                          toast.error(err.message || 'Failed to delete account');
-                        }
+                        } catch (err: any) { toast.error(err.message || 'Failed to delete account'); }
                       }}
                     >
                       I understand, delete my account
@@ -744,9 +624,9 @@ export const SecuritySettings = () => {
                 </AlertDialogContent>
               </AlertDialog>
             </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+          </SectionCard>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
