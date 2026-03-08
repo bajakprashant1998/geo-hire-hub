@@ -431,6 +431,37 @@ const JobDetail = () => {
     }
   };
 
+  const handleReferFriend = async () => {
+    if (!user || !profile) { toast.error('Please log in to refer a friend'); return; }
+    try {
+      // Generate referral code
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let code = 'HFJ-';
+      for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+      
+      const { error } = await supabase.from('referrals').insert({
+        referrer_id: profile.id,
+        referral_code: code,
+        job_id: resolvedId,
+      });
+      if (error) throw error;
+
+      const link = `${window.location.origin}/signup?ref=${code}`;
+      try {
+        await navigator.share({
+          title: `Referral: ${job?.title} at ${job?.employer.company_name}`,
+          text: `I think you'd be great for this role! ${(job?.referral_bounty ?? 0) > 0 ? `🏆 ${job?.referral_bounty} points bounty!` : ''}`,
+          url: link,
+        });
+      } catch {
+        await navigator.clipboard.writeText(link);
+        toast.success('Referral link copied!');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create referral');
+    }
+  };
+
   const handleContactEmployer = async () => {
     if (!job?.employer.user_id) { toast.error('Unable to contact this employer'); return; }
     setContacting(true);
