@@ -72,6 +72,7 @@ const AdminFraudDetection = lazy(() => import("./pages/admin/AdminFraudDetection
 const AdminScheduledJobs = lazy(() => import("./pages/admin/AdminScheduledJobs"));
 const AdminTasks = lazy(() => import("./pages/admin/AdminTasks"));
 const AdminSEOAgent = lazy(() => import("./pages/admin/AdminSEOAgent"));
+const AdminBanners = lazy(() => import("./pages/admin/AdminBanners"));
 
 const queryClient = new QueryClient();
 
