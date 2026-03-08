@@ -20,7 +20,6 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
-  // For navigation requests, serve offline.html as fallback
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).catch(() => caches.match('/offline.html'))
@@ -30,5 +29,50 @@ self.addEventListener('fetch', (event) => {
 
   event.respondWith(
     fetch(event.request).catch(() => caches.match(event.request))
+  );
+});
+
+// Push notification handler
+self.addEventListener('push', (event) => {
+  let data = { title: 'Hire for Job', body: 'You have a new notification', url: '/' };
+  
+  try {
+    if (event.data) {
+      data = { ...data, ...event.data.json() };
+    }
+  } catch {
+    // Use defaults
+  }
+
+  const options = {
+    body: data.body,
+    icon: '/favicon.png',
+    badge: '/favicon.png',
+    vibrate: [100, 50, 100],
+    data: { url: data.url || '/' },
+    actions: [{ action: 'open', title: 'View' }],
+    tag: data.tag || 'default',
+    renotify: true,
+  };
+
+  event.waitUntil(self.registration.showNotification(data.title, options));
+});
+
+// Click handler for push notifications
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  const url = event.notification.data?.url || '/';
+  
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      for (const client of windowClients) {
+        if (client.url.includes(self.location.origin) && 'focus' in client) {
+          client.navigate(url);
+          return client.focus();
+        }
+      }
+      return clients.openWindow(url);
+    })
   );
 });
