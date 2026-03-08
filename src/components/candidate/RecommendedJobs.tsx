@@ -65,11 +65,11 @@ const StatCard = ({ icon: Icon, label, value, color }: { icon: any; label: strin
 );
 
 const MatchBadge = ({ score }: { score: number }) => {
-  const config = score >= 25
+  const config = score >= 70
     ? { label: 'Perfect Match', bg: 'bg-[hsl(var(--success))]/10', text: 'text-[hsl(var(--success))]', border: 'border-[hsl(var(--success))]/20', icon: Zap }
-    : score >= 15
+    : score >= 50
     ? { label: 'Great Match', bg: 'bg-[hsl(var(--primary))]/10', text: 'text-primary', border: 'border-primary/20', icon: TrendingUp }
-    : score >= 5
+    : score >= 30
     ? { label: 'Good Match', bg: 'bg-[hsl(var(--warning))]/10', text: 'text-[hsl(var(--warning))]', border: 'border-[hsl(var(--warning))]/20', icon: Star }
     : null;
 
@@ -79,7 +79,7 @@ const MatchBadge = ({ score }: { score: number }) => {
   return (
     <span className={cn("inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border whitespace-nowrap", config.bg, config.text, config.border)}>
       <BadgeIcon className="w-3 h-3" />
-      {config.label}
+      {config.label} ({score}%)
     </span>
   );
 };
