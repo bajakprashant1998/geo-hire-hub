@@ -240,7 +240,7 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
       });
 
       // Track profile view (authenticated, non-own-profile only)
-      if (user && data.profile_id !== (profile as any)?.id) {
+      if (user && data.profile_id !== authProfile?.id) {
         supabase.from('profile_views').insert({ profile_id: data.profile_id }).then(({ error: viewErr }) => {
           if (viewErr) console.warn('Failed to record profile view:', viewErr.message);
         });
