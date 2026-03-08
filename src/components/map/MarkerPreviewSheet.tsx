@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
-  MapPin, Briefcase, Clock, DollarSign, ArrowRight,
+  MapPin, Briefcase, Clock, Banknote, ArrowRight,
   Building2, Star, Lock, LogIn, Share2,
   Zap, Send, ChevronRight, Sparkles
 } from 'lucide-react';
