@@ -630,29 +630,79 @@ const EmployerDashboard = () => {
     switch (activeSection) {
       case 'jobs': {
         const activeJobCount = jobs.filter(j => j.is_active && j.status === 'open').length;
-        const inactiveJobCount = jobs.filter(j => !j.is_active).length;
+        const inactiveJobCount = jobs.filter(j => !j.is_active || j.status !== 'open').length;
         const expiredJobCount = jobs.filter(j => j.expires_at && new Date(j.expires_at) < new Date()).length;
         const totalApplicants = jobs.reduce((sum, j) => sum + (j.applications_count || 0), 0);
         const jobSearchQuery = search?.toLowerCase() || '';
-        const filteredJobs = jobSearchQuery 
-          ? jobs.filter(j => j.title.toLowerCase().includes(jobSearchQuery) || j.job_address?.toLowerCase().includes(jobSearchQuery) || j.job_category?.toLowerCase().includes(jobSearchQuery))
-          : jobs;
+
+        // Filter tabs state — use a local variable derived from search params or component state
+        type JobFilter = 'all' | 'active' | 'inactive' | 'expired';
+        const filterTabs: { key: JobFilter; label: string; count: number; color: string }[] = [
+          { key: 'all', label: 'All Jobs', count: jobs.length, color: 'text-foreground' },
+          { key: 'active', label: 'Active', count: activeJobCount, color: 'text-success' },
+          { key: 'inactive', label: 'Inactive', count: inactiveJobCount - expiredJobCount, color: 'text-muted-foreground' },
+          { key: 'expired', label: 'Expired', count: expiredJobCount, color: 'text-destructive' },
+        ];
+
+        // We'll use search param 'jf' for job filter
+        const currentFilter = (new URLSearchParams(window.location.search).get('jf') || 'all') as JobFilter;
+        const currentSort = (new URLSearchParams(window.location.search).get('js') || 'newest') as string;
+
+        let filteredJobs = jobs.filter(j => {
+          const isExpired = j.expires_at && new Date(j.expires_at) < new Date();
+          if (currentFilter === 'active') return j.is_active && j.status === 'open' && !isExpired;
+          if (currentFilter === 'inactive') return (!j.is_active || j.status !== 'open') && !isExpired;
+          if (currentFilter === 'expired') return isExpired;
+          return true;
+        });
+
+        if (jobSearchQuery) {
+          filteredJobs = filteredJobs.filter(j => 
+            j.title.toLowerCase().includes(jobSearchQuery) || 
+            j.job_address?.toLowerCase().includes(jobSearchQuery) || 
+            j.job_category?.toLowerCase().includes(jobSearchQuery)
+          );
+        }
+
+        // Sort
+        filteredJobs = [...filteredJobs].sort((a, b) => {
+          if (currentSort === 'applicants') return (b.applications_count || 0) - (a.applications_count || 0);
+          if (currentSort === 'views') return (b.view_count || 0) - (a.view_count || 0);
+          if (currentSort === 'title') return a.title.localeCompare(b.title);
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime(); // newest
+        });
+
+        const setJobFilter = (f: string) => {
+          const params = new URLSearchParams(window.location.search);
+          params.set('jf', f);
+          navigate(`?${params.toString()}`, { replace: true });
+        };
+        const setJobSort = (s: string) => {
+          const params = new URLSearchParams(window.location.search);
+          params.set('js', s);
+          navigate(`?${params.toString()}`, { replace: true });
+        };
+
+        const handleToggleActive = (jobId: string, newState: boolean) => {
+          setJobs(prev => prev.map(j => j.id === jobId ? { ...j, is_active: newState } : j));
+          if (selectedJob?.id === jobId) setSelectedJob((prev: any) => prev ? { ...prev, is_active: newState } : prev);
+        };
         
         return (
-          <div className="space-y-5">
-            {/* Stats Summary */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="space-y-4">
+            {/* Stats Row */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
               {[
                 { label: 'Total Jobs', value: jobs.length, icon: Briefcase, color: 'text-primary', bg: 'bg-primary/10' },
                 { label: 'Active', value: activeJobCount, icon: CheckCircle2, color: 'text-success', bg: 'bg-success/10' },
-                { label: 'Applicants', value: totalApplicants, icon: Users, color: 'text-warning', bg: 'bg-warning/10' },
+                { label: 'Applicants', value: totalApplicants, icon: Users, color: 'text-warning-foreground', bg: 'bg-warning/10' },
                 { label: 'Expired', value: expiredJobCount, icon: Clock, color: 'text-destructive', bg: 'bg-destructive/10' },
               ].map((stat, i) => (
                 <motion.div
                   key={stat.label}
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05 }}
+                  transition={{ delay: i * 0.04 }}
                   className="flex items-center gap-3 p-3 rounded-xl bg-card/60 backdrop-blur border border-border/40"
                 >
                   <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center shrink-0', stat.bg)}>
@@ -666,49 +716,101 @@ const EmployerDashboard = () => {
               ))}
             </div>
 
-            <div className="grid lg:grid-cols-3 gap-5">
-              {/* Left: Job List */}
-              <div className="lg:col-span-1 space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-base text-foreground">Jobs ({filteredJobs.length})</h3>
-                  <Button size="sm" className="gap-1.5 rounded-xl shadow-sm" onClick={() => setActiveSection('post-job')}>
-                    <Plus className="w-4 h-4" /> New
-                  </Button>
-                </div>
+            {/* Filter Tabs + Search + Sort + New Button */}
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="flex flex-col sm:flex-row sm:items-center gap-3"
+            >
+              {/* Filter chips */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+                {filterTabs.map((tab) => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setJobFilter(tab.key)}
+                    className={cn(
+                      'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all border',
+                      currentFilter === tab.key
+                        ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                        : 'bg-card/60 text-muted-foreground border-border/40 hover:border-border hover:bg-muted/40'
+                    )}
+                  >
+                    {tab.label}
+                    <span className={cn(
+                      'text-[10px] px-1.5 py-0 rounded-full font-bold',
+                      currentFilter === tab.key ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted text-muted-foreground'
+                    )}>
+                      {tab.count}
+                    </span>
+                  </button>
+                ))}
+              </div>
 
-                {/* Search */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <input
-                    type="text"
-                    placeholder="Search jobs..."
-                    value={search || ''}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="w-full h-9 pl-9 pr-3 rounded-xl border border-border/60 bg-muted/30 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
-                  />
-                </div>
+              <div className="flex items-center gap-2 sm:ml-auto">
+                {/* Sort */}
+                <Select value={currentSort} onValueChange={setJobSort}>
+                  <SelectTrigger className="h-8 w-[130px] rounded-xl text-xs border-border/50">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="newest">Newest first</SelectItem>
+                    <SelectItem value="applicants">Most applicants</SelectItem>
+                    <SelectItem value="views">Most views</SelectItem>
+                    <SelectItem value="title">Title A-Z</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button size="sm" className="gap-1.5 rounded-xl shadow-sm h-8" onClick={() => setActiveSection('post-job')}>
+                  <Plus className="w-3.5 h-3.5" /> New Job
+                </Button>
+              </div>
+            </motion.div>
 
+            {/* Search bar */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search by title, location, or category..."
+                value={search || ''}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full h-9 pl-9 pr-3 rounded-xl border border-border/60 bg-muted/30 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 transition-all"
+              />
+            </div>
+
+            {/* Main layout: Job List + Detail */}
+            <div className="grid lg:grid-cols-5 gap-4">
+              {/* Left: Job List — 2 cols */}
+              <div className="lg:col-span-2 space-y-2">
                 {filteredJobs.length === 0 ? (
                   <Card className="border-dashed border-2 rounded-xl">
                     <CardContent className="p-8 text-center">
                       <Briefcase className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
-                      <p className="text-muted-foreground mb-4 text-sm">{jobs.length === 0 ? 'No jobs posted yet' : 'No jobs match your search'}</p>
+                      <p className="text-muted-foreground mb-2 text-sm font-medium">
+                        {jobs.length === 0 ? 'No jobs posted yet' : `No ${currentFilter !== 'all' ? currentFilter : ''} jobs found`}
+                      </p>
+                      <p className="text-xs text-muted-foreground/60 mb-4">
+                        {jobs.length === 0 ? 'Create your first job to start attracting talent.' : 'Try a different filter or search term.'}
+                      </p>
                       {jobs.length === 0 && (
-                        <Button className="rounded-xl" onClick={() => setActiveSection('post-job')}>Post Your First Job</Button>
+                        <Button className="rounded-xl" onClick={() => setActiveSection('post-job')}>
+                          <Plus className="w-4 h-4 mr-1.5" /> Post Your First Job
+                        </Button>
                       )}
                     </CardContent>
                   </Card>
                 ) : (
-                  <div className="space-y-2 max-h-[calc(100vh-420px)] overflow-y-auto pr-1 scrollbar-thin">
+                  <div className="space-y-2 max-h-[calc(100vh-380px)] overflow-y-auto pr-1 scrollbar-thin">
                     {filteredJobs.map((job, idx) => {
                       const isSelected = selectedJob?.id === job.id;
                       const isExpired = job.expires_at && new Date(job.expires_at) < new Date();
+                      const convRate = job.view_count > 0 ? ((job.applications_count || 0) / job.view_count * 100).toFixed(1) : null;
                       return (
                         <motion.div
                           key={job.id}
                           initial={{ opacity: 0, x: -8 }}
                           animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: idx * 0.03 }}
+                          transition={{ delay: idx * 0.025 }}
                           whileTap={{ scale: 0.98 }}
                         >
                           <Card
@@ -722,19 +824,29 @@ const EmployerDashboard = () => {
                           >
                             <CardContent className="p-3.5">
                               <div className="flex items-start justify-between gap-2">
-                                <h4 className="font-semibold text-foreground text-sm leading-tight line-clamp-1 flex-1">{job.title}</h4>
-                                {isSelected && <div className="w-2 h-2 rounded-full bg-primary shrink-0 mt-1.5" />}
+                                <div className="min-w-0 flex-1">
+                                  <h4 className="font-semibold text-foreground text-sm leading-tight line-clamp-1">{job.title}</h4>
+                                  {job.job_address && (
+                                    <p className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1 line-clamp-1">
+                                      <MapPin className="w-3 h-3 shrink-0" />
+                                      {job.location_city || job.job_address.split(',')[0]}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+                                  {employer && (
+                                    <JobActiveToggle
+                                      jobId={job.id}
+                                      employerId={employer.id}
+                                      isActive={job.is_active}
+                                      onToggle={(newState) => handleToggleActive(job.id, newState)}
+                                    />
+                                  )}
+                                </div>
                               </div>
 
-                              {/* Location */}
-                              {job.job_address && (
-                                <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1 line-clamp-1">
-                                  <MapPin className="w-3 h-3 shrink-0" />
-                                  {job.location_city || job.job_address.split(',')[0]}
-                                </p>
-                              )}
-
-                              <div className="flex items-center gap-1.5 flex-wrap mt-2">
+                              {/* Metrics row */}
+                              <div className="flex items-center gap-2 flex-wrap mt-2.5">
                                 <span className={cn(
                                   'px-2 py-0.5 rounded-full text-[10px] font-semibold',
                                   isExpired
@@ -743,26 +855,38 @@ const EmployerDashboard = () => {
                                       ? 'bg-success/10 text-success'
                                       : 'bg-muted text-muted-foreground'
                                 )}>
-                                  {isExpired ? 'Expired' : job.is_active ? 'Active' : 'Inactive'}
+                                  {isExpired ? 'Expired' : job.is_active ? 'Live' : 'Paused'}
                                 </span>
-                                <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                                <span className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
                                   <Users className="w-3 h-3" />
-                                  {job.applications_count}
+                                  {job.applications_count || 0}
                                 </span>
-                                {job.view_count > 0 && (
-                                  <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                                    <Eye className="w-3 h-3" />
-                                    {job.view_count}
-                                  </span>
-                                )}
-                                {job.job_category && (
-                                  <span className="text-[10px] text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded-full truncate max-w-[80px]">
-                                    {job.job_category}
+                                <span className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
+                                  <Eye className="w-3 h-3" />
+                                  {job.view_count || 0}
+                                </span>
+                                {convRate && (
+                                  <span className="text-[10px] text-primary font-semibold" title="Application conversion rate">
+                                    {convRate}% conv.
                                   </span>
                                 )}
                               </div>
 
-                              {job.expires_at && (
+                              {/* Category + Expiry */}
+                              <div className="flex items-center gap-1.5 mt-2">
+                                {job.job_category && (
+                                  <span className="text-[10px] text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded-full truncate max-w-[100px]">
+                                    {job.job_category}
+                                  </span>
+                                )}
+                                {job.created_at && (
+                                  <span className="text-[10px] text-muted-foreground/60">
+                                    {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
+                                  </span>
+                                )}
+                              </div>
+
+                              {job.expires_at && !isExpired && (
                                 <div className="mt-2">
                                   <JobExpiryBadge expiresAt={job.expires_at} />
                                 </div>
@@ -776,15 +900,15 @@ const EmployerDashboard = () => {
                 )}
               </div>
 
-              {/* Right: Job Detail + Applicants */}
-              <div className="lg:col-span-2">
+              {/* Right: Job Detail + Applicants — 3 cols */}
+              <div className="lg:col-span-3">
                 {selectedJob ? (
                   <motion.div
                     key={selectedJob.id}
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="space-y-4"
+                    className="space-y-4 lg:sticky lg:top-4"
                   >
                     {/* Job Header Card */}
                     <Card className="shadow-sm border border-border/50 bg-card rounded-xl overflow-hidden">
@@ -807,18 +931,23 @@ const EmployerDashboard = () => {
                               <MapPin className="w-3.5 h-3.5 shrink-0" />
                               {selectedJob.job_address || 'Location not set'}
                             </p>
+                            {selectedJob.created_at && (
+                              <p className="text-[11px] text-muted-foreground/60">
+                                Posted {formatDistanceToNow(new Date(selectedJob.created_at), { addSuffix: true })}
+                              </p>
+                            )}
                           </div>
                           <div className="flex items-center gap-2 flex-wrap shrink-0">
                             <Link to={`/jobs/${selectedJob.id}`}>
                               <Button variant="outline" size="sm" className="gap-1.5 rounded-xl h-8">
                                 <Eye className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline text-xs">View</span>
+                                <span className="text-xs">View</span>
                               </Button>
                             </Link>
                             <Link to={`/edit-job/${selectedJob.id}`}>
                               <Button variant="outline" size="sm" className="gap-1.5 rounded-xl h-8">
                                 <Pencil className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline text-xs">Edit</span>
+                                <span className="text-xs">Edit</span>
                               </Button>
                             </Link>
                             <Button
@@ -828,7 +957,7 @@ const EmployerDashboard = () => {
                               onClick={() => setJobToDelete(selectedJob)}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
-                              <span className="hidden sm:inline text-xs">Delete</span>
+                              <span className="text-xs">Delete</span>
                             </Button>
                           </div>
                         </div>
@@ -836,14 +965,17 @@ const EmployerDashboard = () => {
 
                       {/* Quick Metrics */}
                       <div className="px-4 sm:px-6 pb-4">
-                        <div className="grid grid-cols-3 gap-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                           {[
-                            { label: 'Applicants', value: selectedJob.applications_count || 0, icon: Users, color: 'text-primary' },
-                            { label: 'Views', value: selectedJob.view_count || 0, icon: Eye, color: 'text-muted-foreground' },
-                            { label: 'Openings', value: selectedJob.openings || 1, icon: Briefcase, color: 'text-success' },
+                            { label: 'Applicants', value: selectedJob.applications_count || 0, icon: Users, color: 'text-primary', bg: 'bg-primary/10' },
+                            { label: 'Views', value: selectedJob.view_count || 0, icon: Eye, color: 'text-muted-foreground', bg: 'bg-muted/50' },
+                            { label: 'Openings', value: selectedJob.openings || 1, icon: Briefcase, color: 'text-success', bg: 'bg-success/10' },
+                            { label: 'Conversion', value: selectedJob.view_count > 0 ? `${((selectedJob.applications_count || 0) / selectedJob.view_count * 100).toFixed(1)}%` : '—', icon: BarChart3, color: 'text-primary', bg: 'bg-primary/10' },
                           ].map((m) => (
-                            <div key={m.label} className="flex items-center gap-2.5 p-2.5 rounded-lg bg-muted/30 border border-border/30">
-                              <m.icon className={cn('w-4 h-4 shrink-0', m.color)} />
+                            <div key={m.label} className="flex items-center gap-2.5 p-2.5 rounded-xl bg-muted/20 border border-border/30">
+                              <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center shrink-0', m.bg)}>
+                                <m.icon className={cn('w-3.5 h-3.5', m.color)} />
+                              </div>
                               <div>
                                 <p className="text-sm font-bold text-foreground leading-none">{m.value}</p>
                                 <p className="text-[10px] text-muted-foreground">{m.label}</p>
@@ -868,6 +1000,12 @@ const EmployerDashboard = () => {
                           {selectedJob.shift_type && (
                             <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">{selectedJob.shift_type}</span>
                           )}
+                          {selectedJob.work_mode && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-warning/10 text-warning-foreground font-medium capitalize">{selectedJob.work_mode}</span>
+                          )}
+                          {selectedJob.expires_at && (
+                            <JobExpiryBadge expiresAt={selectedJob.expires_at} />
+                          )}
                         </div>
                       </div>
                     </Card>
@@ -876,19 +1014,20 @@ const EmployerDashboard = () => {
                     <Card className="shadow-sm border border-border/50 bg-card rounded-xl">
                       <CardContent className="p-4 sm:p-5">
                         <h4 className="font-semibold mb-4 flex items-center gap-2 text-foreground text-sm">
-                          <Users className="w-4 h-4 text-primary" /> Applicants
+                          <Users className="w-4 h-4 text-primary" /> Applicants ({selectedJob.applications_count || 0})
                         </h4>
                         {employer && <ApplicantTabs jobId={selectedJob.id} employerId={employer.id} />}
                       </CardContent>
                     </Card>
                   </motion.div>
                 ) : (
-                  <Card className="shadow-sm border border-border/50 bg-card rounded-xl">
+                  <Card className="shadow-sm border border-border/50 bg-card rounded-xl lg:sticky lg:top-4">
                     <CardContent className="p-12 text-center">
-                      <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
-                        <Briefcase className="w-8 h-8 text-muted-foreground/30" />
+                      <div className="w-16 h-16 rounded-2xl bg-primary/5 flex items-center justify-center mx-auto mb-4">
+                        <Briefcase className="w-8 h-8 text-primary/30" />
                       </div>
-                      <p className="text-muted-foreground">Select a job to view details & applicants</p>
+                      <p className="text-foreground font-medium mb-1">Select a Job</p>
+                      <p className="text-sm text-muted-foreground">Click on any job from the list to view details, metrics, and manage applicants.</p>
                     </CardContent>
                   </Card>
                 )}
