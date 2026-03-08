@@ -35,10 +35,10 @@ interface JobMetrics {
 }
 
 const METRIC_CONFIG = [
-  { key: 'views', label: 'Total Views', icon: Eye, description: 'How many times the listing was viewed' },
-  { key: 'applications', label: 'Applications', icon: Users, description: 'Total applications received' },
+  { key: 'views', label: 'Total Views', icon: Eye, description: 'How many times the listing was viewed', unit: '' },
+  { key: 'applications', label: 'Applications', icon: Users, description: 'Total applications received', unit: '' },
   { key: 'conversionRate', label: 'Conversion Rate', icon: Percent, description: 'Views that converted to applications', unit: '%' },
-  { key: 'shortlisted', label: 'Shortlisted', icon: UserCheck, description: 'Candidates moved to shortlist' },
+  { key: 'shortlisted', label: 'Shortlisted', icon: UserCheck, description: 'Candidates moved to shortlist', unit: '' },
 ] as const;
 
 export const JobABTesting = ({ employerId }: JobABTestingProps) => {
