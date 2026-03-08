@@ -93,6 +93,8 @@ const LocationMapPickerInner = ({
       const response = await geocoderRef.current.geocode({ location: { lat, lng } });
       if (response.results?.[0]) {
         setAddress(response.results[0].formatted_address);
+        const geo = extractGeoComponents(response.results);
+        onGeoComponents?.(geo);
       }
     } catch (error) {
       console.error('Failed to reverse geocode:', error);
