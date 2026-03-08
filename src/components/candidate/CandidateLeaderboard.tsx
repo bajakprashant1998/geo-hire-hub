@@ -364,12 +364,12 @@ export const CandidateLeaderboard = () => {
         <div>
           <h3 className="text-xl sm:text-2xl font-extrabold text-foreground flex items-center gap-2.5">
             <div className="p-2 bg-warning/10 rounded-xl">
-              <Trophy className="w-6 h-6 text-warning-foreground" />
+            <Trophy className="w-6 h-6 text-warning-foreground" />
             </div>
-            Leaderboard
+            Universal Leaderboard
           </h3>
           <p className="text-sm text-muted-foreground mt-1.5">
-            Top candidates ranked by profile strength, skills & engagement
+            Ranked by profile, assessments, activity & portfolio
           </p>
         </div>
         <div className="flex items-center gap-2">
