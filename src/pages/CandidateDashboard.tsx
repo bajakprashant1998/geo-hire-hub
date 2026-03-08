@@ -542,6 +542,7 @@ const CandidateDashboard = () => {
       case 'compare-jobs': return <JobComparisonTool candidateId={candidate.id} />;
       case 'career-path': return <CareerPathVisualizer currentJobTitle={candidate.job_title || ''} currentSkills={candidate.skills || []} />;
       case 'culture-match': return <CultureMatchScore candidateId={candidate.id} />;
+      case 'smart-digest': return <SmartNotificationDigest />;
       default: return null;
     }
   };
