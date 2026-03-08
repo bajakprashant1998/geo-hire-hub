@@ -120,8 +120,8 @@ const BrowseJobs = () => {
               </Button>
             )}
           </div>
-          <h1 className="text-2xl font-bold text-foreground mb-1">Browse Jobs</h1>
-          <p className="text-muted-foreground">{total} open positions</p>
+          <h1 className="text-2xl font-bold text-foreground mb-1">Job Listings Near Me</h1>
+          <p className="text-muted-foreground">{total} jobs hiring near me — updated daily</p>
 
           {/* Filters */}
           <div className="flex flex-col sm:flex-row gap-3 mt-4">

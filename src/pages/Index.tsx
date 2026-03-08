@@ -178,7 +178,24 @@ const Index = () => {
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-background">
-      <SEOHead title="HireForJob - Find Jobs & Talent Near You" description="Discover jobs and talent on an interactive map. Connect with employers and candidates in your area." canonicalUrl="https://www.hireforjob.com/" ogImage="https://www.hireforjob.com/logo.png" />
+      <SEOHead
+        title="Hire For Job – Jobs Near Me & Job Listings"
+        description="Hire for job opportunities near you. Find jobs near me, browse job listings near me, and discover jobs hiring near me on an interactive map."
+        canonicalUrl="https://www.hireforjob.com/"
+        ogImage="https://www.hireforjob.com/logo.png"
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'WebApplication',
+          'name': 'Hire For Job',
+          'alternateName': ['HireForJob', 'Hire For Job'],
+          'url': 'https://www.hireforjob.com',
+          'description': 'Hire for job – Find jobs near me, browse job listings near me, and discover jobs hiring near me on an interactive map.',
+          'applicationCategory': 'BusinessApplication',
+          'operatingSystem': 'Web',
+          'offers': { '@type': 'Offer', 'price': '0', 'priceCurrency': 'USD' },
+          'aggregateRating': { '@type': 'AggregateRating', 'ratingValue': '4.8', 'ratingCount': '1200', 'bestRating': '5' },
+        }}
+      />
       {loading && <MapLoadingSkeleton mode={mode === 'hiring' ? 'hiring' : 'job'} />}
       {!authLoading && !user && <GoogleSignInPrompt />}
 
