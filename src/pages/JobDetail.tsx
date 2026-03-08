@@ -637,7 +637,9 @@ const JobDetail = () => {
                   <Card className="border-border/50 shadow-sm overflow-hidden">
                     <CardContent className="p-5 md:p-6">
                       <h2 className="flex items-center gap-2.5 text-lg font-bold mb-4"><FileText className="w-5 h-5 text-primary" /> About This Role</h2>
-                      <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap text-[15px]">{job.description}</p>
+                      <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap text-[15px]">
+                        {viewLang !== 'en' && job.translations?.[viewLang]?.description ? job.translations[viewLang].description : job.description}
+                      </p>
                       {job.has_bonus && (
                         <Badge variant="outline" className="mt-4 gap-1 border-success/30 text-success bg-success/5"><CheckCircle className="w-3 h-3" /> Bonus / Incentive Available</Badge>
                       )}
