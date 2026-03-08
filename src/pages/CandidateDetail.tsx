@@ -436,6 +436,7 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
                       <span className={`w-1.5 h-1.5 rounded-full ${getAvailabilityDot(candidate.availability_status)}`} />
                       {getAvailabilityLabel(candidate.availability_status)}
                     </Badge>
+                    <ProfileStrengthBadge score={completeness} size="sm" />
                   </div>
                   
                   <p className="text-primary font-semibold mt-1 text-base">{candidate.job_title}</p>
