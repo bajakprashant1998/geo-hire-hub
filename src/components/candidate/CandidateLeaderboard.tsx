@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import {
   Trophy, Star, Zap, GraduationCap, TrendingUp, Crown, Medal, Award,
-  RefreshCw, ChevronUp, ChevronDown, Minus, Target, Flame, Sparkles
+  RefreshCw, ChevronUp, ChevronDown, Minus, Target, Flame, Sparkles, Layout
 } from 'lucide-react';
 
 interface LeaderboardEntry {
@@ -25,6 +25,7 @@ interface LeaderboardEntry {
   assessments_passed: number;
   applications_count: number;
   activity_score: number;
+  portfolio_score: number;
   total_score: number;
 }
 
@@ -89,11 +90,12 @@ const PodiumCard = ({ entry, rank, delay }: { entry: LeaderboardEntry; rank: num
           </motion.div>
 
           {/* Mini breakdown */}
-          <div className="flex justify-center gap-3 mt-2.5">
+          <div className="flex justify-center gap-2 mt-2.5">
             {[
               { val: `${entry.completeness_score}%`, tip: 'Profile' },
               { val: entry.assessments_passed, tip: 'Tests' },
               { val: entry.activity_score, tip: 'Activity' },
+              { val: entry.portfolio_score, tip: 'Portfolio' },
             ].map(s => (
               <Tooltip key={s.tip}>
                 <TooltipTrigger>
@@ -136,11 +138,12 @@ const MyStatsCard = ({ entry, rank }: { entry: LeaderboardEntry; rank: number })
         </div>
 
         {/* Score Breakdown Bars */}
-        <div className="space-y-3">
+        <div className="space-y-2.5">
           {[
-            { label: 'Profile Strength', value: entry.completeness_score, max: 100, icon: Target, weight: '40%', color: 'bg-primary' },
-            { label: 'Assessments', value: entry.assessments_passed * 10, max: 50, icon: GraduationCap, weight: '30%', color: 'bg-success' },
-            { label: 'Activity', value: entry.activity_score, max: 100, icon: Zap, weight: '30%', color: 'bg-warning' },
+            { label: 'Profile Strength', value: entry.completeness_score, max: 100, icon: Target, weight: '25%', color: 'bg-primary' },
+            { label: 'Assessments', value: entry.assessments_passed * 10, max: 50, icon: GraduationCap, weight: '25%', color: 'bg-success' },
+            { label: 'Activity', value: entry.activity_score, max: 100, icon: Zap, weight: '25%', color: 'bg-warning' },
+            { label: 'Portfolio', value: entry.portfolio_score, max: 100, icon: Layout, weight: '25%', color: 'bg-accent' },
           ].map(stat => (
             <div key={stat.label}>
               <div className="flex items-center justify-between mb-1">
@@ -210,15 +213,16 @@ const RankRow = ({ entry, rank, isMe, delay }: { entry: LeaderboardEntry; rank: 
       </div>
 
       {/* Desktop Stats */}
-      <div className="hidden sm:flex items-center gap-4">
+      <div className="hidden sm:flex items-center gap-3">
         {[
           { value: `${entry.completeness_score}%`, label: 'Profile', icon: Target },
           { value: entry.assessments_passed, label: 'Tests', icon: GraduationCap },
           { value: entry.activity_score, label: 'Activity', icon: Zap },
+          { value: entry.portfolio_score, label: 'Portfolio', icon: Layout },
         ].map(s => (
           <Tooltip key={s.label}>
             <TooltipTrigger>
-              <div className="text-center min-w-[44px]">
+              <div className="text-center min-w-[40px]">
                 <p className="text-xs font-bold text-foreground">{s.value}</p>
                 <p className="text-[9px] text-muted-foreground">{s.label}</p>
               </div>
@@ -261,15 +265,24 @@ export const CandidateLeaderboard = () => {
       if (!candidates) { setLoading(false); setRefreshing(false); return; }
 
       const candidateIds = candidates.map(c => c.id);
-      const [{ data: assessments }, { data: applications }] = await Promise.all([
+      const [{ data: assessments }, { data: applications }, { data: portfolios }] = await Promise.all([
         supabase.from('assessment_results').select('candidate_id, passed').in('candidate_id', candidateIds).eq('passed', true),
         supabase.from('applications').select('candidate_id').in('candidate_id', candidateIds),
+        supabase.from('portfolio_projects').select('candidate_id, is_featured, project_type').in('candidate_id', candidateIds),
       ]);
 
       const assessmentMap = new Map<string, number>();
       (assessments || []).forEach(a => assessmentMap.set(a.candidate_id, (assessmentMap.get(a.candidate_id) || 0) + 1));
       const appMap = new Map<string, number>();
       (applications || []).forEach(a => appMap.set(a.candidate_id, (appMap.get(a.candidate_id) || 0) + 1));
+      const portfolioMap = new Map<string, { count: number; featured: number; caseStudies: number }>();
+      (portfolios || []).forEach(p => {
+        const cur = portfolioMap.get(p.candidate_id) || { count: 0, featured: 0, caseStudies: 0 };
+        cur.count++;
+        if (p.is_featured) cur.featured++;
+        if (p.project_type === 'case_study') cur.caseStudies++;
+        portfolioMap.set(p.candidate_id, cur);
+      });
 
       const leaderboard: LeaderboardEntry[] = candidates
         .filter(c => (c as any).profiles)
@@ -285,7 +298,11 @@ export const CandidateLeaderboard = () => {
           const assessmentsPassed = assessmentMap.get(c.id) || 0;
           const appsCount = appMap.get(c.id) || 0;
           const activityScore = Math.min(100, appsCount * 4 + assessmentsPassed * 15);
-          const totalScore = Math.round(completeness * 0.4 + assessmentsPassed * 10 + activityScore * 0.3);
+          const pf = portfolioMap.get(c.id) || { count: 0, featured: 0, caseStudies: 0 };
+          const portfolioScore = Math.min(100, pf.count * 15 + pf.featured * 10 + pf.caseStudies * 10);
+          const totalScore = Math.round(
+            completeness * 0.25 + assessmentsPassed * 10 + activityScore * 0.25 + portfolioScore * 0.25
+          );
 
           return {
             profile_id: p.id,
@@ -296,6 +313,7 @@ export const CandidateLeaderboard = () => {
             assessments_passed: assessmentsPassed,
             applications_count: appsCount,
             activity_score: activityScore,
+            portfolio_score: portfolioScore,
             total_score: totalScore,
           };
         });
@@ -317,6 +335,7 @@ export const CandidateLeaderboard = () => {
       case 'completeness': return copy.sort((a, b) => b.completeness_score - a.completeness_score);
       case 'assessments': return copy.sort((a, b) => b.assessments_passed - a.assessments_passed);
       case 'activity': return copy.sort((a, b) => b.activity_score - a.activity_score);
+      case 'portfolio': return copy.sort((a, b) => b.portfolio_score - a.portfolio_score);
       default: return copy.sort((a, b) => b.total_score - a.total_score);
     }
   }, [entries, activeTab]);
@@ -345,12 +364,12 @@ export const CandidateLeaderboard = () => {
         <div>
           <h3 className="text-xl sm:text-2xl font-extrabold text-foreground flex items-center gap-2.5">
             <div className="p-2 bg-warning/10 rounded-xl">
-              <Trophy className="w-6 h-6 text-warning-foreground" />
+            <Trophy className="w-6 h-6 text-warning-foreground" />
             </div>
-            Leaderboard
+            Universal Leaderboard
           </h3>
           <p className="text-sm text-muted-foreground mt-1.5">
-            Top candidates ranked by profile strength, skills & engagement
+            Ranked by profile, assessments, activity & portfolio
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -384,7 +403,7 @@ export const CandidateLeaderboard = () => {
 
       {/* Sort Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid grid-cols-4 w-full h-10 bg-muted/30 rounded-xl p-0.5">
+        <TabsList className="grid grid-cols-5 w-full h-10 bg-muted/30 rounded-xl p-0.5">
           <TabsTrigger value="overall" className="rounded-lg text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1">
             <Trophy className="w-3.5 h-3.5" /> Overall
           </TabsTrigger>
@@ -396,6 +415,9 @@ export const CandidateLeaderboard = () => {
           </TabsTrigger>
           <TabsTrigger value="activity" className="rounded-lg text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1">
             <Zap className="w-3.5 h-3.5" /> Activity
+          </TabsTrigger>
+          <TabsTrigger value="portfolio" className="rounded-lg text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1">
+            <Layout className="w-3.5 h-3.5" /> Portfolio
           </TabsTrigger>
         </TabsList>
       </Tabs>
