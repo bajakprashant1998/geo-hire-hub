@@ -64,6 +64,7 @@ import AdminRoleManagement from "./pages/admin/AdminRoleManagement";
 import AdminFraudDetection from "./pages/admin/AdminFraudDetection";
 import AdminScheduledJobs from "./pages/admin/AdminScheduledJobs";
 import AdminTasks from "./pages/admin/AdminTasks";
+import AdminSEOAgent from "./pages/admin/AdminSEOAgent";
 
 const queryClient = new QueryClient();
 
