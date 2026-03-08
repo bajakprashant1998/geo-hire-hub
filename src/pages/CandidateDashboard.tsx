@@ -232,6 +232,7 @@ const CandidateDashboard = () => {
     { icon: TrendingUp, label: 'Application Tracker', value: 'app-tracker' },
     { icon: Star, label: 'Referrals & Rewards', value: 'referrals' },
     { icon: GraduationCap, label: 'Assessments', value: 'assessments' },
+    { icon: Brain, label: 'Interview Prep', value: 'interview-prep' },
   ];
 
   // Quick action buttons for dashboard home — full 8-item grid
