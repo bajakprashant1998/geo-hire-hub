@@ -102,6 +102,7 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
   const [address, setAddress] = useState('');
   const [openings, setOpenings] = useState('1');
   const [workMode, setWorkMode] = useState<'onsite' | 'remote' | 'hybrid'>('onsite');
+  const [geoComponents, setGeoComponents] = useState<GeoComponents>({ country: '', state: '', city: '' });
 
   // Section 2: Candidate Requirements
   const [experienceType, setExperienceType] = useState<'Any' | 'Fresher Only' | 'Experienced Only'>('Any');
