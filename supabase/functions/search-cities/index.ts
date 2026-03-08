@@ -23,7 +23,7 @@ serve(async (req) => {
 
     // Step 1: Search local database first
     const searchTerm = query.toLowerCase();
-    const { data: dbResults, error: dbError } = await supabase
+    const { data: dbResults } = await supabase
       .from("world_cities")
       .select("city, state, country, population")
       .or(`search_text.ilike.%${searchTerm}%`)
@@ -44,28 +44,37 @@ serve(async (req) => {
       });
     }
 
-    // Step 2: Fallback to GeoNames API for additional results
-    const geonamesUsername = Deno.env.get("GEONAMES_USERNAME") || "demo";
+    // Step 2: Fallback to Google Maps Places API (Autocomplete)
+    const googleMapsKey = Deno.env.get("GOOGLE_MAPS_API_KEY") || Deno.env.get("VITE_GOOGLE_MAPS_API_KEY");
     let apiResults: any[] = [];
 
-    try {
-      const geoUrl = `http://api.geonames.org/searchJSON?name_startsWith=${encodeURIComponent(query)}&maxRows=${limit}&featureClass=P&orderby=population&username=${geonamesUsername}`;
-      const geoResponse = await fetch(geoUrl);
+    if (googleMapsKey) {
+      try {
+        const placesUrl = `https://maps.googleapis.com/maps/api/place/autocomplete/json?input=${encodeURIComponent(query)}&types=(cities)&key=${googleMapsKey}`;
+        const placesResponse = await fetch(placesUrl);
 
-      if (geoResponse.ok) {
-        const geoData = await geoResponse.json();
-        if (geoData.geonames && Array.isArray(geoData.geonames)) {
-          apiResults = geoData.geonames.map((g: any) => ({
-            city: g.name,
-            state: g.adminName1 || null,
-            country: g.countryName,
-            source: "geonames",
-          }));
+        if (placesResponse.ok) {
+          const placesData = await placesResponse.json();
+          if (placesData.predictions && Array.isArray(placesData.predictions)) {
+            // Parse structured formatting from Google
+            apiResults = placesData.predictions.map((p: any) => {
+              const terms = p.terms || [];
+              const city = terms[0]?.value || p.structured_formatting?.main_text || "";
+              const country = terms.length > 0 ? terms[terms.length - 1]?.value || "" : "";
+              const state = terms.length > 2 ? terms[terms.length - 2]?.value || null : null;
+              return {
+                city,
+                state,
+                country,
+                source: "google",
+                place_id: p.place_id,
+              };
+            });
+          }
         }
+      } catch (googleError) {
+        console.error("Google Places API error:", googleError);
       }
-    } catch (geoError) {
-      console.error("GeoNames API error:", geoError);
-      // Continue with local results only
     }
 
     // Step 3: Merge results, deduplicate, prefer local
@@ -80,7 +89,7 @@ serve(async (req) => {
       }
     }
 
-    // Step 4: Cache new GeoNames results back to local DB (fire-and-forget)
+    // Step 4: Cache new Google results back to local DB (fire-and-forget)
     const newCities = apiResults.filter((r) => {
       const key = `${r.city.toLowerCase()}-${(r.state || "").toLowerCase()}-${r.country.toLowerCase()}`;
       return !localResults.some(
@@ -95,7 +104,6 @@ serve(async (req) => {
         country: c.country,
         population: 0,
       }));
-      // Fire-and-forget - don't await
       supabase.from("world_cities").upsert(insertRows, { 
         onConflict: "city,country",
         ignoreDuplicates: true 

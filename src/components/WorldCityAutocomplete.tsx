@@ -132,9 +132,9 @@ export const WorldCityAutocomplete = ({
               >
                 <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                 <span className="truncate flex-1">{highlightMatch(display)}</span>
-                {s.source === 'geonames' && (
-                  <Globe className="w-3 h-3 text-muted-foreground/40 shrink-0" />
-                )}
+                {s.source === 'google' && (
+                   <Globe className="w-3 h-3 text-muted-foreground/40 shrink-0" />
+                 )}
               </button>
             );
           })}
