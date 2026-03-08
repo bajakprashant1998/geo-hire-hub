@@ -301,6 +301,7 @@ const EmployerDashboard = () => {
     { icon: Sparkles, label: 'AI Screening', value: 'ai-screening' },
     { icon: FileEdit, label: 'JD Optimizer', value: 'jd-optimizer' },
     { icon: CheckCircle2, label: 'Assessments', value: 'assessments' },
+    { icon: Sparkles, label: 'Spotlight Stories', value: 'spotlight' },
     { icon: CreditCard, label: 'Upgrade Plan', value: 'upgrade-plan' }
   ];
 
