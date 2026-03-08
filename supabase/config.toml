@@ -56,3 +56,6 @@ verify_jwt = false
 
 [functions.optimize-job-description]
 verify_jwt = false
+
+[functions.generate-cover-letter]
+verify_jwt = false

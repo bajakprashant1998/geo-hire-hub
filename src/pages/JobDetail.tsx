@@ -147,6 +147,34 @@ const JobDetail = () => {
   const [applyDialogOpen, setApplyDialogOpen] = useState(false);
   const [coverLetter, setCoverLetter] = useState('');
   const [applying, setApplying] = useState(false);
+  const [generatingCL, setGeneratingCL] = useState(false);
+
+  const handleGenerateCoverLetter = async () => {
+    if (!resolvedId) return;
+    setGeneratingCL(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { toast.error('Please log in first'); return; }
+      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-cover-letter`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({ jobId: resolvedId }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Failed to generate');
+      setCoverLetter(data.coverLetter);
+      toast.success('Cover letter generated!');
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || 'Failed to generate cover letter');
+    } finally {
+      setGeneratingCL(false);
+    }
+  };
   const [relatedJobs, setRelatedJobs] = useState<any[]>([]);
   const [applicantCount, setApplicantCount] = useState(0);
   const [contacting, setContacting] = useState(false);
@@ -626,7 +654,12 @@ const JobDetail = () => {
                       </DialogHeader>
                       <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                          <Label htmlFor="coverLetter">Cover Letter (Optional)</Label>
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="coverLetter">Cover Letter (Optional)</Label>
+                            <Button type="button" variant="ghost" size="sm" onClick={handleGenerateCoverLetter} disabled={generatingCL} className="h-7 text-xs gap-1.5 text-primary hover:text-primary">
+                              {generatingCL ? <><Loader2 className="w-3 h-3 animate-spin" />Generating...</> : <><Sparkles className="w-3 h-3" />Generate with AI</>}
+                            </Button>
+                          </div>
                           <Textarea id="coverLetter" placeholder="Tell the employer why you're a great fit..." rows={6} value={coverLetter} onChange={(e) => setCoverLetter(e.target.value)} className="resize-none rounded-xl" />
                         </div>
                       </div>
@@ -949,7 +982,12 @@ const JobDetail = () => {
                   </DialogHeader>
                   <div className="space-y-4 py-4">
                     <div className="space-y-2">
-                      <Label htmlFor="coverLetterMobile">Cover Letter (Optional)</Label>
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="coverLetterMobile">Cover Letter (Optional)</Label>
+                        <Button type="button" variant="ghost" size="sm" onClick={handleGenerateCoverLetter} disabled={generatingCL} className="h-7 text-xs gap-1.5 text-primary hover:text-primary">
+                          {generatingCL ? <><Loader2 className="w-3 h-3 animate-spin" />Generating...</> : <><Sparkles className="w-3 h-3" />Generate with AI</>}
+                        </Button>
+                      </div>
                       <Textarea id="coverLetterMobile" placeholder="Tell the employer why you're a great fit..." rows={6} value={coverLetter} onChange={(e) => setCoverLetter(e.target.value)} className="resize-none rounded-xl" />
                     </div>
                   </div>
