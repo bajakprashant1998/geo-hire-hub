@@ -1160,7 +1160,22 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                                 <div className="space-y-2"><Label className="text-sm font-medium">Address Line</Label>
                                     <Input value={addressLine} onChange={e => setAddressLine(e.target.value)} placeholder="Street address" className="bg-background/50" /></div>
                                 <div className="grid md:grid-cols-2 gap-4">
-                                    <div className="space-y-2"><Label className="text-sm font-medium">City</Label><Input value={city} onChange={e => setCity(e.target.value)} placeholder="City" className="bg-background/50" /></div>
+                                    <div className="space-y-2"><Label className="text-sm font-medium">City</Label>
+                                        <WorldCityAutocomplete
+                                            value={city}
+                                            onChange={(val, structured) => {
+                                                if (structured) {
+                                                    setCity(structured.city);
+                                                    if (structured.state) setState(structured.state);
+                                                    setCountry(structured.country);
+                                                } else {
+                                                    setCity(val);
+                                                }
+                                            }}
+                                            placeholder="Start typing city..."
+                                            inputClassName="bg-background/50"
+                                        />
+                                    </div>
                                     <div className="space-y-2"><Label className="text-sm font-medium">State / Province</Label><Input value={state} onChange={e => setState(e.target.value)} placeholder="State" className="bg-background/50" /></div>
                                 </div>
                                 <div className="grid md:grid-cols-2 gap-4">
