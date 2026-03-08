@@ -23,6 +23,7 @@ interface JobBasicsSectionProps {
   isGovernmentEmployer: boolean;
   workMode: 'onsite' | 'remote' | 'hybrid';
   setWorkMode: (mode: 'onsite' | 'remote' | 'hybrid') => void;
+  onGeoComponents?: (components: GeoComponents) => void;
 }
 
 const workModeOptions = [
