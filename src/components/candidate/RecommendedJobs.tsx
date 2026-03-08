@@ -29,6 +29,23 @@ interface RecommendedJobsProps {
 type SortOption = 'relevance' | 'newest' | 'salary' | 'distance';
 type MatchFilter = 'all' | 'perfect' | 'great' | 'good';
 
+interface AIRecommendation {
+  id: string;
+  title: string;
+  description?: string;
+  job_type: string;
+  salary_range?: string;
+  job_address?: string;
+  created_at: string;
+  work_mode?: string;
+  company_name: string;
+  industry?: string;
+  avatar_url?: string;
+  score: number;
+  reasons: string[];
+  is_saved: boolean;
+}
+
 // --- Sub-components ---
 
 const StatCard = ({ icon: Icon, label, value, color }: { icon: any; label: string; value: string | number; color: string }) => (
