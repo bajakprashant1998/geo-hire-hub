@@ -492,9 +492,11 @@ const CTASection = () => (
           Get tailored pricing for large teams with dedicated support, custom integrations, and volume discounts.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Button size="lg" className="rounded-xl gap-2 shadow-md hover:shadow-lg hover:scale-[1.02] transition-all">
-            <Headphones className="w-4 h-4" />
-            Contact Sales
+          <Button size="lg" className="rounded-xl gap-2 shadow-md hover:shadow-lg hover:scale-[1.02] transition-all" asChild>
+            <a href="mailto:sales@hireforjob.com?subject=Enterprise%20Plan%20Inquiry">
+              <Headphones className="w-4 h-4" />
+              Contact Sales
+            </a>
           </Button>
           <Button size="lg" variant="outline" className="rounded-xl hover:scale-[1.02] transition-all" asChild>
             <a href="mailto:support@hireforjob.com">Email Us</a>
