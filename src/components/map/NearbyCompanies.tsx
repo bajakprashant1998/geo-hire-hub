@@ -168,7 +168,22 @@ export const NearbyCompanies = ({ userLocation, radius }: NearbyCompaniesProps) 
                   <MapPin className="w-2.5 h-2.5" />
                   {company.distance_km.toFixed(1)}km
                 </span>
-                <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-primary transition-all" />
+                {company.open_jobs > 0 ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={(e) => handleQuickApply(e, company)}
+                        className="flex items-center gap-1 px-2 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-[9px] font-semibold transition-all hover:scale-105"
+                      >
+                        <Send className="w-2.5 h-2.5" />
+                        {company.open_jobs} {company.open_jobs === 1 ? 'Job' : 'Jobs'}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>View open positions</TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-primary transition-all" />
+                )}
               </div>
             </Link>
           </motion.div>
