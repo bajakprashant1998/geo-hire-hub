@@ -76,6 +76,7 @@ interface JobDetails {
   job_category: string | null;
   referral_bounty: number | null;
   expires_at: string | null;
+  translations: Record<string, { title: string; description: string }> | null;
   employer: {
     id: string;
     company_name: string;
