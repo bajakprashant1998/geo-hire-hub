@@ -926,6 +926,8 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
                           setSalaryMax={setSalaryMax}
                           hasBonus={hasBonus}
                           setHasBonus={setHasBonus}
+                          referralBounty={referralBounty}
+                          setReferralBounty={setReferralBounty}
                           description={description}
                           setDescription={setDescription}
                           skills={skills}
