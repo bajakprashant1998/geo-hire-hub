@@ -555,6 +555,7 @@ const CandidateDashboard = () => {
       case 'career-path': return <CareerPathVisualizer currentJobTitle={candidate.job_title || ''} currentSkills={candidate.skills || []} />;
       case 'culture-match': return <CultureMatchScore candidateId={candidate.id} />;
       case 'smart-digest': return <SmartNotificationDigest />;
+      case 'watchlist': return candidate && <CompanyWatchlist candidateId={candidate.id} />;
       default: return null;
     }
   };
