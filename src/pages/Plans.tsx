@@ -182,7 +182,7 @@ const PlanCard = ({
       transition={{ delay: 0.1 * (index + 1), duration: 0.5 }}
       className="relative"
     >
-      {isPro && (
+      {isPro && !isRecommended && (
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -192,6 +192,19 @@ const PlanCard = ({
           <Badge className="bg-primary text-primary-foreground shadow-lg px-4 py-1.5 text-xs font-semibold tracking-wider uppercase flex items-center gap-1.5 border-0">
             <Sparkles className="w-3.5 h-3.5" />
             Most Popular
+          </Badge>
+        </motion.div>
+      )}
+      {isRecommended && !isCurrentPlan && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.4, duration: 0.3 }}
+          className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10"
+        >
+          <Badge className="bg-emerald-600 text-white shadow-lg px-4 py-1.5 text-xs font-semibold tracking-wider uppercase flex items-center gap-1.5 border-0">
+            <Star className="w-3.5 h-3.5" />
+            Recommended for You
           </Badge>
         </motion.div>
       )}
