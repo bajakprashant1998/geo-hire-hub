@@ -18,7 +18,8 @@ import {
 import {
   MessageCircle, Search, ArrowLeft, Send, Trash2, Phone, Video,
   Check, CheckCheck, Paperclip, Smile, MoreVertical, User, Pin, PinOff,
-  Filter, Star, Archive, Clock, MessageSquare, Users, Mail, Zap, X, Loader2
+  Filter, Star, Archive, Clock, MessageSquare, Users, Mail, Zap, X, Loader2,
+  ChevronDown, ArrowDown, Sparkles, Copy, Reply
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -78,15 +79,29 @@ interface Conversation {
   last_message_at: string;
 }
 
-const QUICK_REPLIES = [
-  "Thanks for reaching out!",
-  "Let's schedule an interview.",
-  "Can you share your availability?",
-  "I'll get back to you shortly.",
-  "Could you send your updated resume?",
+const QUICK_REPLIES_EMPLOYER = [
+  { emoji: '👋', text: "Thanks for reaching out!" },
+  { emoji: '📅', text: "Let's schedule an interview." },
+  { emoji: '🕐', text: "Can you share your availability?" },
+  { emoji: '⏳', text: "I'll get back to you shortly." },
+  { emoji: '📄', text: "Could you send your updated resume?" },
+  { emoji: '✅', text: "You've been shortlisted!" },
+  { emoji: '🎯', text: "Your profile looks great for this role." },
 ];
 
-type FilterType = 'all' | 'unread' | 'online';
+type FilterType = 'all' | 'unread' | 'pinned';
+
+// Date separator helper
+const getDateLabel = (dateString: string) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diff = now.getTime() - date.getTime();
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return date.toLocaleDateString('en-US', { weekday: 'long' });
+  return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: now.getFullYear() !== date.getFullYear() ? 'numeric' : undefined });
+};
 
 export const DashboardMessaging = () => {
   const navigate = useNavigate();
@@ -112,6 +127,8 @@ export const DashboardMessaging = () => {
   const [messageSearchQuery, setMessageSearchQuery] = useState('');
   const [showMessageSearch, setShowMessageSearch] = useState(false);
   const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
+  const [showScrollBottom, setShowScrollBottom] = useState(false);
+  const [unreadDividerIndex, setUnreadDividerIndex] = useState<number | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -134,8 +151,8 @@ export const DashboardMessaging = () => {
   const togglePin = (convId: string) => {
     setPinnedConversations(prev => {
       const next = new Set(prev);
-      if (next.has(convId)) next.delete(convId);
-      else next.add(convId);
+      if (next.has(convId)) { next.delete(convId); toast.success('Chat unpinned'); }
+      else { next.add(convId); toast.success('Chat pinned'); }
       localStorage.setItem(`pinned-conversations-${user?.id}`, JSON.stringify([...next]));
       return next;
     });
@@ -171,14 +188,15 @@ export const DashboardMessaging = () => {
               supabase.from('public_profiles').select('*').eq('user_id', otherId).maybeSingle(),
               supabase.from('messages').select('id', { count: 'exact' })
                 .eq('conversation_id', conv.id).eq('is_read', false).neq('sender_id', user.id),
-              supabase.from('messages').select('content').eq('conversation_id', conv.id)
+              supabase.from('messages').select('content, sender_id').eq('conversation_id', conv.id)
                 .order('created_at', { ascending: false }).limit(1).maybeSingle()
             ]);
             return {
               ...conv,
               otherProfile: profileResult.data,
               unreadCount: unreadResult.count || 0,
-              lastMessage: lastMessageResult.data?.content
+              lastMessage: lastMessageResult.data?.content,
+              lastMessageIsOwn: lastMessageResult.data?.sender_id === user.id,
             };
           })
         );
@@ -244,13 +262,19 @@ export const DashboardMessaging = () => {
           reactionsByMessage.set(r.message_id, msgReactions);
         });
 
-        setMessages(messagesData.map(msg => ({
+        const enriched = messagesData.map(msg => ({
           ...msg,
           attachments: attachmentsByMessage.get(msg.id) || [],
           reactions: Array.from(reactionsByMessage.get(msg.id)?.entries() || []).map(([emoji, data]) => ({
             emoji, count: data.count, hasReacted: data.users.includes(user?.id || '')
           }))
-        })));
+        }));
+
+        // Find unread divider position
+        const firstUnread = enriched.findIndex(m => !m.is_read && m.sender_id !== user?.id);
+        setUnreadDividerIndex(firstUnread > 0 ? firstUnread : null);
+
+        setMessages(enriched);
       }
 
       await supabase.from('messages')
@@ -274,19 +298,31 @@ export const DashboardMessaging = () => {
       }, (payload) => {
         setMessages(prev => [...prev, payload.new as Message]);
         if ((payload.new as Message).sender_id !== user?.id) {
-          supabase.from('messages').update({ is_read: true }).eq('id', (payload.new as Message).id);
+          supabase.from('messages').update({ is_read: true, read_at: new Date().toISOString() }).eq('id', (payload.new as Message).id);
         }
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [activeConversationId, user]);
 
-  // Auto-scroll
+  // Auto-scroll + scroll bottom button
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  const handleScroll = useCallback(() => {
+    if (!scrollRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+    setShowScrollBottom(scrollHeight - scrollTop - clientHeight > 120);
+  }, []);
+
+  const scrollToBottom = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+    }
+  };
 
   const MAX_MESSAGE_LENGTH = 10000;
 
@@ -407,6 +443,11 @@ export const DashboardMessaging = () => {
     }
   };
 
+  const copyMessage = (content: string) => {
+    navigator.clipboard.writeText(content);
+    toast.success('Message copied');
+  };
+
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -427,6 +468,8 @@ export const DashboardMessaging = () => {
 
     if (filterType === 'unread') {
       filtered = filtered.filter(c => c.unreadCount > 0);
+    } else if (filterType === 'pinned') {
+      filtered = filtered.filter(c => pinnedConversations.has(c.id));
     }
 
     // Sort: pinned first, then by last_message_at
@@ -441,6 +484,13 @@ export const DashboardMessaging = () => {
     return filtered;
   }, [conversations, searchQuery, filterType, pinnedConversations]);
 
+  // Group conversations into pinned/recent sections
+  const { pinnedList, recentList } = useMemo(() => {
+    const pinned = filteredConversations.filter(c => pinnedConversations.has(c.id));
+    const recent = filteredConversations.filter(c => !pinnedConversations.has(c.id));
+    return { pinnedList: pinned, recentList: recent };
+  }, [filteredConversations, pinnedConversations]);
+
   // Message search results
   const messageSearchResults = useMemo(() => {
     if (!messageSearchQuery.trim()) return [];
@@ -449,9 +499,30 @@ export const DashboardMessaging = () => {
     );
   }, [messages, messageSearchQuery]);
 
+  // Messages with date separators
+  const messagesWithDates = useMemo(() => {
+    const result: { type: 'date' | 'message' | 'unread-divider'; date?: string; message?: Message; index?: number }[] = [];
+    let lastDate = '';
+    messages.forEach((msg, idx) => {
+      const dateLabel = getDateLabel(msg.created_at);
+      if (dateLabel !== lastDate) {
+        result.push({ type: 'date', date: dateLabel });
+        lastDate = dateLabel;
+      }
+      if (unreadDividerIndex !== null && idx === unreadDividerIndex) {
+        result.push({ type: 'unread-divider' });
+      }
+      result.push({ type: 'message', message: msg, index: idx });
+    });
+    return result;
+  }, [messages, unreadDividerIndex]);
+
   const handleConversationSelect = (convId: string) => {
     setActiveConversationId(convId);
     setShowConversationList(false);
+    setShowQuickReplies(false);
+    setShowMessageSearch(false);
+    setMessageSearchQuery('');
   };
 
   const handleBackToList = () => {
@@ -473,6 +544,115 @@ export const DashboardMessaging = () => {
 
   if (!user || !profile) return null;
 
+  const renderConversationItem = (conv: any) => {
+    const isPinned = pinnedConversations.has(conv.id);
+    const isActive = activeConversationId === conv.id;
+    return (
+      <motion.div
+        key={conv.id}
+        layout
+        initial={{ opacity: 0, y: 5 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, x: -20 }}
+        className="group relative"
+      >
+        <button
+          onClick={() => handleConversationSelect(conv.id)}
+          className={cn(
+            "w-full p-3 pr-9 text-left rounded-xl transition-all duration-200",
+            "hover:bg-accent/60",
+            isActive && 'bg-primary/8 ring-1 ring-primary/20',
+          )}
+        >
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Avatar className={cn(
+                "w-11 h-11 ring-2 ring-offset-1 ring-offset-background transition-all",
+                isActive ? "ring-primary/50" : "ring-transparent"
+              )}>
+                <AvatarImage src={conv.otherProfile?.avatar_url || ''} />
+                <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+                  {getInitials(conv.otherProfile?.full_name)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="absolute -bottom-0.5 -right-0.5 p-0.5 bg-background rounded-full">
+                <OnlineStatus isOnline={false} size="sm" />
+              </div>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-1 mb-0.5">
+                <div className="flex items-center gap-1 min-w-0 flex-1">
+                  <p className={cn(
+                    "font-medium truncate text-sm",
+                    conv.unreadCount > 0 && 'font-semibold text-foreground'
+                  )}>
+                    {conv.otherProfile?.full_name || 'Unknown User'}
+                  </p>
+                </div>
+                <span className="text-[10px] text-muted-foreground shrink-0 whitespace-nowrap">
+                  {formatTime(conv.last_message_at)}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <p className={cn(
+                  "text-xs truncate flex-1",
+                  conv.unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'
+                )}>
+                  {conv.lastMessageIsOwn && <span className="text-muted-foreground mr-0.5">You: </span>}
+                  {conv.lastMessage || 'No messages yet'}
+                </p>
+                {conv.unreadCount > 0 && (
+                  <Badge className="h-5 min-w-5 px-1.5 bg-primary text-primary-foreground text-[10px] font-bold shrink-0 animate-in fade-in">
+                    {conv.unreadCount > 9 ? '9+' : conv.unreadCount}
+                  </Badge>
+                )}
+              </div>
+              <div className="flex items-center gap-1.5 mt-1">
+                {conv.otherProfile?.user_type && (
+                  <Badge
+                    variant="secondary"
+                    className={cn(
+                      "text-[10px] px-2 py-0 h-4 capitalize rounded-full",
+                      conv.otherProfile.user_type === 'employer'
+                        ? 'bg-primary/10 text-primary border border-primary/20'
+                        : 'bg-[hsl(var(--success))]/10 text-[hsl(var(--success))] border border-[hsl(var(--success))]/20'
+                    )}
+                  >
+                    {conv.otherProfile.user_type === 'employer' ? '🏢 Employer' : '👤 Candidate'}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+        </button>
+        {/* Hover actions */}
+        <div className="absolute top-2 right-1.5 z-10 opacity-0 group-hover:opacity-100 transition-all flex gap-0.5 bg-card/95 backdrop-blur-sm border border-border rounded-lg shadow-sm p-0.5">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={(e) => { e.stopPropagation(); togglePin(conv.id); }}
+                className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {isPinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs">{isPinned ? 'Unpin' : 'Pin'}</TooltipContent>
+          </Tooltip>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setDeletingConvId(conv.id);
+              setDeleteDialogOpen(true);
+            }}
+            className="p-1.5 rounded-md hover:bg-destructive/15 text-muted-foreground hover:text-destructive transition-colors"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </motion.div>
+    );
+  };
+
   return (
     <div className="space-y-3">
       {/* Stats Bar */}
@@ -487,7 +667,7 @@ export const DashboardMessaging = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: stat.delay }}
-            className="bg-card border border-border rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2 sm:gap-3 hover:shadow-[var(--shadow-sm)] transition-shadow"
+            className="bg-card border border-border rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2 sm:gap-3 hover:shadow-md transition-shadow"
           >
             <div className={cn("w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0", stat.color)}>
               <stat.icon className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -504,7 +684,7 @@ export const DashboardMessaging = () => {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex h-[calc(100vh-380px)] sm:h-[calc(100vh-320px)] min-h-[400px] bg-background rounded-2xl border overflow-hidden">
+      <div className="flex h-[calc(100vh-380px)] sm:h-[calc(100vh-320px)] min-h-[400px] bg-background rounded-2xl border overflow-hidden shadow-sm">
         {/* Conversation List */}
         <div className={cn(
           "w-full md:w-[340px] lg:w-[380px] flex-col border-r border-border bg-card overflow-hidden",
@@ -519,18 +699,18 @@ export const DashboardMessaging = () => {
                 </div>
                 <h2 className="text-lg font-bold text-foreground">Messages</h2>
                 {stats.totalUnread > 0 && (
-                  <Badge className="h-5 min-w-5 px-1.5 bg-primary text-primary-foreground text-xs font-bold">
+                  <Badge className="h-5 min-w-5 px-1.5 bg-primary text-primary-foreground text-xs font-bold animate-in zoom-in">
                     {stats.totalUnread}
                   </Badge>
                 )}
               </div>
             </div>
-            <div className="relative mb-2">
+            <div className="relative mb-2.5">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search conversations..."
+                placeholder="Search by name..."
                 className="pl-9 h-9 bg-secondary/50 border-border/50 text-sm rounded-xl"
               />
               {searchQuery && (
@@ -545,14 +725,15 @@ export const DashboardMessaging = () => {
             {/* Filter Chips */}
             <div className="flex gap-1.5">
               {([
-                { key: 'all', label: 'All', icon: MessageSquare },
-                { key: 'unread', label: 'Unread', icon: Mail },
-              ] as const).map(f => (
+                { key: 'all' as FilterType, label: 'All', icon: MessageSquare, count: stats.totalConversations },
+                { key: 'unread' as FilterType, label: 'Unread', icon: Mail, count: stats.totalUnread },
+                { key: 'pinned' as FilterType, label: 'Pinned', icon: Pin, count: pinnedConversations.size },
+              ]).map(f => (
                 <button
                   key={f.key}
                   onClick={() => setFilterType(f.key)}
                   className={cn(
-                    "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all",
+                    "flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium transition-all",
                     filterType === f.key
                       ? "bg-primary text-primary-foreground shadow-sm"
                       : "bg-muted/70 text-muted-foreground hover:bg-muted"
@@ -560,8 +741,13 @@ export const DashboardMessaging = () => {
                 >
                   <f.icon className="w-3 h-3" />
                   {f.label}
-                  {f.key === 'unread' && stats.totalUnread > 0 && (
-                    <span className="ml-0.5 bg-primary-foreground/20 rounded-full px-1 text-[10px]">{stats.totalUnread}</span>
+                  {f.count > 0 && (
+                    <span className={cn(
+                      "ml-0.5 rounded-full px-1.5 text-[10px] leading-relaxed",
+                      filterType === f.key ? "bg-primary-foreground/20" : "bg-background"
+                    )}>
+                      {f.count}
+                    </span>
                   )}
                 </button>
               ))}
@@ -588,120 +774,35 @@ export const DashboardMessaging = () => {
                   <MessageCircle className="w-7 h-7 text-muted-foreground/40" />
                 </div>
                 <p className="text-sm font-medium text-foreground mb-1">
-                  {searchQuery ? 'No results found' : filterType === 'unread' ? 'All caught up!' : 'No conversations yet'}
+                  {searchQuery ? 'No results found' : filterType === 'unread' ? 'All caught up! 🎉' : filterType === 'pinned' ? 'No pinned chats' : 'No conversations yet'}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {searchQuery ? 'Try a different search term' : filterType === 'unread' ? 'You have no unread messages' : 'Apply to jobs or connect with employers to start chatting'}
+                  {searchQuery ? 'Try a different search term' : filterType === 'unread' ? 'You have no unread messages' : filterType === 'pinned' ? 'Pin important conversations to access them quickly' : 'Apply to jobs or connect with employers to start chatting'}
                 </p>
               </div>
             ) : (
               <div className="p-1.5">
+                {/* Pinned section */}
+                {filterType === 'all' && pinnedList.length > 0 && (
+                  <>
+                    <div className="flex items-center gap-2 px-3 pt-2 pb-1">
+                      <Pin className="w-3 h-3 text-muted-foreground" />
+                      <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Pinned</span>
+                    </div>
+                    <AnimatePresence mode="popLayout">
+                      {pinnedList.map(renderConversationItem)}
+                    </AnimatePresence>
+                    {recentList.length > 0 && (
+                      <div className="flex items-center gap-2 px-3 pt-3 pb-1">
+                        <Clock className="w-3 h-3 text-muted-foreground" />
+                        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Recent</span>
+                      </div>
+                    )}
+                  </>
+                )}
+                {/* Recent / filtered list */}
                 <AnimatePresence mode="popLayout">
-                  {filteredConversations.map((conv) => {
-                    const isPinned = pinnedConversations.has(conv.id);
-                    return (
-                      <motion.div
-                        key={conv.id}
-                        layout
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        className="group relative"
-                      >
-                        <button
-                          onClick={() => handleConversationSelect(conv.id)}
-                          className={cn(
-                            "w-full p-3 pr-8 text-left rounded-xl transition-all duration-200 hover:bg-muted/70",
-                            activeConversationId === conv.id && 'bg-primary/8 border border-primary/20',
-                            isPinned && 'border-l-2 border-l-[hsl(var(--warning))]'
-                          )}
-                        >
-                          <div className="flex items-center gap-3">
-                            <div className="relative">
-                              <Avatar className={cn(
-                                "w-11 h-11 ring-2 ring-offset-1 ring-offset-background transition-all",
-                                activeConversationId === conv.id ? "ring-primary/50" : "ring-transparent"
-                              )}>
-                                <AvatarImage src={conv.otherProfile?.avatar_url || ''} />
-                                <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
-                                  {getInitials(conv.otherProfile?.full_name)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="absolute -bottom-0.5 -right-0.5 p-0.5 bg-background rounded-full">
-                                <OnlineStatus isOnline={false} size="sm" />
-                              </div>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between gap-1 mb-0.5">
-                                <div className="flex items-center gap-1 min-w-0 flex-1">
-                                  {isPinned && <Pin className="w-3 h-3 text-[hsl(var(--warning))] shrink-0" />}
-                                  <p className={cn(
-                                    "font-medium truncate text-sm",
-                                    conv.unreadCount > 0 && 'font-semibold text-foreground'
-                                  )}>
-                                    {conv.otherProfile?.full_name || 'Unknown User'}
-                                  </p>
-                                </div>
-                                <span className="text-[10px] text-muted-foreground shrink-0 whitespace-nowrap">
-                                  {formatTime(conv.last_message_at)}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <p className={cn(
-                                  "text-xs truncate flex-1",
-                                  conv.unreadCount > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'
-                                )}>
-                                  {conv.lastMessage || 'No messages yet'}
-                                </p>
-                                {conv.unreadCount > 0 && (
-                                  <Badge className="h-5 min-w-5 px-1.5 bg-primary text-primary-foreground text-[10px] font-bold shrink-0">
-                                    {conv.unreadCount > 9 ? '9+' : conv.unreadCount}
-                                  </Badge>
-                                )}
-                              </div>
-                              {conv.otherProfile?.user_type && (
-                                <Badge
-                                  variant="secondary"
-                                  className={cn(
-                                    "text-[10px] px-2 py-0 h-4 capitalize mt-1 rounded-full",
-                                    conv.otherProfile.user_type === 'employer'
-                                      ? 'bg-primary/10 text-primary border border-primary/20'
-                                      : 'bg-[hsl(var(--success))]/10 text-[hsl(var(--success))] border border-[hsl(var(--success))]/20'
-                                  )}
-                                >
-                                  {conv.otherProfile.user_type === 'employer' ? '🏢 Employer' : '👤 Candidate'}
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        </button>
-                        {/* Hover actions */}
-                        <div className="absolute top-1.5 right-1.5 z-10 opacity-0 group-hover:opacity-100 transition-all flex gap-0.5 bg-card/95 backdrop-blur-sm border border-border rounded-lg shadow-sm p-0.5">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); togglePin(conv.id); }}
-                                className="p-1.5 rounded-md bg-transparent hover:bg-[hsl(var(--warning))]/15 text-foreground/60 hover:text-[hsl(var(--warning))] transition-colors"
-                              >
-                                {isPinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent side="top" className="text-xs">{isPinned ? 'Unpin' : 'Pin'}</TooltipContent>
-                          </Tooltip>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeletingConvId(conv.id);
-                              setDeleteDialogOpen(true);
-                            }}
-                            className="p-1.5 rounded-md bg-transparent hover:bg-destructive/15 text-foreground/60 hover:text-destructive transition-colors"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
+                  {(filterType === 'all' ? recentList : filteredConversations).map(renderConversationItem)}
                 </AnimatePresence>
               </div>
             )}
@@ -716,7 +817,7 @@ export const DashboardMessaging = () => {
           {activeConversation && otherUser ? (
             <>
               {/* Chat Header */}
-              <div className="flex items-center gap-3 p-3 sm:p-4 border-b border-border bg-card">
+              <div className="flex items-center gap-3 p-3 sm:p-4 border-b border-border bg-card/80 backdrop-blur-sm">
                 <Button
                   variant="ghost"
                   size="icon"
@@ -725,8 +826,8 @@ export const DashboardMessaging = () => {
                 >
                   <ArrowLeft className="w-4 h-4" />
                 </Button>
-                <div className="relative cursor-pointer" onClick={handleViewProfile}>
-                  <Avatar className="w-10 h-10 ring-2 ring-primary/20">
+                <div className="relative cursor-pointer group" onClick={handleViewProfile}>
+                  <Avatar className="w-10 h-10 ring-2 ring-primary/20 group-hover:ring-primary/50 transition-all">
                     <AvatarImage src={otherUser.avatar_url || ''} />
                     <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
                       {getInitials(otherUser.full_name)}
@@ -737,7 +838,7 @@ export const DashboardMessaging = () => {
                   </div>
                 </div>
                 <div className="flex-1 min-w-0 cursor-pointer" onClick={handleViewProfile}>
-                  <p className="font-semibold text-foreground text-sm truncate hover:underline">
+                  <p className="font-semibold text-foreground text-sm truncate hover:text-primary transition-colors">
                     {otherUser.full_name || 'Unknown User'}
                   </p>
                   <div className="flex items-center gap-1.5">
@@ -746,14 +847,14 @@ export const DashboardMessaging = () => {
                     <span className="text-xs text-muted-foreground capitalize">{otherUser.user_type}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-0.5">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-muted-foreground"
-                        onClick={() => setShowMessageSearch(!showMessageSearch)}
+                        className={cn("h-8 w-8", showMessageSearch ? "text-primary bg-primary/10" : "text-muted-foreground")}
+                        onClick={() => { setShowMessageSearch(!showMessageSearch); if (showMessageSearch) setMessageSearchQuery(''); }}
                       >
                         <Search className="w-4 h-4" />
                       </Button>
@@ -766,7 +867,7 @@ export const DashboardMessaging = () => {
                         <MoreVertical className="w-4 h-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                    <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem onClick={handleViewProfile}>
                         <User className="w-4 h-4 mr-2" /> View Profile
                       </DropdownMenuItem>
@@ -831,7 +932,7 @@ export const DashboardMessaging = () => {
                             onClick={() => scrollToMessage(m.id)}
                             className="text-[10px] px-2 py-1 bg-primary/10 text-primary rounded-full shrink-0 hover:bg-primary/20 transition-colors"
                           >
-                            {m.content.slice(0, 30)}...
+                            {m.content.slice(0, 30)}{m.content.length > 30 ? '...' : ''}
                           </button>
                         ))}
                       </div>
@@ -841,25 +942,64 @@ export const DashboardMessaging = () => {
               </AnimatePresence>
 
               {/* Messages */}
-              <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 bg-muted/20">
+              <div
+                ref={scrollRef}
+                onScroll={handleScroll}
+                className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-1 bg-muted/20 relative"
+              >
                 {messages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full py-12 text-center">
                     <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
                       <MessageCircle className="w-8 h-8 text-primary" />
                     </div>
                     <p className="text-sm font-medium text-foreground mb-1">Start the conversation</p>
-                    <p className="text-xs text-muted-foreground">Send a message to {otherUser.full_name}</p>
+                    <p className="text-xs text-muted-foreground mb-4">Send a message to {otherUser.full_name}</p>
+                    <div className="flex flex-wrap gap-1.5 justify-center max-w-xs">
+                      {QUICK_REPLIES_EMPLOYER.slice(0, 3).map((qr, i) => (
+                        <button
+                          key={i}
+                          onClick={() => sendQuickReply(qr.text)}
+                          className="text-xs px-3 py-1.5 bg-card border border-border rounded-full hover:bg-primary/10 hover:border-primary/30 hover:text-primary transition-all"
+                        >
+                          {qr.emoji} {qr.text}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 ) : (
-                  messages.map((message, index) => {
+                  messagesWithDates.map((item, i) => {
+                    if (item.type === 'date') {
+                      return (
+                        <div key={`date-${i}`} className="flex items-center gap-3 py-3">
+                          <div className="flex-1 h-px bg-border" />
+                          <span className="text-[10px] font-medium text-muted-foreground bg-muted/60 px-2.5 py-0.5 rounded-full">
+                            {item.date}
+                          </span>
+                          <div className="flex-1 h-px bg-border" />
+                        </div>
+                      );
+                    }
+                    if (item.type === 'unread-divider') {
+                      return (
+                        <div key="unread-divider" className="flex items-center gap-3 py-2">
+                          <div className="flex-1 h-px bg-primary/40" />
+                          <span className="text-[10px] font-semibold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full">
+                            New messages
+                          </span>
+                          <div className="flex-1 h-px bg-primary/40" />
+                        </div>
+                      );
+                    }
+                    const message = item.message!;
+                    const idx = item.index!;
                     const isOwn = message.sender_id === user?.id;
-                    const showAvatar = index === 0 || messages[index - 1].sender_id !== message.sender_id;
+                    const showAvatar = idx === 0 || messages[idx - 1].sender_id !== message.sender_id;
                     return (
                       <div
                         key={message.id}
                         id={`msg-${message.id}`}
                         className={cn(
-                          "transition-all duration-500",
+                          "group/msg relative transition-all duration-500 py-0.5",
                           highlightedMessageId === message.id && "bg-primary/10 rounded-xl -mx-1 px-1"
                         )}
                       >
@@ -871,12 +1011,31 @@ export const DashboardMessaging = () => {
                           onAddReaction={handleAddReaction}
                           onRemoveReaction={handleRemoveReaction}
                         />
+                        {/* Copy action on hover */}
+                        {message.content !== '📎 Attachment' && (
+                          <div className={cn(
+                            "absolute top-1 opacity-0 group-hover/msg:opacity-100 transition-opacity",
+                            isOwn ? "left-0" : "right-0"
+                          )}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={() => copyMessage(message.content)}
+                                  className="p-1 rounded-md bg-card/90 border border-border shadow-sm text-muted-foreground hover:text-foreground transition-colors"
+                                >
+                                  <Copy className="w-3 h-3" />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent className="text-xs">Copy</TooltipContent>
+                            </Tooltip>
+                          </div>
+                        )}
                       </div>
                     );
                   })
                 )}
                 {otherUserId && activeConversationId && isTyping(otherUserId, activeConversationId) && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 py-1">
                     <Avatar className="w-7 h-7">
                       <AvatarImage src={otherUser?.avatar_url || ''} />
                       <AvatarFallback className="bg-primary/10 text-primary text-xs">
@@ -886,6 +1045,21 @@ export const DashboardMessaging = () => {
                     <TypingIndicator />
                   </div>
                 )}
+
+                {/* Scroll to bottom FAB */}
+                <AnimatePresence>
+                  {showScrollBottom && (
+                    <motion.button
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      onClick={scrollToBottom}
+                      className="sticky bottom-2 left-1/2 -translate-x-1/2 z-20 w-9 h-9 rounded-full bg-card border border-border shadow-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors mx-auto"
+                    >
+                      <ArrowDown className="w-4 h-4" />
+                    </motion.button>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* Quick Replies */}
@@ -897,19 +1071,23 @@ export const DashboardMessaging = () => {
                     exit={{ height: 0, opacity: 0 }}
                     className="border-t border-border bg-muted/30 overflow-hidden"
                   >
-                    <div className="p-2 flex flex-wrap gap-1.5">
-                      <span className="text-[10px] text-muted-foreground flex items-center gap-1 mr-1">
-                        <Zap className="w-3 h-3" /> Quick:
-                      </span>
-                      {QUICK_REPLIES.map((reply, i) => (
-                        <button
-                          key={i}
-                          onClick={() => sendQuickReply(reply)}
-                          className="text-xs px-2.5 py-1 bg-card border border-border rounded-full hover:bg-primary/10 hover:border-primary/30 hover:text-primary transition-all"
-                        >
-                          {reply}
-                        </button>
-                      ))}
+                    <div className="p-2.5">
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <Zap className="w-3 h-3 text-primary" />
+                        <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Quick Replies</span>
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {QUICK_REPLIES_EMPLOYER.map((reply, i) => (
+                          <button
+                            key={i}
+                            onClick={() => sendQuickReply(reply.text)}
+                            className="text-xs px-3 py-1.5 bg-card border border-border rounded-full hover:bg-primary/10 hover:border-primary/30 hover:text-primary transition-all flex items-center gap-1"
+                          >
+                            <span>{reply.emoji}</span>
+                            <span>{reply.text}</span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </motion.div>
                 )}
@@ -980,7 +1158,7 @@ export const DashboardMessaging = () => {
                     className={cn(
                       "rounded-full h-10 w-10 transition-all shrink-0",
                       (newMessage.trim() || pendingAttachment) && !sending
-                        ? "bg-primary hover:bg-primary/90 shadow-[var(--shadow-sm)]"
+                        ? "bg-primary hover:bg-primary/90 shadow-md"
                         : "bg-muted text-muted-foreground"
                     )}
                   >
@@ -995,25 +1173,31 @@ export const DashboardMessaging = () => {
               <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="flex flex-col items-center"
+                className="flex flex-col items-center max-w-sm"
               >
-                <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-5 shadow-[var(--shadow-sm)]">
+                <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-5 shadow-sm">
                   <MessageCircle className="w-10 h-10 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold text-foreground font-heading mb-2">Your Messages</h3>
-                <p className="text-sm text-muted-foreground max-w-sm mb-4">
-                  Select a conversation from the list to start chatting, or connect with employers through job listings.
+                <h3 className="text-lg font-semibold text-foreground mb-2">Your Messages</h3>
+                <p className="text-sm text-muted-foreground mb-5">
+                  Select a conversation to start chatting. Connect with candidates through job applications.
                 </p>
-                <div className="flex flex-wrap gap-2 justify-center">
-                  <Badge variant="secondary" className="text-xs rounded-full px-3 py-1 gap-1.5">
-                    <Zap className="w-3 h-3 text-[hsl(var(--warning))]" /> Quick replies available
-                  </Badge>
-                  <Badge variant="secondary" className="text-xs rounded-full px-3 py-1 gap-1.5">
-                    <Paperclip className="w-3 h-3 text-primary" /> File attachments
-                  </Badge>
-                  <Badge variant="secondary" className="text-xs rounded-full px-3 py-1 gap-1.5">
-                    <Smile className="w-3 h-3 text-[hsl(var(--success))]" /> Emoji reactions
-                  </Badge>
+                <div className="grid grid-cols-1 gap-2 w-full text-left">
+                  {[
+                    { icon: Zap, label: 'Quick replies', desc: 'Respond faster with templates', color: 'text-primary' },
+                    { icon: Paperclip, label: 'File sharing', desc: 'Send resumes & documents', color: 'text-primary' },
+                    { icon: Search, label: 'Message search', desc: 'Find any conversation instantly', color: 'text-primary' },
+                  ].map((tip, i) => (
+                    <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl bg-card border border-border/50">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <tip.icon className={cn("w-4 h-4", tip.color)} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-foreground">{tip.label}</p>
+                        <p className="text-[10px] text-muted-foreground">{tip.desc}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </motion.div>
             </div>
