@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import {
   Building2, Save, Eye, FileText, Loader2, AlertTriangle, Heart, Gift,
-  Globe, Camera, CreditCard, MapPin, Briefcase, DollarSign, TrendingUp,
+  Globe, Camera, CreditCard, MapPin, Briefcase, Banknote, TrendingUp,
   Target, Star, Users, GraduationCap, Award, Phone, Mail, Link2,
   Laptop, Zap, Shield, BookOpen, BarChart3, Plus, X, Check, Bot,
 } from 'lucide-react';
