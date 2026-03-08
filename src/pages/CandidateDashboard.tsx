@@ -513,6 +513,7 @@ const CandidateDashboard = () => {
           <p className="text-sm text-muted-foreground">Take assessments linked to jobs you've applied for. Check job details for available assessments.</p>
         </div>
       );
+      case 'interview-prep': return <InterviewPrepCoach candidateId={candidate.id} />;
       default: return null;
     }
   };
