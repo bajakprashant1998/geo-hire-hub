@@ -406,6 +406,54 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
   };
   const clearFilters = () => { setFilters(defaultFilters); setSkillInput(''); };
 
+  // Save Search Alert
+  const [saveSearchOpen, setSaveSearchOpen] = useState(false);
+  const [searchName, setSearchName] = useState('');
+  const [savingSearch, setSavingSearch] = useState(false);
+  const [savedSearches, setSavedSearches] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (employerId) {
+      supabase
+        .from('employer_saved_searches')
+        .select('*')
+        .eq('employer_id', employerId)
+        .order('created_at', { ascending: false })
+        .then(({ data }) => { if (data) setSavedSearches(data); });
+    }
+  }, [employerId]);
+
+  const handleSaveSearch = async () => {
+    if (!searchName.trim()) { toast.error('Please enter a name'); return; }
+    setSavingSearch(true);
+    const { data, error } = await supabase
+      .from('employer_saved_searches')
+      .insert({
+        employer_id: employerId,
+        name: searchName.trim(),
+        filters: filters as any,
+      })
+      .select()
+      .single();
+    setSavingSearch(false);
+    if (error) { toast.error('Failed to save search'); return; }
+    setSavedSearches(prev => [data, ...prev]);
+    setSearchName('');
+    setSaveSearchOpen(false);
+    toast.success('Search alert saved! You\'ll be notified when matching candidates join.');
+  };
+
+  const toggleSearchActive = async (id: string, isActive: boolean) => {
+    await supabase.from('employer_saved_searches').update({ is_active: !isActive }).eq('id', id);
+    setSavedSearches(prev => prev.map(s => s.id === id ? { ...s, is_active: !isActive } : s));
+  };
+
+  const deleteSearch = async (id: string) => {
+    await supabase.from('employer_saved_searches').delete().eq('id', id);
+    setSavedSearches(prev => prev.filter(s => s.id !== id));
+    toast.success('Search alert deleted');
+  };
+
   const activeFilterCount = useMemo(() => {
     let count = 0;
     if (filters.search) count++;
