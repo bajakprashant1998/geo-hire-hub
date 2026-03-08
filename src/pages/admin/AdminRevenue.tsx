@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
@@ -13,9 +14,17 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { StatsCard } from '@/components/admin/StatsCard';
-import { DollarSign, TrendingUp, TrendingDown, Users, Search, AlertTriangle } from 'lucide-react';
-import { format, subMonths, isAfter } from 'date-fns';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts';
+import {
+  DollarSign, TrendingUp, TrendingDown, Users, Search, AlertTriangle,
+  ArrowUpRight, Target, Sparkles, Calendar
+} from 'lucide-react';
+import { format, subMonths, addMonths } from 'date-fns';
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  LineChart, Line, CartesianGrid, Area, AreaChart, Legend, ReferenceLine
+} from 'recharts';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface SubscriptionDetail {
   id: string;
@@ -29,9 +38,17 @@ interface SubscriptionDetail {
   plan: { id: string; name: string; price_monthly: number; price_yearly: number | null };
 }
 
+const tooltipStyle = {
+  backgroundColor: 'hsl(var(--card))',
+  border: '1px solid hsl(var(--border))',
+  borderRadius: '8px',
+  fontSize: '12px',
+};
+
 export default function AdminRevenue() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [forecastMonths, setForecastMonths] = useState<'3' | '6' | '12'>('6');
 
   const { data: subscriptions, isLoading } = useQuery({
     queryKey: ['admin-revenue-subscriptions'],
@@ -84,6 +101,75 @@ export default function AdminRevenue() {
     };
   });
 
+  // === REVENUE FORECASTING ===
+  const forecastData = useMemo(() => {
+    const months = parseInt(forecastMonths);
+    const churnRateNum = parseFloat(churnRate) / 100;
+    const monthlyChurn = churnRateNum / 12; // Annualized → monthly
+
+    // Calculate average monthly growth from historical data
+    const historicalRevenues = monthlyTrend.map(m => m.revenue);
+    const historicalSubs = monthlyTrend.map(m => m.newSubs);
+    const avgNewSubsPerMonth = historicalSubs.reduce((a, b) => a + b, 0) / historicalSubs.length;
+    const avgRevenuePerSub = paidActive.length > 0
+      ? active.reduce((sum, s) => sum + (s.plan?.price_monthly || 0), 0) / active.length
+      : 0;
+
+    // Growth rates from last 3 months
+    const recentRevenues = historicalRevenues.slice(-3);
+    let growthRate = 0;
+    if (recentRevenues.length >= 2) {
+      const rates = recentRevenues.slice(1).map((r, i) => {
+        const prev = recentRevenues[i];
+        return prev > 0 ? (r - prev) / prev : 0;
+      });
+      growthRate = rates.reduce((a, b) => a + b, 0) / rates.length;
+    }
+
+    // Build forecast with 3 scenarios
+    const scenarios: { month: string; optimistic: number; baseline: number; conservative: number; historical?: number }[] = [];
+
+    // Add historical months
+    monthlyTrend.forEach(m => {
+      scenarios.push({
+        month: m.month,
+        historical: totalMRR > 0 ? m.revenue + (totalMRR - m.revenue) * 0.8 : m.revenue,
+        optimistic: 0,
+        baseline: 0,
+        conservative: 0,
+      });
+    });
+
+    let baseMRR = totalMRR;
+    let optimisticMRR = totalMRR;
+    let conservativeMRR = totalMRR;
+
+    for (let i = 1; i <= months; i++) {
+      const futureMonth = addMonths(new Date(), i);
+      const label = format(futureMonth, 'MMM yyyy');
+
+      // Baseline: current growth rate minus churn
+      baseMRR = baseMRR * (1 + growthRate - monthlyChurn) + avgNewSubsPerMonth * avgRevenuePerSub * 0.5;
+      // Optimistic: 1.5x growth, 0.5x churn
+      optimisticMRR = optimisticMRR * (1 + growthRate * 1.5 - monthlyChurn * 0.5) + avgNewSubsPerMonth * avgRevenuePerSub;
+      // Conservative: 0.5x growth, 1.5x churn
+      conservativeMRR = conservativeMRR * (1 + growthRate * 0.5 - monthlyChurn * 1.5) + avgNewSubsPerMonth * avgRevenuePerSub * 0.25;
+
+      scenarios.push({
+        month: label,
+        baseline: Math.max(0, Math.round(baseMRR)),
+        optimistic: Math.max(0, Math.round(optimisticMRR)),
+        conservative: Math.max(0, Math.round(conservativeMRR)),
+      });
+    }
+
+    const finalBaseline = scenarios[scenarios.length - 1]?.baseline || 0;
+    const projectedARR = finalBaseline * 12;
+    const revenueGrowth = totalMRR > 0 ? (((finalBaseline - totalMRR) / totalMRR) * 100).toFixed(0) : '0';
+
+    return { scenarios, projectedARR, finalBaseline, revenueGrowth, avgRevenuePerSub, avgNewSubsPerMonth, growthRate };
+  }, [monthlyTrend, totalMRR, forecastMonths, churnRate, active, paidActive]);
+
   // Overdue: active subs where period_end is past
   const overdue = active.filter(s => s.current_period_end && new Date(s.current_period_end) < new Date());
 
@@ -94,7 +180,7 @@ export default function AdminRevenue() {
   });
 
   return (
-    <AdminLayout title="Employer Revenue">
+    <AdminLayout title="Revenue & Forecasting">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatsCard title="Monthly Revenue (MRR)" value={`$${totalMRR.toLocaleString()}`} icon={DollarSign} variant="success" />
         <StatsCard title="Paid Subscribers" value={paidActive.length} icon={TrendingUp} />
@@ -102,7 +188,138 @@ export default function AdminRevenue() {
         <StatsCard title="Overdue Payments" value={overdue.length} icon={AlertTriangle} variant={overdue.length > 0 ? 'warning' : 'default'} />
       </div>
 
-      {/* Charts */}
+      {/* Revenue Forecasting Section */}
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
+        <Card className="border-border/40 overflow-hidden">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-primary/15 to-primary/5">
+                  <Sparkles className="h-4.5 w-4.5 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-base">Revenue Forecast</CardTitle>
+                  <CardDescription className="text-xs">Projected MRR with optimistic, baseline & conservative scenarios</CardDescription>
+                </div>
+              </div>
+              <div className="flex gap-1">
+                {(['3', '6', '12'] as const).map(m => (
+                  <Button
+                    key={m}
+                    variant={forecastMonths === m ? 'default' : 'ghost'}
+                    size="sm"
+                    className="h-7 px-2.5 text-xs rounded-lg"
+                    onClick={() => setForecastMonths(m)}
+                  >
+                    {m}mo
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Forecast KPIs */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[
+                {
+                  label: 'Projected MRR',
+                  value: `$${forecastData.finalBaseline.toLocaleString()}`,
+                  sub: `in ${forecastMonths} months`,
+                  icon: Target,
+                  color: 'text-primary bg-primary/10',
+                },
+                {
+                  label: 'Projected ARR',
+                  value: `$${forecastData.projectedARR.toLocaleString()}`,
+                  sub: 'annualized',
+                  icon: DollarSign,
+                  color: 'text-emerald-500 bg-emerald-500/10',
+                },
+                {
+                  label: 'MRR Growth',
+                  value: `${forecastData.revenueGrowth}%`,
+                  sub: `over ${forecastMonths}mo`,
+                  icon: Number(forecastData.revenueGrowth) >= 0 ? ArrowUpRight : TrendingDown,
+                  color: Number(forecastData.revenueGrowth) >= 0 ? 'text-emerald-500 bg-emerald-500/10' : 'text-destructive bg-destructive/10',
+                },
+                {
+                  label: 'Avg Revenue/Sub',
+                  value: `$${forecastData.avgRevenuePerSub.toFixed(0)}`,
+                  sub: 'per month',
+                  icon: Users,
+                  color: 'text-primary bg-primary/10',
+                },
+              ].map((kpi, i) => (
+                <motion.div
+                  key={kpi.label}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 + i * 0.05 }}
+                >
+                  <Card className="border-border/30 bg-card/80">
+                    <CardContent className="p-3">
+                      <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center mb-2", kpi.color)}>
+                        <kpi.icon className="w-4 h-4" />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">{kpi.label}</p>
+                      <p className="text-lg font-bold text-foreground tabular-nums">{kpi.value}</p>
+                      <p className="text-[10px] text-muted-foreground">{kpi.sub}</p>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Forecast Chart */}
+            <div className="h-[320px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={forecastData.scenarios} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="optimisticGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--chart-2, 160 60% 45%))" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="hsl(var(--chart-2, 160 60% 45%))" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="baselineGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="conservativeGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.1} />
+                      <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="month" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                  <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
+                  <Tooltip contentStyle={tooltipStyle} formatter={(value: number) => [`$${value.toLocaleString()}`, '']} />
+                  <Legend wrapperStyle={{ fontSize: '11px' }} />
+                  <ReferenceLine x={monthlyTrend[monthlyTrend.length - 1]?.month} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 4" label={{ value: 'Today', position: 'top', fontSize: 10, fill: 'hsl(var(--muted-foreground))' }} />
+                  <Area type="monotone" dataKey="historical" stroke="hsl(var(--muted-foreground))" fill="hsl(var(--muted))" strokeWidth={2} name="Historical" dot={false} connectNulls={false} />
+                  <Area type="monotone" dataKey="optimistic" stroke="hsl(var(--chart-2, 160 60% 45%))" fill="url(#optimisticGrad)" strokeWidth={2} strokeDasharray="6 3" name="Optimistic" dot={false} />
+                  <Area type="monotone" dataKey="baseline" stroke="hsl(var(--primary))" fill="url(#baselineGrad)" strokeWidth={2.5} name="Baseline" dot={false} />
+                  <Area type="monotone" dataKey="conservative" stroke="hsl(var(--destructive))" fill="url(#conservativeGrad)" strokeWidth={2} strokeDasharray="6 3" name="Conservative" dot={false} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Assumptions */}
+            <div className="flex flex-wrap gap-2 text-[10px] text-muted-foreground">
+              <Badge variant="outline" className="text-[10px] gap-1">
+                <Calendar className="w-3 h-3" />
+                Growth rate: {(forecastData.growthRate * 100).toFixed(1)}%/mo
+              </Badge>
+              <Badge variant="outline" className="text-[10px] gap-1">
+                Monthly churn: {(parseFloat(churnRate) / 12).toFixed(1)}%
+              </Badge>
+              <Badge variant="outline" className="text-[10px] gap-1">
+                ~{forecastData.avgNewSubsPerMonth.toFixed(1)} new subs/mo avg
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Existing Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <Card>
           <CardHeader><CardTitle className="text-base">Revenue by Plan</CardTitle></CardHeader>
@@ -111,7 +328,7 @@ export default function AdminRevenue() {
               <BarChart data={chartData}>
                 <XAxis dataKey="name" fontSize={12} />
                 <YAxis fontSize={12} />
-                <Tooltip />
+                <Tooltip contentStyle={tooltipStyle} />
                 <Bar dataKey="revenue" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -125,7 +342,7 @@ export default function AdminRevenue() {
                 <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
                 <XAxis dataKey="month" fontSize={12} />
                 <YAxis fontSize={12} />
-                <Tooltip />
+                <Tooltip contentStyle={tooltipStyle} />
                 <Line type="monotone" dataKey="newSubs" stroke="hsl(var(--primary))" strokeWidth={2} name="New Subs" />
               </LineChart>
             </ResponsiveContainer>
