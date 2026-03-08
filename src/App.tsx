@@ -141,8 +141,8 @@ const App = () => (
               <Route path="/hire-for-job" element={<Navigate to="/jobs-near-me" replace />} />
 
               {/* ==================== SHARED ROUTES ==================== */}
-              <Route path="/messages" element={<PageTransition><Messages /></PageTransition>} />
-              <Route path="/messages/:conversationId" element={<PageTransition><Messages /></PageTransition>} />
+              <Route path="/messages" element={<AuthRouteGuard><PageTransition><Messages /></PageTransition></AuthRouteGuard>} />
+              <Route path="/messages/:conversationId" element={<AuthRouteGuard><PageTransition><Messages /></PageTransition></AuthRouteGuard>} />
 
               {/* ==================== SEO-FRIENDLY DETAIL PAGES ==================== */}
               <Route path="/jobs/:id" element={<PageTransition><JobDetail /></PageTransition>} />
