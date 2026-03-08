@@ -613,7 +613,7 @@ export const DashboardMessaging = () => {
                           className={cn(
                             "w-full p-3 pr-8 text-left rounded-xl transition-all duration-200 hover:bg-muted/70",
                             activeConversationId === conv.id && 'bg-primary/8 border border-primary/20',
-                            isPinned && 'border-l-2 border-l-amber-400'
+                            isPinned && 'border-l-2 border-l-[hsl(var(--warning))]'
                           )}
                         >
                           <div className="flex items-center gap-3">
