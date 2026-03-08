@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import {
   Briefcase, Bell, Shield, FileText, Sparkles, Loader2,
   Eye, Calendar, Star, ChevronRight, User, MessageSquare, Bookmark, Mic,
-  MapPin, TrendingUp, Zap, DollarSign, Bot, Radar, GraduationCap, Brain, BarChart3, Award
+  MapPin, TrendingUp, Zap, DollarSign, Bot, Radar, GraduationCap, Brain, BarChart3, Award, Trophy
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -49,6 +49,7 @@ import { TakeAssessment } from '@/components/candidate/TakeAssessment';
 import { InterviewPrepCoach } from '@/components/candidate/InterviewPrepCoach';
 import { MarketValueScore } from '@/components/candidate/MarketValueScore';
 import { ProfileBadges } from '@/components/candidate/ProfileBadges';
+import { CandidateLeaderboard } from '@/components/candidate/CandidateLeaderboard';
 import { PendingTasksWidget } from '@/components/dashboard/PendingTasksWidget';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -237,6 +238,7 @@ const CandidateDashboard = () => {
     { icon: Brain, label: 'Interview Prep', value: 'interview-prep' },
     { icon: BarChart3, label: 'Market Value', value: 'market-value' },
     { icon: Award, label: 'Badges', value: 'badges' },
+    { icon: Trophy, label: 'Leaderboard', value: 'leaderboard' },
   ];
 
   // Quick action buttons for dashboard home — full 8-item grid
@@ -520,6 +522,7 @@ const CandidateDashboard = () => {
       case 'interview-prep': return <InterviewPrepCoach candidateId={candidate.id} />;
       case 'market-value': return <MarketValueScore />;
       case 'badges': return <ProfileBadges />;
+      case 'leaderboard': return <CandidateLeaderboard />;
       default: return null;
     }
   };
