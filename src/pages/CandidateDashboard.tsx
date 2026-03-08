@@ -245,6 +245,12 @@ const CandidateDashboard = () => {
     { icon: BarChart3, label: 'Market Value', value: 'market-value' },
     { icon: Award, label: 'Badges', value: 'badges' },
     { icon: Trophy, label: 'Leaderboard', value: 'leaderboard' },
+    { icon: Bell, label: 'Follow-Up Reminders', value: 'follow-ups' },
+    { icon: Brain, label: 'Skill Gap Analyzer', value: 'skill-gap' },
+    { icon: Calendar, label: 'Availability Slots', value: 'availability' },
+    { icon: BarChart3, label: 'Compare Jobs', value: 'compare-jobs' },
+    { icon: TrendingUp, label: 'Career Path', value: 'career-path' },
+    { icon: Star, label: 'Culture Match', value: 'culture-match' },
   ];
 
   // Quick action buttons for dashboard home — full 8-item grid
