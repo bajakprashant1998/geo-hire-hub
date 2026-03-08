@@ -103,7 +103,7 @@ const Signup = () => {
     const validTypes = ['.doc', '.docx', '.pdf'];
     const extension = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
     if (!validTypes.includes(extension)) { toast.error('Please upload a .doc, .docx, or .pdf file'); return; }
-    if (file.size > 5 * 1024 * 1024) { toast.error('File size should be less than 5MB'); return; }
+    if (file.size > 25 * 1024 * 1024) { toast.error('File size should be less than 25MB'); return; }
     setResumeFile(file);
     toast.success('Resume uploaded successfully!');
   };
