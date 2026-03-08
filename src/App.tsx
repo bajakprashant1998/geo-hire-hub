@@ -11,6 +11,7 @@ import { LocationGate } from "@/components/LocationGate";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageTransition } from "@/components/PageTransition";
 import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
+import LiveChatWidget from "@/components/support/LiveChatWidget";
 
 // Critical path — keep eager
 import Index from "./pages/Index";
