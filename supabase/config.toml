@@ -74,3 +74,6 @@ verify_jwt = false
 
 [functions.salary-negotiation-coach]
 verify_jwt = false
+
+[functions.employer-analytics-report]
+verify_jwt = false

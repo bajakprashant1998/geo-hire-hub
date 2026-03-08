@@ -69,6 +69,7 @@ import { TeamWorkflows } from '@/components/employer/TeamWorkflows';
 import { AccessibilityScoreChecker } from '@/components/employer/AccessibilityScoreChecker';
 import { BulkJobImport } from '@/components/employer/BulkJobImport';
 import { BrandingPageBuilder } from '@/components/employer/BrandingPageBuilder';
+import { AnalyticsReportExport } from '@/components/employer/AnalyticsReportExport';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
@@ -1081,6 +1082,7 @@ const EmployerDashboard = () => {
         return employer && (
           <div className="space-y-6">
             <JobAnalyticsDashboard employerId={employer.id} />
+            <AnalyticsReportExport employerId={employer.id} employerName={employer.company_name} />
             <PlanUsagePanel employerId={employer.id} />
           </div>
         );
