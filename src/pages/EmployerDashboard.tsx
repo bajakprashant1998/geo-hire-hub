@@ -1081,6 +1081,7 @@ const EmployerDashboard = () => {
         return employer && (
           <div className="space-y-6">
             <JobAnalyticsDashboard employerId={employer.id} />
+            <AnalyticsReportExport employerId={employer.id} employerName={employer.company_name} />
             <PlanUsagePanel employerId={employer.id} />
           </div>
         );
