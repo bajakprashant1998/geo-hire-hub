@@ -399,6 +399,20 @@ export const LeftSidebarPanel = ({
                 <Flame className="w-3.5 h-3.5" />
               </Button>
             )}
+            {onSalaryHeatmapToggle && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onSalaryHeatmapToggle}
+                className={cn(
+                  "h-9 text-xs gap-1.5 rounded-xl border-border/40 transition-all",
+                  salaryHeatmapEnabled && "border-emerald-400/50 text-emerald-500 bg-emerald-500/5"
+                )}
+              >
+                <TrendingUp className="w-3.5 h-3.5" />
+                ₹
+              </Button>
+            )}
           </div>
 
           {/* Expandable Radius Filter */}
