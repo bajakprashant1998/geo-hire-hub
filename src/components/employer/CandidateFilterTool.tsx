@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/dialog';
 import {
   Search, Filter, Users, Star, MapPin, Briefcase, GraduationCap,
-  Clock, DollarSign, FileText, Link2, Award, CheckCircle2, XCircle,
+  Clock, Banknote, FileText, Link2, Award, CheckCircle2, XCircle,
   Trophy, CalendarDays, Sparkles, ChevronDown, ChevronUp, Eye,
   Mail, StickyNote, Loader2, ArrowUpDown, X, SlidersHorizontal,
   TrendingUp, Target, Zap, Download, Brain, Lightbulb, AlertTriangle,
