@@ -64,6 +64,23 @@ const AuthCallback = () => {
             await refreshProfile();
           }
           sessionStorage.removeItem('preferred_role');
+
+          // Process referral for Google OAuth signups
+          const storedRef = sessionStorage.getItem('referral_code');
+          if (storedRef && isNewUser) {
+            const { data: newProfile } = await supabase
+              .from('profiles')
+              .select('id')
+              .eq('user_id', session.user.id)
+              .maybeSingle();
+            if (newProfile) {
+              await supabase.rpc('process_referral_signup', {
+                p_referral_code: storedRef,
+                p_new_user_profile_id: newProfile.id,
+              });
+              sessionStorage.removeItem('referral_code');
+            }
+          }
         } else {
           sessionStorage.removeItem('preferred_role');
         }
