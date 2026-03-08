@@ -10,6 +10,7 @@ import { EmailVerificationBanner } from "@/components/auth/EmailVerificationBann
 import { LocationGate } from "@/components/LocationGate";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageTransition } from "@/components/PageTransition";
+import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
 
 // Critical path — keep eager
 import Index from "./pages/Index";
@@ -175,36 +176,36 @@ const App = () => (
               <Route path="/video-call/:interviewId" element={<PageTransition><VideoCall /></PageTransition>} />
 
               {/* ==================== ADMIN ROUTES ==================== */}
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/analytics" element={<AdminAnalytics />} />
-              <Route path="/admin/users" element={<AdminUsers />} />
-              <Route path="/admin/employers" element={<AdminEmployers />} />
-              <Route path="/admin/jobs" element={<AdminJobs />} />
-              <Route path="/admin/applications" element={<AdminApplications />} />
-              <Route path="/admin/candidates" element={<AdminCandidates />} />
-              <Route path="/admin/categories" element={<AdminJobCategories />} />
-              <Route path="/admin/government" element={<AdminGovernment />} />
-              <Route path="/admin/moderation" element={<AdminModeration />} />
-              <Route path="/admin/notifications" element={<AdminNotifications />} />
-              <Route path="/admin/messages" element={<AdminMessages />} />
-              <Route path="/admin/plans" element={<AdminPlans />} />
-              <Route path="/admin/reports" element={<AdminReports />} />
-              <Route path="/admin/settings" element={<AdminSettings />} />
-              <Route path="/admin/email-templates" element={<AdminEmailTemplates />} />
-              <Route path="/admin/system-health" element={<AdminSystemHealth />} />
-              <Route path="/admin/content-seo" element={<AdminContentSEO />} />
-              <Route path="/admin/auto-apply" element={<AdminAutoApply />} />
-              <Route path="/admin/revenue" element={<AdminRevenue />} />
-              <Route path="/admin/roles" element={<AdminRoleManagement />} />
-              <Route path="/admin/fraud" element={<AdminFraudDetection />} />
-              <Route path="/admin/scheduled-jobs" element={<AdminScheduledJobs />} />
-              <Route path="/admin/tasks" element={<AdminTasks />} />
-              <Route path="/admin/seo-agent" element={<AdminSEOAgent />} />
-              <Route path="/admin/banners" element={<AdminBanners />} />
-              <Route path="/admin/bulk-import" element={<AdminBulkImport />} />
+              <Route path="/admin" element={<AdminRouteGuard><AdminDashboard /></AdminRouteGuard>} />
+              <Route path="/admin/analytics" element={<AdminRouteGuard><AdminAnalytics /></AdminRouteGuard>} />
+              <Route path="/admin/users" element={<AdminRouteGuard><AdminUsers /></AdminRouteGuard>} />
+              <Route path="/admin/employers" element={<AdminRouteGuard><AdminEmployers /></AdminRouteGuard>} />
+              <Route path="/admin/jobs" element={<AdminRouteGuard><AdminJobs /></AdminRouteGuard>} />
+              <Route path="/admin/applications" element={<AdminRouteGuard><AdminApplications /></AdminRouteGuard>} />
+              <Route path="/admin/candidates" element={<AdminRouteGuard><AdminCandidates /></AdminRouteGuard>} />
+              <Route path="/admin/categories" element={<AdminRouteGuard><AdminJobCategories /></AdminRouteGuard>} />
+              <Route path="/admin/government" element={<AdminRouteGuard><AdminGovernment /></AdminRouteGuard>} />
+              <Route path="/admin/moderation" element={<AdminRouteGuard><AdminModeration /></AdminRouteGuard>} />
+              <Route path="/admin/notifications" element={<AdminRouteGuard><AdminNotifications /></AdminRouteGuard>} />
+              <Route path="/admin/messages" element={<AdminRouteGuard><AdminMessages /></AdminRouteGuard>} />
+              <Route path="/admin/plans" element={<AdminRouteGuard><AdminPlans /></AdminRouteGuard>} />
+              <Route path="/admin/reports" element={<AdminRouteGuard><AdminReports /></AdminRouteGuard>} />
+              <Route path="/admin/settings" element={<AdminRouteGuard><AdminSettings /></AdminRouteGuard>} />
+              <Route path="/admin/email-templates" element={<AdminRouteGuard><AdminEmailTemplates /></AdminRouteGuard>} />
+              <Route path="/admin/system-health" element={<AdminRouteGuard><AdminSystemHealth /></AdminRouteGuard>} />
+              <Route path="/admin/content-seo" element={<AdminRouteGuard><AdminContentSEO /></AdminRouteGuard>} />
+              <Route path="/admin/auto-apply" element={<AdminRouteGuard><AdminAutoApply /></AdminRouteGuard>} />
+              <Route path="/admin/revenue" element={<AdminRouteGuard><AdminRevenue /></AdminRouteGuard>} />
+              <Route path="/admin/roles" element={<AdminRouteGuard><AdminRoleManagement /></AdminRouteGuard>} />
+              <Route path="/admin/fraud" element={<AdminRouteGuard><AdminFraudDetection /></AdminRouteGuard>} />
+              <Route path="/admin/scheduled-jobs" element={<AdminRouteGuard><AdminScheduledJobs /></AdminRouteGuard>} />
+              <Route path="/admin/tasks" element={<AdminRouteGuard><AdminTasks /></AdminRouteGuard>} />
+              <Route path="/admin/seo-agent" element={<AdminRouteGuard><AdminSEOAgent /></AdminRouteGuard>} />
+              <Route path="/admin/banners" element={<AdminRouteGuard><AdminBanners /></AdminRouteGuard>} />
+              <Route path="/admin/bulk-import" element={<AdminRouteGuard><AdminBulkImport /></AdminRouteGuard>} />
 
               {/* ==================== REDIRECTS & ALIASES ==================== */}
-              <Route path="/dashboard" element={<Navigate to="/candidate-dashboard" replace />} />
+              <Route path="/dashboard" element={<Navigate to="/" replace />} />
               <Route path="/employer/:id" element={<PageTransition><EmployerDetail /></PageTransition>} />
               <Route path="/job/:id" element={<JobRedirect />} />
 
