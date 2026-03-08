@@ -226,12 +226,16 @@ const PlanCard = ({
   const isPro = plan.name.toLowerCase() === 'professional';
   const isFree = plan.name.toLowerCase() === 'free';
   const theme = getPlanTheme(plan.name);
-  const price = billingCycle === 'yearly' && plan.price_yearly
+  const priceUsd = billingCycle === 'yearly' && plan.price_yearly
     ? plan.price_yearly / 12
     : plan.price_monthly;
-  const monthlyPrice = plan.price_monthly;
+  const price = convertPrice(priceUsd, currency);
+  const monthlyPriceUsd = plan.price_monthly;
   const showSavings = billingCycle === 'yearly' && plan.price_yearly && !isFree;
-  const savings = showSavings ? (monthlyPrice * 12) - (plan.price_yearly || 0) : 0;
+  const savingsUsd = showSavings ? (monthlyPriceUsd * 12) - (plan.price_yearly || 0) : 0;
+  const savings = convertPrice(savingsUsd, currency);
+  const yearlyTotal = plan.price_yearly ? convertPrice(plan.price_yearly, currency) : 0;
+  const currencySymbol = EXCHANGE_RATES[currency]?.symbol || '$';
 
   const getPlanIcon = () => {
     switch (plan.name.toLowerCase()) {
