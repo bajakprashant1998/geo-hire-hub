@@ -105,7 +105,7 @@ const BrowseJobs = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="Browse Jobs | HireForJob" description="Browse all open job listings on HireForJob. Filter by type, location, and keywords." jsonLd={browseJsonLd} breadcrumbJsonLd={browseBreadcrumb} canonicalUrl="https://www.hireforjob.com/browse-jobs" />
+      <SEOHead title="Job Listings Near Me – Browse & Hire For Job" description="Browse job listings near me. Find jobs hiring near me by type, location, and keywords. Hire for job opportunities updated daily." jsonLd={browseJsonLd} breadcrumbJsonLd={browseBreadcrumb} canonicalUrl="https://www.hireforjob.com/browse-jobs" />
 
       {/* Header */}
       <div className="border-b bg-card">
