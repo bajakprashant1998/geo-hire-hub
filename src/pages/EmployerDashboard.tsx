@@ -48,6 +48,7 @@ import PostJob from '@/pages/PostJob';
 import { DashboardBottomNav } from '@/components/dashboard/DashboardBottomNav';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 import { JobExpiryBadge } from '@/components/employer/JobExpiryBadge';
+import { JobActiveToggle } from '@/components/employer/JobActiveToggle';
 import { SecuritySettings } from '@/components/candidate/SecuritySettings';
 import { NotificationCenter } from '@/components/candidate/NotificationCenter';
 import { CompanyProfileSection } from '@/components/employer/CompanyProfileSection';
