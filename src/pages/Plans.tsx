@@ -723,7 +723,7 @@ const Plans = () => {
         )}
 
         <TrustBar />
-        <ComparisonTable />
+        <ComparisonTable plans={plans} />
         <FAQSection />
         <CTASection />
       </div>
