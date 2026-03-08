@@ -329,12 +329,12 @@ const PlanCard = ({
                 className="mt-2 space-y-1"
               >
                 <p className="text-xs text-muted-foreground">
-                  Billed ${plan.price_yearly}/year
+                  Billed {formatPrice(yearlyTotal, currency)}/year
                 </p>
                 {savings > 0 && (
                   <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-1">
                     <Gift className="w-3 h-3" />
-                    Save ${savings}/year
+                    Save {formatPrice(savings, currency)}/year
                   </p>
                 )}
               </motion.div>
