@@ -18,7 +18,7 @@ import {
 import {
   MessageCircle, Search, ArrowLeft, Send, Trash2, Phone, Video,
   Check, CheckCheck, Paperclip, Smile, MoreVertical, User, Pin, PinOff,
-  Filter, Star, Archive, Clock, MessageSquare, Users, Mail, Zap, X
+  Filter, Star, Archive, Clock, MessageSquare, Users, Mail, Zap, X, Loader2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
