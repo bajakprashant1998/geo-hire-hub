@@ -309,6 +309,12 @@ const EmployerDashboard = () => {
     { icon: FileEdit, label: 'JD Optimizer', value: 'jd-optimizer' },
     { icon: CheckCircle2, label: 'Assessments', value: 'assessments' },
     { icon: Sparkles, label: 'Spotlight Stories', value: 'spotlight' },
+    { icon: FileText, label: 'Offer Letters', value: 'offer-letters' },
+    { icon: Users, label: 'Compare Candidates', value: 'compare-candidates' },
+    { icon: ClipboardCheck, label: 'Interview Feedback', value: 'interview-feedback' },
+    { icon: Database, label: 'Talent Pool', value: 'talent-pool' },
+    { icon: FlaskConical, label: 'A/B Testing', value: 'ab-testing' },
+    { icon: MessageCircle, label: 'Team Notes', value: 'team-notes' },
     { icon: CreditCard, label: 'Upgrade Plan', value: 'upgrade-plan' }
   ];
 
