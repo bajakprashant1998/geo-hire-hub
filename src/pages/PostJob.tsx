@@ -734,18 +734,25 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
   const progressPercent = (currentStep / 5) * 100;
   const currentStepData = STEPS.find(s => s.id === currentStep);
 
-  // Keyboard shortcuts for navigation
+  // Keyboard shortcuts for navigation - must be before early returns but after all other hooks
+  // We use a ref-based approach to avoid hook ordering issues
+  const handleNextRef = useRef(handleNext);
+  const handlePrevRef = useRef(handlePrev);
+  const handleSaveDraftRef = useRef(handleSaveDraft);
+  handleNextRef.current = handleNext;
+  handlePrevRef.current = handlePrev;
+  handleSaveDraftRef.current = handleSaveDraft;
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't capture if user is typing in an input
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) return;
-      if (e.altKey && e.key === 'ArrowRight') { e.preventDefault(); handleNext(); }
-      if (e.altKey && e.key === 'ArrowLeft') { e.preventDefault(); handlePrev(); }
-      if (e.altKey && e.key === 's') { e.preventDefault(); handleSaveDraft(); }
+      if (e.altKey && e.key === 'ArrowRight') { e.preventDefault(); handleNextRef.current(); }
+      if (e.altKey && e.key === 'ArrowLeft') { e.preventDefault(); handlePrevRef.current(); }
+      if (e.altKey && e.key === 's') { e.preventDefault(); handleSaveDraftRef.current(); }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentStep]);
+  }, []);
 
   return (
     <EmailVerificationGuard fallbackMessage="Please verify your email to post jobs.">
