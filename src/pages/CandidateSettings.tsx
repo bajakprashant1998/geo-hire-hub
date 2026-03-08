@@ -461,7 +461,6 @@ const CandidateSettings = () => {
           )}
         </AnimatePresence>
       </div>
-    </div>
   );
 };
 
