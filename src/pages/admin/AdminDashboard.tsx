@@ -13,7 +13,7 @@ import { RegistrationTrendChart, RevenueChart } from '@/components/admin/Analyti
 import { Link } from 'react-router-dom';
 import { Download } from 'lucide-react';
 import {
-  Building2, Briefcase, Users, DollarSign, Clock, Flag, UserPlus, AlertTriangle,
+  Building2, Briefcase, Users, Banknote, Clock, Flag, UserPlus, AlertTriangle,
   ArrowRight, Eye, CheckCircle, ShieldAlert, TrendingUp, FileText,
 } from 'lucide-react';
 import { format, subDays, eachDayOfInterval, subMonths, eachMonthOfInterval, startOfMonth } from 'date-fns';
