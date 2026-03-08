@@ -234,6 +234,11 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
     if (marker) {
       markersRef.current.set(id, marker);
     } else {
+      // Safely detach before removing reference
+      const existing = markersRef.current.get(id);
+      if (existing) {
+        try { existing.map = null; } catch (_) { /* suppress getRootNode */ }
+      }
       markersRef.current.delete(id);
     }
   }, []);
