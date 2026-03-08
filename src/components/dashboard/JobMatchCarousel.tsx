@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Bookmark, MapPin, DollarSign, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { Bookmark, MapPin, Banknote, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 
@@ -224,7 +224,7 @@ export const JobMatchCarousel = ({ candidateId, skills }: JobMatchCarouselProps)
                   <span className="line-clamp-1">{job.location}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <DollarSign className="w-3.5 h-3.5" />
+                  <Banknote className="w-3.5 h-3.5" />
                   <span>{job.salary_range}</span>
                 </div>
               </div>

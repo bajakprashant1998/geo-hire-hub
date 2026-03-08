@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   TrendingUp, TrendingDown, Minus, Sparkles, Target, Zap, Shield,
-  ArrowUpRight, Loader2, RefreshCw, DollarSign, Star, BookOpen,
+  ArrowUpRight, Loader2, RefreshCw, Banknote, Star, BookOpen,
   BarChart3, Users, Briefcase, Share2, Download, ChevronRight,
   Award, Rocket, CheckCircle2, Info, Trophy, Flame, Crown, Medal,
   LightbulbIcon, ArrowRight, GraduationCap, LineChart
@@ -384,7 +384,7 @@ export const MarketValueScore = () => {
                 {/* Quick Stats */}
                 <div className="grid grid-cols-2 gap-3 shrink-0">
                   <div className="p-3 rounded-xl bg-background/50 border border-border/30 text-center">
-                    <DollarSign className="w-5 h-5 mx-auto mb-1 text-emerald-500" />
+                    <Banknote className="w-5 h-5 mx-auto mb-1 text-emerald-500" />
                     <p className="text-lg font-bold text-foreground">
                       {formatSalary(data.salary_estimate.median, data.salary_estimate.currency)}
                     </p>
@@ -424,7 +424,7 @@ export const MarketValueScore = () => {
             <Card className="border-border/40">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <DollarSign className="w-4 h-4 text-emerald-500" />
+                  <Banknote className="w-4 h-4 text-emerald-500" />
                   Estimated Salary Range
                 </CardTitle>
               </CardHeader>

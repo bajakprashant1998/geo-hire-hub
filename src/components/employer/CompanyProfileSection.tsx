@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import {
   Building2, Save, Eye, FileText, Loader2, AlertTriangle, Heart, Gift,
-  Globe, Camera, CreditCard, MapPin, Briefcase, DollarSign, TrendingUp,
+  Globe, Camera, CreditCard, MapPin, Briefcase, Banknote, TrendingUp,
   Target, Star, Users, GraduationCap, Award, Phone, Mail, Link2,
   Laptop, Zap, Shield, BookOpen, BarChart3, Plus, X, Check, Bot,
 } from 'lucide-react';
@@ -202,7 +202,7 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
     { label: 'Basic Info', icon: Building2 },
     { label: 'Location', icon: MapPin },
     { label: 'Hiring', icon: Briefcase },
-    { label: 'Compensation', icon: DollarSign },
+    { label: 'Compensation', icon: Banknote },
     { label: 'Growth', icon: TrendingUp },
     { label: 'Skills Match', icon: Target },
     { label: 'Culture', icon: Heart },
@@ -769,7 +769,7 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
             <div className="space-y-4 sm:space-y-6">
               <Card>
                 <CardHeader className="pb-3 sm:pb-4 px-3 sm:px-6 pt-4 sm:pt-6">
-                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /> Salary & Compensation</CardTitle>
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><Banknote className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /> Salary & Compensation</CardTitle>
                   <CardDescription className="text-xs sm:text-sm">Critical for AI salary advice & matching</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3 sm:space-y-4 px-3 sm:px-6 pb-4 sm:pb-6">

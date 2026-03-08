@@ -13,7 +13,7 @@ import { RegistrationTrendChart, RevenueChart } from '@/components/admin/Analyti
 import { Link } from 'react-router-dom';
 import { Download } from 'lucide-react';
 import {
-  Building2, Briefcase, Users, DollarSign, Clock, Flag, UserPlus, AlertTriangle,
+  Building2, Briefcase, Users, Banknote, Clock, Flag, UserPlus, AlertTriangle,
   ArrowRight, Eye, CheckCircle, ShieldAlert, TrendingUp, FileText,
 } from 'lucide-react';
 import { format, subDays, eachDayOfInterval, subMonths, eachMonthOfInterval, startOfMonth } from 'date-fns';
@@ -144,7 +144,7 @@ export default function AdminDashboard() {
             <StatsCard title="Pending Moderation" value={stats?.pending_moderation || 0} icon={AlertTriangle} variant="warning" />
             <StatsCard title="Total Candidates" value={stats?.total_candidates || 0} icon={Users} />
             <StatsCard title="Pending Reports" value={stats?.pending_reports || 0} icon={Flag} variant="destructive" />
-            <StatsCard title="Revenue This Month" value={`$${(stats?.revenue_this_month || 0).toLocaleString()}`} icon={DollarSign} variant="success" />
+            <StatsCard title="Revenue This Month" value={`$${(stats?.revenue_this_month || 0).toLocaleString()}`} icon={Banknote} variant="success" />
             <StatsCard title="New This Week" value={stats?.new_registrations_week || 0} icon={UserPlus} />
           </>
         )}

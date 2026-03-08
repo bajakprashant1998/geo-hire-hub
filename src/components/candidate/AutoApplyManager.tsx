@@ -15,7 +15,7 @@ import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import {
   Zap, Settings, History, Play, Loader2, Undo2, X,
-  Target, MapPin, DollarSign, Building2, Briefcase, Sparkles, Shield,
+  Target, MapPin, Banknote, Building2, Briefcase, Sparkles, Shield,
   CheckCircle2, XCircle, Clock, TrendingUp, AlertTriangle, RefreshCw,
   ChevronDown, ChevronUp, Eye, ExternalLink, Info
 } from 'lucide-react';
@@ -567,7 +567,7 @@ export const AutoApplyManager = ({ candidateId }: AutoApplyManagerProps) => {
               <Card className="border-border rounded-xl">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2 font-heading">
-                    <DollarSign className="w-4 h-4 text-[hsl(var(--success))]" /> Minimum Salary
+                    <Banknote className="w-4 h-4 text-[hsl(var(--success))]" /> Minimum Salary
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="flex gap-2">

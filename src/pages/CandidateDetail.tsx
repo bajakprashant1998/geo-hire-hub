@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import {
   ArrowLeft, MapPin, Briefcase, GraduationCap, Clock, Globe,
-  Download, MessageCircle, Heart, Share2, DollarSign, Calendar,
+  Download, MessageCircle, Heart, Share2, Banknote, Calendar,
   Award, User, Link as LinkIcon, ExternalLink,
   Loader2, Languages, BadgeCheck, Building2, Github, Linkedin, Twitter,
   Instagram, Youtube, Lock, LogIn, ChevronRight, Sparkles,
@@ -447,7 +447,7 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
                     )}
                     {candidate.expected_salary && canView && (
                       <span className="inline-flex items-center gap-1.5 text-xs font-medium text-success bg-success/5 border border-success/15 px-3 py-1.5 rounded-full">
-                        <DollarSign className="w-3 h-3" />{candidate.salary_currency || ''} {candidate.expected_salary}
+                        <Banknote className="w-3 h-3" />{candidate.salary_currency || ''} {candidate.expected_salary}
                       </span>
                     )}
                     {locationStr && (
@@ -861,7 +861,7 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
                       </div>
                       <Separator />
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground flex items-center gap-2"><DollarSign className="w-3.5 h-3.5" /> Expected Pay</span>
+                        <span className="text-sm text-muted-foreground flex items-center gap-2"><Banknote className="w-3.5 h-3.5" /> Expected Pay</span>
                         <span className="text-sm font-bold text-success">{candidate.expected_salary || 'Negotiable'}</span>
                       </div>
                       <Separator />

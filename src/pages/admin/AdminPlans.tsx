@@ -37,7 +37,7 @@ import {
   Plus,
   Edit,
   Trash2,
-  DollarSign,
+  Banknote,
   TrendingUp,
   Users
 } from 'lucide-react';
@@ -247,7 +247,7 @@ export default function AdminPlans() {
         <StatsCard
           title="Monthly Revenue"
           value={`$${totalRevenue.toLocaleString()}`}
-          icon={DollarSign}
+          icon={Banknote}
           variant="success"
         />
         <StatsCard

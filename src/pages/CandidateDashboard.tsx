@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import {
   Briefcase, Bell, Shield, FileText, Sparkles, Loader2,
   Eye, Calendar, Star, ChevronRight, User, MessageSquare, Bookmark, Mic,
-  MapPin, TrendingUp, Zap, DollarSign, Bot, Radar, GraduationCap, Brain, BarChart3, Award, Trophy
+  MapPin, TrendingUp, Zap, Banknote, Bot, Radar, GraduationCap, Brain, BarChart3, Award, Trophy
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -237,7 +237,7 @@ const CandidateDashboard = () => {
     { icon: Sparkles, label: 'Job Alerts', value: 'alerts' },
     { icon: Shield, label: 'Security', value: 'security' },
     { icon: Zap, label: 'Auto Apply', value: 'auto-apply' },
-    { icon: DollarSign, label: 'Salary Insights', value: 'salary-insights' },
+    { icon: Banknote, label: 'Salary Insights', value: 'salary-insights' },
     { icon: Bot, label: 'Talk to My Buddy', value: 'career-buddy' },
     { icon: TrendingUp, label: 'Application Tracker', value: 'app-tracker' },
     { icon: Star, label: 'Referrals & Rewards', value: 'referrals' },

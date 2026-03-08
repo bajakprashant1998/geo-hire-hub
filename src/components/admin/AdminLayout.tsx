@@ -20,7 +20,7 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight,
-  DollarSign,
+  Banknote,
   Crown,
   AlertTriangle,
   Clock,
@@ -88,7 +88,7 @@ const navSections = [
     label: 'System',
     items: [
       { href: '/admin/plans', label: 'Plans & Revenue', icon: CreditCard },
-      { href: '/admin/revenue', label: 'Revenue Analytics', icon: DollarSign },
+      { href: '/admin/revenue', label: 'Revenue Analytics', icon: Banknote },
       { href: '/admin/roles', label: 'Role Management', icon: Crown },
       { href: '/admin/fraud', label: 'Fraud Detection', icon: AlertTriangle },
       { href: '/admin/scheduled-jobs', label: 'Scheduled Jobs', icon: Clock },

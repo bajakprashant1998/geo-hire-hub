@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AILocationAutocomplete } from './AILocationAutocomplete';
 import {
-  DollarSign, TrendingUp, MapPin, Briefcase, Sparkles, Loader2, Download,
+  Banknote, TrendingUp, MapPin, Briefcase, Sparkles, Loader2, Download,
   BarChart3, Lightbulb, Globe, AlertTriangle, ChevronRight, Trophy,
   Target, Zap, Clock, ArrowUpRight, Building2, GraduationCap, CheckCircle2,
   Share2, BookmarkPlus, RefreshCw, Info, Star
@@ -72,7 +72,7 @@ const QuickRoleButton = ({ role, isSelected, onClick }: {
 );
 
 const StatHighlight = ({ icon: Icon, label, value, subtext, accent }: {
-  icon: typeof DollarSign;
+  icon: typeof Banknote;
   label: string;
   value: string;
   subtext?: string;
@@ -105,7 +105,7 @@ const LoadingState = () => (
             transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
             className="absolute inset-2 rounded-xl border-2 border-transparent border-t-primary"
           />
-          <DollarSign className="w-8 h-8 text-primary" />
+          <Banknote className="w-8 h-8 text-primary" />
         </div>
       </div>
       <div className="text-center space-y-1">
@@ -294,7 +294,7 @@ export const SalaryInsights = () => {
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div className="flex items-start gap-3">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shrink-0">
-            <DollarSign className="w-6 h-6 text-primary" />
+            <Banknote className="w-6 h-6 text-primary" />
           </div>
           <div>
             <h2 className="text-xl font-bold text-foreground flex items-center gap-2">

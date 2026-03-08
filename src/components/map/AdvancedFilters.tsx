@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Filter, X, Briefcase, DollarSign, Clock, Building2, Landmark } from 'lucide-react';
+import { Filter, X, Briefcase, Banknote, Clock, Building2, Landmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
@@ -111,7 +111,7 @@ export const AdvancedFilters = ({ filters, onFiltersChange, isOpen, onToggle, ac
               {/* Salary Range */}
               <div>
                 <label className="text-[11px] font-semibold text-muted-foreground mb-2 flex items-center gap-1">
-                  <DollarSign className="w-3 h-3" /> Salary Range (LPA)
+                  <Banknote className="w-3 h-3" /> Salary Range (LPA)
                 </label>
                 <Slider
                   min={0}

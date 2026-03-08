@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/dialog';
 import {
   Search, Filter, Users, Star, MapPin, Briefcase, GraduationCap,
-  Clock, DollarSign, FileText, Link2, Award, CheckCircle2, XCircle,
+  Clock, Banknote, FileText, Link2, Award, CheckCircle2, XCircle,
   Trophy, CalendarDays, Sparkles, ChevronDown, ChevronUp, Eye,
   Mail, StickyNote, Loader2, ArrowUpDown, X, SlidersHorizontal,
   TrendingUp, Target, Zap, Download, Brain, Lightbulb, AlertTriangle,
@@ -1249,7 +1249,7 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                   )}
                   {selectedCandidate.expectedSalary && (
                     <div className="flex items-center gap-2 text-xs sm:text-sm p-2.5 sm:p-3 bg-muted/40 rounded-xl border border-border/20">
-                      <DollarSign className="w-4 h-4 text-primary/60 shrink-0" />
+                      <Banknote className="w-4 h-4 text-primary/60 shrink-0" />
                       <span className="truncate">{selectedCandidate.expectedSalary}</span>
                     </div>
                   )}

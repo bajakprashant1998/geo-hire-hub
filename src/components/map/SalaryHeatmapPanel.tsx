@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { DollarSign, X, Search, TrendingUp, MapPin } from 'lucide-react';
+import { Banknote, X, Search, TrendingUp, MapPin } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -44,7 +44,7 @@ export const SalaryHeatmapPanel = ({
             : "bg-card/95 border-border/30 text-foreground hover:bg-card"
         )}
       >
-        <DollarSign className="w-[18px] h-[18px]" />
+        <Banknote className="w-[18px] h-[18px]" />
       </motion.button>
 
       {/* Expanded Panel */}

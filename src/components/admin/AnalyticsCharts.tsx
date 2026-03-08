@@ -3,7 +3,7 @@ import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
-import { TrendingUp, Users, DollarSign, Briefcase, Globe, Target } from 'lucide-react';
+import { TrendingUp, Users, Banknote, Briefcase, Globe, Target } from 'lucide-react';
 
 interface ChartData {
   name: string;
@@ -71,7 +71,7 @@ export function RegistrationTrendChart({ data }: { data: ChartData[] }) {
 
 export function RevenueChart({ data }: { data: ChartData[] }) {
   return (
-    <ChartCard title="Monthly Revenue" icon={DollarSign} empty={!data.length}>
+    <ChartCard title="Monthly Revenue" icon={Banknote} empty={!data.length}>
       <div className="h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data}>
