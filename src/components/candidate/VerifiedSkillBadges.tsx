@@ -81,43 +81,53 @@ export const VerifiedSkillBadges = ({ candidateId, compact = false }: VerifiedSk
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <ShieldCheck className="w-4 h-4 text-success" />
-        <h4 className="text-sm font-bold text-foreground">Verified Skills</h4>
-        <Badge variant="secondary" className="text-[10px]">{skills.length}</Badge>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {skills.map((s, i) => (
-          <motion.div
-            key={s.skill_category}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: i * 0.04 }}
-          >
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-success/30 bg-success/10 text-success cursor-default transition-all hover:bg-success/15">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>{s.skill_category}</span>
-                  <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-success/20 min-w-[28px] text-center">
-                    {s.best_percentage}%
-                  </span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="font-medium">✓ Verified via assessment</p>
-                <p className="text-muted-foreground">Scored {s.best_percentage}% on "{s.assessment_title}"</p>
-                {s.passed_at && (
-                  <p className="text-muted-foreground text-[10px]">
-                    {new Date(s.passed_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                  </p>
-                )}
-              </TooltipContent>
-            </Tooltip>
-          </motion.div>
-        ))}
-      </div>
-    </div>
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
+      <Card className="border-border/50 overflow-hidden">
+        <div className="h-1 bg-gradient-to-r from-success/60 to-success/20" />
+        <CardContent className="p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-4 h-4 text-success" />
+              <h4 className="text-sm font-bold text-foreground">Verified Skills</h4>
+              <Badge variant="secondary" className="text-[10px]">{skills.length}</Badge>
+            </div>
+            <Badge variant="outline" className="text-[10px] border-success/30 bg-success/10 text-success">
+              Assessment Verified
+            </Badge>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {skills.map((s, i) => (
+              <motion.div
+                key={s.skill_category}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.04 }}
+              >
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-success/30 bg-success/10 text-success cursor-default transition-all hover:bg-success/15">
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>{s.skill_category}</span>
+                      <span className="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-success/20 min-w-[28px] text-center">
+                        {s.best_percentage}%
+                      </span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="font-medium">✓ Verified via assessment</p>
+                    <p className="text-muted-foreground">Scored {s.best_percentage}% on "{s.assessment_title}"</p>
+                    {s.passed_at && (
+                      <p className="text-muted-foreground text-[10px]">
+                        {new Date(s.passed_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </p>
+                    )}
+                  </TooltipContent>
+                </Tooltip>
+              </motion.div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 };
