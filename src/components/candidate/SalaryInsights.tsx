@@ -105,7 +105,7 @@ const LoadingState = () => (
             transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
             className="absolute inset-2 rounded-xl border-2 border-transparent border-t-primary"
           />
-          <DollarSign className="w-8 h-8 text-primary" />
+          <Banknote className="w-8 h-8 text-primary" />
         </div>
       </div>
       <div className="text-center space-y-1">
