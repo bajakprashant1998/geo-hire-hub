@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { 
-  MapPin, Clock, Briefcase, DollarSign, Users, Calendar, Building2,
+  MapPin, Clock, Briefcase, Banknote, Users, Calendar, Building2,
   Mail, Phone, User, CheckCircle2, GraduationCap, Languages, Award,
   Wifi, Heart, Eye
 } from 'lucide-react';
