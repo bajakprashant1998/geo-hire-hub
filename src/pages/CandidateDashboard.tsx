@@ -237,6 +237,7 @@ const CandidateDashboard = () => {
     { icon: GraduationCap, label: 'Assessments', value: 'assessments' },
     { icon: Brain, label: 'Interview Prep', value: 'interview-prep' },
     { icon: BarChart3, label: 'Market Value', value: 'market-value' },
+    { icon: Award, label: 'Badges', value: 'badges' },
   ];
 
   // Quick action buttons for dashboard home — full 8-item grid
