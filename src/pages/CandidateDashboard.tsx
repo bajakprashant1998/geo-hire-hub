@@ -35,9 +35,10 @@ import { TaskList } from '@/components/candidate/TaskList';
 import { AudioResumeCard } from '@/components/candidate/AudioResumeCard';
 import { SalaryInsights } from '@/components/candidate/SalaryInsights';
 import { CareerBuddyChat } from '@/components/candidate/CareerBuddyChat';
-import CandidateDetail from '@/pages/CandidateDetail';
+
 import CandidateProfileEdit from '@/pages/CandidateProfileEdit';
 import { ProfileCompletionPrompts } from '@/components/candidate/ProfileCompletionPrompts';
+import { PublicProfilePreview } from '@/components/candidate/PublicProfilePreview';
 import { DashboardBottomNav } from '@/components/dashboard/DashboardBottomNav';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 import { AutoApplyManager } from '@/components/candidate/AutoApplyManager';
@@ -522,7 +523,7 @@ const CandidateDashboard = () => {
       case 'tasks': return <TaskList candidateId={candidate.id} />;
       case 'messages': return <DashboardMessaging />;
       case 'notifications': return <NotificationCenter />;
-      case 'public-profile': return <CandidateDetail id={candidate.id} />;
+      case 'public-profile': return <PublicProfilePreview candidateId={candidate.id} candidate={candidate} profile={profile} onNavigate={handleSectionClick} />;
       case 'recommended': return (
         <RecommendedJobs candidateId={candidate.id} skills={candidate.skills || []} latitude={profile.latitude} longitude={profile.longitude} />
       );
