@@ -1116,6 +1116,8 @@ const EmployerDashboard = () => {
         return employer && <JobABTesting employerId={employer.id} />;
       case 'team-notes':
         return employer && <TeamCollaborationNotes employerId={employer.id} />;
+      case 'team-workflows':
+        return employer && <TeamWorkflows employerId={employer.id} />;
       case 'accessibility-check':
         return <AccessibilityScoreChecker />;
       case 'branding':
