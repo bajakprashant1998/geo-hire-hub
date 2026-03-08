@@ -154,6 +154,16 @@ export const FloatingControls = ({
           <HeatmapToggle enabled={heatmapEnabled} onToggle={onHeatmapToggle} />
         )}
 
+        {onSalaryHeatmapToggle && (
+          <div className="relative">
+            <SalaryHeatmapPanel
+              enabled={salaryHeatmapEnabled}
+              onToggle={onSalaryHeatmapToggle}
+              roleFilter={salaryRoleFilter}
+              onRoleFilterChange={onSalaryRoleFilterChange || (() => {})}
+            />
+          </div>
+        )
         <FAB
           icon={List}
           onClick={onToggleSidebar}
