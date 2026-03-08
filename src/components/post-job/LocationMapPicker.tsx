@@ -10,18 +10,39 @@ import { GoogleMapsProvider } from '@/components/map/GoogleMapsProvider';
 
 const MAP_ID = 'hireforjob-picker';
 
+export interface GeoComponents {
+  country: string;
+  state: string;
+  city: string;
+}
+
 interface LocationMapPickerProps {
   coordinates: { lat: number; lng: number } | null;
   setCoordinates: (coords: { lat: number; lng: number } | null) => void;
   address: string;
   setAddress: (address: string) => void;
+  onGeoComponents?: (components: GeoComponents) => void;
 }
+
+const extractGeoComponents = (results: google.maps.GeocoderResult[]): GeoComponents => {
+  const components: GeoComponents = { country: '', state: '', city: '' };
+  const result = results[0];
+  if (!result) return components;
+  for (const comp of result.address_components) {
+    if (comp.types.includes('country')) components.country = comp.long_name;
+    if (comp.types.includes('administrative_area_level_1')) components.state = comp.long_name;
+    if (comp.types.includes('locality')) components.city = comp.long_name;
+    if (!components.city && comp.types.includes('administrative_area_level_2')) components.city = comp.long_name;
+  }
+  return components;
+};
 
 const LocationMapPickerInner = ({
   coordinates,
   setCoordinates,
   address,
   setAddress,
+  onGeoComponents,
 }: LocationMapPickerProps) => {
   const map = useMap();
   const placesLib = useMapsLibrary('places');
@@ -44,7 +65,7 @@ const LocationMapPickerInner = ({
   useEffect(() => {
     if (!placesLib || !inputRef.current) return;
     const ac = new placesLib.Autocomplete(inputRef.current, {
-      fields: ['geometry', 'formatted_address', 'name'],
+      fields: ['geometry', 'formatted_address', 'name', 'address_components'],
     });
     ac.addListener('place_changed', () => {
       const place = ac.getPlace();
@@ -53,6 +74,10 @@ const LocationMapPickerInner = ({
         const lng = place.geometry.location.lng();
         setCoordinates({ lat, lng });
         setAddress(place.formatted_address || place.name || '');
+        if (place.address_components) {
+          const geo = extractGeoComponents([place as unknown as google.maps.GeocoderResult]);
+          onGeoComponents?.(geo);
+        }
         setSearchQuery('');
         if (map) {
           map.panTo({ lat, lng });
@@ -72,6 +97,8 @@ const LocationMapPickerInner = ({
       const response = await geocoderRef.current.geocode({ location: { lat, lng } });
       if (response.results?.[0]) {
         setAddress(response.results[0].formatted_address);
+        const geo = extractGeoComponents(response.results);
+        onGeoComponents?.(geo);
       }
     } catch (error) {
       console.error('Failed to reverse geocode:', error);

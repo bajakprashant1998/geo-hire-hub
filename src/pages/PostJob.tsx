@@ -27,6 +27,7 @@ import { EmailVerificationGuard } from '@/components/auth/EmailVerificationGuard
 import { getCurrencyByCode } from '@/lib/currencies';
 
 import { JobBasicsSection } from '@/components/post-job/JobBasicsSection';
+import type { GeoComponents } from '@/components/post-job/LocationMapPicker';
 import { CandidateRequirementSection } from '@/components/post-job/CandidateRequirementSection';
 import { TimingsSection } from '@/components/post-job/TimingsSection';
 import { CompanyInfoSection } from '@/components/post-job/CompanyInfoSection';
@@ -101,6 +102,7 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
   const [address, setAddress] = useState('');
   const [openings, setOpenings] = useState('1');
   const [workMode, setWorkMode] = useState<'onsite' | 'remote' | 'hybrid'>('onsite');
+  const [geoComponents, setGeoComponents] = useState<GeoComponents>({ country: '', state: '', city: '' });
 
   // Section 2: Candidate Requirements
   const [experienceType, setExperienceType] = useState<'Any' | 'Fresher Only' | 'Experienced Only'>('Any');
@@ -629,6 +631,10 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
         hiring_frequency: hiringFrequency,
         job_address: jobAddress || address,
         job_category: jobCategory,
+        location_country: geoComponents.country || null,
+        location_state: geoComponents.state || null,
+        location_city: geoComponents.city || null,
+        moderation_status: 'approved',
       };
 
       if (isEditMode && jobId) {
@@ -984,6 +990,7 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
                           isGovernmentEmployer={isGovernmentEmployer}
                           workMode={workMode}
                           setWorkMode={setWorkMode}
+                          onGeoComponents={setGeoComponents}
                         />
                       )}
 

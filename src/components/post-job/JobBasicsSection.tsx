@@ -3,7 +3,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { JobCategorySearch } from '@/components/JobCategorySearch';
-import { LocationMapPicker } from './LocationMapPicker';
+import { LocationMapPicker, type GeoComponents } from './LocationMapPicker';
 import { JobCategorySelector } from '@/components/government/JobCategorySelector';
 import { Briefcase, MapPin, Users, Info, Wifi, Building } from 'lucide-react';
 
@@ -23,6 +23,7 @@ interface JobBasicsSectionProps {
   isGovernmentEmployer: boolean;
   workMode: 'onsite' | 'remote' | 'hybrid';
   setWorkMode: (mode: 'onsite' | 'remote' | 'hybrid') => void;
+  onGeoComponents?: (components: GeoComponents) => void;
 }
 
 const workModeOptions = [
@@ -47,6 +48,7 @@ export const JobBasicsSection = ({
   isGovernmentEmployer,
   workMode,
   setWorkMode,
+  onGeoComponents,
 }: JobBasicsSectionProps) => {
   return (
     <div className="space-y-8">
@@ -189,6 +191,7 @@ export const JobBasicsSection = ({
             setCoordinates={setCoordinates}
             address={address}
             setAddress={setAddress}
+            onGeoComponents={onGeoComponents}
           />
         </div>
       )}
