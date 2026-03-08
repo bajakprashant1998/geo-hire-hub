@@ -147,12 +147,14 @@ const PlanCard = ({
   index,
   billingCycle,
   isCurrentPlan,
+  isRecommended,
   onSelect,
 }: {
   plan: Plan;
   index: number;
   billingCycle: 'monthly' | 'yearly';
   isCurrentPlan: boolean;
+  isRecommended: boolean;
   onSelect: (plan: Plan) => void;
 }) => {
   const isPro = plan.name.toLowerCase() === 'professional';
@@ -180,7 +182,7 @@ const PlanCard = ({
       transition={{ delay: 0.1 * (index + 1), duration: 0.5 }}
       className="relative"
     >
-      {isPro && (
+      {isPro && !isRecommended && (
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -193,12 +195,27 @@ const PlanCard = ({
           </Badge>
         </motion.div>
       )}
+      {isRecommended && !isCurrentPlan && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.4, duration: 0.3 }}
+          className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10"
+        >
+          <Badge className="bg-emerald-600 text-white shadow-lg px-4 py-1.5 text-xs font-semibold tracking-wider uppercase flex items-center gap-1.5 border-0">
+            <Star className="w-3.5 h-3.5" />
+            Recommended for You
+          </Badge>
+        </motion.div>
+      )}
 
       <Card className={cn(
         "relative overflow-hidden h-full flex flex-col transition-all duration-300 group",
-        isPro
-          ? `border-primary border-2 shadow-lg ${theme.ring} hover:shadow-xl`
-          : 'border-border hover:border-primary/30 hover:shadow-lg'
+        isRecommended && !isCurrentPlan
+          ? 'border-emerald-500 border-2 shadow-lg ring-2 ring-emerald-500/20 hover:shadow-xl'
+          : isPro
+            ? `border-primary border-2 shadow-lg ${theme.ring} hover:shadow-xl`
+            : 'border-border hover:border-primary/30 hover:shadow-lg'
       )}>
         {/* Gradient header accent */}
         <div className={cn("h-1.5 w-full bg-gradient-to-r", theme.gradient)} />
@@ -813,16 +830,26 @@ const Plans = () => {
           </div>
         ) : (
           <div className="grid md:grid-cols-3 gap-5 lg:gap-6">
-            {plans.map((plan, index) => (
-              <PlanCard
-                key={plan.id}
-                plan={plan}
-                index={index}
-                billingCycle={billingCycle}
-                isCurrentPlan={plan.id === currentPlanId}
-                onSelect={handleSelectPlan}
-              />
-            ))}
+            {(() => {
+              // Find the cheapest upgrade plan when employer uses ≥70% of slots
+              const recommendedPlanId = profile?.user_type === 'employer' && activeJobCount >= maxActiveJobs * 0.7
+                ? [...plans]
+                    .sort((a, b) => a.max_active_jobs - b.max_active_jobs)
+                    .find(p => p.id !== currentPlanId && p.max_active_jobs > maxActiveJobs)?.id ?? null
+                : null;
+
+              return plans.map((plan, index) => (
+                <PlanCard
+                  key={plan.id}
+                  plan={plan}
+                  index={index}
+                  billingCycle={billingCycle}
+                  isCurrentPlan={plan.id === currentPlanId}
+                  isRecommended={plan.id === recommendedPlanId}
+                  onSelect={handleSelectPlan}
+                />
+              ));
+            })()}
           </div>
         )}
 
