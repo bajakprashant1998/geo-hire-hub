@@ -489,8 +489,35 @@ const JobDetail = () => {
                 {job.expires_at && <DeadlineCountdown expiresAt={job.expires_at} />}
               </div>
 
+              {/* Language Switcher */}
+              {job.translations && Object.keys(job.translations).length > 0 && (
+                <div className="flex items-center gap-1.5 mb-2">
+                  <Languages className="w-4 h-4 text-muted-foreground" />
+                  <button
+                    onClick={() => setViewLang('en')}
+                    className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${viewLang === 'en' ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                  >
+                    🇬🇧 EN
+                  </button>
+                  {Object.keys(job.translations).map(code => {
+                    const flags: Record<string, string> = { es: '🇪🇸', fr: '🇫🇷', hi: '🇮🇳', ar: '🇸🇦', pt: '🇧🇷', zh: '🇨🇳', ja: '🇯🇵' };
+                    return (
+                      <button
+                        key={code}
+                        onClick={() => setViewLang(code)}
+                        className={`px-2 py-0.5 rounded-full text-xs font-medium transition-colors ${viewLang === code ? 'bg-primary/10 text-primary' : 'text-muted-foreground hover:text-foreground'}`}
+                      >
+                        {flags[code] || ''} {code.toUpperCase()}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
               {/* Title */}
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-3 tracking-tight leading-tight">{job.title}</h1>
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-3 tracking-tight leading-tight">
+                {viewLang !== 'en' && job.translations?.[viewLang]?.title ? job.translations[viewLang].title : job.title}
+              </h1>
 
               {/* Company link */}
               <Link to={`/employers/${job.employer.id}`} className="inline-flex items-center gap-3 mb-4 group">
