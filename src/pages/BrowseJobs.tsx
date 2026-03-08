@@ -10,6 +10,7 @@ import { ArrowLeft, Search, Briefcase, MapPin, Clock, Building2, Filter, LayoutD
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { SEOHead } from '@/components/SEOHead';
+import { SEOContentFooter } from '@/components/SEOContentFooter';
 import { BreadcrumbNav, buildBreadcrumbJsonLd } from '@/components/BreadcrumbNav';
 import { SalaryBadge } from '@/components/SalaryBadge';
 import { DeadlineCountdown } from '@/components/DeadlineCountdown';
@@ -105,7 +106,7 @@ const BrowseJobs = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="Browse Jobs | HireForJob" description="Browse all open job listings on HireForJob. Filter by type, location, and keywords." jsonLd={browseJsonLd} breadcrumbJsonLd={browseBreadcrumb} canonicalUrl="https://www.hireforjob.com/browse-jobs" />
+      <SEOHead title="Job Listings Near Me – Browse & Hire For Job" description="Browse job listings near me. Find jobs hiring near me by type, location, and keywords. Hire for job opportunities updated daily." jsonLd={browseJsonLd} breadcrumbJsonLd={browseBreadcrumb} canonicalUrl="https://www.hireforjob.com/browse-jobs" />
 
       {/* Header */}
       <div className="border-b bg-card">
@@ -120,8 +121,8 @@ const BrowseJobs = () => {
               </Button>
             )}
           </div>
-          <h1 className="text-2xl font-bold text-foreground mb-1">Browse Jobs</h1>
-          <p className="text-muted-foreground">{total} open positions</p>
+          <h1 className="text-2xl font-bold text-foreground mb-1">Job Listings Near Me</h1>
+          <p className="text-muted-foreground">{total} jobs hiring near me — updated daily</p>
 
           {/* Filters */}
           <div className="flex flex-col sm:flex-row gap-3 mt-4">
@@ -204,6 +205,8 @@ const BrowseJobs = () => {
           </div>
         )}
       </div>
+
+      <SEOContentFooter />
     </div>
   );
 };
