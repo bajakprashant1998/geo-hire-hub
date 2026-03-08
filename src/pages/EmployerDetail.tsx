@@ -26,6 +26,7 @@ import { motion } from 'framer-motion';
 import { VerificationBadge } from '@/components/employer/VerificationBadge';
 import { BreadcrumbNav, buildBreadcrumbJsonLd } from '@/components/BreadcrumbNav';
 import { CompanyReviews } from '@/components/employer/CompanyReviews';
+import { CompanyQAForum } from '@/components/employer/CompanyQAForum';
 import type { BreadcrumbItem } from '@/components/BreadcrumbNav';
 
 interface EmployerProfile {
