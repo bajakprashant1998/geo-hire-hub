@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { AdminLayout } from '@/components/admin/AdminLayout';
-import { StatsCard } from '@/components/admin/StatsCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,39 +9,101 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table';
-import {
-  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from '@/components/ui/select';
-import { 
   CheckCircle, XCircle, Ban, Clock, ShieldCheck, Eye, Search, Building2, ExternalLink, Trash2,
-  ChevronDown, Plus, FileText, ShieldAlert,
+  ChevronDown, Plus, FileText, ShieldAlert, Download, Globe, MoreVertical, CalendarDays,
+  TrendingUp, AlertTriangle, Shield, Sparkles, BarChart3,
 } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { VerificationBadge } from '@/components/employer/VerificationBadge';
 import { PaginationControls } from '@/components/admin/PaginationControls';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 const PAGE_SIZE = 20;
 
-// ---- Employer Detail Tabs (Decision Logs + Info) ----
+/* ─── Reusable KPI Card ─── */
+function KPICard({ index, title, value, icon: Icon, gradient, subtitle }: {
+  index: number; title: string; value: string | number; icon: React.ElementType; gradient: string; subtitle?: string;
+}) {
+  return (
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.07, duration: 0.35 }}>
+      <Card className="relative overflow-hidden border-0 shadow-lg">
+        <div className={cn('absolute inset-0 opacity-[0.08] bg-gradient-to-br', gradient)} />
+        <CardContent className="p-5 flex items-center gap-4 relative">
+          <div className={cn('rounded-xl p-2.5 bg-gradient-to-br text-white shadow-md', gradient)}>
+            <Icon className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{title}</p>
+            <p className="text-2xl font-bold leading-tight">{value}</p>
+            {subtitle && <p className="text-xs text-muted-foreground">{subtitle}</p>}
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  );
+}
+
+/* ─── Filter Chip ─── */
+function FilterChip({ label, count, active, onClick, color }: { label: string; count?: number; active: boolean; onClick: () => void; color?: string }) {
+  return (
+    <button onClick={onClick} className={cn(
+      'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all border',
+      active ? 'bg-primary text-primary-foreground border-primary shadow-md' : 'bg-muted/50 text-muted-foreground border-transparent hover:bg-muted'
+    )}>
+      {color && <span className={cn('w-2 h-2 rounded-full', color)} />}
+      {label}
+      {count !== undefined && (
+        <span className={cn('rounded-full px-1.5 py-0.5 text-[10px] font-bold min-w-[18px] text-center',
+          active ? 'bg-primary-foreground/20' : 'bg-background'
+        )}>{count}</span>
+      )}
+    </button>
+  );
+}
+
+/* ─── Trust Score Bar ─── */
+function TrustScoreBar({ score }: { score: number | null }) {
+  if (score == null || score === 0) return <span className="text-xs text-muted-foreground">—</span>;
+  const color = score >= 80 ? 'bg-emerald-500' : score >= 50 ? 'bg-amber-500' : 'bg-destructive';
+  const textColor = score >= 80 ? 'text-emerald-600' : score >= 50 ? 'text-amber-600' : 'text-destructive';
+  return (
+    <div className="flex items-center gap-2">
+      <div className="w-14 h-1.5 rounded-full bg-muted overflow-hidden">
+        <div className={cn('h-full rounded-full transition-all', color)} style={{ width: `${score}%` }} />
+      </div>
+      <span className={cn('text-xs font-bold tabular-nums', textColor)}>{score}</span>
+    </div>
+  );
+}
+
+/* ─── Verification Status Badge ─── */
+function StatusBadge({ status, isSuspended }: { status: string; isSuspended: boolean }) {
+  if (isSuspended) return <Badge className="bg-destructive/10 text-destructive border-destructive/20 gap-1 text-[10px]"><Ban className="h-3 w-3" />Suspended</Badge>;
+  switch (status) {
+    case 'approved': return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 gap-1 text-[10px]"><CheckCircle className="h-3 w-3" />Approved</Badge>;
+    case 'rejected': return <Badge className="bg-destructive/10 text-destructive border-destructive/20 gap-1 text-[10px]"><XCircle className="h-3 w-3" />Rejected</Badge>;
+    default: return <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 gap-1 text-[10px]"><Clock className="h-3 w-3" />Pending</Badge>;
+  }
+}
+
+// ── Employer Detail Tabs ──
 function EmployerDetailTabs({ employer }: { employer: Employer }) {
   const { data: checks, isLoading: checksLoading } = useQuery({
     queryKey: ['employer-verification-checks', employer.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('employer_verification_checks')
-        .select('*')
-        .eq('employer_id', employer.id)
-        .order('created_at', { ascending: false });
+      const { data, error } = await supabase.from('employer_verification_checks').select('*').eq('employer_id', employer.id).order('created_at', { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -50,74 +111,98 @@ function EmployerDetailTabs({ employer }: { employer: Employer }) {
 
   return (
     <Tabs defaultValue="info" className="w-full">
-      <TabsList className="w-full">
-        <TabsTrigger value="info" className="flex-1">Details</TabsTrigger>
-        <TabsTrigger value="checks" className="flex-1">AI Decision Log</TabsTrigger>
+      <TabsList className="w-full rounded-xl bg-muted/60">
+        <TabsTrigger value="info" className="flex-1 rounded-lg">Details</TabsTrigger>
+        <TabsTrigger value="checks" className="flex-1 rounded-lg">AI Decision Log</TabsTrigger>
       </TabsList>
       <TabsContent value="info">
-        <div className="space-y-6 pt-2">
-          <div className="grid grid-cols-2 gap-4">
-            <div><p className="text-sm text-muted-foreground">Owner</p><p className="font-medium">{employer.profile?.full_name}</p></div>
-            <div><p className="text-sm text-muted-foreground">Industry</p><p className="font-medium">{employer.industry || '-'}</p></div>
-            <div><p className="text-sm text-muted-foreground">Country</p><p className="font-medium">{employer.country_code || '-'}</p></div>
-            <div><p className="text-sm text-muted-foreground">Tax ID</p><p className="font-medium">{employer.tax_id || '-'}</p></div>
-            <div><p className="text-sm text-muted-foreground">Trust Score</p><p className="font-medium">{employer.trust_score ?? '—'}/100</p></div>
-            <div><p className="text-sm text-muted-foreground">Verification Method</p><p className="font-medium">{employer.verification_method || '—'}</p></div>
+        <div className="space-y-5 pt-3">
+          <div className="grid grid-cols-2 gap-3">
+            {[
+              { label: 'Owner', value: employer.profile?.full_name, icon: Eye },
+              { label: 'Industry', value: employer.industry || '—', icon: Building2 },
+              { label: 'Country', value: employer.country_code || '—', icon: Globe },
+              { label: 'Tax ID', value: employer.tax_id || '—', icon: FileText },
+              { label: 'Trust Score', value: `${employer.trust_score ?? 0}/100`, icon: Shield },
+              { label: 'Verification', value: employer.verification_method || '—', icon: ShieldCheck },
+            ].map((item, i) => (
+              <div key={i} className="p-3 rounded-xl bg-muted/20 border space-y-1">
+                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">
+                  <item.icon className="h-3 w-3" />{item.label}
+                </div>
+                <p className="text-sm font-medium truncate">{item.value}</p>
+              </div>
+            ))}
           </div>
-          <div className="space-y-4">
-            <h4 className="font-medium">Trust Documents</h4>
-            <div className="grid grid-cols-2 gap-4">
-              {employer.office_photo_url ? (
-                <a href={employer.office_photo_url} target="_blank" rel="noopener noreferrer" className="block">
-                  <img src={employer.office_photo_url} alt="Office" className="w-full h-32 object-cover rounded-lg border" />
-                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">Office Photo <ExternalLink className="h-3 w-3" /></p>
-                </a>
-              ) : (
-                <div className="h-32 bg-muted rounded-lg flex items-center justify-center"><p className="text-sm text-muted-foreground">No office photo</p></div>
-              )}
-              {employer.business_card_url ? (
-                <a href={employer.business_card_url} target="_blank" rel="noopener noreferrer" className="block">
-                  <img src={employer.business_card_url} alt="Business Card" className="w-full h-32 object-cover rounded-lg border" />
-                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">Business Card <ExternalLink className="h-3 w-3" /></p>
-                </a>
-              ) : (
-                <div className="h-32 bg-muted rounded-lg flex items-center justify-center"><p className="text-sm text-muted-foreground">No business card</p></div>
-              )}
+
+          {/* Trust Score visual */}
+          <div className="p-4 rounded-xl border bg-muted/10">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold">Trust Score</span>
+              <span className={cn('text-lg font-bold',
+                (employer.trust_score || 0) >= 80 ? 'text-emerald-600' : (employer.trust_score || 0) >= 50 ? 'text-amber-600' : 'text-destructive'
+              )}>{employer.trust_score ?? 0}/100</span>
+            </div>
+            <Progress value={employer.trust_score || 0} className="h-2" />
+            <p className="text-xs text-muted-foreground mt-2">
+              {(employer.trust_score || 0) >= 80 ? '✅ Auto-approved threshold met' : (employer.trust_score || 0) >= 50 ? '⚠️ Needs manual review' : '🚫 Below threshold'}
+            </p>
+          </div>
+
+          {/* Documents */}
+          <div>
+            <h4 className="font-semibold text-sm mb-3 flex items-center gap-2"><FileText className="h-4 w-4 text-primary" />Trust Documents</h4>
+            <div className="grid grid-cols-2 gap-3">
+              {[{ url: employer.office_photo_url, label: 'Office Photo' }, { url: employer.business_card_url, label: 'Business Card' }].map((doc, i) => (
+                doc.url ? (
+                  <a key={i} href={doc.url} target="_blank" rel="noopener noreferrer" className="block group">
+                    <img src={doc.url} alt={doc.label} className="w-full h-28 object-cover rounded-xl border group-hover:ring-2 ring-primary/30 transition-all" />
+                    <p className="text-xs text-muted-foreground mt-1.5 flex items-center gap-1">{doc.label} <ExternalLink className="h-3 w-3" /></p>
+                  </a>
+                ) : (
+                  <div key={i} className="h-28 bg-muted/30 rounded-xl border-dashed border-2 flex items-center justify-center">
+                    <p className="text-xs text-muted-foreground">No {doc.label.toLowerCase()}</p>
+                  </div>
+                )
+              ))}
             </div>
           </div>
         </div>
       </TabsContent>
       <TabsContent value="checks">
-        <div className="space-y-3 pt-2">
+        <div className="space-y-2.5 pt-3">
           {checksLoading ? (
-            <div className="space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-16 w-full" />)}</div>
-          ) : !checks || checks.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">No AI verification checks recorded</p>
+            <div className="space-y-2">{[1, 2, 3].map(i => <Skeleton key={i} className="h-14 w-full rounded-xl" />)}</div>
+          ) : !checks?.length ? (
+            <div className="text-center py-10 text-muted-foreground">
+              <Shield className="h-10 w-10 mx-auto mb-2 opacity-20" />
+              <p className="text-sm">No AI verification checks recorded</p>
+            </div>
           ) : (
             checks.map((check) => (
               <Collapsible key={check.id}>
                 <CollapsibleTrigger className="w-full">
-                  <div className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center justify-between p-3 rounded-xl border hover:bg-muted/30 transition-colors">
                     <div className="flex items-center gap-3">
                       <FileText className="h-4 w-4 text-muted-foreground" />
                       <span className="font-medium text-sm capitalize">{check.check_type.replace(/_/g, ' ')}</span>
-                      <Badge variant="outline" className={
-                        check.status === 'pass' ? 'bg-success/10 text-success border-success/20' :
+                      <Badge variant="outline" className={cn('text-[10px]',
+                        check.status === 'pass' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' :
                         check.status === 'fail' ? 'bg-destructive/10 text-destructive border-destructive/20' :
-                        'bg-warning/10 text-warning border-warning/20'
-                      }>{check.status}</Badge>
+                        'bg-amber-500/10 text-amber-600 border-amber-500/20'
+                      )}>{check.status}</Badge>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium">{check.score}/100</span>
+                      <span className="text-sm font-bold tabular-nums">{check.score}/100</span>
                       <ChevronDown className="h-4 w-4 text-muted-foreground" />
                     </div>
                   </div>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <div className="px-3 py-2 ml-7 text-sm text-muted-foreground border-l-2 border-border">
+                  <div className="px-3 py-2 ml-7 text-sm text-muted-foreground border-l-2 border-primary/20">
                     <p className="text-xs text-muted-foreground mb-1">{format(new Date(check.created_at), 'MMM d, yyyy HH:mm')}</p>
                     {check.details && typeof check.details === 'object' && (
-                      <pre className="text-xs bg-muted p-2 rounded mt-1 overflow-auto max-h-40 whitespace-pre-wrap">{JSON.stringify(check.details, null, 2)}</pre>
+                      <pre className="text-xs bg-muted/50 p-2.5 rounded-lg mt-1 overflow-auto max-h-40 whitespace-pre-wrap">{JSON.stringify(check.details, null, 2)}</pre>
                     )}
                   </div>
                 </CollapsibleContent>
@@ -130,7 +215,7 @@ function EmployerDetailTabs({ employer }: { employer: Employer }) {
   );
 }
 
-// ---- Blacklist Management Component ----
+// ── Blacklist Management ──
 function BlacklistManagement() {
   const queryClient = useQueryClient();
   const [newType, setNewType] = useState('domain');
@@ -140,10 +225,7 @@ function BlacklistManagement() {
   const { data: blacklist, isLoading } = useQuery({
     queryKey: ['employer-blacklist'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('employer_blacklist')
-        .select('*')
-        .order('created_at', { ascending: false });
+      const { data, error } = await supabase.from('employer_blacklist').select('*').order('created_at', { ascending: false });
       if (error) throw error;
       return data;
     },
@@ -154,11 +236,7 @@ function BlacklistManagement() {
       const { error } = await supabase.from('employer_blacklist').insert({ type: newType, value: newValue.trim(), reason: newReason.trim() || null });
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['employer-blacklist'] });
-      setNewValue(''); setNewReason('');
-      toast.success('Blacklist entry added');
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['employer-blacklist'] }); setNewValue(''); setNewReason(''); toast.success('Blacklist entry added'); },
     onError: (e) => toast.error('Failed: ' + e.message),
   });
 
@@ -167,22 +245,19 @@ function BlacklistManagement() {
       const { error } = await supabase.from('employer_blacklist').delete().eq('id', id);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['employer-blacklist'] });
-      toast.success('Entry removed');
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['employer-blacklist'] }); toast.success('Entry removed'); },
     onError: (e) => toast.error('Failed: ' + e.message),
   });
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-base flex items-center gap-2"><ShieldAlert className="h-4 w-4" /> Blacklist Management</CardTitle>
+    <Card className="rounded-2xl border-0 shadow-lg">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2"><ShieldAlert className="h-4 w-4 text-destructive" />Blacklist Management</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col sm:flex-row gap-2 mb-4">
           <Select value={newType} onValueChange={setNewType}>
-            <SelectTrigger className="w-full sm:w-36"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-36 rounded-xl"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="domain">Domain</SelectItem>
               <SelectItem value="phone">Phone</SelectItem>
@@ -190,44 +265,48 @@ function BlacklistManagement() {
               <SelectItem value="document_hash">Doc Hash</SelectItem>
             </SelectContent>
           </Select>
-          <Input placeholder="Value..." value={newValue} onChange={(e) => setNewValue(e.target.value)} className="flex-1" />
-          <Input placeholder="Reason (optional)" value={newReason} onChange={(e) => setNewReason(e.target.value)} className="flex-1" />
-          <Button size="sm" onClick={() => addMutation.mutate()} disabled={!newValue.trim() || addMutation.isPending} className="gap-1">
-            <Plus className="h-3 w-3" /> Add
+          <Input placeholder="Value…" value={newValue} onChange={(e) => setNewValue(e.target.value)} className="flex-1 rounded-xl" />
+          <Input placeholder="Reason (optional)" value={newReason} onChange={(e) => setNewReason(e.target.value)} className="flex-1 rounded-xl" />
+          <Button size="sm" onClick={() => addMutation.mutate()} disabled={!newValue.trim() || addMutation.isPending} className="gap-1 rounded-xl">
+            <Plus className="h-3 w-3" />Add
           </Button>
         </div>
         {isLoading ? (
-          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full rounded-xl" />
+        ) : !blacklist?.length ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <ShieldAlert className="h-8 w-8 mx-auto mb-2 opacity-20" />
+            <p className="text-sm">No blacklist entries</p>
+          </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Type</TableHead>
-                <TableHead>Value</TableHead>
-                <TableHead>Reason</TableHead>
-                <TableHead>Added</TableHead>
-                <TableHead className="w-10"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {blacklist?.map((entry) => (
-                <TableRow key={entry.id}>
-                  <TableCell><Badge variant="outline" className="capitalize">{entry.type}</Badge></TableCell>
-                  <TableCell className="font-mono text-sm">{entry.value}</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">{entry.reason || '—'}</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">{format(new Date(entry.created_at), 'MMM d, yyyy')}</TableCell>
-                  <TableCell>
-                    <Button variant="ghost" size="icon" className="text-destructive h-7 w-7" onClick={() => deleteMutation.mutate(entry.id)}>
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </TableCell>
+          <div className="overflow-x-auto rounded-xl border">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/30 hover:bg-muted/30">
+                  <TableHead className="font-semibold text-xs uppercase tracking-wider">Type</TableHead>
+                  <TableHead className="font-semibold text-xs uppercase tracking-wider">Value</TableHead>
+                  <TableHead className="font-semibold text-xs uppercase tracking-wider">Reason</TableHead>
+                  <TableHead className="font-semibold text-xs uppercase tracking-wider">Added</TableHead>
+                  <TableHead className="w-10"></TableHead>
                 </TableRow>
-              ))}
-              {(!blacklist || blacklist.length === 0) && (
-                <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-6">No blacklist entries</TableCell></TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {blacklist.map((entry) => (
+                  <TableRow key={entry.id} className="hover:bg-muted/30">
+                    <TableCell><Badge variant="outline" className="capitalize text-[10px]">{entry.type}</Badge></TableCell>
+                    <TableCell className="font-mono text-xs">{entry.value}</TableCell>
+                    <TableCell className="text-muted-foreground text-xs max-w-[200px] truncate">{entry.reason || '—'}</TableCell>
+                    <TableCell className="text-muted-foreground text-xs">{format(new Date(entry.created_at), 'MMM d, yyyy')}</TableCell>
+                    <TableCell>
+                      <Button variant="ghost" size="icon" className="text-destructive h-7 w-7 hover:bg-destructive/10" onClick={() => deleteMutation.mutate(entry.id)}>
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </CardContent>
     </Card>
@@ -295,12 +374,7 @@ export default function AdminEmployers() {
       if (error) throw error;
       await supabase.rpc('log_admin_action', { p_action_type: actionType, p_target_type: 'employer', p_target_id: id, p_details: { reason: actionReason, ...updates } });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-employers'] });
-      setActionDialog({ type: null, employer: null });
-      setActionReason('');
-      toast.success('Employer updated');
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-employers'] }); setActionDialog({ type: null, employer: null }); setActionReason(''); toast.success('Employer updated'); },
     onError: (error) => toast.error('Failed: ' + error.message),
   });
 
@@ -309,13 +383,7 @@ export default function AdminEmployers() {
       const { error } = await supabase.rpc('admin_delete_employer', { p_employer_id: id });
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-employers'] });
-      setActionDialog({ type: null, employer: null });
-      setActionReason('');
-      setSelectedIds(new Set());
-      toast.success('Employer deleted');
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-employers'] }); setActionDialog({ type: null, employer: null }); setActionReason(''); setSelectedIds(new Set()); toast.success('Employer deleted'); },
     onError: (error) => toast.error('Failed to delete: ' + error.message),
   });
 
@@ -336,27 +404,17 @@ export default function AdminEmployers() {
         }
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-employers'] });
-      setActionDialog({ type: null, employer: null });
-      setActionReason('');
-      setSelectedIds(new Set());
-      toast.success('Bulk action completed');
-    },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['admin-employers'] }); setActionDialog({ type: null, employer: null }); setActionReason(''); setSelectedIds(new Set()); toast.success('Bulk action completed'); },
     onError: (error) => toast.error('Bulk action failed: ' + error.message),
   });
 
   const handleAction = () => {
     if (!actionDialog.type) return;
-
     if (actionDialog.type === 'bulk-approve') { bulkMutation.mutate({ ids: Array.from(selectedIds), action: 'approve' }); return; }
     if (actionDialog.type === 'bulk-suspend') { bulkMutation.mutate({ ids: Array.from(selectedIds), action: 'suspend' }); return; }
     if (actionDialog.type === 'bulk-delete') { bulkMutation.mutate({ ids: Array.from(selectedIds), action: 'delete' }); return; }
-
     if (!actionDialog.employer) return;
-
     if (actionDialog.type === 'delete') { deleteEmployerMutation.mutate(actionDialog.employer.id); return; }
-
     const updates: Record<string, unknown> = {};
     switch (actionDialog.type) {
       case 'approve': updates.verification_status = 'approved'; updates.verified_at = new Date().toISOString(); break;
@@ -370,211 +428,308 @@ export default function AdminEmployers() {
     emp.company_name.toLowerCase().includes(search.toLowerCase()) || emp.profile?.full_name?.toLowerCase().includes(search.toLowerCase())
   );
 
-  const toggleSelect = (id: string) => {
-    const next = new Set(selectedIds);
-    next.has(id) ? next.delete(id) : next.add(id);
-    setSelectedIds(next);
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedIds.size === (filteredEmployers?.length || 0)) setSelectedIds(new Set());
-    else setSelectedIds(new Set(filteredEmployers?.map(e => e.id) || []));
-  };
+  const toggleSelect = (id: string) => { const next = new Set(selectedIds); next.has(id) ? next.delete(id) : next.add(id); setSelectedIds(next); };
+  const toggleSelectAll = () => { selectedIds.size === (filteredEmployers?.length || 0) ? setSelectedIds(new Set()) : setSelectedIds(new Set(filteredEmployers?.map(e => e.id) || [])); };
 
   const totalCount = data?.total || 0;
   const pendingCount = employers?.filter(e => e.verification_status === 'pending').length || 0;
   const approvedCount = employers?.filter(e => e.verification_status === 'approved').length || 0;
   const suspendedCount = employers?.filter(e => e.is_suspended).length || 0;
+  const avgTrust = employers?.length ? Math.round(employers.reduce((s, e) => s + (e.trust_score || 0), 0) / employers.length) : 0;
   const isPending = updateEmployerMutation.isPending || deleteEmployerMutation.isPending || bulkMutation.isPending;
 
   return (
     <AdminLayout title="Employer Management">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
-        <StatsCard title="Total Employers" value={totalCount} icon={Building2} />
-        <StatsCard title="Pending" value={pendingCount} icon={Clock} variant="warning" />
-        <StatsCard title="Approved" value={approvedCount} icon={ShieldCheck} variant="success" />
-        <StatsCard title="Suspended" value={suspendedCount} icon={Ban} variant="destructive" />
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-4 mb-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Search employers..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
-        </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-48"><SelectValue placeholder="Filter by status" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Employers</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
-            <SelectItem value="rejected">Rejected</SelectItem>
-            <SelectItem value="suspended">Suspended</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Bulk Actions Bar */}
-      {selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 mb-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
-          <span className="text-sm font-medium">{selectedIds.size} selected</span>
-          <div className="flex gap-2 ml-auto">
-            <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setActionDialog({ type: 'bulk-approve', employer: null })}>
-              <CheckCircle className="h-3.5 w-3.5" /> Approve
-            </Button>
-            <Button size="sm" variant="outline" className="gap-1.5" onClick={() => setActionDialog({ type: 'bulk-suspend', employer: null })}>
-              <Ban className="h-3.5 w-3.5" /> Suspend
-            </Button>
-            <Button size="sm" variant="destructive" className="gap-1.5" onClick={() => setActionDialog({ type: 'bulk-delete', employer: null })}>
-              <Trash2 className="h-3.5 w-3.5" /> Delete
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>Clear</Button>
+      <TooltipProvider>
+        {/* ─── Hero ─── */}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl border bg-card/80 backdrop-blur">
+            <div className="flex items-center gap-3">
+              <div className="rounded-xl p-2.5 bg-gradient-to-br from-primary to-primary/60 text-primary-foreground shadow-lg">
+                <Building2 className="h-6 w-6" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold">Employer Management</h1>
+                <p className="text-sm text-muted-foreground">Review verifications, manage trust scores & control employer access</p>
+              </div>
+            </div>
           </div>
+        </motion.div>
+
+        {/* ─── KPI Cards ─── */}
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+          <KPICard index={0} title="Total Employers" value={totalCount} icon={Building2} gradient="from-primary to-primary/70" subtitle={`Page ${page}/${totalPages || 1}`} />
+          <KPICard index={1} title="Pending Review" value={pendingCount} icon={Clock} gradient="from-amber-500 to-yellow-400" subtitle="Awaiting approval" />
+          <KPICard index={2} title="Approved" value={approvedCount} icon={ShieldCheck} gradient="from-emerald-500 to-green-400" subtitle="Can post jobs" />
+          <KPICard index={3} title="Suspended" value={suspendedCount} icon={Ban} gradient="from-destructive to-red-400" subtitle="Access restricted" />
+          <KPICard index={4} title="Avg Trust" value={`${avgTrust}/100`} icon={Shield} gradient="from-violet-500 to-purple-400" subtitle="Trust score" />
         </div>
-      )}
 
-      <Card className="rounded-xl border-border/40 bg-card/80 backdrop-blur-sm">
-        <CardContent className="p-0">
-          {isLoading ? (
-            <div className="p-6 space-y-4">{[...Array(5)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}</div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-10"><Checkbox checked={selectedIds.size === (filteredEmployers?.length || 0) && selectedIds.size > 0} onCheckedChange={toggleSelectAll} /></TableHead>
-                  <TableHead>Company</TableHead>
-                  <TableHead>Owner</TableHead>
-                  <TableHead>Country</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Trust Score</TableHead>
-                  <TableHead>Profile</TableHead>
-                  <TableHead>Registered</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredEmployers?.map((employer) => (
-                  <TableRow key={employer.id} data-state={selectedIds.has(employer.id) ? 'selected' : undefined}>
-                    <TableCell><Checkbox checked={selectedIds.has(employer.id)} onCheckedChange={() => toggleSelect(employer.id)} /></TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Building2 className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{employer.company_name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{employer.profile?.full_name}</TableCell>
-                    <TableCell>{employer.country_code || '-'}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <VerificationBadge status={employer.verification_status as 'pending' | 'approved' | 'rejected'} size="sm" showLabel={false} verificationMethod={employer.verification_method} googleBusinessVerified={employer.google_business_verified || false} />
-                        {employer.is_suspended && <Badge variant="destructive">Suspended</Badge>}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {employer.trust_score != null && employer.trust_score > 0 ? (
-                        <Badge variant="outline" className={
-                          employer.trust_score >= 80 ? 'bg-success/10 text-success border-success/20' :
-                          employer.trust_score >= 50 ? 'bg-warning/10 text-warning border-warning/20' :
-                          'bg-destructive/10 text-destructive border-destructive/20'
-                        }>
-                          {employer.trust_score}/100
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground text-xs">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <span className="text-sm">{employer.profile_completeness}%</span>
-                        <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
-                          <div className="h-full bg-primary" style={{ width: `${employer.profile_completeness}%` }} />
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{format(new Date(employer.created_at), 'MMM d, yyyy')}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button variant="ghost" size="icon" onClick={() => setSelectedEmployer(employer)}><Eye className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" asChild><Link to={`/employers/${employer.id}`}><ExternalLink className="h-4 w-4" /></Link></Button>
-                        {employer.verification_status === 'pending' && (
-                          <>
-                            <Button variant="ghost" size="icon" className="text-success hover:text-success" onClick={() => setActionDialog({ type: 'approve', employer })}><CheckCircle className="h-4 w-4" /></Button>
-                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => setActionDialog({ type: 'reject', employer })}><XCircle className="h-4 w-4" /></Button>
-                          </>
+        {/* ─── Filters ─── */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="mb-5 space-y-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <FilterChip label="All" count={totalCount} active={statusFilter === 'all'} onClick={() => { setStatusFilter('all'); setPage(1); }} />
+            <FilterChip label="Pending" count={pendingCount} active={statusFilter === 'pending'} onClick={() => { setStatusFilter('pending'); setPage(1); }} color="bg-amber-500" />
+            <FilterChip label="Approved" count={approvedCount} active={statusFilter === 'approved'} onClick={() => { setStatusFilter('approved'); setPage(1); }} color="bg-emerald-500" />
+            <FilterChip label="Rejected" active={statusFilter === 'rejected'} onClick={() => { setStatusFilter('rejected'); setPage(1); }} color="bg-destructive" />
+            <FilterChip label="Suspended" count={suspendedCount} active={statusFilter === 'suspended'} onClick={() => { setStatusFilter('suspended'); setPage(1); }} color="bg-destructive" />
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input placeholder="Search company or owner name…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 rounded-xl" />
+            </div>
+          </div>
+        </motion.div>
+
+        {/* ─── Bulk Actions ─── */}
+        <AnimatePresence>
+          {selectedIds.size > 0 && (
+            <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+              className="flex items-center gap-3 mb-4 p-3 rounded-xl bg-primary/5 border border-primary/20">
+              <span className="text-sm font-semibold">{selectedIds.size} selected</span>
+              <div className="flex gap-2 ml-auto flex-wrap">
+                <Button size="sm" variant="outline" className="gap-1.5 rounded-xl" onClick={() => setActionDialog({ type: 'bulk-approve', employer: null })}>
+                  <CheckCircle className="h-3.5 w-3.5" />Approve
+                </Button>
+                <Button size="sm" variant="outline" className="gap-1.5 rounded-xl" onClick={() => setActionDialog({ type: 'bulk-suspend', employer: null })}>
+                  <Ban className="h-3.5 w-3.5" />Suspend
+                </Button>
+                <Button size="sm" variant="destructive" className="gap-1.5 rounded-xl" onClick={() => setActionDialog({ type: 'bulk-delete', employer: null })}>
+                  <Trash2 className="h-3.5 w-3.5" />Delete
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())} className="rounded-xl">Clear</Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ─── Table ─── */}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+          <Card className="rounded-2xl border-0 shadow-lg overflow-hidden">
+            <CardContent className="p-0">
+              {isLoading ? (
+                <div className="p-6 space-y-4">{[...Array(6)].map((_, i) => <Skeleton key={i} className="h-14 w-full rounded-xl" />)}</div>
+              ) : !filteredEmployers?.length ? (
+                <div className="text-center py-16 text-muted-foreground">
+                  <Building2 className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                  <p className="font-medium">No employers found</p>
+                  <p className="text-xs mt-1">Try adjusting your filters or search</p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-muted/30 hover:bg-muted/30">
+                      <TableHead className="w-10"><Checkbox checked={selectedIds.size === filteredEmployers.length && filteredEmployers.length > 0} onCheckedChange={toggleSelectAll} /></TableHead>
+                      <TableHead className="font-semibold text-xs uppercase tracking-wider">Company</TableHead>
+                      <TableHead className="font-semibold text-xs uppercase tracking-wider">Status</TableHead>
+                      <TableHead className="font-semibold text-xs uppercase tracking-wider">Trust</TableHead>
+                      <TableHead className="font-semibold text-xs uppercase tracking-wider">Profile</TableHead>
+                      <TableHead className="font-semibold text-xs uppercase tracking-wider">Registered</TableHead>
+                      <TableHead className="w-12"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredEmployers.map((employer, idx) => (
+                      <motion.tr
+                        key={employer.id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: idx * 0.02 }}
+                        className={cn(
+                          'border-b transition-colors hover:bg-muted/30 cursor-pointer group',
+                          selectedIds.has(employer.id) && 'bg-primary/5'
                         )}
-                        {!employer.is_suspended && employer.verification_status === 'approved' && (
-                          <Button variant="ghost" size="icon" className="text-warning hover:text-warning" onClick={() => setActionDialog({ type: 'suspend', employer })}><Ban className="h-4 w-4" /></Button>
-                        )}
-                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => setActionDialog({ type: 'delete', employer })}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                        onClick={() => setSelectedEmployer(employer)}
+                      >
+                        <TableCell onClick={e => e.stopPropagation()}>
+                          <Checkbox checked={selectedIds.has(employer.id)} onCheckedChange={() => toggleSelect(employer.id)} />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-muted/50 border flex items-center justify-center flex-shrink-0">
+                              <Building2 className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <p className="font-medium text-sm truncate">{employer.company_name}</p>
+                                {employer.google_business_verified && (
+                                  <Tooltip>
+                                    <TooltipTrigger><Sparkles className="h-3.5 w-3.5 text-primary flex-shrink-0" /></TooltipTrigger>
+                                    <TooltipContent><p className="text-xs">Google Business Verified</p></TooltipContent>
+                                  </Tooltip>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-muted-foreground truncate">{employer.profile?.full_name} · {employer.industry || 'No industry'}</p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <StatusBadge status={employer.verification_status} isSuspended={employer.is_suspended} />
+                        </TableCell>
+                        <TableCell><TrustScoreBar score={employer.trust_score} /></TableCell>
+                        <TableCell>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center gap-2">
+                                <div className="w-14 h-1.5 rounded-full bg-muted overflow-hidden">
+                                  <div className={cn('h-full rounded-full',
+                                    employer.profile_completeness >= 80 ? 'bg-emerald-500' : employer.profile_completeness >= 50 ? 'bg-amber-500' : 'bg-destructive'
+                                  )} style={{ width: `${employer.profile_completeness}%` }} />
+                                </div>
+                                <span className="text-xs text-muted-foreground tabular-nums">{employer.profile_completeness}%</span>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent><p className="text-xs">Profile completeness: {employer.profile_completeness}%</p></TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                                <CalendarDays className="h-3 w-3" />
+                                {formatDistanceToNow(new Date(employer.created_at), { addSuffix: true })}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent><p className="text-xs">{format(new Date(employer.created_at), 'PPPp')}</p></TooltipContent>
+                          </Tooltip>
+                        </TableCell>
+                        <TableCell onClick={e => e.stopPropagation()}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="rounded-xl w-48">
+                              <DropdownMenuItem onClick={() => setSelectedEmployer(employer)} className="gap-2"><Eye className="h-4 w-4" />View Details</DropdownMenuItem>
+                              <DropdownMenuItem asChild className="gap-2"><Link to={`/employers/${employer.id}`}><ExternalLink className="h-4 w-4" />View Profile</Link></DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              {employer.verification_status === 'pending' && (
+                                <>
+                                  <DropdownMenuItem onClick={() => setActionDialog({ type: 'approve', employer })} className="gap-2 text-emerald-600">
+                                    <CheckCircle className="h-4 w-4" />Approve
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => setActionDialog({ type: 'reject', employer })} className="gap-2 text-destructive">
+                                    <XCircle className="h-4 w-4" />Reject
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                              {!employer.is_suspended && employer.verification_status === 'approved' && (
+                                <DropdownMenuItem onClick={() => setActionDialog({ type: 'suspend', employer })} className="gap-2 text-amber-600">
+                                  <Ban className="h-4 w-4" />Suspend
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => setActionDialog({ type: 'delete', employer })} className="gap-2 text-destructive">
+                                <Trash2 className="h-4 w-4" />Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </motion.tr>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
 
-      <PaginationControls page={page} totalPages={totalPages} onPageChange={setPage} />
+        <PaginationControls page={page} totalPages={totalPages} onPageChange={setPage} />
 
-      {/* Blacklist Management */}
-      <div className="mt-6">
-        <BlacklistManagement />
-      </div>
+        {/* ─── Blacklist ─── */}
+        <div className="mt-6"><BlacklistManagement /></div>
 
-      {/* Detail Dialog */}
-      <Dialog open={!!selectedEmployer} onOpenChange={() => setSelectedEmployer(null)}>
-        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{selectedEmployer?.company_name}</DialogTitle>
-            <DialogDescription>Employer Details & Verification</DialogDescription>
-          </DialogHeader>
-          {selectedEmployer && (
-            <EmployerDetailTabs employer={selectedEmployer} />
-          )}
-        </DialogContent>
-      </Dialog>
+        {/* ─── Detail Dialog ─── */}
+        <Dialog open={!!selectedEmployer} onOpenChange={() => setSelectedEmployer(null)}>
+          <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto rounded-2xl">
+            <DialogHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center"><Building2 className="h-5 w-5 text-primary" /></div>
+                <div>
+                  <DialogTitle className="text-lg">{selectedEmployer?.company_name}</DialogTitle>
+                  <DialogDescription className="flex items-center gap-2">
+                    {selectedEmployer && <StatusBadge status={selectedEmployer.verification_status} isSuspended={selectedEmployer.is_suspended} />}
+                    <span>·</span>
+                    <span>{selectedEmployer?.profile?.full_name}</span>
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+            {selectedEmployer && (
+              <div className="space-y-4">
+                <EmployerDetailTabs employer={selectedEmployer} />
+                {/* Quick Actions */}
+                <div className="flex gap-2 flex-wrap pt-2 border-t">
+                  <Button variant="outline" size="sm" className="gap-1.5 rounded-xl" asChild>
+                    <Link to={`/employers/${selectedEmployer.id}`}><ExternalLink className="h-3.5 w-3.5" />View Profile</Link>
+                  </Button>
+                  {selectedEmployer.verification_status === 'pending' && (
+                    <>
+                      <Button size="sm" className="gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => { setSelectedEmployer(null); setActionDialog({ type: 'approve', employer: selectedEmployer }); }}>
+                        <CheckCircle className="h-3.5 w-3.5" />Approve
+                      </Button>
+                      <Button size="sm" variant="destructive" className="gap-1.5 rounded-xl" onClick={() => { setSelectedEmployer(null); setActionDialog({ type: 'reject', employer: selectedEmployer }); }}>
+                        <XCircle className="h-3.5 w-3.5" />Reject
+                      </Button>
+                    </>
+                  )}
+                  {!selectedEmployer.is_suspended && selectedEmployer.verification_status === 'approved' && (
+                    <Button size="sm" variant="outline" className="gap-1.5 rounded-xl text-amber-600 hover:text-amber-700" onClick={() => { setSelectedEmployer(null); setActionDialog({ type: 'suspend', employer: selectedEmployer }); }}>
+                      <Ban className="h-3.5 w-3.5" />Suspend
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
 
-      {/* Action Dialog */}
-      <Dialog open={!!actionDialog.type} onOpenChange={() => { setActionDialog({ type: null, employer: null }); setActionReason(''); }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {actionDialog.type === 'approve' && 'Approve Employer'}
-              {actionDialog.type === 'reject' && 'Reject Employer'}
-              {actionDialog.type === 'suspend' && 'Suspend Employer'}
-              {actionDialog.type === 'delete' && 'Delete Employer'}
-              {actionDialog.type === 'bulk-approve' && `Approve ${selectedIds.size} Employers`}
-              {actionDialog.type === 'bulk-suspend' && `Suspend ${selectedIds.size} Employers`}
-              {actionDialog.type === 'bulk-delete' && `Delete ${selectedIds.size} Employers`}
-            </DialogTitle>
-            <DialogDescription>
-              {actionDialog.type === 'approve' && `Approve ${actionDialog.employer?.company_name}? They will be able to post jobs.`}
-              {actionDialog.type === 'reject' && `Provide a reason for rejecting ${actionDialog.employer?.company_name}.`}
-              {actionDialog.type === 'suspend' && `Provide a reason for suspending ${actionDialog.employer?.company_name}.`}
-              {actionDialog.type === 'delete' && `Permanently delete ${actionDialog.employer?.company_name}? All their jobs, applications, and data will be removed. This cannot be undone.`}
-              {actionDialog.type === 'bulk-approve' && `Approve ${selectedIds.size} selected employers.`}
-              {actionDialog.type === 'bulk-suspend' && `Suspend ${selectedIds.size} selected employers.`}
-              {actionDialog.type === 'bulk-delete' && `Permanently delete ${selectedIds.size} employers? This cannot be undone.`}
-            </DialogDescription>
-          </DialogHeader>
-          {(actionDialog.type && !['approve', 'bulk-approve'].includes(actionDialog.type)) && (
-            <Textarea placeholder="Enter reason..." value={actionReason} onChange={(e) => setActionReason(e.target.value)} className="min-h-24" />
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => { setActionDialog({ type: null, employer: null }); setActionReason(''); }}>Cancel</Button>
-            <Button
-              variant={actionDialog.type?.includes('approve') ? 'default' : 'destructive'}
-              onClick={handleAction}
-              disabled={isPending || ((actionDialog.type && ['reject', 'suspend', 'bulk-suspend'].includes(actionDialog.type)) && !actionReason.trim())}
-            >
-              {isPending ? 'Processing...' : 'Confirm'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        {/* ─── Action Confirmation Dialog ─── */}
+        <Dialog open={!!actionDialog.type} onOpenChange={() => { setActionDialog({ type: null, employer: null }); setActionReason(''); }}>
+          <DialogContent className="rounded-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                {actionDialog.type?.includes('approve') && <CheckCircle className="h-5 w-5 text-emerald-600" />}
+                {actionDialog.type?.includes('reject') && <XCircle className="h-5 w-5 text-destructive" />}
+                {actionDialog.type?.includes('suspend') && <Ban className="h-5 w-5 text-amber-600" />}
+                {actionDialog.type?.includes('delete') && <Trash2 className="h-5 w-5 text-destructive" />}
+                {actionDialog.type === 'approve' && 'Approve Employer'}
+                {actionDialog.type === 'reject' && 'Reject Employer'}
+                {actionDialog.type === 'suspend' && 'Suspend Employer'}
+                {actionDialog.type === 'delete' && 'Delete Employer'}
+                {actionDialog.type === 'bulk-approve' && `Approve ${selectedIds.size} Employers`}
+                {actionDialog.type === 'bulk-suspend' && `Suspend ${selectedIds.size} Employers`}
+                {actionDialog.type === 'bulk-delete' && `Delete ${selectedIds.size} Employers`}
+              </DialogTitle>
+              <DialogDescription>
+                {actionDialog.type === 'approve' && `Approve ${actionDialog.employer?.company_name}? They will be able to post jobs.`}
+                {actionDialog.type === 'reject' && `Provide a reason for rejecting ${actionDialog.employer?.company_name}.`}
+                {actionDialog.type === 'suspend' && `Provide a reason for suspending ${actionDialog.employer?.company_name}.`}
+                {actionDialog.type === 'delete' && `Permanently delete ${actionDialog.employer?.company_name}? All their jobs, applications, and data will be removed. This cannot be undone.`}
+                {actionDialog.type === 'bulk-approve' && `Approve ${selectedIds.size} selected employers.`}
+                {actionDialog.type === 'bulk-suspend' && `Suspend ${selectedIds.size} selected employers.`}
+                {actionDialog.type === 'bulk-delete' && `Permanently delete ${selectedIds.size} employers? This cannot be undone.`}
+              </DialogDescription>
+            </DialogHeader>
+            {(actionDialog.type && !['approve', 'bulk-approve'].includes(actionDialog.type)) && (
+              <Textarea placeholder="Enter reason…" value={actionReason} onChange={(e) => setActionReason(e.target.value)} className="min-h-24 rounded-xl" />
+            )}
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => { setActionDialog({ type: null, employer: null }); setActionReason(''); }} className="rounded-xl">Cancel</Button>
+              <Button
+                variant={actionDialog.type?.includes('approve') ? 'default' : 'destructive'}
+                onClick={handleAction}
+                disabled={isPending || ((actionDialog.type && ['reject', 'suspend', 'bulk-suspend'].includes(actionDialog.type)) && !actionReason.trim())}
+                className="rounded-xl shadow-md"
+              >
+                {isPending ? 'Processing…' : 'Confirm'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </TooltipProvider>
     </AdminLayout>
   );
 }
