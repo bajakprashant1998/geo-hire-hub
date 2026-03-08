@@ -32,7 +32,7 @@ import {
   Trophy, CalendarDays, Sparkles, ChevronDown, ChevronUp, Eye,
   Mail, StickyNote, Loader2, ArrowUpDown, X, SlidersHorizontal,
   TrendingUp, Target, Zap, Download, Brain, Lightbulb, AlertTriangle,
-  UserCheck, BarChart3, RefreshCw, Globe, Languages, Heart
+  UserCheck, BarChart3, RefreshCw, Globe, Languages, Heart, Bell, BookmarkPlus
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
