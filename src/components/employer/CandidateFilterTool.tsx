@@ -404,12 +404,17 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
     if (filters.workType) count++;
     if (filters.resumeKeyword) count++;
     if (filters.availability) count++;
+    if (filters.jobId && filters.jobId !== 'all') count++;
     return count;
   }, [filters]);
 
   // Generate active filter labels for chip display
   const activeFilterChips = useMemo(() => {
     const chips: { label: string; key: string }[] = [];
+    if (filters.jobId && filters.jobId !== 'all') {
+      const jobName = uniqueJobs.find(j => j.id === filters.jobId)?.title || 'Job';
+      chips.push({ label: `Job: ${jobName}`, key: 'job' });
+    }
     if (filters.skills.length > 0) filters.skills.forEach(s => chips.push({ label: `Skill: ${s}`, key: `skill-${s}` }));
     if (filters.experienceRange[0] > 0 || filters.experienceRange[1] < 30) chips.push({ label: `${filters.experienceRange[0]}-${filters.experienceRange[1]}y exp`, key: 'exp' });
     if (filters.location) chips.push({ label: `📍 ${filters.location}`, key: 'loc' });
@@ -421,10 +426,11 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
     if (filters.availability) chips.push({ label: `${filters.availability}`, key: 'avail' });
     if (filters.resumeKeyword) chips.push({ label: `"${filters.resumeKeyword}"`, key: 'kw' });
     return chips;
-  }, [filters]);
+  }, [filters, uniqueJobs]);
 
   const removeFilterChip = (key: string) => {
-    if (key.startsWith('skill-')) {
+    if (key === 'job') setFilters(prev => ({ ...prev, jobId: 'all' }));
+    else if (key.startsWith('skill-')) {
       const skill = key.replace('skill-', '');
       removeSkillFilter(skill);
     } else if (key === 'exp') setFilters(prev => ({ ...prev, experienceRange: [0, 30] }));
@@ -437,6 +443,29 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
     else if (key === 'avail') setFilters(prev => ({ ...prev, availability: '' }));
     else if (key === 'kw') setFilters(prev => ({ ...prev, resumeKeyword: '' }));
   };
+
+  const exportCSV = useCallback(() => {
+    if (filteredCandidates.length === 0) { toast.error('No candidates to export'); return; }
+    const headers = ['Name', 'Job Title', 'Experience (years)', 'Match Score', 'Status', 'Location', 'Skills', 'Applied For', 'Applied Date'];
+    const rows = filteredCandidates.map(c => [
+      c.fullName,
+      c.jobTitle,
+      c.experienceYears,
+      c.matchScore + '%',
+      c.applicationStatus || 'pending',
+      [c.locationCity, c.locationCountry].filter(Boolean).join(', '),
+      c.skills.join('; '),
+      c.jobTitle_applied || '',
+      c.appliedAt ? new Date(c.appliedAt).toLocaleDateString() : '',
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `candidates-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+    toast.success(`Exported ${filteredCandidates.length} candidates`);
+  }, [filteredCandidates]);
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-success bg-success/10 border-success/30';
