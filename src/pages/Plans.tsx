@@ -920,6 +920,7 @@ const Plans = () => {
                   billingCycle={billingCycle}
                   isCurrentPlan={plan.id === currentPlanId}
                   isRecommended={plan.id === recommendedPlanId}
+                  currency={currency}
                   onSelect={handleSelectPlan}
                 />
               ));
