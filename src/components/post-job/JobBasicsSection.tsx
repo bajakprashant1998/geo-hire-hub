@@ -191,6 +191,7 @@ export const JobBasicsSection = ({
             setCoordinates={setCoordinates}
             address={address}
             setAddress={setAddress}
+            onGeoComponents={onGeoComponents}
           />
         </div>
       )}
