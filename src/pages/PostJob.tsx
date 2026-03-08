@@ -1119,14 +1119,23 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
                     variant="outline"
                     onClick={handlePrev}
                     disabled={currentStep === 1}
-                    className="gap-2"
+                    className="gap-2 rounded-xl"
                   >
                     <ArrowLeft className="w-4 h-4" />
-                    Previous
+                    <span className="hidden sm:inline">Previous</span>
+                    <span className="sm:hidden">Back</span>
                   </Button>
 
+                  <div className="flex items-center gap-1.5 sm:hidden">
+                    {STEPS.map(s => (
+                      <div key={s.id} className={`w-2 h-2 rounded-full transition-colors ${
+                        currentStep === s.id ? 'bg-primary' : currentStep > s.id ? 'bg-success' : 'bg-muted'
+                      }`} />
+                    ))}
+                  </div>
+
                   {currentStep < 5 ? (
-                    <Button onClick={handleNext} className="gap-2">
+                    <Button onClick={handleNext} className="gap-2 rounded-xl">
                       {currentStep === 4 ? 'Preview' : 'Next'}
                       <ArrowRight className="w-4 h-4" />
                     </Button>
@@ -1134,7 +1143,7 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
                     <Button 
                       onClick={handleSubmit} 
                       disabled={loading}
-                      className="gap-2 bg-success hover:bg-success/90"
+                      className="gap-2 bg-success hover:bg-success/90 rounded-xl shadow-sm"
                     >
                       {loading ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
