@@ -69,6 +69,7 @@ import { TeamWorkflows } from '@/components/employer/TeamWorkflows';
 import { AccessibilityScoreChecker } from '@/components/employer/AccessibilityScoreChecker';
 import { BulkJobImport } from '@/components/employer/BulkJobImport';
 import { BrandingPageBuilder } from '@/components/employer/BrandingPageBuilder';
+import { AnalyticsReportExport } from '@/components/employer/AnalyticsReportExport';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
