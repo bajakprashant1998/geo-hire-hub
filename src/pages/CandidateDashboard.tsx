@@ -475,11 +475,21 @@ const CandidateDashboard = () => {
 
   if (dataLoading) {
     return (
-      <div className="min-h-screen bg-secondary flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground font-medium">Loading your dashboard...</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/80 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <div className="relative w-16 h-16 mx-auto mb-5">
+            <div className="absolute inset-0 rounded-2xl bg-primary/20 animate-ping" />
+            <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-xl shadow-primary/20">
+              <Briefcase className="w-7 h-7 text-primary-foreground" />
+            </div>
+          </div>
+          <p className="text-sm font-medium text-foreground mb-1">Loading your dashboard</p>
+          <p className="text-xs text-muted-foreground">Fetching your latest activity...</p>
+        </motion.div>
       </div>
     );
   }
