@@ -27,6 +27,7 @@ import { ProfilePDFExport } from '@/components/candidate/ProfilePDFExport';
 import { ReportDialog } from '@/components/ReportDialog';
 import { SEOHead } from '@/components/SEOHead';
 import { SkillEndorsements } from '@/components/candidate/SkillEndorsements';
+import { VerifiedSkillBadges } from '@/components/candidate/VerifiedSkillBadges';
 import { motion } from 'framer-motion';
 import { ProfileStrengthBadge } from '@/components/candidate/ProfileStrengthBadge';
 
