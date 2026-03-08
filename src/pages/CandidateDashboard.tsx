@@ -48,6 +48,7 @@ import { ReferralDashboard } from '@/components/candidate/ReferralDashboard';
 import { TakeAssessment } from '@/components/candidate/TakeAssessment';
 import { InterviewPrepCoach } from '@/components/candidate/InterviewPrepCoach';
 import { MarketValueScore } from '@/components/candidate/MarketValueScore';
+import { ProfileBadges } from '@/components/candidate/ProfileBadges';
 import { PendingTasksWidget } from '@/components/dashboard/PendingTasksWidget';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { motion } from 'framer-motion';
