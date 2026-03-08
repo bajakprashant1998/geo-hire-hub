@@ -6,8 +6,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
 import {
-  Home, Settings, LogOut, ChevronLeft, ChevronDown, Search, X, Sparkles
+  Home, Settings, LogOut, ChevronLeft, ChevronDown, Search, X, Sparkles,
+  Plus, ArrowUpRight, Zap, Crown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -35,6 +37,7 @@ interface DashboardSidebarProps {
   isOpen: boolean;
   onClose: () => void;
   profileCompleteness?: number;
+  planName?: string;
 }
 
 const CANDIDATE_GROUPS: SidebarGroup[] = [
@@ -59,7 +62,7 @@ const SidebarButton = ({ item, isActive, onItemClick }: { item: SidebarItem; isA
     className={cn(
       "w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-200 group/item relative",
       isActive
-        ? "bg-primary/10 text-primary"
+        ? "bg-primary/10 text-primary shadow-sm shadow-primary/5"
         : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
     )}
   >
@@ -143,6 +146,29 @@ const CollapsibleGroup = ({ label, items, activeItem, onItemClick, defaultOpen =
   );
 };
 
+/* ── Quick Action Button (employer-only) ── */
+const QuickAction = ({ icon: Icon, label, onClick, variant = 'default' }: {
+  icon: React.ElementType; label: string; onClick: () => void; variant?: 'default' | 'primary';
+}) => (
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <button
+        onClick={onClick}
+        className={cn(
+          "flex-1 flex flex-col items-center gap-1 py-2.5 rounded-xl text-[10px] font-semibold transition-all duration-200",
+          variant === 'primary'
+            ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm shadow-primary/20"
+            : "bg-muted/50 text-muted-foreground hover:bg-muted/80 hover:text-foreground border border-border/30"
+        )}
+      >
+        <Icon className="w-4 h-4" />
+        <span>{label}</span>
+      </button>
+    </TooltipTrigger>
+    <TooltipContent side="bottom">{label}</TooltipContent>
+  </Tooltip>
+);
+
 export const DashboardSidebar = ({
   type,
   items,
@@ -154,7 +180,8 @@ export const DashboardSidebar = ({
   onSignOut,
   isOpen,
   onClose,
-  profileCompleteness = 0
+  profileCompleteness = 0,
+  planName
 }: DashboardSidebarProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const groups = type === 'candidate' ? CANDIDATE_GROUPS : EMPLOYER_GROUPS;
@@ -178,6 +205,7 @@ export const DashboardSidebar = ({
   }, [searchQuery, groups, items, itemMap]);
 
   const completenessColor = profileCompleteness >= 80 ? 'bg-success' : profileCompleteness >= 50 ? 'bg-warning' : 'bg-destructive';
+  const completenessLabel = profileCompleteness >= 80 ? 'Strong' : profileCompleteness >= 50 ? 'Good' : 'Incomplete';
 
   return (
     <>
@@ -197,19 +225,24 @@ export const DashboardSidebar = ({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 h-full z-50 w-[268px] transform transition-transform duration-300 ease-out lg:translate-x-0 lg:static lg:z-auto",
+          "fixed top-0 left-0 h-full z-50 w-[272px] transform transition-transform duration-300 ease-out lg:translate-x-0 lg:static lg:z-auto",
           isOpen ? "translate-x-0" : "-translate-x-full",
           "bg-card/95 backdrop-blur-2xl border-r border-border/30"
         )}
       >
         <div className="flex flex-col h-full">
-          {/* Header */}
+          {/* Header / Brand */}
           <div className="p-3 flex items-center justify-between border-b border-border/20">
             <Link to="/" className="flex items-center gap-2.5 group">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-md shadow-primary/20 group-hover:shadow-lg group-hover:shadow-primary/30 transition-shadow">
                 <img src="/logo.png" alt="Hire for Job" className="w-6 h-6 rounded-lg object-contain" />
               </div>
-              <span className="font-bold text-foreground text-[15px] tracking-tight">Hire for Job</span>
+              <div>
+                <span className="font-bold text-foreground text-[15px] tracking-tight block leading-tight">Hire for Job</span>
+                {type === 'employer' && planName && (
+                  <span className="text-[9px] font-semibold text-primary/70 uppercase tracking-wider">{planName}</span>
+                )}
+              </div>
             </Link>
             <Button variant="ghost" size="icon" className="lg:hidden h-8 w-8 rounded-lg hover:bg-muted/60" onClick={onClose}>
               <ChevronLeft className="w-4 h-4" />
@@ -218,7 +251,7 @@ export const DashboardSidebar = ({
 
           {/* User Card */}
           <div className="px-3 py-3">
-            <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-muted/40 border border-border/20">
+            <div className="flex items-center gap-3 p-2.5 rounded-2xl bg-gradient-to-br from-muted/50 to-muted/20 border border-border/20">
               <div className="relative">
                 <Avatar className="w-10 h-10 ring-2 ring-primary/20 ring-offset-1 ring-offset-card">
                   <AvatarImage src={avatarUrl || undefined} />
@@ -231,7 +264,7 @@ export const DashboardSidebar = ({
               <div className="min-w-0 flex-1">
                 <p className="font-semibold text-sm text-foreground truncate leading-tight">{userName}</p>
                 <p className="text-[11px] text-muted-foreground truncate">{userTitle || (type === 'candidate' ? 'Job Seeker' : 'Employer')}</p>
-                {profileCompleteness > 0 && profileCompleteness < 100 && (
+                {profileCompleteness > 0 && (
                   <div className="mt-1.5 flex items-center gap-2">
                     <div className="flex-1 h-1.5 rounded-full bg-border/50 overflow-hidden">
                       <motion.div
@@ -244,9 +277,25 @@ export const DashboardSidebar = ({
                     <span className="text-[9px] font-bold text-muted-foreground tabular-nums">{profileCompleteness}%</span>
                   </div>
                 )}
+                {profileCompleteness > 0 && profileCompleteness < 80 && (
+                  <p className="text-[9px] text-muted-foreground/70 mt-0.5">
+                    Profile: <span className={cn("font-semibold", profileCompleteness >= 50 ? "text-warning" : "text-destructive")}>{completenessLabel}</span>
+                  </p>
+                )}
               </div>
             </div>
           </div>
+
+          {/* Employer Quick Actions */}
+          {type === 'employer' && (
+            <div className="px-3 pb-2">
+              <div className="flex gap-1.5">
+                <QuickAction icon={Plus} label="Post Job" onClick={() => onItemClick('post-job')} variant="primary" />
+                <QuickAction icon={Search} label="Find Talent" onClick={() => onItemClick('candidates')} />
+                <QuickAction icon={Zap} label="AI Screen" onClick={() => onItemClick('ai-screening')} />
+              </div>
+            </div>
+          )}
 
           {/* Search */}
           <div className="px-3 pb-2">
@@ -291,15 +340,33 @@ export const DashboardSidebar = ({
           </ScrollArea>
 
           {/* Footer */}
-          <div className="px-3 pb-3 pt-2 border-t border-border/20">
+          <div className="px-3 pb-3 pt-2 border-t border-border/20 space-y-2">
+            {/* Upgrade CTA for employer */}
+            {type === 'employer' && (
+              <button
+                onClick={() => onItemClick('upgrade-plan')}
+                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-gradient-to-r from-primary/10 via-primary/5 to-accent/10 border border-primary/20 hover:border-primary/40 transition-all group"
+              >
+                <div className="w-7 h-7 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
+                  <Crown className="w-3.5 h-3.5 text-primary" />
+                </div>
+                <div className="flex-1 text-left min-w-0">
+                  <p className="text-[11px] font-semibold text-foreground">Upgrade Plan</p>
+                  <p className="text-[9px] text-muted-foreground truncate">Unlock more features</p>
+                </div>
+                <ArrowUpRight className="w-3.5 h-3.5 text-primary/60 group-hover:text-primary transition-colors shrink-0" />
+              </button>
+            )}
+
             {type === 'candidate' && (
-              <Link to="/" className="block mb-2">
+              <Link to="/" className="block">
                 <Button variant="outline" size="sm" className="w-full justify-center gap-2 border-primary/20 text-primary hover:bg-primary/5 h-9 rounded-xl text-xs font-semibold group">
                   <Sparkles className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
                   Find Jobs on Map
                 </Button>
               </Link>
             )}
+
             <div className="flex gap-1.5">
               {type !== 'employer' && (
                 <Link to="/candidate-settings" className="flex-1">
@@ -309,7 +376,7 @@ export const DashboardSidebar = ({
                   </Button>
                 </Link>
               )}
-              <Button variant="ghost" size="sm" onClick={onSignOut} className="flex-1 h-9 text-xs text-destructive hover:bg-destructive/5 rounded-xl gap-1.5">
+              <Button variant="ghost" size="sm" onClick={onSignOut} className={cn("h-9 text-xs text-destructive hover:bg-destructive/5 rounded-xl gap-1.5", type === 'employer' ? 'flex-1' : 'flex-1')}>
                 <LogOut className="w-3.5 h-3.5" />
                 Logout
               </Button>
