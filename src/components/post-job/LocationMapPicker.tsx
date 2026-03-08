@@ -10,11 +10,18 @@ import { GoogleMapsProvider } from '@/components/map/GoogleMapsProvider';
 
 const MAP_ID = 'hireforjob-picker';
 
+export interface GeoComponents {
+  country: string;
+  state: string;
+  city: string;
+}
+
 interface LocationMapPickerProps {
   coordinates: { lat: number; lng: number } | null;
   setCoordinates: (coords: { lat: number; lng: number } | null) => void;
   address: string;
   setAddress: (address: string) => void;
+  onGeoComponents?: (components: GeoComponents) => void;
 }
 
 const LocationMapPickerInner = ({
