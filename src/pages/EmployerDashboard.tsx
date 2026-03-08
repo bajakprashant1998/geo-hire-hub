@@ -67,6 +67,7 @@ import { JobABTesting } from '@/components/employer/JobABTesting';
 import { TeamCollaborationNotes } from '@/components/employer/TeamCollaborationNotes';
 import { TeamWorkflows } from '@/components/employer/TeamWorkflows';
 import { AccessibilityScoreChecker } from '@/components/employer/AccessibilityScoreChecker';
+import { BulkJobImport } from '@/components/employer/BulkJobImport';
 import { BrandingPageBuilder } from '@/components/employer/BrandingPageBuilder';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
