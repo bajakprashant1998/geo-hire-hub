@@ -17,7 +17,8 @@ import {
   Users,
   Clock,
   Building2,
-  Eye
+  Eye,
+  Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -33,11 +34,11 @@ import { JobPreviewStep } from '@/components/post-job/JobPreviewStep';
 import { PerformanceInsightsPanel } from '@/components/post-job/PerformanceInsightsPanel';
 
 const STEPS = [
-  { id: 1, title: 'Job Basics', icon: Briefcase, description: 'Title, type & location' },
-  { id: 2, title: 'Requirements', icon: Users, description: 'Skills & experience' },
-  { id: 3, title: 'Timings', icon: Clock, description: 'Work hours & interview' },
-  { id: 4, title: 'Company', icon: Building2, description: 'Contact & details' },
-  { id: 5, title: 'Preview', icon: Eye, description: 'Review & publish' },
+  { id: 1, title: 'Job Basics', icon: Briefcase, description: 'Title, type & location', tip: 'A clear title gets 3x more views' },
+  { id: 2, title: 'Requirements', icon: Users, description: 'Skills & experience', tip: 'Jobs with 4-6 skills get the most applications' },
+  { id: 3, title: 'Timings', icon: Clock, description: 'Work hours & interview', tip: 'Adding work hours increases trust by 40%' },
+  { id: 4, title: 'Company', icon: Building2, description: 'Contact & details', tip: 'Complete contact info builds candidate confidence' },
+  { id: 5, title: 'Preview', icon: Eye, description: 'Review & publish', tip: 'Double-check before going live!' },
 ];
 
 // Animation variants for step transitions
@@ -667,6 +668,28 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
     }
   };
 
+  const progressPercent = (currentStep / 5) * 100;
+  const currentStepData = STEPS.find(s => s.id === currentStep);
+
+  // Keyboard shortcuts - before early returns to satisfy hooks rules
+  const handleNextRef = useRef(handleNext);
+  const handlePrevRef = useRef(handlePrev);
+  const handleSaveDraftRef = useRef(handleSaveDraft);
+  handleNextRef.current = handleNext;
+  handlePrevRef.current = handlePrev;
+  handleSaveDraftRef.current = handleSaveDraft;
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) return;
+      if (e.altKey && e.key === 'ArrowRight') { e.preventDefault(); handleNextRef.current(); }
+      if (e.altKey && e.key === 'ArrowLeft') { e.preventDefault(); handlePrevRef.current(); }
+      if (e.altKey && e.key === 's') { e.preventDefault(); handleSaveDraftRef.current(); }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Loading existing job data
   if (initialLoading) {
     return (
@@ -730,8 +753,6 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
     );
   }
 
-  const progressPercent = (currentStep / 5) * 100;
-
   return (
     <EmailVerificationGuard fallbackMessage="Please verify your email to post jobs.">
       <div className={embedded ? '' : 'min-h-screen bg-gradient-to-br from-background via-secondary/30 to-background'}>
@@ -749,7 +770,8 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
               <div className="hidden sm:block">
                 <h1 className="text-lg font-semibold">{isEditMode ? 'Edit Job Posting' : 'Create Job Posting'}</h1>
                 {lastAutoSave && !isEditMode && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Check className="w-3 h-3 text-success" />
                     Auto-saved at {lastAutoSave.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 )}
@@ -772,66 +794,96 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
       </header>
       )}
 
-      {/* Embedded header with save */}
+      {/* Embedded header with save + mobile step indicator */}
       {embedded && (
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-xl font-bold text-foreground">{isEditMode ? 'Edit Job Posting' : 'Create New Job'}</h2>
-            {lastAutoSave && !isEditMode && (
-              <p className="text-xs text-muted-foreground">
-                Auto-saved at {lastAutoSave.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </p>
-            )}
+        <div className="space-y-3 mb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-foreground">{isEditMode ? 'Edit Job Posting' : 'Create New Job'}</h2>
+              {lastAutoSave && !isEditMode && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Check className="w-3 h-3 text-success" />
+                  Auto-saved at {lastAutoSave.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </p>
+              )}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSaveDraft}
+              disabled={savingDraft}
+              className="gap-1.5 rounded-xl"
+            >
+              {savingDraft ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              Save Draft
+            </Button>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSaveDraft}
-            disabled={savingDraft}
-            className="gap-1.5"
-          >
-            {savingDraft ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Save Draft
-          </Button>
+
+          {/* Mobile step progress dots */}
+          <div className="flex items-center gap-1.5 lg:hidden">
+            {STEPS.map((step) => (
+              <button
+                key={step.id}
+                onClick={() => handleStepClick(step.id)}
+                className="flex-1 flex flex-col items-center gap-1"
+              >
+                <div className={`h-1.5 w-full rounded-full transition-all ${
+                  currentStep === step.id
+                    ? 'bg-primary'
+                    : currentStep > step.id
+                    ? 'bg-success'
+                    : 'bg-muted'
+                }`} />
+                <span className={`text-[9px] font-medium transition-colors ${
+                  currentStep === step.id ? 'text-primary' : 'text-muted-foreground'
+                }`}>
+                  {step.title}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
       <main className={embedded ? '' : 'max-w-6xl mx-auto px-4 py-6'}>
         <div className="grid lg:grid-cols-4 gap-6">
           {/* Left Sidebar - Steps */}
-          <aside className="lg:col-span-1">
+          <aside className="lg:col-span-1 hidden lg:block">
             <div className="sticky top-24">
-              <Card className="shadow-google overflow-hidden">
+              <Card className="shadow-google overflow-hidden rounded-xl">
                 <CardContent className="p-0">
                   {/* Progress */}
                   <div className="p-4 border-b bg-muted/30">
                     <div className="flex items-center justify-between text-sm mb-2">
-                      <span className="font-medium">Progress</span>
-                      <span className="text-muted-foreground">{currentStep}/5</span>
+                      <span className="font-medium text-foreground">Progress</span>
+                      <span className="text-xs text-muted-foreground font-medium">{currentStep} of 5</span>
                     </div>
                     <Progress value={progressPercent} className="h-2" />
+                    <p className="text-[10px] text-muted-foreground mt-1.5">{Math.round(progressPercent)}% complete</p>
                   </div>
 
                   {/* Steps */}
                   <nav className="p-2">
-                    {STEPS.map((step) => {
+                    {STEPS.map((step, idx) => {
                       const StepIcon = step.icon;
                       const isActive = currentStep === step.id;
                       const isCompleted = currentStep > step.id;
 
                       return (
-                        <button
+                        <motion.button
                           key={step.id}
+                          initial={false}
+                          animate={isActive ? { scale: 1.01 } : { scale: 1 }}
                           onClick={() => handleStepClick(step.id)}
-                          className={`w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all ${
+                          className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all mb-0.5 ${
                             isActive
-                              ? 'bg-primary text-primary-foreground'
+                              ? 'bg-primary text-primary-foreground shadow-sm'
                               : isCompleted
                               ? 'bg-success/10 text-success hover:bg-success/20'
                               : 'hover:bg-muted text-muted-foreground'
                           }`}
                         >
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-colors ${
                             isActive
                               ? 'bg-primary-foreground/20'
                               : isCompleted
@@ -844,7 +896,7 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
                               <StepIcon className="w-5 h-5" />
                             )}
                           </div>
-                          <div className="min-w-0">
+                          <div className="min-w-0 flex-1">
                             <p className={`font-medium text-sm truncate ${isActive ? 'text-primary-foreground' : ''}`}>
                               {step.title}
                             </p>
@@ -852,15 +904,25 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
                               {step.description}
                             </p>
                           </div>
-                        </button>
+                          {isCompleted && (
+                            <Check className="w-4 h-4 text-success shrink-0" />
+                          )}
+                        </motion.button>
                       );
                     })}
                   </nav>
+
+                  {/* Keyboard shortcuts hint */}
+                  <div className="px-4 pb-3">
+                    <p className="text-[9px] text-muted-foreground/60 text-center">
+                      Alt+← / Alt+→ to navigate · Alt+S to save
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
 
               {/* Performance Insights - Desktop */}
-              <div className="hidden lg:block mt-6">
+              <div className="mt-6">
                 <PerformanceInsightsPanel
                   title={title}
                   description={description}
@@ -875,8 +937,21 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
 
           {/* Main Content */}
           <div className="lg:col-span-3">
-            <Card className="shadow-google-lg">
-              <CardContent className="p-6 sm:p-8">
+            {/* Contextual tip banner */}
+            {currentStepData?.tip && (
+              <motion.div
+                key={`tip-${currentStep}`}
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-4 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary/5 border border-primary/15 text-xs text-primary"
+              >
+                <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                <span className="font-medium">{currentStepData.tip}</span>
+              </motion.div>
+            )}
+
+            <Card className="shadow-google-lg rounded-xl">
+              <CardContent className="p-5 sm:p-8">
                 {/* Step Content with Animations */}
                 <div className="min-h-[500px] overflow-hidden">
                   <AnimatePresence mode="wait" custom={direction}>
@@ -1044,14 +1119,23 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
                     variant="outline"
                     onClick={handlePrev}
                     disabled={currentStep === 1}
-                    className="gap-2"
+                    className="gap-2 rounded-xl"
                   >
                     <ArrowLeft className="w-4 h-4" />
-                    Previous
+                    <span className="hidden sm:inline">Previous</span>
+                    <span className="sm:hidden">Back</span>
                   </Button>
 
+                  <div className="flex items-center gap-1.5 sm:hidden">
+                    {STEPS.map(s => (
+                      <div key={s.id} className={`w-2 h-2 rounded-full transition-colors ${
+                        currentStep === s.id ? 'bg-primary' : currentStep > s.id ? 'bg-success' : 'bg-muted'
+                      }`} />
+                    ))}
+                  </div>
+
                   {currentStep < 5 ? (
-                    <Button onClick={handleNext} className="gap-2">
+                    <Button onClick={handleNext} className="gap-2 rounded-xl">
                       {currentStep === 4 ? 'Preview' : 'Next'}
                       <ArrowRight className="w-4 h-4" />
                     </Button>
@@ -1059,7 +1143,7 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
                     <Button 
                       onClick={handleSubmit} 
                       disabled={loading}
-                      className="gap-2 bg-success hover:bg-success/90"
+                      className="gap-2 bg-success hover:bg-success/90 rounded-xl shadow-sm"
                     >
                       {loading ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
