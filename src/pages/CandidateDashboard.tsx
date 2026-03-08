@@ -62,6 +62,7 @@ import { CultureMatchScore } from '@/components/candidate/CultureMatchScore';
 import { SmartNotificationDigest } from '@/components/candidate/SmartNotificationDigest';
 import { CompanyWatchlist } from '@/components/candidate/CompanyWatchlist';
 import { PortfolioShowcase } from '@/components/candidate/PortfolioShowcase';
+import { CandidateAnalyticsDashboard } from '@/components/candidate/CandidateAnalyticsDashboard';
 import { PendingTasksWidget } from '@/components/dashboard/PendingTasksWidget';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -261,6 +262,7 @@ const CandidateDashboard = () => {
     { icon: Sparkles, label: 'Smart Digest', value: 'smart-digest' },
     { icon: Building2, label: 'Company Watchlist', value: 'watchlist' },
     { icon: Layout, label: 'Portfolio', value: 'portfolio' },
+    { icon: BarChart3, label: 'My Analytics', value: 'analytics' },
   ];
 
   // Quick action buttons for dashboard home
@@ -506,7 +508,7 @@ const CandidateDashboard = () => {
 
   const renderSectionContent = () => {
     // Show a message when candidate record is missing for sections that need it
-    const requiresCandidate = ['jobs', 'saved', 'interviews', 'resume', 'audio-resume', 'alerts', 'tasks', 'public-profile', 'recommended', 'auto-apply', 'job-radar', 'app-tracker', 'assessments', 'interview-prep', 'follow-ups', 'skill-gap', 'availability', 'compare-jobs', 'career-path', 'culture-match'];
+    const requiresCandidate = ['jobs', 'saved', 'interviews', 'resume', 'audio-resume', 'alerts', 'tasks', 'public-profile', 'recommended', 'auto-apply', 'job-radar', 'app-tracker', 'assessments', 'interview-prep', 'follow-ups', 'skill-gap', 'availability', 'compare-jobs', 'career-path', 'culture-match', 'analytics'];
     if (requiresCandidate.includes(activeSection || '') && !candidate) {
       return (
         <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -562,6 +564,7 @@ const CandidateDashboard = () => {
       case 'watchlist': return candidate && <CompanyWatchlist candidateId={candidate.id} />;
       case 'negotiation-coach': return <SalaryNegotiationCoach candidateId={candidate.id} />;
       case 'portfolio': return <PortfolioShowcase candidateId={candidate.id} />;
+      case 'analytics': return <CandidateAnalyticsDashboard candidateId={candidate.id} />;
       default: return null;
     }
   };
