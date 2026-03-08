@@ -24,11 +24,25 @@ interface LocationMapPickerProps {
   onGeoComponents?: (components: GeoComponents) => void;
 }
 
+const extractGeoComponents = (results: google.maps.GeocoderResult[]): GeoComponents => {
+  const components: GeoComponents = { country: '', state: '', city: '' };
+  const result = results[0];
+  if (!result) return components;
+  for (const comp of result.address_components) {
+    if (comp.types.includes('country')) components.country = comp.long_name;
+    if (comp.types.includes('administrative_area_level_1')) components.state = comp.long_name;
+    if (comp.types.includes('locality')) components.city = comp.long_name;
+    if (!components.city && comp.types.includes('administrative_area_level_2')) components.city = comp.long_name;
+  }
+  return components;
+};
+
 const LocationMapPickerInner = ({
   coordinates,
   setCoordinates,
   address,
   setAddress,
+  onGeoComponents,
 }: LocationMapPickerProps) => {
   const map = useMap();
   const placesLib = useMapsLibrary('places');
