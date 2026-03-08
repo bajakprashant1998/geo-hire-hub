@@ -6,7 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { MonthYearPicker } from '@/components/ui/month-year-picker';
-import { Briefcase, Plus, X, Building2 } from 'lucide-react';
+import { Briefcase, Plus, X, Building2, Sparkles, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export interface WorkExperience {
   company: string;
@@ -21,38 +23,53 @@ export interface WorkExperience {
 interface WorkExperienceSectionProps {
   experiences: WorkExperience[];
   onChange: (experiences: WorkExperience[]) => void;
+  skills?: string[];
 }
 
-export const WorkExperienceSection = ({ experiences, onChange }: WorkExperienceSectionProps) => {
+export const WorkExperienceSection = ({ experiences, onChange, skills = [] }: WorkExperienceSectionProps) => {
+  const [generatingIdx, setGeneratingIdx] = useState<number | null>(null);
+
   const addExperience = () => {
     onChange([
       ...experiences,
-      {
-        company: '',
-        position: '',
-        startDate: '',
-        endDate: '',
-        isCurrent: false,
-        description: '',
-        location: '',
-      },
+      { company: '', position: '', startDate: '', endDate: '', isCurrent: false, description: '', location: '' },
     ]);
   };
 
   const updateExperience = (index: number, field: keyof WorkExperience, value: string | boolean) => {
     const updated = [...experiences];
     updated[index] = { ...updated[index], [field]: value };
-
-    // If setting current, clear end date
-    if (field === 'isCurrent' && value === true) {
-      updated[index].endDate = '';
-    }
-
+    if (field === 'isCurrent' && value === true) updated[index].endDate = '';
     onChange(updated);
   };
 
   const removeExperience = (index: number) => {
     onChange(experiences.filter((_, i) => i !== index));
+  };
+
+  const generateDescription = async (index: number) => {
+    const exp = experiences[index];
+    if (!exp.position && !exp.company) {
+      toast.error('Add position and company first');
+      return;
+    }
+    setGeneratingIdx(index);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-profile-content', {
+        body: { type: 'work_description', position: exp.position, company: exp.company, skills },
+      });
+      if (error) throw error;
+      if (data?.error) { toast.error(data.error); return; }
+      if (data?.content) {
+        updateExperience(index, 'description', data.content);
+        toast.success('Description generated!');
+      }
+    } catch (err) {
+      console.error('AI description error:', err);
+      toast.error('Failed to generate description');
+    } finally {
+      setGeneratingIdx(null);
+    }
   };
 
   return (
@@ -153,7 +170,24 @@ export const WorkExperienceSection = ({ experiences, onChange }: WorkExperienceS
               </div>
 
               <div className="space-y-2">
-                <Label>Description</Label>
+                <div className="flex items-center justify-between">
+                  <Label>Description</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="gap-1.5 h-7 text-xs"
+                    disabled={generatingIdx === index || (!exp.position && !exp.company)}
+                    onClick={() => generateDescription(index)}
+                  >
+                    {generatingIdx === index ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-3 h-3" />
+                    )}
+                    {generatingIdx === index ? 'Writing...' : 'AI Write'}
+                  </Button>
+                </div>
                 <Textarea
                   value={exp.description}
                   onChange={(e) => updateExperience(index, 'description', e.target.value)}
