@@ -508,7 +508,7 @@ const CandidateDashboard = () => {
 
   const renderSectionContent = () => {
     // Show a message when candidate record is missing for sections that need it
-    const requiresCandidate = ['jobs', 'saved', 'interviews', 'resume', 'audio-resume', 'alerts', 'tasks', 'public-profile', 'recommended', 'auto-apply', 'job-radar', 'app-tracker', 'assessments', 'interview-prep', 'follow-ups', 'skill-gap', 'availability', 'compare-jobs', 'career-path', 'culture-match'];
+    const requiresCandidate = ['jobs', 'saved', 'interviews', 'resume', 'audio-resume', 'alerts', 'tasks', 'public-profile', 'recommended', 'auto-apply', 'job-radar', 'app-tracker', 'assessments', 'interview-prep', 'follow-ups', 'skill-gap', 'availability', 'compare-jobs', 'career-path', 'culture-match', 'analytics'];
     if (requiresCandidate.includes(activeSection || '') && !candidate) {
       return (
         <div className="flex flex-col items-center justify-center py-16 text-center">
