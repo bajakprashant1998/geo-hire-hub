@@ -67,6 +67,7 @@ import { TeamCollaborationNotes } from '@/components/employer/TeamCollaborationN
 import { AccessibilityScoreChecker } from '@/components/employer/AccessibilityScoreChecker';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
+import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Brain } from 'lucide-react';
 
