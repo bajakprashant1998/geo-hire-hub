@@ -384,8 +384,8 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
   // --- Stats ---
   const stats = useMemo(() => ({
     total: jobs.length,
-    perfect: jobs.filter(j => j.relevanceScore >= 25).length,
-    great: jobs.filter(j => j.relevanceScore >= 15 && j.relevanceScore < 25).length,
+    perfect: jobs.filter(j => j.relevanceScore >= 70).length,
+    great: jobs.filter(j => j.relevanceScore >= 50 && j.relevanceScore < 70).length,
     newToday: jobs.filter(j => {
       const d = (Date.now() - new Date(j.created_at).getTime()) / (1000 * 60 * 60 * 24);
       return d < 1;
@@ -396,7 +396,7 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
     { key: 'all', label: 'All', count: jobs.length, color: 'bg-secondary text-foreground' },
     { key: 'perfect', label: 'Perfect', count: stats.perfect, color: 'bg-[hsl(var(--success))]/10 text-[hsl(var(--success))]' },
     { key: 'great', label: 'Great', count: stats.great, color: 'bg-primary/10 text-primary' },
-    { key: 'good', label: 'Good+', count: jobs.filter(j => j.relevanceScore >= 5).length, color: 'bg-[hsl(var(--warning))]/10 text-[hsl(var(--warning))]' },
+    { key: 'good', label: 'Good+', count: jobs.filter(j => j.relevanceScore >= 30).length, color: 'bg-[hsl(var(--warning))]/10 text-[hsl(var(--warning))]' },
   ];
 
   if (loading) return <RecommendedSkeleton />;
