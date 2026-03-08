@@ -7,7 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import {
   ArrowLeft, Check, Crown, Zap, Building2, X, HelpCircle, Shield, Headphones,
-  Users, Briefcase, Star, ArrowRight, Sparkles, Gift
+  Users, Briefcase, Star, ArrowRight, Sparkles, Gift, Globe
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -16,6 +16,47 @@ import { SEOHead } from '@/components/SEOHead';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { TestimonialsSection } from '@/components/TestimonialsSection';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+// Approximate exchange rates from USD (updated periodically)
+const EXCHANGE_RATES: Record<string, { symbol: string; rate: number; flag: string; name: string }> = {
+  USD: { symbol: '$', rate: 1, flag: '🇺🇸', name: 'US Dollar' },
+  INR: { symbol: '₹', rate: 83.5, flag: '🇮🇳', name: 'Indian Rupee' },
+  EUR: { symbol: '€', rate: 0.92, flag: '🇪🇺', name: 'Euro' },
+  GBP: { symbol: '£', rate: 0.79, flag: '🇬🇧', name: 'British Pound' },
+  JPY: { symbol: '¥', rate: 149.5, flag: '🇯🇵', name: 'Japanese Yen' },
+  CAD: { symbol: 'C$', rate: 1.36, flag: '🇨🇦', name: 'Canadian Dollar' },
+  AUD: { symbol: 'A$', rate: 1.53, flag: '🇦🇺', name: 'Australian Dollar' },
+  AED: { symbol: 'د.إ', rate: 3.67, flag: '🇦🇪', name: 'UAE Dirham' },
+  SGD: { symbol: 'S$', rate: 1.34, flag: '🇸🇬', name: 'Singapore Dollar' },
+  BRL: { symbol: 'R$', rate: 4.97, flag: '🇧🇷', name: 'Brazilian Real' },
+  SAR: { symbol: '﷼', rate: 3.75, flag: '🇸🇦', name: 'Saudi Riyal' },
+  MYR: { symbol: 'RM', rate: 4.47, flag: '🇲🇾', name: 'Malaysian Ringgit' },
+  NGN: { symbol: '₦', rate: 1550, flag: '🇳🇬', name: 'Nigerian Naira' },
+  PKR: { symbol: '₨', rate: 278, flag: '🇵🇰', name: 'Pakistani Rupee' },
+  KES: { symbol: 'KSh', rate: 153, flag: '🇰🇪', name: 'Kenyan Shilling' },
+  ZAR: { symbol: 'R', rate: 18.2, flag: '🇿🇦', name: 'South African Rand' },
+};
+
+const convertPrice = (usdPrice: number, currency: string): number => {
+  const rate = EXCHANGE_RATES[currency]?.rate ?? 1;
+  return usdPrice * rate;
+};
+
+const formatPrice = (amount: number, currency: string): string => {
+  const info = EXCHANGE_RATES[currency];
+  if (!info) return `$${amount.toFixed(0)}`;
+  // For high-value currencies, no decimals
+  if (info.rate >= 50) return `${info.symbol}${Math.round(amount).toLocaleString()}`;
+  if (amount % 1 === 0) return `${info.symbol}${amount.toFixed(0)}`;
+  return `${info.symbol}${amount.toFixed(2)}`;
+};
 import {
   Accordion,
   AccordionContent,
@@ -106,12 +147,34 @@ const getPlanTheme = (name: string) => {
 
 // --- Sub-components ---
 
+const CurrencySelector = ({ currency, onChange }: { currency: string; onChange: (v: string) => void }) => (
+  <Select value={currency} onValueChange={onChange}>
+    <SelectTrigger className="w-[180px] h-10 rounded-full bg-muted/80 backdrop-blur-sm border-border/50 text-sm">
+      <div className="flex items-center gap-2">
+        <Globe className="w-4 h-4 text-muted-foreground" />
+        <SelectValue />
+      </div>
+    </SelectTrigger>
+    <SelectContent className="max-h-[300px]">
+      {Object.entries(EXCHANGE_RATES).map(([code, info]) => (
+        <SelectItem key={code} value={code}>
+          <span className="flex items-center gap-2">
+            <span>{info.flag}</span>
+            <span className="font-medium">{code}</span>
+            <span className="text-muted-foreground text-xs">({info.symbol})</span>
+          </span>
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+);
+
 const BillingToggle = ({ billingCycle, onChange }: { billingCycle: 'monthly' | 'yearly'; onChange: (v: 'monthly' | 'yearly') => void }) => (
   <motion.div
     initial={{ opacity: 0, y: 10 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay: 0.2, duration: 0.4 }}
-    className="flex items-center justify-center mt-8"
+    className="flex items-center justify-center"
   >
     <div className="inline-flex items-center bg-muted/80 backdrop-blur-sm rounded-full p-1.5 gap-1 border border-border/50">
       <button
@@ -149,6 +212,7 @@ const PlanCard = ({
   billingCycle,
   isCurrentPlan,
   isRecommended,
+  currency,
   onSelect,
 }: {
   plan: Plan;
@@ -156,17 +220,22 @@ const PlanCard = ({
   billingCycle: 'monthly' | 'yearly';
   isCurrentPlan: boolean;
   isRecommended: boolean;
+  currency: string;
   onSelect: (plan: Plan) => void;
 }) => {
   const isPro = plan.name.toLowerCase() === 'professional';
   const isFree = plan.name.toLowerCase() === 'free';
   const theme = getPlanTheme(plan.name);
-  const price = billingCycle === 'yearly' && plan.price_yearly
+  const priceUsd = billingCycle === 'yearly' && plan.price_yearly
     ? plan.price_yearly / 12
     : plan.price_monthly;
-  const monthlyPrice = plan.price_monthly;
+  const price = convertPrice(priceUsd, currency);
+  const monthlyPriceUsd = plan.price_monthly;
   const showSavings = billingCycle === 'yearly' && plan.price_yearly && !isFree;
-  const savings = showSavings ? (monthlyPrice * 12) - (plan.price_yearly || 0) : 0;
+  const savingsUsd = showSavings ? (monthlyPriceUsd * 12) - (plan.price_yearly || 0) : 0;
+  const savings = convertPrice(savingsUsd, currency);
+  const yearlyTotal = plan.price_yearly ? convertPrice(plan.price_yearly, currency) : 0;
+  const currencySymbol = EXCHANGE_RATES[currency]?.symbol || '$';
 
   const getPlanIcon = () => {
     switch (plan.name.toLowerCase()) {
@@ -245,9 +314,9 @@ const PlanCard = ({
                 transition={{ duration: 0.25 }}
                 className="flex items-baseline justify-center gap-1"
               >
-                {!isFree && <span className="text-lg text-muted-foreground font-medium">$</span>}
+                {!isFree && <span className="text-lg text-muted-foreground font-medium">{currencySymbol}</span>}
                 <span className="text-5xl font-extrabold text-foreground tabular-nums tracking-tight">
-                  {isFree ? 'Free' : price.toFixed(price % 1 === 0 ? 0 : 2)}
+                  {isFree ? 'Free' : (EXCHANGE_RATES[currency]?.rate >= 50 ? Math.round(price).toLocaleString() : price.toFixed(price % 1 === 0 ? 0 : 2))}
                 </span>
                 {!isFree && <span className="text-muted-foreground text-sm font-medium">/mo</span>}
               </motion.div>
@@ -260,12 +329,12 @@ const PlanCard = ({
                 className="mt-2 space-y-1"
               >
                 <p className="text-xs text-muted-foreground">
-                  Billed ${plan.price_yearly}/year
+                  Billed {formatPrice(yearlyTotal, currency)}/year
                 </p>
                 {savings > 0 && (
                   <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-1">
                     <Gift className="w-3 h-3" />
-                    Save ${savings}/year
+                    Save {formatPrice(savings, currency)}/year
                   </p>
                 )}
               </motion.div>
@@ -364,7 +433,7 @@ const TrustBar = () => (
   </motion.div>
 );
 
-const ComparisonTable = ({ plans }: { plans: Plan[] }) => {
+const ComparisonTable = ({ plans, currency }: { plans: Plan[]; currency: string }) => {
   // Build comparison rows dynamically from DB plans
   const freePlan = plans.find(p => p.name.toLowerCase() === 'free');
   const proPlan = plans.find(p => p.name.toLowerCase() === 'professional');
@@ -466,17 +535,17 @@ const ComparisonTable = ({ plans }: { plans: Plan[] }) => {
                   <th className="text-left p-4 font-semibold text-foreground min-w-[220px]">Feature</th>
                   <th className="text-center p-4 w-[140px]">
                     <div className="font-semibold text-muted-foreground">{freePlan?.name || 'Free'}</div>
-                    <div className="text-xs text-muted-foreground/70 mt-0.5">${freePlan?.price_monthly ?? 0}/mo</div>
+                    <div className="text-xs text-muted-foreground/70 mt-0.5">Free</div>
                   </th>
                   <th className="text-center p-4 w-[140px] bg-primary/5">
                     <div className="font-semibold text-primary flex items-center justify-center gap-1">
                       <Sparkles className="w-3.5 h-3.5" /> {proPlan?.name || 'Pro'}
                     </div>
-                    <div className="text-xs text-primary/70 mt-0.5">${proPlan?.price_monthly ?? 0}/mo</div>
+                    <div className="text-xs text-primary/70 mt-0.5">{formatPrice(convertPrice(proPlan?.price_monthly ?? 0, currency), currency)}/mo</div>
                   </th>
                   <th className="text-center p-4 w-[140px]">
                     <div className="font-semibold text-foreground">{entPlan?.name || 'Enterprise'}</div>
-                    <div className="text-xs text-muted-foreground/70 mt-0.5">${entPlan?.price_monthly ?? 0}/mo</div>
+                    <div className="text-xs text-muted-foreground/70 mt-0.5">{formatPrice(convertPrice(entPlan?.price_monthly ?? 0, currency), currency)}/mo</div>
                   </th>
                 </tr>
               </thead>
@@ -609,6 +678,7 @@ const Plans = () => {
   const [periodEnd, setPeriodEnd] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [currency, setCurrency] = useState('USD');
 
   useEffect(() => {
     const fetchPlans = async () => {
@@ -731,7 +801,17 @@ const Plans = () => {
             </p>
           </motion.div>
 
-          <BillingToggle billingCycle={billingCycle} onChange={setBillingCycle} />
+          <div className="flex flex-col items-center gap-3 mt-8">
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <BillingToggle billingCycle={billingCycle} onChange={setBillingCycle} />
+              <CurrencySelector currency={currency} onChange={setCurrency} />
+            </div>
+            {currency !== 'USD' && (
+              <p className="text-[11px] text-muted-foreground/60">
+                Prices shown in {EXCHANGE_RATES[currency]?.name} are approximate
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -847,6 +927,7 @@ const Plans = () => {
                   billingCycle={billingCycle}
                   isCurrentPlan={plan.id === currentPlanId}
                   isRecommended={plan.id === recommendedPlanId}
+                  currency={currency}
                   onSelect={handleSelectPlan}
                 />
               ));
@@ -856,7 +937,7 @@ const Plans = () => {
 
         <TrustBar />
         <TestimonialsSection compact />
-        <ComparisonTable plans={plans} />
+        <ComparisonTable plans={plans} currency={currency} />
         <FAQSection />
         <CTASection />
       </div>
