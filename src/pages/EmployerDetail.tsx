@@ -134,7 +134,7 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
   const identifier = propId || params.slug || params.id || params['*']?.split('/').pop();
   const [resolvedId, setResolvedId] = useState<string | null>(propId || null);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile: authProfile } = useAuth();
   const { isAdmin } = useAdminAuth();
   const isAuthenticated = !!user;
   const isOwnProfile = !!propId;
