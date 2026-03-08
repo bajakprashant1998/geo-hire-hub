@@ -74,6 +74,10 @@ const LocationMapPickerInner = ({
         const lng = place.geometry.location.lng();
         setCoordinates({ lat, lng });
         setAddress(place.formatted_address || place.name || '');
+        if (place.address_components) {
+          const geo = extractGeoComponents([place as unknown as google.maps.GeocoderResult]);
+          onGeoComponents?.(geo);
+        }
         setSearchQuery('');
         if (map) {
           map.panTo({ lat, lng });
