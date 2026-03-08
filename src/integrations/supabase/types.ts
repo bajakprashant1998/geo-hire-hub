@@ -946,6 +946,53 @@ export type Database = {
           },
         ]
       }
+      content_moderation_scans: {
+        Row: {
+          content_id: string
+          content_text: string
+          content_type: string
+          created_moderation_item_id: string | null
+          flagged: boolean
+          id: string
+          recommendation: string
+          risk_reasons: string[] | null
+          risk_score: number
+          scanned_at: string
+        }
+        Insert: {
+          content_id: string
+          content_text: string
+          content_type: string
+          created_moderation_item_id?: string | null
+          flagged?: boolean
+          id?: string
+          recommendation?: string
+          risk_reasons?: string[] | null
+          risk_score?: number
+          scanned_at?: string
+        }
+        Update: {
+          content_id?: string
+          content_text?: string
+          content_type?: string
+          created_moderation_item_id?: string | null
+          flagged?: boolean
+          id?: string
+          recommendation?: string
+          risk_reasons?: string[] | null
+          risk_score?: number
+          scanned_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_moderation_scans_created_moderation_item_id_fkey"
+            columns: ["created_moderation_item_id"]
+            isOneToOne: false
+            referencedRelation: "moderation_queue"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversations: {
         Row: {
           created_at: string | null
@@ -2484,6 +2531,10 @@ export type Database = {
       moderation_queue: {
         Row: {
           admin_notes: string | null
+          ai_recommendation: string | null
+          ai_risk_reasons: string[] | null
+          ai_risk_score: number | null
+          ai_scanned_at: string | null
           content_id: string
           content_type: string
           created_at: string | null
@@ -2496,6 +2547,10 @@ export type Database = {
         }
         Insert: {
           admin_notes?: string | null
+          ai_recommendation?: string | null
+          ai_risk_reasons?: string[] | null
+          ai_risk_score?: number | null
+          ai_scanned_at?: string | null
           content_id: string
           content_type: string
           created_at?: string | null
@@ -2508,6 +2563,10 @@ export type Database = {
         }
         Update: {
           admin_notes?: string | null
+          ai_recommendation?: string | null
+          ai_risk_reasons?: string[] | null
+          ai_risk_score?: number | null
+          ai_scanned_at?: string | null
           content_id?: string
           content_type?: string
           created_at?: string | null
