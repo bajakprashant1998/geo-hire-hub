@@ -1067,16 +1067,23 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
             )}
           </AnimatePresence>
 
-          {/* Results count */}
+          {/* Results count + actions */}
           <div className="flex items-center justify-between">
             <p className="text-xs text-muted-foreground">
               <span className="font-semibold text-foreground">{filteredCandidates.length}</span> candidate{filteredCandidates.length !== 1 ? 's' : ''} found
             </p>
-            {filteredCandidates.length > 1 && selectedIds.length === 0 && (
-              <button onClick={() => setSelectedIds(filteredCandidates.map(c => c.applicationId || '').filter(Boolean))} className="text-xs text-primary hover:underline font-medium">
-                Select all
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              {uniqueJobs.length <= 1 && filteredCandidates.length > 0 && (
+                <button onClick={exportCSV} className="text-xs text-muted-foreground hover:text-foreground font-medium flex items-center gap-1">
+                  <Download className="w-3 h-3" /> Export CSV
+                </button>
+              )}
+              {filteredCandidates.length > 1 && selectedIds.length === 0 && (
+                <button onClick={() => setSelectedIds(filteredCandidates.map(c => c.applicationId || '').filter(Boolean))} className="text-xs text-primary hover:underline font-medium">
+                  Select all
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Candidate Cards */}
