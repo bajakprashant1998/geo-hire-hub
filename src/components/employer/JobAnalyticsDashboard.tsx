@@ -49,15 +49,11 @@ export const JobAnalyticsDashboard = ({ employerId }: JobAnalyticsDashboardProps
 
       const jobsWithApps = await Promise.all(
         (jobs || []).map(async (job) => {
-          const { count: appCount } = await supabase
-            .from('applications')
-            .select('*', { count: 'exact', head: true })
-            .eq('job_id', job.id);
-
-          const { data: appStatuses } = await supabase
-            .from('applications')
-            .select('status')
-            .eq('job_id', job.id);
+          const [{ count: appCount }, { data: appStatuses }, { count: interviewCount }] = await Promise.all([
+            supabase.from('applications').select('*', { count: 'exact', head: true }).eq('job_id', job.id),
+            supabase.from('applications').select('status').eq('job_id', job.id),
+            supabase.from('interviews').select('*', { count: 'exact', head: true }).eq('job_id', job.id),
+          ]);
 
           const statusCounts = {
             pending: 0,
@@ -77,6 +73,7 @@ export const JobAnalyticsDashboard = ({ employerId }: JobAnalyticsDashboardProps
             fullTitle: job.title,
             views: job.view_count || 0,
             applications: appCount || 0,
+            interviews: interviewCount || 0,
             active: job.is_active && job.status === 'open',
             created_at: job.created_at,
             category: job.category || 'Uncategorized',
