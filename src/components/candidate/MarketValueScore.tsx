@@ -384,7 +384,7 @@ export const MarketValueScore = () => {
                 {/* Quick Stats */}
                 <div className="grid grid-cols-2 gap-3 shrink-0">
                   <div className="p-3 rounded-xl bg-background/50 border border-border/30 text-center">
-                    <DollarSign className="w-5 h-5 mx-auto mb-1 text-emerald-500" />
+                    <Banknote className="w-5 h-5 mx-auto mb-1 text-emerald-500" />
                     <p className="text-lg font-bold text-foreground">
                       {formatSalary(data.salary_estimate.median, data.salary_estimate.currency)}
                     </p>
