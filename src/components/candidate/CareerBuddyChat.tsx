@@ -45,7 +45,7 @@ const quickActions: QuickAction[] = [
     description: 'Get personalized company recommendations',
   },
   {
-    icon: DollarSign, label: 'Salary prediction',
+    icon: Banknote, label: 'Salary prediction',
     prompt: 'What salary can I expect now and in the future? Give me current market range, 2-year and 5-year projections based on my skills and experience.',
     gradient: 'from-emerald-500/10 to-emerald-500/5 border-emerald-500/20 hover:border-emerald-500/40',
     iconBg: 'bg-emerald-500/15 text-emerald-600',

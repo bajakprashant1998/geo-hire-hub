@@ -71,7 +71,7 @@ export function RegistrationTrendChart({ data }: { data: ChartData[] }) {
 
 export function RevenueChart({ data }: { data: ChartData[] }) {
   return (
-    <ChartCard title="Monthly Revenue" icon={DollarSign} empty={!data.length}>
+    <ChartCard title="Monthly Revenue" icon={Banknote} empty={!data.length}>
       <div className="h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data}>

@@ -769,7 +769,7 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
             <div className="space-y-4 sm:space-y-6">
               <Card>
                 <CardHeader className="pb-3 sm:pb-4 px-3 sm:px-6 pt-4 sm:pt-6">
-                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /> Salary & Compensation</CardTitle>
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg"><Banknote className="w-4 h-4 sm:w-5 sm:h-5 text-primary" /> Salary & Compensation</CardTitle>
                   <CardDescription className="text-xs sm:text-sm">Critical for AI salary advice & matching</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3 sm:space-y-4 px-3 sm:px-6 pb-4 sm:pb-6">

@@ -141,7 +141,7 @@ const JobCard = ({ job, isSaved, onToggleSave, index }: { job: any; isSaved: boo
           )}
           {job.salary_range && (
             <span className="inline-flex items-center gap-1 text-xs bg-[hsl(var(--success))]/10 text-[hsl(var(--success))] px-2.5 py-1 rounded-full font-medium border border-[hsl(var(--success))]/20">
-              <DollarSign className="w-3 h-3" />
+              <Banknote className="w-3 h-3" />
               {job.salary_range}
             </span>
           )}

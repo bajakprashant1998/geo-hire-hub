@@ -476,10 +476,10 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
 
             {/* Compensation */}
             {(employer.avg_salary_range || employer.bonus_structure || employer.paid_leaves_policy || employer.learning_budget) && (
-              <SectionCard title="Compensation & Benefits" icon={DollarSign} delay={2}>
+              <SectionCard title="Compensation & Benefits" icon={Banknote} delay={2}>
                 <div className="grid sm:grid-cols-2 gap-3">
                   {[
-                    employer.avg_salary_range && { icon: DollarSign, label: 'Avg Salary Range', value: employer.avg_salary_range },
+                    employer.avg_salary_range && { icon: Banknote, label: 'Avg Salary Range', value: employer.avg_salary_range },
                     employer.bonus_structure && { icon: Zap, label: 'Bonus Structure', value: employer.bonus_structure },
                     employer.paid_leaves_policy && { icon: Calendar, label: 'Paid Leaves', value: employer.paid_leaves_policy },
                     employer.learning_budget && { icon: BookOpen, label: 'Learning Budget', value: employer.learning_budget },

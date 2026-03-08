@@ -44,7 +44,7 @@ export const SalaryHeatmapPanel = ({
             : "bg-card/95 border-border/30 text-foreground hover:bg-card"
         )}
       >
-        <DollarSign className="w-[18px] h-[18px]" />
+        <Banknote className="w-[18px] h-[18px]" />
       </motion.button>
 
       {/* Expanded Panel */}

@@ -126,7 +126,7 @@ export default function AdminAnalytics() {
           <TabsTrigger value="overview" className="gap-1.5 data-[state=active]:bg-card"><TrendingUp className="h-3.5 w-3.5 hidden sm:block" />Overview</TabsTrigger>
           <TabsTrigger value="users" className="gap-1.5 data-[state=active]:bg-card"><Users className="h-3.5 w-3.5 hidden sm:block" />Users</TabsTrigger>
           <TabsTrigger value="jobs" className="gap-1.5 data-[state=active]:bg-card"><Briefcase className="h-3.5 w-3.5 hidden sm:block" />Jobs</TabsTrigger>
-          <TabsTrigger value="revenue" className="gap-1.5 data-[state=active]:bg-card"><DollarSign className="h-3.5 w-3.5 hidden sm:block" />Revenue</TabsTrigger>
+          <TabsTrigger value="revenue" className="gap-1.5 data-[state=active]:bg-card"><Banknote className="h-3.5 w-3.5 hidden sm:block" />Revenue</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4 sm:space-y-6">

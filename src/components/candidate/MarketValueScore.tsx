@@ -424,7 +424,7 @@ export const MarketValueScore = () => {
             <Card className="border-border/40">
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm flex items-center gap-2">
-                  <DollarSign className="w-4 h-4 text-emerald-500" />
+                  <Banknote className="w-4 h-4 text-emerald-500" />
                   Estimated Salary Range
                 </CardTitle>
               </CardHeader>

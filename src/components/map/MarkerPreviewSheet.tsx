@@ -224,7 +224,7 @@ export const MarkerPreviewSheet = ({
           )}
           {job.salary_range && (
             <Badge variant="outline" className="gap-1 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 rounded-lg">
-              <DollarSign className="w-3 h-3" />₹{job.salary_range}
+              <Banknote className="w-3 h-3" />₹{job.salary_range}
             </Badge>
           )}
           {job.distance_km != null && (

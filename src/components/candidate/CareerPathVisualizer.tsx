@@ -486,7 +486,7 @@ export const CareerPathVisualizer = ({ currentJobTitle, currentSkills }: { curre
                                       </span>
                                       {step.salaryRange && (
                                         <span className="flex items-center gap-1">
-                                          <DollarSign className="w-3 h-3" />
+                                          <Banknote className="w-3 h-3" />
                                           {step.salaryRange}
                                         </span>
                                       )}

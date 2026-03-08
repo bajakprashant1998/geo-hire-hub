@@ -1249,7 +1249,7 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                   )}
                   {selectedCandidate.expectedSalary && (
                     <div className="flex items-center gap-2 text-xs sm:text-sm p-2.5 sm:p-3 bg-muted/40 rounded-xl border border-border/20">
-                      <DollarSign className="w-4 h-4 text-primary/60 shrink-0" />
+                      <Banknote className="w-4 h-4 text-primary/60 shrink-0" />
                       <span className="truncate">{selectedCandidate.expectedSalary}</span>
                     </div>
                   )}

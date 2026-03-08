@@ -232,7 +232,7 @@ export default function AdminRevenue() {
                   label: 'Projected ARR',
                   value: `$${forecastData.projectedARR.toLocaleString()}`,
                   sub: 'annualized',
-                  icon: DollarSign,
+                  icon: Banknote,
                   color: 'text-emerald-500 bg-emerald-500/10',
                 },
                 {

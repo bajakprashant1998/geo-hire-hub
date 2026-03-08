@@ -144,7 +144,7 @@ export default function AdminDashboard() {
             <StatsCard title="Pending Moderation" value={stats?.pending_moderation || 0} icon={AlertTriangle} variant="warning" />
             <StatsCard title="Total Candidates" value={stats?.total_candidates || 0} icon={Users} />
             <StatsCard title="Pending Reports" value={stats?.pending_reports || 0} icon={Flag} variant="destructive" />
-            <StatsCard title="Revenue This Month" value={`$${(stats?.revenue_this_month || 0).toLocaleString()}`} icon={DollarSign} variant="success" />
+            <StatsCard title="Revenue This Month" value={`$${(stats?.revenue_this_month || 0).toLocaleString()}`} icon={Banknote} variant="success" />
             <StatsCard title="New This Week" value={stats?.new_registrations_week || 0} icon={UserPlus} />
           </>
         )}

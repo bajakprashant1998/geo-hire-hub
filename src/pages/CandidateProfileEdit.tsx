@@ -557,7 +557,7 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                     </Card>
 
                     <Card className="shadow-google border-border">
-                        <CardHeader><CardTitle className="flex items-center gap-2"><DollarSign className="w-5 h-5 text-primary" /> Salary Details</CardTitle></CardHeader>
+                        <CardHeader><CardTitle className="flex items-center gap-2"><Banknote className="w-5 h-5 text-primary" /> Salary Details</CardTitle></CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid md:grid-cols-3 gap-4">
                                 <div className="space-y-2"><Label>Currency</Label>

@@ -158,7 +158,7 @@ export const JobPreviewStep = ({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 p-1 bg-muted/30">
           {[
             { icon: MapPin, label: 'Location', value: workMode === 'remote' ? 'Remote' : (address || 'Not set'), color: 'text-primary' },
-            { icon: DollarSign, label: 'Salary', value: formatSalary(), color: 'text-success' },
+            { icon: Banknote, label: 'Salary', value: formatSalary(), color: 'text-success' },
             { icon: Users, label: 'Experience', value: formatExperience(), color: 'text-primary' },
             { icon: Calendar, label: 'Work Days', value: workDays.length === 7 ? 'All days' : `${workDays.length} days/wk`, color: 'text-primary' },
           ].map((item, i) => (
