@@ -410,6 +410,7 @@ const EmployerDashboard = () => {
     { icon: Users, label: 'Team Workflows', value: 'team-workflows' },
     { icon: Sparkles, label: 'Accessibility Check', value: 'accessibility-check' },
     { icon: Palette, label: 'Branding Page', value: 'branding' },
+    { icon: Upload, label: 'Bulk Import', value: 'bulk-import' },
     { icon: CreditCard, label: 'Upgrade Plan', value: 'upgrade-plan' }
   ];
 
