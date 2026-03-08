@@ -25,6 +25,7 @@ interface LeaderboardEntry {
   assessments_passed: number;
   applications_count: number;
   activity_score: number;
+  portfolio_score: number;
   total_score: number;
 }
 
