@@ -23,6 +23,7 @@ import { ChatHeader } from './ChatHeader';
 import { ConversationCard } from './ConversationCard';
 import { MessageBubble } from './MessageBubble';
 import { ChatInput } from './ChatInput';
+import { SmartReplies } from './SmartReplies';
 import { cn } from '@/lib/utils';
 
 interface Attachment {
