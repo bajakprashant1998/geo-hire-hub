@@ -63,6 +63,10 @@ interface LeftSidebarPanelProps {
   onFiltersChange?: (filters: MapFilters) => void;
   heatmapEnabled?: boolean;
   onHeatmapToggle?: () => void;
+  salaryHeatmapEnabled?: boolean;
+  onSalaryHeatmapToggle?: () => void;
+  salaryRoleFilter?: string;
+  onSalaryRoleFilterChange?: (role: string) => void;
 }
 
 // Haversine distance helper
