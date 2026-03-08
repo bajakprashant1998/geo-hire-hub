@@ -40,6 +40,8 @@ const Index = () => {
   const [centerTrigger, setCenterTrigger] = useState(0);
   const [filters, setFilters] = useState<MapFilters>(defaultFilters);
   const [heatmapEnabled, setHeatmapEnabled] = useState(false);
+  const [salaryHeatmapEnabled, setSalaryHeatmapEnabled] = useState(false);
+  const [salaryRoleFilter, setSalaryRoleFilter] = useState('');
 
   const geolocation = useGeolocation();
   const hasRealLocation = !!(geolocation.latitude && geolocation.longitude);
@@ -141,6 +143,8 @@ const Index = () => {
         isEmployer={profile?.user_type === 'employer'}
         centerTrigger={centerTrigger}
         heatmapEnabled={heatmapEnabled}
+        salaryHeatmapEnabled={salaryHeatmapEnabled}
+        salaryRoleFilter={salaryRoleFilter}
       />
     </Suspense>
   );
@@ -172,6 +176,10 @@ const Index = () => {
             onFiltersChange={setFilters}
             heatmapEnabled={heatmapEnabled}
             onHeatmapToggle={() => setHeatmapEnabled(!heatmapEnabled)}
+            salaryHeatmapEnabled={salaryHeatmapEnabled}
+            onSalaryHeatmapToggle={() => setSalaryHeatmapEnabled(!salaryHeatmapEnabled)}
+            salaryRoleFilter={salaryRoleFilter}
+            onSalaryRoleFilterChange={setSalaryRoleFilter}
           />
         </div>
 
@@ -207,6 +215,10 @@ const Index = () => {
           searchQuery={searchQuery}
           heatmapEnabled={heatmapEnabled}
           onHeatmapToggle={() => setHeatmapEnabled(!heatmapEnabled)}
+          salaryHeatmapEnabled={salaryHeatmapEnabled}
+          onSalaryHeatmapToggle={() => setSalaryHeatmapEnabled(!salaryHeatmapEnabled)}
+          salaryRoleFilter={salaryRoleFilter}
+          onSalaryRoleFilterChange={setSalaryRoleFilter}
         />
         <NearbyAvatarRow mode={mode} candidates={filteredCandidates} jobs={filteredJobs} onSelect={handleSelectFromSidebar} onViewAll={() => setSidebarOpen(true)} />
         <MobileFAB mode={mode} />

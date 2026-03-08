@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { SearchBar } from './SearchBar';
 import { HeatmapToggle } from './HeatmapToggle';
+import { SalaryHeatmapPanel } from './SalaryHeatmapPanel';
 
 interface FloatingControlsProps {
   onCenterOnUser: () => void;
@@ -15,6 +16,10 @@ interface FloatingControlsProps {
   searchQuery: string;
   heatmapEnabled?: boolean;
   onHeatmapToggle?: () => void;
+  salaryHeatmapEnabled?: boolean;
+  onSalaryHeatmapToggle?: () => void;
+  salaryRoleFilter?: string;
+  onSalaryRoleFilterChange?: (role: string) => void;
 }
 
 const FAB = ({
@@ -64,6 +69,8 @@ const FAB = ({
 export const FloatingControls = ({
   onCenterOnUser, onToggleSidebar, radius, onRadiusChange, onSearch, searchQuery,
   heatmapEnabled = false, onHeatmapToggle,
+  salaryHeatmapEnabled = false, onSalaryHeatmapToggle,
+  salaryRoleFilter = '', onSalaryRoleFilterChange,
 }: FloatingControlsProps) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const radiusCycle = [5, 10, 25, 50, 100, 500];
@@ -145,6 +152,17 @@ export const FloatingControls = ({
 
         {onHeatmapToggle && (
           <HeatmapToggle enabled={heatmapEnabled} onToggle={onHeatmapToggle} />
+        )}
+
+        {onSalaryHeatmapToggle && (
+          <div className="relative">
+            <SalaryHeatmapPanel
+              enabled={salaryHeatmapEnabled}
+              onToggle={onSalaryHeatmapToggle}
+              roleFilter={salaryRoleFilter}
+              onRoleFilterChange={onSalaryRoleFilterChange || (() => {})}
+            />
+          </div>
         )}
 
         <FAB

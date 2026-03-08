@@ -25,6 +25,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AdvancedFilters, MapFilters, defaultFilters } from './AdvancedFilters';
 import { NearbyCompanies } from './NearbyCompanies';
 import { HeatmapToggle } from './HeatmapToggle';
+import { SalaryHeatmapPanel } from './SalaryHeatmapPanel';
 
 interface Job {
   id: string;
@@ -62,6 +63,10 @@ interface LeftSidebarPanelProps {
   onFiltersChange?: (filters: MapFilters) => void;
   heatmapEnabled?: boolean;
   onHeatmapToggle?: () => void;
+  salaryHeatmapEnabled?: boolean;
+  onSalaryHeatmapToggle?: () => void;
+  salaryRoleFilter?: string;
+  onSalaryRoleFilterChange?: (role: string) => void;
 }
 
 // Haversine distance helper
@@ -80,6 +85,8 @@ export const LeftSidebarPanel = ({
   onCenterOnUser, userLocation, onClose,
   filters = defaultFilters, onFiltersChange,
   heatmapEnabled = false, onHeatmapToggle,
+  salaryHeatmapEnabled = false, onSalaryHeatmapToggle,
+  salaryRoleFilter = '', onSalaryRoleFilterChange,
 }: LeftSidebarPanelProps) => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
@@ -390,6 +397,20 @@ export const LeftSidebarPanel = ({
                 )}
               >
                 <Flame className="w-3.5 h-3.5" />
+              </Button>
+            )}
+            {onSalaryHeatmapToggle && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onSalaryHeatmapToggle}
+                className={cn(
+                  "h-9 text-xs gap-1.5 rounded-xl border-border/40 transition-all",
+                  salaryHeatmapEnabled && "border-emerald-400/50 text-emerald-500 bg-emerald-500/5"
+                )}
+              >
+                <TrendingUp className="w-3.5 h-3.5" />
+                ₹
               </Button>
             )}
           </div>

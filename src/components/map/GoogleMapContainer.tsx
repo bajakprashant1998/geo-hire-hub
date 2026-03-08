@@ -5,6 +5,7 @@ import { Map as GoogleMapView, AdvancedMarker, useMap, InfoWindow } from '@vis.g
 import { MarkerClusterer, type Cluster } from '@googlemaps/markerclusterer';
 import { ViewMode, Candidate, Job } from '@/types';
 import { GoogleMapsProvider } from '@/components/map/GoogleMapsProvider';
+import { SalaryHeatmapOverlay } from '@/components/map/SalaryHeatmapOverlay';
 
 
 // Map ID required for AdvancedMarkerElement — use a generic one or your own
@@ -21,6 +22,8 @@ interface GoogleMapContainerProps {
   isEmployer?: boolean;
   centerTrigger?: number;
   heatmapEnabled?: boolean;
+  salaryHeatmapEnabled?: boolean;
+  salaryRoleFilter?: string;
 }
 
 const defaultCenter = { lat: 20.5937, lng: 78.9629 };
@@ -30,6 +33,7 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
     mode, candidates, jobs, userLocation, radius,
     onMarkerClick, selectedItem, isEmployer,
     centerTrigger = 0, heatmapEnabled = false,
+    salaryHeatmapEnabled = false, salaryRoleFilter = '',
   } = props;
 
   const map = useMap();
@@ -578,6 +582,13 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
           </div>
         </InfoWindow>
       )}
+
+      {/* Salary Heatmap Overlay */}
+      <SalaryHeatmapOverlay
+        jobs={jobs}
+        enabled={salaryHeatmapEnabled}
+        roleFilter={salaryRoleFilter}
+      />
     </GoogleMapView>
   );
 };
