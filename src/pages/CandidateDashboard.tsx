@@ -50,6 +50,7 @@ import { TakeAssessment } from '@/components/candidate/TakeAssessment';
 import { AssessmentHub } from '@/components/candidate/AssessmentHub';
 import { InterviewPrepCoach } from '@/components/candidate/InterviewPrepCoach';
 import { MarketValueScore } from '@/components/candidate/MarketValueScore';
+import { SalaryNegotiationCoach } from '@/components/candidate/SalaryNegotiationCoach';
 import { ProfileBadges } from '@/components/candidate/ProfileBadges';
 import { CandidateLeaderboard } from '@/components/candidate/CandidateLeaderboard';
 import { FollowUpReminders } from '@/components/candidate/FollowUpReminders';
