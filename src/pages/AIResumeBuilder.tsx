@@ -301,9 +301,83 @@ const AIResumeBuilder = ({ embedded = false }: { embedded?: boolean }) => {
     experience: [{ duration: '', company: '', title: '', description: '' }],
     skills: [{ name: '', subtitle: '' }],
   });
+  const [autoFilling, setAutoFilling] = useState(false);
 
   const updateField = (field: keyof ResumeFormData, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  // ─── Auto-fill from Profile ──────────────────────────────
+  const autoFillFromProfile = async () => {
+    if (!profile) {
+      toast.error('Please log in first');
+      return;
+    }
+    setAutoFilling(true);
+    try {
+      const { data: candidate } = await supabase
+        .from('candidates')
+        .select('*')
+        .eq('profile_id', profile.id)
+        .maybeSingle();
+
+      if (!candidate) {
+        toast.error('No candidate profile found');
+        return;
+      }
+
+      const updates: Partial<ResumeFormData> = {};
+
+      // Basic info
+      updates.fullName = profile.full_name || formData.fullName;
+      updates.photoUrl = profile.avatar_url || formData.photoUrl;
+      if (candidate.job_title && candidate.job_title !== 'Not specified') updates.jobTitle = candidate.job_title;
+      if (candidate.bio) updates.summary = candidate.bio;
+      if ((profile as any).whatsapp_number) updates.phone = (profile as any).whatsapp_number;
+
+      // Location
+      const locationParts = [candidate.city, candidate.state, candidate.country].filter(Boolean);
+      if (locationParts.length > 0) updates.location = locationParts.join(', ');
+
+      // Social links
+      const socialLinks = candidate.social_links as any;
+      if (socialLinks?.linkedin) updates.linkedin = socialLinks.linkedin;
+      if (socialLinks?.website || socialLinks?.portfolio) updates.website = socialLinks.website || socialLinks.portfolio;
+
+      // Skills
+      if (candidate.skills?.length) {
+        updates.skills = candidate.skills.map((s: string) => ({ name: s, subtitle: '' }));
+      }
+
+      // Education
+      const edu = candidate.education as any[];
+      if (Array.isArray(edu) && edu.length > 0) {
+        updates.education = edu.map((e: any) => ({
+          year: [e.startYear, e.endYear].filter(Boolean).join(' - ') || '',
+          degree: [e.degree, e.field].filter(Boolean).join(' in ') || '',
+          institution: e.institution || '',
+        }));
+      }
+
+      // Work experience
+      const workExp = candidate.work_experience as any[];
+      if (Array.isArray(workExp) && workExp.length > 0) {
+        updates.experience = workExp.map((w: any) => ({
+          duration: [w.startDate, w.endDate || 'Present'].filter(Boolean).join(' - ') || '',
+          company: w.company || '',
+          title: w.title || '',
+          description: w.description || '',
+        }));
+      }
+
+      setFormData(prev => ({ ...prev, ...updates }));
+      toast.success('Profile data imported! Review and adjust as needed.');
+    } catch (err) {
+      console.error('Auto-fill error:', err);
+      toast.error('Failed to import profile data');
+    } finally {
+      setAutoFilling(false);
+    }
   };
 
   // Debounced Location Fetch
@@ -635,6 +709,25 @@ const AIResumeBuilder = ({ embedded = false }: { embedded?: boolean }) => {
   // ─── FORM VIEW ─────────────────────────────
   const renderForm = () => (
     <div className="max-w-3xl mx-auto space-y-6">
+      {/* Auto-fill Banner */}
+      <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
+        <CardContent className="p-4 flex items-center justify-between gap-4">
+          <div>
+            <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              Auto-fill from Profile
+            </h4>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Import your skills, education, experience and contact info from your profile
+            </p>
+          </div>
+          <Button onClick={autoFillFromProfile} disabled={autoFilling} variant="outline" size="sm" className="rounded-xl gap-1.5 shrink-0">
+            {autoFilling ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+            {autoFilling ? 'Importing...' : 'Import'}
+          </Button>
+        </CardContent>
+      </Card>
+
       {/* Personal Info */}
       <Card>
         <CardHeader><CardTitle className="flex items-center gap-2"><UserIcon className="w-5 h-5" /> Personal Information</CardTitle></CardHeader>

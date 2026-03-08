@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { generateGeminiChat } from "../_shared/gemini.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -35,7 +34,7 @@ serve(async (req) => {
     }
     const userId = claimsData.claims.sub;
 
-    const { messages, candidateProfile, siteUrl } = await req.json();
+    const { messages, candidateProfile, siteUrl, stream: wantStream } = await req.json();
 
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: "Messages array is required" }), {
@@ -84,7 +83,6 @@ serve(async (req) => {
     // ---- Fetch REAL jobs and employers from the platform ----
     const baseUrl = siteUrl || "https://hireforjob1.lovable.app";
 
-    // Fetch active open jobs with employer info
     const { data: platformJobs } = await supabase
       .from("jobs")
       .select(`
@@ -98,10 +96,8 @@ serve(async (req) => {
       .order("created_at", { ascending: false })
       .limit(100);
 
-    // Build jobs context with links
     let jobsContext = "";
     if (platformJobs?.length) {
-      // Calculate distance from candidate if location available
       const candidateLat = profile?.latitude;
       const candidateLng = profile?.longitude;
 
@@ -120,7 +116,6 @@ serve(async (req) => {
           distanceKm = Math.round(R * c);
         }
 
-        // Build SEO-friendly job link
         const pathParts = ['/jobs'];
         if (j.location_country) pathParts.push(j.location_country.toLowerCase().replace(/\s+/g, '-'));
         if (j.location_state) pathParts.push(j.location_state.toLowerCase().replace(/\s+/g, '-'));
@@ -131,7 +126,6 @@ serve(async (req) => {
         return { ...j, distanceKm, jobUrl };
       });
 
-      // Sort by distance if available
       jobsWithDistance.sort((a: any, b: any) => {
         if (a.distanceKm !== null && b.distanceKm !== null) return a.distanceKm - b.distanceKm;
         if (a.distanceKm !== null) return -1;
@@ -145,7 +139,6 @@ serve(async (req) => {
       }).join('\n')}`;
     }
 
-    // Fetch unique employers
     const { data: platformEmployers } = await supabase
       .from("employers")
       .select("id, company_name, slug, industry, description, team_size, location_city, location_state, location_country, is_government, verification_status, benefits, specializations, website_url")
@@ -165,7 +158,6 @@ serve(async (req) => {
       }).join('\n')}`;
     }
 
-    // Build profile context
     const profileContext = profile ? `
 CANDIDATE PROFILE:
 - Name: ${profile.full_name || 'Not set'}
@@ -225,6 +217,102 @@ RESPONSE GUIDELINES:
 - Use tables for comparisons when helpful (salary ranges, career paths)
 - For job/company links, use markdown link syntax: [Company Name](url) or [Apply Now](url)`;
 
+    const apiKey = Deno.env.get("GEMINI_API_KEY");
+    if (!apiKey) throw new Error("GEMINI_API_KEY is not configured");
+
+    // Build Gemini request
+    const systemMessages = [systemPrompt];
+    const contents = messages.map((m: any) => ({
+      role: m.role === "assistant" ? "model" : "user",
+      parts: [{ text: m.content }],
+    }));
+
+    if (contents.length === 0) {
+      contents.push({ role: "user", parts: [{ text: "Hello" }] });
+    }
+
+    const payload: Record<string, unknown> = {
+      contents,
+      generationConfig: { temperature: 0.7 },
+    };
+
+    if (systemMessages.length > 0) {
+      payload.systemInstruction = {
+        parts: [{ text: systemMessages.join("\n\n") }],
+      };
+    }
+
+    // ---- STREAMING MODE ----
+    if (wantStream) {
+      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:streamGenerateContent?alt=sse&key=${apiKey}`;
+
+      const geminiResponse = await fetch(geminiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!geminiResponse.ok) {
+        const errText = await geminiResponse.text();
+        console.error("Gemini stream error:", geminiResponse.status, errText);
+        return new Response(JSON.stringify({ error: "AI service error" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      // Pipe Gemini SSE stream, transforming to OpenAI-compatible format
+      const reader = geminiResponse.body!.getReader();
+      const encoder = new TextEncoder();
+      const decoder = new TextDecoder();
+
+      const stream = new ReadableStream({
+        async start(controller) {
+          let buffer = "";
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) {
+              controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+              controller.close();
+              break;
+            }
+            buffer += decoder.decode(value, { stream: true });
+
+            let newlineIdx;
+            while ((newlineIdx = buffer.indexOf("\n")) !== -1) {
+              let line = buffer.slice(0, newlineIdx);
+              buffer = buffer.slice(newlineIdx + 1);
+              if (line.endsWith("\r")) line = line.slice(0, -1);
+
+              if (!line.startsWith("data: ")) continue;
+              const jsonStr = line.slice(6).trim();
+              if (!jsonStr || jsonStr === "[DONE]") continue;
+
+              try {
+                const parsed = JSON.parse(jsonStr);
+                const text = parsed?.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (text) {
+                  // Emit OpenAI-compatible SSE chunk
+                  const chunk = JSON.stringify({
+                    choices: [{ delta: { content: text } }],
+                  });
+                  controller.enqueue(encoder.encode(`data: ${chunk}\n\n`));
+                }
+              } catch {
+                // skip malformed lines
+              }
+            }
+          }
+        },
+      });
+
+      return new Response(stream, {
+        headers: { ...corsHeaders, "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
+      });
+    }
+
+    // ---- NON-STREAMING (legacy) ----
+    const { generateGeminiChat } = await import("../_shared/gemini.ts");
     const geminiMessages = [
       { role: "system" as const, content: systemPrompt },
       ...messages.map((m: any) => ({

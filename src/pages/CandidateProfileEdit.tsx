@@ -258,6 +258,19 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
 
     const handleSave = async () => {
         if (!candidate || !profile) return;
+
+        // Inline validation
+        const errors: string[] = [];
+        if (!fullName.trim()) errors.push('Full name is required');
+        if (!jobTitle.trim() || jobTitle === 'Not specified') errors.push('Job title is required');
+        if (expectedSalary && isNaN(Number(expectedSalary))) errors.push('Expected salary must be a number');
+        if (videoIntroUrl && !videoIntroUrl.startsWith('http')) errors.push('Video URL must be a valid link');
+
+        if (errors.length > 0) {
+            errors.forEach(e => toast.error(e));
+            return;
+        }
+
         setSaving(true);
         try {
             const { error: profileError } = await supabase.from('profiles').update({
@@ -274,7 +287,6 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                 certifications, languages: languages as unknown as any,
                 social_links: socialLinks as unknown as any,
                 availability_status: availabilityStatus, preferred_job_types: preferredJobTypes,
-                // New fields
                 notice_period: noticePeriod || null,
                 work_authorization: workAuthorization || null,
                 willing_to_relocate: willingToRelocate,
@@ -305,7 +317,7 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
             if (candidateError) throw candidateError;
 
             await refreshProfile();
-            toast.success('Profile saved successfully');
+            toast.success('Profile saved successfully ✓');
         } catch (error: any) {
             console.error('Error saving:', error);
             toast.error(error.message || 'Failed to save profile');
@@ -336,11 +348,26 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                         <p className="text-muted-foreground text-sm">Manage how employers see you</p>
                     </div>
                 </div>
-                <Button onClick={handleSave} disabled={saving}>
-                    {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                    Save
-                </Button>
+                <div className="flex items-center gap-3">
+                    {saving && <span className="text-xs text-muted-foreground animate-pulse">Saving...</span>}
+                    <Button onClick={handleSave} disabled={saving} className="gap-2">
+                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                        Save
+                    </Button>
+                </div>
             </div>
+
+            {/* Validation hints */}
+            {(!fullName.trim() || !jobTitle.trim() || jobTitle === 'Not specified') && (
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 text-sm text-amber-800 dark:text-amber-200">
+                    <Flag className="w-4 h-4 shrink-0" />
+                    <span>
+                        {!fullName.trim() && 'Full name is required. '}
+                        {(!jobTitle.trim() || jobTitle === 'Not specified') && 'Please set your job title. '}
+                        {skills.length === 0 && 'Add at least one skill for better visibility.'}
+                    </span>
+                </div>
+            )}
 
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                 <TabsList className="grid grid-cols-3 sm:grid-cols-6 w-full h-auto gap-1">
@@ -378,14 +405,21 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                             </div>
                             <Separator />
                             <div className="grid md:grid-cols-2 gap-4">
-                                <div className="space-y-2"><Label>Full Name *</Label>
-                                    <Input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Your full name" /></div>
+                                <div className="space-y-2">
+                                    <Label>Full Name *</Label>
+                                    <Input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Your full name"
+                                        className={!fullName.trim() ? 'border-destructive/50 focus-visible:ring-destructive/30' : ''} />
+                                    {!fullName.trim() && <p className="text-[11px] text-destructive">Required</p>}
+                                </div>
                                 <div className="space-y-2"><Label>WhatsApp Number</Label>
                                     <Input value={whatsappNumber} onChange={e => setWhatsappNumber(e.target.value)} placeholder="e.g., 919876543210" /></div>
                             </div>
                             <div className="grid md:grid-cols-2 gap-4">
-                                <div className="space-y-2"><Label>Current Job Title *</Label>
-                                    <JobCategorySearch value={jobTitle} onChange={setJobTitle} placeholder="e.g., Software Engineer" /></div>
+                                <div className="space-y-2">
+                                    <Label>Current Job Title *</Label>
+                                    <JobCategorySearch value={jobTitle} onChange={setJobTitle} placeholder="e.g., Software Engineer" />
+                                    {(!jobTitle.trim() || jobTitle === 'Not specified') && <p className="text-[11px] text-destructive">Required</p>}
+                                </div>
                                 <div className="space-y-2"><Label>Professional Headline</Label>
                                     <Input value={headline} onChange={e => setHeadline(e.target.value)} placeholder="e.g., Senior Full Stack Developer | React & Node.js" /></div>
                             </div>

@@ -4,13 +4,57 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Bookmark, MapPin, Briefcase, ExternalLink } from 'lucide-react';
+import { Bookmark, MapPin, Briefcase, ExternalLink, Clock, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { format } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 
 interface SavedJobsSectionProps {
   candidateId: string;
 }
+
+const ExpiryBadge = ({ createdAt, isActive, status }: { createdAt: string; isActive: boolean; status: string }) => {
+  if (!isActive || status !== 'open') {
+    return (
+      <Badge variant="destructive" className="text-[10px] gap-1 shrink-0">
+        <AlertTriangle className="w-3 h-3" />
+        Closed
+      </Badge>
+    );
+  }
+
+  // Assume jobs expire 30 days after posting
+  const daysSincePosted = differenceInDays(new Date(), new Date(createdAt));
+  const daysRemaining = 30 - daysSincePosted;
+
+  if (daysRemaining <= 0) {
+    return (
+      <Badge variant="destructive" className="text-[10px] gap-1 shrink-0">
+        <AlertTriangle className="w-3 h-3" />
+        Likely expired
+      </Badge>
+    );
+  }
+
+  if (daysRemaining <= 3) {
+    return (
+      <Badge className="text-[10px] gap-1 shrink-0 bg-destructive/10 text-destructive border-destructive/30">
+        <Clock className="w-3 h-3" />
+        Expires in {daysRemaining}d
+      </Badge>
+    );
+  }
+
+  if (daysRemaining <= 7) {
+    return (
+      <Badge className="text-[10px] gap-1 shrink-0 bg-amber-100 text-amber-800 border-amber-300">
+        <Clock className="w-3 h-3" />
+        Expires in {daysRemaining}d
+      </Badge>
+    );
+  }
+
+  return null;
+};
 
 export const SavedJobsSection = ({ candidateId }: SavedJobsSectionProps) => {
   const { data: savedJobs, isLoading } = useQuery({
@@ -71,7 +115,14 @@ export const SavedJobsSection = ({ candidateId }: SavedJobsSectionProps) => {
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-foreground truncate">{job.title}</h4>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="font-semibold text-foreground truncate">{job.title}</h4>
+                        <ExpiryBadge
+                          createdAt={job.created_at}
+                          isActive={job.is_active}
+                          status={job.status}
+                        />
+                      </div>
                       <p className="text-sm text-muted-foreground">{employer?.company_name || 'Unknown Company'}</p>
                       <div className="flex items-center gap-3 mt-2 flex-wrap">
                         {job.job_address && (

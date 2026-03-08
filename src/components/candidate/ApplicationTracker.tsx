@@ -6,9 +6,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Kanban, GripVertical, Calendar, StickyNote, ArrowRight, Briefcase, Loader2, Flag } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Kanban, Calendar, StickyNote, Briefcase, Loader2, Flag, Download, XCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -48,6 +48,8 @@ export const ApplicationTracker = ({ candidateId }: { candidateId: string }) => 
   const [editFollowUp, setEditFollowUp] = useState('');
   const [editPriority, setEditPriority] = useState('medium');
   const [saving, setSaving] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkProcessing, setBulkProcessing] = useState(false);
 
   useEffect(() => {
     fetchApplications();
@@ -125,6 +127,72 @@ export const ApplicationTracker = ({ candidateId }: { candidateId: string }) => 
     setEditPriority(app.priority || 'medium');
   };
 
+  // ─── Bulk Actions ────────────────────────
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = () => {
+    if (selectedIds.size === applications.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(applications.map(a => a.id)));
+    }
+  };
+
+  const bulkWithdraw = async () => {
+    if (selectedIds.size === 0) return;
+    setBulkProcessing(true);
+    try {
+      const ids = Array.from(selectedIds);
+      const { error } = await supabase
+        .from('applications')
+        .update({ kanban_stage: 'withdrawn', status: 'withdrawn' })
+        .in('id', ids);
+
+      if (error) throw error;
+      setApplications(prev => prev.map(a =>
+        selectedIds.has(a.id) ? { ...a, kanban_stage: 'withdrawn', status: 'withdrawn' } : a
+      ));
+      setSelectedIds(new Set());
+      toast.success(`${ids.length} application(s) withdrawn`);
+    } catch (err) {
+      toast.error('Failed to withdraw applications');
+    } finally {
+      setBulkProcessing(false);
+    }
+  };
+
+  const exportToCSV = () => {
+    const rows = applications.map(a => ({
+      'Job Title': a.job?.title || 'Unknown',
+      'Company': a.job?.employer?.company_name || 'Unknown',
+      'Stage': a.kanban_stage,
+      'Status': a.status,
+      'Priority': a.priority || 'medium',
+      'Follow-up Date': a.follow_up_date || '',
+      'Notes': (a.candidate_notes || '').replace(/"/g, '""'),
+      'Applied Date': new Date(a.created_at).toLocaleDateString(),
+    }));
+
+    const headers = Object.keys(rows[0] || {});
+    const csv = [
+      headers.join(','),
+      ...rows.map(r => headers.map(h => `"${(r as any)[h]}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `applications_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    toast.success('CSV exported!');
+  };
+
   if (loading) {
     return (
       <Card className="shadow-google">
@@ -141,13 +209,38 @@ export const ApplicationTracker = ({ candidateId }: { candidateId: string }) => 
     <>
       <Card className="shadow-google">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Kanban className="w-5 h-5 text-primary" />
-            Application Tracker
-          </CardTitle>
-          <CardDescription>
-            Track all your job applications across stages • {applications.length} total
-          </CardDescription>
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Kanban className="w-5 h-5 text-primary" />
+                Application Tracker
+              </CardTitle>
+              <CardDescription>
+                Track all your job applications across stages • {applications.length} total
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              {selectedIds.size > 0 && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={bulkWithdraw}
+                  disabled={bulkProcessing}
+                  className="rounded-xl gap-1.5 text-xs"
+                >
+                  {bulkProcessing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5" />}
+                  Withdraw ({selectedIds.size})
+                </Button>
+              )}
+              <Button variant="outline" size="sm" onClick={selectAll} className="rounded-xl text-xs">
+                {selectedIds.size === applications.length ? 'Deselect All' : 'Select All'}
+              </Button>
+              <Button variant="outline" size="sm" onClick={exportToCSV} className="rounded-xl gap-1.5 text-xs">
+                <Download className="w-3.5 h-3.5" />
+                Export CSV
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex gap-3 overflow-x-auto pb-4 -mx-1 px-1">
@@ -171,27 +264,36 @@ export const ApplicationTracker = ({ candidateId }: { candidateId: string }) => 
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         className="bg-card border rounded-xl p-3 cursor-pointer hover:shadow-md transition-shadow group"
-                        onClick={() => openDetail(app)}
                       >
-                        <div className="flex items-start justify-between mb-1">
-                          <h4 className="text-sm font-medium text-foreground line-clamp-1">
-                            {app.job?.title || 'Unknown Job'}
-                          </h4>
-                          <Flag className={`w-3.5 h-3.5 shrink-0 ${PRIORITY_COLORS[app.priority] || ''}`} />
-                        </div>
-                        <p className="text-xs text-muted-foreground line-clamp-1">
-                          {app.job?.employer?.company_name || 'Unknown Company'}
-                        </p>
-                        <div className="flex items-center gap-2 mt-2">
-                          {app.follow_up_date && (
-                            <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                              <Calendar className="w-3 h-3" />
-                              {new Date(app.follow_up_date).toLocaleDateString()}
-                            </span>
-                          )}
-                          {app.candidate_notes && (
-                            <StickyNote className="w-3 h-3 text-amber-400" />
-                          )}
+                        <div className="flex items-start gap-2">
+                          <Checkbox
+                            checked={selectedIds.has(app.id)}
+                            onCheckedChange={() => toggleSelect(app.id)}
+                            className="mt-0.5 shrink-0"
+                            onClick={e => e.stopPropagation()}
+                          />
+                          <div className="flex-1 min-w-0" onClick={() => openDetail(app)}>
+                            <div className="flex items-start justify-between mb-1">
+                              <h4 className="text-sm font-medium text-foreground line-clamp-1">
+                                {app.job?.title || 'Unknown Job'}
+                              </h4>
+                              <Flag className={`w-3.5 h-3.5 shrink-0 ${PRIORITY_COLORS[app.priority] || ''}`} />
+                            </div>
+                            <p className="text-xs text-muted-foreground line-clamp-1">
+                              {app.job?.employer?.company_name || 'Unknown Company'}
+                            </p>
+                            <div className="flex items-center gap-2 mt-2">
+                              {app.follow_up_date && (
+                                <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                                  <Calendar className="w-3 h-3" />
+                                  {new Date(app.follow_up_date).toLocaleDateString()}
+                                </span>
+                              )}
+                              {app.candidate_notes && (
+                                <StickyNote className="w-3 h-3 text-amber-400" />
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </motion.div>
                     ))}
