@@ -40,6 +40,8 @@ const Index = () => {
   const [centerTrigger, setCenterTrigger] = useState(0);
   const [filters, setFilters] = useState<MapFilters>(defaultFilters);
   const [heatmapEnabled, setHeatmapEnabled] = useState(false);
+  const [salaryHeatmapEnabled, setSalaryHeatmapEnabled] = useState(false);
+  const [salaryRoleFilter, setSalaryRoleFilter] = useState('');
 
   const geolocation = useGeolocation();
   const hasRealLocation = !!(geolocation.latitude && geolocation.longitude);
