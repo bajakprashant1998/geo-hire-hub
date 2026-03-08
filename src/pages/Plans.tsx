@@ -146,7 +146,7 @@ const Plans = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="Pricing Plans | HireForJob" description="Choose the right hiring plan for your business. Compare features and pricing to find the best fit." canonicalUrl="https://www.hireforjob.com/plans" />
+      <SEOHead title="Hiring Plans & Pricing – Hire For Job" description="Choose the right plan to hire for job positions. Post jobs near me, reach candidates, and grow your team with Hire For Job." canonicalUrl="https://www.hireforjob.com/plans" />
 
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10 pt-8 pb-16 px-4">

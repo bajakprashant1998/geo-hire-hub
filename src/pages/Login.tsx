@@ -142,7 +142,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex">
-      <SEOHead title="Login | HireForJob" description="Sign in to HireForJob to find jobs, manage applications, and connect with employers near you." canonicalUrl="https://www.hireforjob.com/login" />
+      <SEOHead title="Login – Hire For Job | Find Jobs Near Me" description="Sign in to Hire For Job to find jobs near me, manage applications, and connect with employers hiring near you." canonicalUrl="https://www.hireforjob.com/login" noindex />
 
       {/* Left side - Premium Branding */}
       <div className="hidden lg:flex lg:w-[55%] relative overflow-hidden">
