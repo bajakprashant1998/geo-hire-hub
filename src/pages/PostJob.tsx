@@ -126,6 +126,7 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
   const [certifications, setCertifications] = useState('');
   const [additionalNotes, setAdditionalNotes] = useState('');
   const [benefits, setBenefits] = useState<string[]>([]);
+  const [jobTranslations, setJobTranslations] = useState<Record<string, { title: string; description: string }>>({});
 
   // Section 3: Timings
   const [shiftType, setShiftType] = useState('Day Shift');
