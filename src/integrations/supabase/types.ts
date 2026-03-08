@@ -2876,6 +2876,52 @@ export type Database = {
           },
         ]
       }
+      skill_endorsements: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          endorser_profile_id: string
+          id: string
+          skill_name: string
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          endorser_profile_id: string
+          id?: string
+          skill_name: string
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          endorser_profile_id?: string
+          id?: string
+          skill_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skill_endorsements_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "skill_endorsements_endorser_profile_id_fkey"
+            columns: ["endorser_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "skill_endorsements_endorser_profile_id_fkey"
+            columns: ["endorser_profile_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           candidate_id: string
