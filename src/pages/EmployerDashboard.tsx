@@ -833,6 +833,8 @@ const EmployerDashboard = () => {
         return <JDOptimizer />;
       case 'assessments':
         return employer && <SkillAssessmentManager employerId={employer.id} />;
+      case 'spotlight':
+        return employer && <SpotlightStories employerId={employer.id} companyName={employer.company_name} isOwner />;
       case 'post-job':
         return <PostJob embedded />;
       default:
