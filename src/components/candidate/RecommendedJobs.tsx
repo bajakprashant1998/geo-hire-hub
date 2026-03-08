@@ -12,7 +12,7 @@ import {
   Sparkles, MapPin, Building2, Banknote, Clock, Bookmark, 
   BookmarkCheck, TrendingUp, Zap, ArrowRight, Search, SlidersHorizontal,
   Briefcase, Target, RefreshCw, ExternalLink, ChevronDown, ChevronUp,
-  Star, Filter, X
+  Star, Filter, X, Brain
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -28,6 +28,23 @@ interface RecommendedJobsProps {
 
 type SortOption = 'relevance' | 'newest' | 'salary' | 'distance';
 type MatchFilter = 'all' | 'perfect' | 'great' | 'good';
+
+interface AIRecommendation {
+  id: string;
+  title: string;
+  description?: string;
+  job_type: string;
+  salary_range?: string;
+  job_address?: string;
+  created_at: string;
+  work_mode?: string;
+  company_name: string;
+  industry?: string;
+  avatar_url?: string;
+  score: number;
+  reasons: string[];
+  is_saved: boolean;
+}
 
 // --- Sub-components ---
 
@@ -48,11 +65,11 @@ const StatCard = ({ icon: Icon, label, value, color }: { icon: any; label: strin
 );
 
 const MatchBadge = ({ score }: { score: number }) => {
-  const config = score >= 25
+  const config = score >= 70
     ? { label: 'Perfect Match', bg: 'bg-[hsl(var(--success))]/10', text: 'text-[hsl(var(--success))]', border: 'border-[hsl(var(--success))]/20', icon: Zap }
-    : score >= 15
+    : score >= 50
     ? { label: 'Great Match', bg: 'bg-[hsl(var(--primary))]/10', text: 'text-primary', border: 'border-primary/20', icon: TrendingUp }
-    : score >= 5
+    : score >= 30
     ? { label: 'Good Match', bg: 'bg-[hsl(var(--warning))]/10', text: 'text-[hsl(var(--warning))]', border: 'border-[hsl(var(--warning))]/20', icon: Star }
     : null;
 
@@ -62,7 +79,7 @@ const MatchBadge = ({ score }: { score: number }) => {
   return (
     <span className={cn("inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border whitespace-nowrap", config.bg, config.text, config.border)}>
       <BadgeIcon className="w-3 h-3" />
-      {config.label}
+      {config.label} ({score}%)
     </span>
   );
 };
@@ -72,7 +89,7 @@ const JobCard = ({ job, isSaved, onToggleSave, index }: { job: any; isSaved: boo
   const daysAgo = Math.floor((Date.now() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24));
   const timeLabel = daysAgo === 0 ? 'Today' : daysAgo === 1 ? 'Yesterday' : daysAgo < 7 ? `${daysAgo}d ago` : new Date(job.created_at).toLocaleDateString();
   const isNew = daysAgo <= 3;
-  const isPerfect = job.relevanceScore >= 25;
+  const isPerfect = job.relevanceScore >= 70;
 
   return (
     <motion.div
@@ -156,6 +173,18 @@ const JobCard = ({ job, isSaved, onToggleSave, index }: { job: any; isSaved: boo
           </span>
         </div>
 
+        {/* AI Match Reasons */}
+        {job.reasons && job.reasons.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {job.reasons.map((reason: string, i: number) => (
+              <span key={i} className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-primary/5 text-primary border border-primary/10">
+                <Target className="w-2.5 h-2.5" />
+                {reason}
+              </span>
+            ))}
+          </div>
+        )}
+
         {/* Expandable details */}
         {job.description && (
           <div className="mt-2">
@@ -232,49 +261,76 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
   const [sortBy, setSortBy] = useState<SortOption>('relevance');
   const [matchFilter, setMatchFilter] = useState<MatchFilter>('all');
 
+  const [aiInsight, setAiInsight] = useState('');
+  const [profileSummary, setProfileSummary] = useState<{ skills_count: number; applied_count: number; viewed_count: number; saved_count: number } | null>(null);
+
   useEffect(() => {
-    fetchRecommendedJobs();
+    fetchAIRecommendations();
     fetchSavedJobs();
-  }, [skills, latitude, longitude]);
+  }, [candidateId]);
 
-  const fetchRecommendedJobs = async () => {
+  const fetchAIRecommendations = async () => {
     try {
-      const { data, error } = await supabase
-        .from('jobs')
-        .select(`*, employers!inner(company_name, profile_id, profiles!inner(avatar_url))`)
-        .eq('status', 'open')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
-        .limit(20);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { setLoading(false); return; }
 
-      if (error) throw error;
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-job-recommendations`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({}),
+        }
+      );
 
-      const scoredJobs = (data || []).map(job => {
+      if (!res.ok) throw new Error('Failed to fetch recommendations');
+
+      const data = await res.json();
+      const recs = (data.recommendations || []).map((r: any) => ({
+        ...r,
+        relevanceScore: r.score,
+        employers: { company_name: r.company_name },
+      }));
+
+      setJobs(recs);
+      setAiInsight(data.insight || '');
+      setProfileSummary(data.profile_summary || null);
+    } catch (error) {
+      console.error('AI recommendations error, falling back to basic:', error);
+      // Fallback to basic query
+      await fetchBasicRecommendations();
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const fetchBasicRecommendations = async () => {
+    const { data, error } = await supabase
+      .from('jobs')
+      .select(`*, employers!inner(company_name, profile_id, profiles!inner(avatar_url))`)
+      .eq('status', 'open')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (!error && data) {
+      const scoredJobs = data.map(job => {
         let score = 0;
         if (skills.length > 0 && job.description) {
           const descLower = job.description.toLowerCase();
           skills.forEach(skill => { if (descLower.includes(skill.toLowerCase())) score += 10; });
         }
-        if (job.category && skills.some(s => job.category?.toLowerCase().includes(s.toLowerCase()))) score += 5;
-        if (latitude && longitude && job.latitude && job.longitude) {
-          const distance = Math.sqrt(Math.pow(job.latitude - latitude, 2) + Math.pow(job.longitude - longitude, 2));
-          if (distance < 0.5) score += 15;
-          else if (distance < 1) score += 10;
-          else if (distance < 2) score += 5;
-        }
         const daysOld = (Date.now() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24);
         if (daysOld < 7) score += 5;
-        if (daysOld < 3) score += 5;
-        return { ...job, relevanceScore: score };
+        return { ...job, relevanceScore: score, reasons: [] as string[] };
       });
-
       scoredJobs.sort((a, b) => b.relevanceScore - a.relevanceScore);
       setJobs(scoredJobs);
-    } catch (error) {
-      console.error('Error fetching recommended jobs:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
     }
   };
 
@@ -307,7 +363,7 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
 
   const handleRefresh = () => {
     setRefreshing(true);
-    fetchRecommendedJobs();
+    fetchAIRecommendations();
     fetchSavedJobs();
   };
 
@@ -326,9 +382,9 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
     }
 
     // Match filter
-    if (matchFilter === 'perfect') result = result.filter(j => j.relevanceScore >= 25);
-    else if (matchFilter === 'great') result = result.filter(j => j.relevanceScore >= 15);
-    else if (matchFilter === 'good') result = result.filter(j => j.relevanceScore >= 5);
+    if (matchFilter === 'perfect') result = result.filter(j => j.relevanceScore >= 70);
+    else if (matchFilter === 'great') result = result.filter(j => j.relevanceScore >= 50);
+    else if (matchFilter === 'good') result = result.filter(j => j.relevanceScore >= 30);
 
     // Sort
     if (sortBy === 'newest') result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
@@ -340,8 +396,8 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
   // --- Stats ---
   const stats = useMemo(() => ({
     total: jobs.length,
-    perfect: jobs.filter(j => j.relevanceScore >= 25).length,
-    great: jobs.filter(j => j.relevanceScore >= 15 && j.relevanceScore < 25).length,
+    perfect: jobs.filter(j => j.relevanceScore >= 70).length,
+    great: jobs.filter(j => j.relevanceScore >= 50 && j.relevanceScore < 70).length,
     newToday: jobs.filter(j => {
       const d = (Date.now() - new Date(j.created_at).getTime()) / (1000 * 60 * 60 * 24);
       return d < 1;
@@ -352,7 +408,7 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
     { key: 'all', label: 'All', count: jobs.length, color: 'bg-secondary text-foreground' },
     { key: 'perfect', label: 'Perfect', count: stats.perfect, color: 'bg-[hsl(var(--success))]/10 text-[hsl(var(--success))]' },
     { key: 'great', label: 'Great', count: stats.great, color: 'bg-primary/10 text-primary' },
-    { key: 'good', label: 'Good+', count: jobs.filter(j => j.relevanceScore >= 5).length, color: 'bg-[hsl(var(--warning))]/10 text-[hsl(var(--warning))]' },
+    { key: 'good', label: 'Good+', count: jobs.filter(j => j.relevanceScore >= 30).length, color: 'bg-[hsl(var(--warning))]/10 text-[hsl(var(--warning))]' },
   ];
 
   if (loading) return <RecommendedSkeleton />;
@@ -405,9 +461,9 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
               <Sparkles className="w-5 h-5 text-[hsl(var(--warning))]" />
             </div>
             <div>
-              <span>Recommended Jobs</span>
+              <span>AI-Powered Recommendations</span>
               <p className="text-xs font-normal text-muted-foreground mt-0.5">
-                Based on your skills & preferences
+                Personalized based on your skills, behavior & preferences
               </p>
             </div>
           </CardTitle>
@@ -427,6 +483,23 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
         </CardHeader>
 
         <CardContent className="p-4 space-y-4">
+          {/* AI Insight Banner */}
+          {aiInsight && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex items-start gap-3 p-3.5 rounded-xl bg-gradient-to-r from-primary/5 via-primary/8 to-[hsl(var(--warning))]/5 border border-primary/15"
+            >
+              <div className="p-1.5 bg-primary/10 rounded-lg shrink-0">
+                <Brain className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-foreground mb-0.5">AI Insight</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{aiInsight}</p>
+              </div>
+            </motion.div>
+          )}
+
           {/* Stats row */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <StatCard icon={Briefcase} label="Total Matches" value={stats.total} color="bg-primary/10 text-primary" />
