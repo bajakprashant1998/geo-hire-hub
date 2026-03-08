@@ -742,6 +742,127 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
 
                             <SectionCard icon={Zap} title="Skills" subtitle="What you're great at" tip="Add specific, searchable skills for better matching">
                                 <TagInput items={skills} onAdd={addSkill} onRemove={removeSkill} input={skillInput} setInput={setSkillInput} placeholder="Add a skill..." maxItems={30} />
+
+                                {/* AI Skill Suggestions */}
+                                <Separator className="bg-border/40" />
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <Sparkles className="w-4 h-4 text-primary" />
+                                            <span className="text-sm font-medium">AI Suggestions</span>
+                                            <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal">Powered by AI</Badge>
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="gap-1.5"
+                                            disabled={suggestingSkills || (!jobTitle.trim() || jobTitle === 'Not specified')}
+                                            onClick={async () => {
+                                                setSuggestingSkills(true);
+                                                setSuggestedSkills([]);
+                                                try {
+                                                    const { data, error } = await supabase.functions.invoke('suggest-skills', {
+                                                        body: { jobTitle, bio, currentSkills: skills, experienceYears },
+                                                    });
+                                                    if (error) throw error;
+                                                    if (data?.error) {
+                                                        toast.error(data.error);
+                                                    } else {
+                                                        setSuggestedSkills(data?.suggestions || []);
+                                                        if (!data?.suggestions?.length) {
+                                                            toast.info('No new suggestions found. Try updating your job title.');
+                                                        }
+                                                    }
+                                                } catch (err: any) {
+                                                    console.error('Skill suggestion error:', err);
+                                                    toast.error('Failed to get suggestions. Please try again.');
+                                                } finally {
+                                                    setSuggestingSkills(false);
+                                                }
+                                            }}
+                                        >
+                                            {suggestingSkills ? (
+                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            ) : (
+                                                <Sparkles className="w-3.5 h-3.5" />
+                                            )}
+                                            {suggestingSkills ? 'Analyzing...' : 'Suggest Skills'}
+                                        </Button>
+                                    </div>
+
+                                    {(!jobTitle.trim() || jobTitle === 'Not specified') && (
+                                        <p className="text-xs text-muted-foreground flex items-center gap-1.5">
+                                            <Info className="w-3 h-3" />
+                                            Set your job title above to get AI skill suggestions
+                                        </p>
+                                    )}
+
+                                    <AnimatePresence>
+                                        {suggestedSkills.length > 0 && (
+                                            <motion.div
+                                                initial={{ opacity: 0, height: 0 }}
+                                                animate={{ opacity: 1, height: 'auto' }}
+                                                exit={{ opacity: 0, height: 0 }}
+                                                className="overflow-hidden"
+                                            >
+                                                <div className="p-3.5 rounded-xl bg-primary/[0.04] border border-primary/10 space-y-3">
+                                                    <p className="text-xs text-muted-foreground">Click to add suggested skills to your profile:</p>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {suggestedSkills.map((skill) => (
+                                                            <motion.button
+                                                                key={skill}
+                                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                                animate={{ opacity: 1, scale: 1 }}
+                                                                whileTap={{ scale: 0.95 }}
+                                                                onClick={() => {
+                                                                    if (!skills.includes(skill) && skills.length < 30) {
+                                                                        setSkills(prev => [...prev, skill]);
+                                                                        setSuggestedSkills(prev => prev.filter(s => s !== skill));
+                                                                        toast.success(`Added "${skill}"`);
+                                                                    }
+                                                                }}
+                                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border border-primary/20 bg-card hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all cursor-pointer"
+                                                            >
+                                                                <Plus className="w-3 h-3" />
+                                                                {skill}
+                                                            </motion.button>
+                                                        ))}
+                                                    </div>
+                                                    <div className="flex items-center gap-2 pt-1">
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-7 text-xs text-muted-foreground"
+                                                            onClick={() => {
+                                                                const newSkills = suggestedSkills.filter(s => !skills.includes(s));
+                                                                const available = 30 - skills.length;
+                                                                const toAdd = newSkills.slice(0, available);
+                                                                if (toAdd.length > 0) {
+                                                                    setSkills(prev => [...prev, ...toAdd]);
+                                                                    setSuggestedSkills([]);
+                                                                    toast.success(`Added ${toAdd.length} skills`);
+                                                                }
+                                                            }}
+                                                        >
+                                                            <Plus className="w-3 h-3 mr-1" /> Add All
+                                                        </Button>
+                                                        <Button
+                                                            type="button"
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-7 text-xs text-muted-foreground"
+                                                            onClick={() => setSuggestedSkills([])}
+                                                        >
+                                                            <X className="w-3 h-3 mr-1" /> Dismiss
+                                                        </Button>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
                             </SectionCard>
 
                             <SectionCard icon={Lightbulb} title="Key Strengths" subtitle="Soft skills and personal qualities">
