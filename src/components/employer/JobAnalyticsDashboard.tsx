@@ -93,6 +93,28 @@ export const JobAnalyticsDashboard = ({ employerId }: JobAnalyticsDashboardProps
     },
   });
 
+  // Views trend from job_views table (real tracking data)
+  const { data: viewsTrend } = useQuery({
+    queryKey: ['employer-views-trend', employerId],
+    queryFn: async () => {
+      const jobIds = jobStats?.map(j => j.id) || [];
+      if (!jobIds.length) return [];
+      const { data } = await supabase
+        .from('job_views')
+        .select('viewed_at, job_id')
+        .in('job_id', jobIds)
+        .order('viewed_at', { ascending: true });
+      if (!data) return [];
+      const grouped = new Map<string, number>();
+      data.forEach(v => {
+        const day = new Date(v.viewed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        grouped.set(day, (grouped.get(day) || 0) + 1);
+      });
+      return Array.from(grouped.entries()).slice(-14).map(([date, count]) => ({ date, views: count }));
+    },
+    enabled: !!jobStats?.length,
+  });
+
   const { data: applicationTrend } = useQuery({
     queryKey: ['employer-app-trend', employerId],
     queryFn: async () => {
@@ -410,6 +432,60 @@ export const JobAnalyticsDashboard = ({ employerId }: JobAnalyticsDashboardProps
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Views Trend Chart */}
+      {viewsTrend && viewsTrend.length > 2 && (
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}>
+          <Card className="rounded-xl border-border/50">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Eye className="h-4 w-4 text-primary" />
+                    </div>
+                    Views Trend
+                  </CardTitle>
+                  <CardDescription className="text-xs mt-1">Daily job views over the last 14 days</CardDescription>
+                </div>
+                {viewsTrend.length > 0 && (
+                  <div className="text-right hidden sm:block">
+                    <p className="text-[10px] text-muted-foreground">Peak Day</p>
+                    <p className="text-sm font-bold text-foreground">
+                      {Math.max(...viewsTrend.map(d => d.views))} views
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart data={viewsTrend} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="viewsGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--chart-3, 30 80% 55%))" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="hsl(var(--chart-3, 30 80% 55%))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted/50" />
+                  <XAxis dataKey="date" className="text-[10px] fill-muted-foreground" tick={{ fontSize: 10 }} />
+                  <YAxis className="text-[10px] fill-muted-foreground" tick={{ fontSize: 10 }} allowDecimals={false} />
+                  <RechartsTooltip contentStyle={chartTooltipStyle} />
+                  <Area
+                    type="monotone"
+                    dataKey="views"
+                    stroke="hsl(var(--chart-3, 30 80% 55%))"
+                    fill="url(#viewsGradient)"
+                    strokeWidth={2.5}
+                    dot={{ r: 3, fill: 'hsl(var(--chart-3, 30 80% 55%))', strokeWidth: 0 }}
+                    activeDot={{ r: 5, fill: 'hsl(var(--chart-3, 30 80% 55%))', stroke: 'hsl(var(--background))', strokeWidth: 2 }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
 
       {/* Application Trend Chart */}
       {applicationTrend && applicationTrend.length > 2 && (
