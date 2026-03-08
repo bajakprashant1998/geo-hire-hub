@@ -20,6 +20,7 @@ import RoleSelection from "./pages/auth/RoleSelection";
 import TermsOfService from "./pages/TermsOfService";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import BrowseJobs from "./pages/BrowseJobs";
+import JobsNearMe from "./pages/JobsNearMe";
 import CandidateDashboard from "./pages/CandidateDashboard";
 import CandidateSettings from "./pages/CandidateSettings";
 import CandidateProfileEdit from "./pages/CandidateProfileEdit";
