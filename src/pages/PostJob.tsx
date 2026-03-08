@@ -1040,6 +1040,14 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
                           benefits={benefits}
                           setBenefits={setBenefits}
                         />
+                        <div className="mt-5">
+                          <JobTranslationsPanel
+                            title={title}
+                            description={description}
+                            translations={jobTranslations}
+                            onTranslationsChange={setJobTranslations}
+                          />
+                        </div>
                       )}
 
                       {currentStep === 3 && (
