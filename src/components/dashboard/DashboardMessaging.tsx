@@ -563,17 +563,27 @@ export const DashboardMessaging = () => {
           {/* Conversation List */}
           <ScrollArea className="flex-1">
             {loading ? (
-              <div className="p-8 text-center">
-                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+              <div className="p-4 space-y-3">
+                {[1, 2, 3, 4, 5].map(i => (
+                  <div key={i} className="flex items-center gap-3 p-3 rounded-xl">
+                    <div className="w-11 h-11 rounded-full bg-muted animate-pulse shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-2/3 bg-muted animate-pulse rounded" />
+                      <div className="h-3 w-full bg-muted animate-pulse rounded" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : filteredConversations.length === 0 ? (
               <div className="p-8 text-center">
-                <MessageCircle className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-                <p className="text-sm text-muted-foreground">
-                  {searchQuery ? 'No matching conversations' : filterType === 'unread' ? 'No unread messages' : 'No conversations yet'}
+                <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center mx-auto mb-3">
+                  <MessageCircle className="w-7 h-7 text-muted-foreground/40" />
+                </div>
+                <p className="text-sm font-medium text-foreground mb-1">
+                  {searchQuery ? 'No results found' : filterType === 'unread' ? 'All caught up!' : 'No conversations yet'}
                 </p>
-                <p className="text-xs text-muted-foreground/70 mt-1">
-                  Start by applying to jobs or messaging candidates
+                <p className="text-xs text-muted-foreground">
+                  {searchQuery ? 'Try a different search term' : filterType === 'unread' ? 'You have no unread messages' : 'Apply to jobs or connect with employers to start chatting'}
                 </p>
               </div>
             ) : (
