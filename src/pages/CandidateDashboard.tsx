@@ -255,16 +255,16 @@ const CandidateDashboard = () => {
     { icon: Sparkles, label: 'Smart Digest', value: 'smart-digest' },
   ];
 
-  // Quick action buttons for dashboard home — full 8-item grid
+  // Quick action buttons for dashboard home
   const quickActions = [
     { icon: MapPin, label: 'Find Jobs', onClick: () => navigate('/'), color: 'text-primary', bg: 'bg-primary/10' },
-    { icon: Briefcase, label: 'Applications', onClick: () => handleSectionClick('jobs'), color: 'text-[hsl(217,89%,61%)]', bg: 'bg-[hsl(217,89%,61%)]/10' },
+    { icon: Briefcase, label: 'Applications', onClick: () => handleSectionClick('jobs'), color: 'text-primary', bg: 'bg-primary/10' },
     { icon: MessageSquare, label: 'Messages', onClick: () => handleSectionClick('messages'), color: 'text-success', bg: 'bg-success/10' },
-    { icon: Calendar, label: 'Interviews', onClick: () => handleSectionClick('interviews'), color: 'text-[hsl(262,83%,58%)]', bg: 'bg-[hsl(262,83%,58%)]/10' },
+    { icon: Calendar, label: 'Interviews', onClick: () => handleSectionClick('interviews'), color: 'text-accent', bg: 'bg-accent/10' },
     { icon: FileText, label: 'Resume', onClick: () => handleSectionClick('resume'), color: 'text-warning-foreground', bg: 'bg-warning/10' },
-    { icon: Sparkles, label: 'AI Match', onClick: () => handleSectionClick('ai-resume'), color: 'text-primary', bg: 'bg-primary/10' },
+    { icon: Sparkles, label: 'AI Resume', onClick: () => handleSectionClick('ai-resume'), color: 'text-primary', bg: 'bg-primary/10' },
     { icon: Zap, label: 'Auto Apply', onClick: () => handleSectionClick('auto-apply'), color: 'text-success', bg: 'bg-success/10' },
-    { icon: Bot, label: 'Career Buddy', onClick: () => handleSectionClick('career-buddy'), color: 'text-[hsl(262,83%,58%)]', bg: 'bg-[hsl(262,83%,58%)]/10' },
+    { icon: Bot, label: 'Career Buddy', onClick: () => handleSectionClick('career-buddy'), color: 'text-accent', bg: 'bg-accent/10' },
   ];
 
   if (authLoading) {
