@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
-  Sparkles, MapPin, Building2, DollarSign, Clock, Bookmark, 
+  Sparkles, MapPin, Building2, Banknote, Clock, Bookmark, 
   BookmarkCheck, TrendingUp, Zap, ArrowRight, Search, SlidersHorizontal,
   Briefcase, Target, RefreshCw, ExternalLink, ChevronDown, ChevronUp,
   Star, Filter, X
