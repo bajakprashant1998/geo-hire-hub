@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
-import { MapPin, Loader2 } from 'lucide-react';
+import { MapPin, Loader2, Globe } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 
@@ -8,6 +8,7 @@ interface CityResult {
   city: string;
   state: string | null;
   country: string;
+  source?: string;
 }
 
 interface WorldCityAutocompleteProps {
@@ -46,17 +47,30 @@ export const WorldCityAutocomplete = ({
     if (q.length < 2) { setSuggestions([]); return; }
     setLoading(true);
     try {
+      // First try local DB for fast results
       const searchTerm = q.toLowerCase();
-      const { data, error } = await supabase
+      const { data: localData } = await supabase
         .from('world_cities')
         .select('city, state, country')
         .or(`search_text.ilike.%${searchTerm}%`)
         .order('population', { ascending: false })
         .limit(8);
 
-      if (!error && data) {
-        setSuggestions(data as CityResult[]);
-        setOpen(data.length > 0);
+      if (localData && localData.length > 0) {
+        const results = localData.map(r => ({ ...r, source: 'local' })) as CityResult[];
+        setSuggestions(results);
+        setOpen(true);
+      }
+
+      // If local results are sparse, call the edge function for GeoNames fallback
+      if (!localData || localData.length < 3) {
+        const { data: apiData } = await supabase.functions.invoke('search-cities', {
+          body: { query: q, limit: 10 },
+        });
+        if (apiData?.results && apiData.results.length > 0) {
+          setSuggestions(apiData.results);
+          setOpen(true);
+        }
       }
     } catch { /* ignore */ }
     setLoading(false);
@@ -78,6 +92,19 @@ export const WorldCityAutocomplete = ({
     setSuggestions([]);
   };
 
+  const highlightMatch = (text: string) => {
+    if (!query) return text;
+    const idx = text.toLowerCase().indexOf(query.toLowerCase());
+    if (idx === -1) return text;
+    return (
+      <>
+        {text.slice(0, idx)}
+        <span className="font-semibold text-primary">{text.slice(idx, idx + query.length)}</span>
+        {text.slice(idx + query.length)}
+      </>
+    );
+  };
+
   return (
     <div ref={containerRef} className={cn("relative", className)}>
       <div className="relative">
@@ -94,20 +121,26 @@ export const WorldCityAutocomplete = ({
         )}
       </div>
       {open && suggestions.length > 0 && (
-        <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-popover border border-border rounded-xl shadow-lg overflow-hidden max-h-[240px] overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-popover border border-border rounded-xl shadow-lg overflow-hidden max-h-[280px] overflow-y-auto">
           {suggestions.map((s, i) => {
             const display = [s.city, s.state, s.country].filter(Boolean).join(', ');
             return (
               <button
-                key={`${s.city}-${s.country}-${i}`}
+                key={`${s.city}-${s.state}-${s.country}-${i}`}
                 onClick={() => handleSelect(s)}
                 className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-left hover:bg-accent transition-colors"
               >
                 <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-                <span className="truncate">{display}</span>
+                <span className="truncate flex-1">{highlightMatch(display)}</span>
+                {s.source === 'geonames' && (
+                  <Globe className="w-3 h-3 text-muted-foreground/40 shrink-0" />
+                )}
               </button>
             );
           })}
+          <div className="px-3 py-1.5 text-[10px] text-muted-foreground/50 border-t border-border/30 bg-secondary/30">
+            {suggestions.some(s => s.source === 'geonames') ? 'Results from database + GeoNames' : `${suggestions.length} cities found`}
+          </div>
         </div>
       )}
     </div>
