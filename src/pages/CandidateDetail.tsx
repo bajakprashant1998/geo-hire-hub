@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import {
   ArrowLeft, MapPin, Briefcase, GraduationCap, Clock, Globe,
-  Download, MessageCircle, Heart, Share2, DollarSign, Calendar,
+  Download, MessageCircle, Heart, Share2, Banknote, Calendar,
   Award, User, Link as LinkIcon, ExternalLink,
   Loader2, Languages, BadgeCheck, Building2, Github, Linkedin, Twitter,
   Instagram, Youtube, Lock, LogIn, ChevronRight, Sparkles,
