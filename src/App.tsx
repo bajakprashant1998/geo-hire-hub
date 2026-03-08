@@ -10,6 +10,7 @@ import { EmailVerificationBanner } from "@/components/auth/EmailVerificationBann
 import { LocationGate } from "@/components/LocationGate";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PageTransition } from "@/components/PageTransition";
+import AdminRouteGuard from "@/components/admin/AdminRouteGuard";
 
 // Critical path — keep eager
 import Index from "./pages/Index";
