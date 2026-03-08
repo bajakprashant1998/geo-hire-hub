@@ -128,7 +128,7 @@ const LocationMapPickerInner = ({
 
   return (
     <div className="space-y-4">
-      <Label>Job Location *</Label>
+      
 
       {/* Search Bar */}
       <div className="flex gap-2 relative">
