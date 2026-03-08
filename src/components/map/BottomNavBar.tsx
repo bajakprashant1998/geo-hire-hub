@@ -42,20 +42,20 @@ const BottomNavBar = () => {
               onClick={() => navigate(item.path)}
               className={cn(
                 "relative flex flex-col items-center justify-center flex-1 h-full gap-0.5",
-                "transition-all duration-200 active:scale-95",
+                "transition-all duration-200 active:scale-90",
                 item.isActive ? "text-primary" : "text-muted-foreground"
               )}
             >
               {item.isActive && (
                 <motion.div
                   layoutId="nav-active-indicator"
-                  className="absolute top-0 w-10 h-[3px] rounded-b-full bg-primary"
+                  className="absolute top-0 w-12 h-[3px] rounded-b-full bg-primary"
                   transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                 />
               )}
 
               <motion.div
-                animate={{ y: item.isActive ? -1 : 0 }}
+                animate={{ y: item.isActive ? -2 : 0, scale: item.isActive ? 1.05 : 1 }}
                 transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                 className={cn(
                   "p-1.5 rounded-xl transition-colors",
