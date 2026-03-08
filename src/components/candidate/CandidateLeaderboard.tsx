@@ -213,15 +213,16 @@ const RankRow = ({ entry, rank, isMe, delay }: { entry: LeaderboardEntry; rank: 
       </div>
 
       {/* Desktop Stats */}
-      <div className="hidden sm:flex items-center gap-4">
+      <div className="hidden sm:flex items-center gap-3">
         {[
           { value: `${entry.completeness_score}%`, label: 'Profile', icon: Target },
           { value: entry.assessments_passed, label: 'Tests', icon: GraduationCap },
           { value: entry.activity_score, label: 'Activity', icon: Zap },
+          { value: entry.portfolio_score, label: 'Portfolio', icon: Layout },
         ].map(s => (
           <Tooltip key={s.label}>
             <TooltipTrigger>
-              <div className="text-center min-w-[44px]">
+              <div className="text-center min-w-[40px]">
                 <p className="text-xs font-bold text-foreground">{s.value}</p>
                 <p className="text-[9px] text-muted-foreground">{s.label}</p>
               </div>
