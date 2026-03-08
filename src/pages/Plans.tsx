@@ -718,6 +718,84 @@ const Plans = () => {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 -mt-10">
+        {/* Current Plan Usage Banner for Employers */}
+        {currentPlanName && profile?.user_type === 'employer' && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="mb-8"
+          >
+            <Card className={cn(
+              "border overflow-hidden",
+              currentPlanName === 'Free' ? 'border-amber-500/30' : 'border-primary/20'
+            )}>
+              <div className={cn(
+                "h-1 w-full",
+                currentPlanName === 'Free'
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-400'
+                  : 'bg-gradient-to-r from-primary to-primary/60'
+              )} />
+              <CardContent className="p-5 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
+                  {/* Plan info */}
+                  <div className="flex items-center gap-3 shrink-0">
+                    <div className={cn(
+                      "p-2.5 rounded-xl",
+                      currentPlanName === 'Free' ? 'bg-amber-500/10' : 'bg-primary/10'
+                    )}>
+                      {currentPlanName === 'Free' ? (
+                        <Zap className="w-5 h-5 text-amber-500" />
+                      ) : (
+                        <Crown className="w-5 h-5 text-primary" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold text-foreground">Your Plan</span>
+                        <Badge variant={currentPlanName === 'Free' ? 'secondary' : 'default'} className="text-xs">
+                          {currentPlanName}
+                        </Badge>
+                      </div>
+                      {periodEnd && (
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Renews {new Date(periodEnd).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Usage bar */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs font-medium text-muted-foreground">Job Slots Used</span>
+                      <span className={cn(
+                        "text-sm font-bold tabular-nums",
+                        activeJobCount >= maxActiveJobs ? 'text-destructive' : 'text-foreground'
+                      )}>
+                        {activeJobCount} <span className="text-muted-foreground font-normal">of {maxActiveJobs}</span>
+                      </span>
+                    </div>
+                    <Progress
+                      value={maxActiveJobs > 0 ? Math.min((activeJobCount / maxActiveJobs) * 100, 100) : 0}
+                      className={cn("h-2 rounded-full", activeJobCount >= maxActiveJobs && '[&>div]:bg-destructive')}
+                    />
+                    {activeJobCount >= maxActiveJobs ? (
+                      <p className="text-xs text-destructive mt-1.5 font-medium">
+                        All slots used — upgrade to post more jobs
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground mt-1.5">
+                        {maxActiveJobs - activeJobCount} slot{maxActiveJobs - activeJobCount !== 1 ? 's' : ''} remaining
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Plans Grid */}
         {plans.length === 0 ? (
           <div className="text-center py-16 px-4">
