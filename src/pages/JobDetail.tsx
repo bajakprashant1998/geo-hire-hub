@@ -684,6 +684,9 @@ const JobDetail = () => {
               </div>
             ) : (
               <>
+                {job.expires_at && (
+                  <DeadlineCountdown expiresAt={job.expires_at} variant="card" className="mb-3" />
+                )}
                 <div>
                   <p className="font-semibold text-foreground">Interested in this role?</p>
                   <p className="text-sm text-muted-foreground">Apply now and take the next step in your career</p>
