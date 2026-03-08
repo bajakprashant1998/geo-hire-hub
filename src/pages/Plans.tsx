@@ -854,6 +854,7 @@ const Plans = () => {
         )}
 
         <TrustBar />
+        <TestimonialsSection compact />
         <ComparisonTable plans={plans} />
         <FAQSection />
         <CTASection />
