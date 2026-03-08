@@ -1,4 +1,4 @@
-import { useState, useMemo, lazy, Suspense, useCallback } from 'react';
+import { useState, useMemo, lazy, Suspense, useCallback, useEffect } from 'react';
 import { SEOHead } from '@/components/SEOHead';
 import { ViewMode, Candidate, Job } from '@/types';
 import { useGeolocation } from '@/hooks/useGeolocation';
@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { MapFilters, defaultFilters } from '@/components/map/AdvancedFilters';
 import { useRealtimeMarkers } from '@/hooks/useRealtimeMarkers';
+import { useSearchParams } from 'react-router-dom';
 
 // Lazy-load the heavy Google Maps component
 const LazyMapContainer = lazy(() =>
