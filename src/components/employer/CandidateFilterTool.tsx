@@ -261,6 +261,21 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
 
       setCandidates(mapped);
       setAllSkills(Array.from(skillSet).sort());
+
+      // Track search appearances for all candidates returned
+      if (mapped.length > 0 && user) {
+        const { data: myProfile } = await supabase.from('profiles').select('id').eq('user_id', user.id).maybeSingle();
+        if (myProfile) {
+          const rows = mapped.map(c => ({
+            candidate_id: c.candidateId,
+            searcher_id: myProfile.id,
+            search_query: 'employer_dashboard_candidates',
+          }));
+          supabase.from('search_appearances').insert(rows).then(({ error: saErr }) => {
+            if (saErr) console.warn('Failed to record search appearances:', saErr.message);
+          });
+        }
+      }
     } catch (error) {
       console.error('Error fetching candidates:', error);
       toast.error('Failed to load candidates');
