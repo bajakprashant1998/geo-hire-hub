@@ -2732,6 +2732,77 @@ export type Database = {
         }
         Relationships: []
       }
+      portfolio_projects: {
+        Row: {
+          candidate_id: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_featured: boolean | null
+          live_url: string | null
+          media_urls: string[] | null
+          metrics: Json | null
+          problem_statement: string | null
+          project_type: string
+          repo_url: string | null
+          results: string | null
+          solution: string | null
+          sort_order: number | null
+          tech_stack: string[] | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_featured?: boolean | null
+          live_url?: string | null
+          media_urls?: string[] | null
+          metrics?: Json | null
+          problem_statement?: string | null
+          project_type?: string
+          repo_url?: string | null
+          results?: string | null
+          solution?: string | null
+          sort_order?: number | null
+          tech_stack?: string[] | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_featured?: boolean | null
+          live_url?: string | null
+          media_urls?: string[] | null
+          metrics?: Json | null
+          problem_statement?: string | null
+          project_type?: string
+          repo_url?: string | null
+          results?: string | null
+          solution?: string | null
+          sort_order?: number | null
+          tech_stack?: string[] | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolio_projects_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_views: {
         Row: {
           created_at: string | null
