@@ -146,8 +146,17 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
     clustererRef.current = clusterer;
 
     return () => {
-      clusterer.clearMarkers();
-      (clusterer as any).setMap?.(null);
+      try {
+        // Detach all markers from the map before clearing to prevent getRootNode crash
+        markersRef.current.forEach(marker => {
+          try { marker.map = null; } catch (_) { /* AdvancedMarker cleanup may throw */ }
+        });
+        markersRef.current.clear();
+        clusterer.clearMarkers();
+        (clusterer as any).setMap?.(null);
+      } catch (_) {
+        // Suppress Google Maps internal cleanup errors
+      }
     };
   }, [map, mode]); // eslint-disable-line react-hooks/exhaustive-deps
 
