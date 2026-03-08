@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import {
   Briefcase, Bell, Shield, FileText, Sparkles, Loader2,
   Eye, Calendar, Star, ChevronRight, User, MessageSquare, Bookmark, Mic,
-  MapPin, TrendingUp, Zap, DollarSign, Bot, Radar, GraduationCap
+  MapPin, TrendingUp, Zap, DollarSign, Bot, Radar, GraduationCap, Brain
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -46,6 +46,7 @@ import { JobRadar } from '@/components/candidate/JobRadar';
 import { ApplicationTracker } from '@/components/candidate/ApplicationTracker';
 import { ReferralDashboard } from '@/components/candidate/ReferralDashboard';
 import { TakeAssessment } from '@/components/candidate/TakeAssessment';
+import { InterviewPrepCoach } from '@/components/candidate/InterviewPrepCoach';
 import { PendingTasksWidget } from '@/components/dashboard/PendingTasksWidget';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { motion } from 'framer-motion';
@@ -231,6 +232,7 @@ const CandidateDashboard = () => {
     { icon: TrendingUp, label: 'Application Tracker', value: 'app-tracker' },
     { icon: Star, label: 'Referrals & Rewards', value: 'referrals' },
     { icon: GraduationCap, label: 'Assessments', value: 'assessments' },
+    { icon: Brain, label: 'Interview Prep', value: 'interview-prep' },
   ];
 
   // Quick action buttons for dashboard home — full 8-item grid
@@ -466,7 +468,7 @@ const CandidateDashboard = () => {
 
   const renderSectionContent = () => {
     // Show a message when candidate record is missing for sections that need it
-    const requiresCandidate = ['jobs', 'saved', 'interviews', 'resume', 'audio-resume', 'alerts', 'tasks', 'public-profile', 'recommended', 'auto-apply', 'job-radar', 'app-tracker', 'assessments'];
+    const requiresCandidate = ['jobs', 'saved', 'interviews', 'resume', 'audio-resume', 'alerts', 'tasks', 'public-profile', 'recommended', 'auto-apply', 'job-radar', 'app-tracker', 'assessments', 'interview-prep'];
     if (requiresCandidate.includes(activeSection || '') && !candidate) {
       return (
         <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -511,6 +513,7 @@ const CandidateDashboard = () => {
           <p className="text-sm text-muted-foreground">Take assessments linked to jobs you've applied for. Check job details for available assessments.</p>
         </div>
       );
+      case 'interview-prep': return <InterviewPrepCoach candidateId={candidate.id} />;
       default: return null;
     }
   };
