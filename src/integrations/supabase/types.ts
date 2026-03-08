@@ -1677,6 +1677,7 @@ export type Database = {
       employers: {
         Row: {
           assessment_types: string[] | null
+          avg_response_hours: number | null
           avg_salary_range: string | null
           awards_recognition: string[] | null
           benefits: string[] | null
@@ -1726,6 +1727,8 @@ export type Database = {
           profile_id: string
           promotion_frequency: string | null
           relocation_support: boolean | null
+          response_rate: number | null
+          response_rate_updated_at: string | null
           slug: string | null
           social_links: Json | null
           specializations: string[] | null
@@ -1750,6 +1753,7 @@ export type Database = {
         }
         Insert: {
           assessment_types?: string[] | null
+          avg_response_hours?: number | null
           avg_salary_range?: string | null
           awards_recognition?: string[] | null
           benefits?: string[] | null
@@ -1799,6 +1803,8 @@ export type Database = {
           profile_id: string
           promotion_frequency?: string | null
           relocation_support?: boolean | null
+          response_rate?: number | null
+          response_rate_updated_at?: string | null
           slug?: string | null
           social_links?: Json | null
           specializations?: string[] | null
@@ -1823,6 +1829,7 @@ export type Database = {
         }
         Update: {
           assessment_types?: string[] | null
+          avg_response_hours?: number | null
           avg_salary_range?: string | null
           awards_recognition?: string[] | null
           benefits?: string[] | null
@@ -1872,6 +1879,8 @@ export type Database = {
           profile_id?: string
           promotion_frequency?: string | null
           relocation_support?: boolean | null
+          response_rate?: number | null
+          response_rate_updated_at?: string | null
           slug?: string | null
           social_links?: Json | null
           specializations?: string[] | null
@@ -4062,6 +4071,10 @@ export type Database = {
       calculate_employer_profile_completeness: {
         Args: { p_employer_id: string }
         Returns: number
+      }
+      calculate_employer_response_rate: {
+        Args: { p_employer_id: string }
+        Returns: Json
       }
       can_employer_activate_job: {
         Args: { p_employer_id: string; p_exclude_job_id?: string }
