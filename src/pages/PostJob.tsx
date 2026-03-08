@@ -27,6 +27,7 @@ import { EmailVerificationGuard } from '@/components/auth/EmailVerificationGuard
 import { getCurrencyByCode } from '@/lib/currencies';
 
 import { JobBasicsSection } from '@/components/post-job/JobBasicsSection';
+import type { GeoComponents } from '@/components/post-job/LocationMapPicker';
 import { CandidateRequirementSection } from '@/components/post-job/CandidateRequirementSection';
 import { TimingsSection } from '@/components/post-job/TimingsSection';
 import { CompanyInfoSection } from '@/components/post-job/CompanyInfoSection';
