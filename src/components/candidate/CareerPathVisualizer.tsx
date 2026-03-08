@@ -9,7 +9,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { 
   Compass, ArrowRight, Loader2, Sparkles, Target, Clock, TrendingUp, GraduationCap,
   Rocket, Briefcase, Code2, Users, LineChart, Crown, Share2, Download, ChevronRight,
-  BookOpen, Award, Zap, CheckCircle2, Play, MapPin, DollarSign, Star, Lightbulb,
+  BookOpen, Award, Zap, CheckCircle2, Play, MapPin, Banknote, Star, Lightbulb,
   Calendar, Route, Flag, Trophy
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
