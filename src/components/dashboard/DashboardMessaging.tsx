@@ -634,7 +634,7 @@ export const DashboardMessaging = () => {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between gap-1 mb-0.5">
                                 <div className="flex items-center gap-1 min-w-0 flex-1">
-                                  {isPinned && <Pin className="w-3 h-3 text-amber-500 shrink-0" />}
+                                  {isPinned && <Pin className="w-3 h-3 text-[hsl(var(--warning))] shrink-0" />}
                                   <p className={cn(
                                     "font-medium truncate text-sm",
                                     conv.unreadCount > 0 && 'font-semibold text-foreground'
