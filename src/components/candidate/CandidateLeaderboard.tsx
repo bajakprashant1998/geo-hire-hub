@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import {
   Trophy, Star, Zap, GraduationCap, TrendingUp, Crown, Medal, Award,
-  RefreshCw, ChevronUp, ChevronDown, Minus, Target, Flame, Sparkles
+  RefreshCw, ChevronUp, ChevronDown, Minus, Target, Flame, Sparkles, Layout
 } from 'lucide-react';
 
 interface LeaderboardEntry {
