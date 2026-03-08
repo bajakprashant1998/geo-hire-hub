@@ -262,6 +262,7 @@ const CandidateDashboard = () => {
     { icon: Sparkles, label: 'Smart Digest', value: 'smart-digest' },
     { icon: Building2, label: 'Company Watchlist', value: 'watchlist' },
     { icon: Layout, label: 'Portfolio', value: 'portfolio' },
+    { icon: BarChart3, label: 'My Analytics', value: 'analytics' },
   ];
 
   // Quick action buttons for dashboard home
