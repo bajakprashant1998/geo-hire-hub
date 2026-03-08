@@ -828,28 +828,56 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
         </motion.div>
       )}
 
-      {/* Header Stats — Cleaner cards with subtle depth */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-        {[
-          { label: 'Candidates', value: candidates.length, icon: Users, color: 'text-primary', bg: 'bg-primary/10', ring: 'ring-primary/10' },
-          { label: 'Avg Match', value: `${avgScore}%`, icon: Target, color: 'text-success', bg: 'bg-success/10', ring: 'ring-success/10' },
-          { label: 'Shortlisted', value: pipelineCounts['shortlisted'] || 0, icon: CheckCircle2, color: 'text-success', bg: 'bg-success/10', ring: 'ring-success/10' },
-          { label: 'Top Matches', value: candidates.filter(c => c.matchScore >= 80).length, icon: Sparkles, color: 'text-warning', bg: 'bg-warning/10', ring: 'ring-warning/10' },
-        ].map((stat, i) => (
-          <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-            <Card className="border-border/30 bg-card hover:shadow-md transition-all duration-300 rounded-2xl ring-1 ring-inset hover:scale-[1.02] group" style={{ '--tw-ring-color': undefined } as any}>
-              <CardContent className="p-3 sm:p-4 flex items-center gap-3">
-                <div className={cn("w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-110", stat.bg)}>
-                  <stat.icon className={cn("w-5 h-5", stat.color)} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-lg sm:text-2xl font-extrabold text-foreground leading-none tracking-tight">{stat.value}</p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 font-medium">{stat.label}</p>
-                </div>
-              </CardContent>
-            </Card>
+      {/* Job Filter + Stats Row */}
+      <div className="space-y-3">
+        {/* Job filter + Export */}
+        {uniqueJobs.length > 1 && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+            className="flex items-center gap-2 flex-wrap"
+          >
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <Briefcase className="w-4 h-4 text-muted-foreground shrink-0" />
+              <Select value={filters.jobId} onValueChange={v => setFilters(prev => ({ ...prev, jobId: v }))}>
+                <SelectTrigger className="h-9 rounded-xl text-xs border-border/50 max-w-[280px]">
+                  <SelectValue placeholder="All job postings" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All job postings ({candidates.length})</SelectItem>
+                  {uniqueJobs.map(j => (
+                    <SelectItem key={j.id} value={j.id}>{j.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5 rounded-xl border-border/50 shrink-0" onClick={exportCSV}>
+              <Download className="w-3.5 h-3.5" /> Export
+            </Button>
           </motion.div>
-        ))}
+        )}
+
+        {/* Stats cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+          {[
+            { label: 'Candidates', value: filteredCandidates.length, icon: Users, color: 'text-primary', bg: 'bg-primary/10' },
+            { label: 'Avg Match', value: `${avgScore}%`, icon: Target, color: 'text-success', bg: 'bg-success/10' },
+            { label: 'Shortlisted', value: pipelineCounts['shortlisted'] || 0, icon: CheckCircle2, color: 'text-success', bg: 'bg-success/10' },
+            { label: 'Top Matches', value: candidates.filter(c => c.matchScore >= 80).length, icon: Sparkles, color: 'text-warning-foreground', bg: 'bg-warning/10' },
+          ].map((stat, i) => (
+            <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+              <Card className="border-border/30 bg-card hover:shadow-md transition-all duration-300 rounded-2xl hover:scale-[1.02] group">
+                <CardContent className="p-3 sm:p-4 flex items-center gap-3">
+                  <div className={cn("w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-110", stat.bg)}>
+                    <stat.icon className={cn("w-5 h-5", stat.color)} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-lg sm:text-2xl font-extrabold text-foreground leading-none tracking-tight">{stat.value}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 font-medium">{stat.label}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
       </div>
 
       {/* Pipeline Tabs */}
