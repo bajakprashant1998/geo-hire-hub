@@ -536,7 +536,6 @@ export default function AdminBulkImport() {
   return (
     <AdminLayout
       title="Bulk Import"
-      description="Import categories, candidates, and jobs in bulk via CSV"
     >
       <Tabs defaultValue="categories" className="space-y-6">
         <TabsList className="grid grid-cols-2 w-fit">
