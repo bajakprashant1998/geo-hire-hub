@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { ArrowLeft, Lock, Eye, EyeOff, MapPin, CheckCircle2, Loader2, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { isPasswordLeaked } from '@/lib/passwordCheck';
 import { motion } from 'framer-motion';
 
 const UpdatePassword = () => {
@@ -58,6 +59,14 @@ const UpdatePassword = () => {
     setLoading(true);
 
     try {
+      // Check for leaked password
+      const leaked = await isPasswordLeaked(password);
+      if (leaked) {
+        setLoading(false);
+        toast.error('This password has appeared in a data breach. Please choose a different password for your security.');
+        return;
+      }
+
       const { error } = await supabase.auth.updateUser({
         password: password,
       });

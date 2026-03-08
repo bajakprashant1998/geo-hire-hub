@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { isPasswordLeaked } from '@/lib/passwordCheck';
 import { lovable } from '@/integrations/lovable/index';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -147,6 +148,14 @@ const Signup = () => {
 
     setLoading(true);
     try {
+      // Check for leaked password
+      const leaked = await isPasswordLeaked(password);
+      if (leaked) {
+        setLoading(false);
+        toast.error('This password has appeared in a data breach. Please choose a different password for your security.');
+        return;
+      }
+
       const fullName = `${firstName} ${lastName}`.trim();
       const { data, error } = await supabase.auth.signUp({
         email, password,
