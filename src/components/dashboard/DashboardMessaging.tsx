@@ -979,13 +979,30 @@ export const DashboardMessaging = () => {
           ) : (
             /* Empty State */
             <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-              <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-5">
-                <MessageCircle className="w-10 h-10 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">Your Messages</h3>
-              <p className="text-sm text-muted-foreground max-w-sm">
-                Select a conversation from the list to start chatting, or connect with employers and candidates through job listings.
-              </p>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex flex-col items-center"
+              >
+                <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-5 shadow-[var(--shadow-sm)]">
+                  <MessageCircle className="w-10 h-10 text-primary" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground font-heading mb-2">Your Messages</h3>
+                <p className="text-sm text-muted-foreground max-w-sm mb-4">
+                  Select a conversation from the list to start chatting, or connect with employers through job listings.
+                </p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  <Badge variant="secondary" className="text-xs rounded-full px-3 py-1 gap-1.5">
+                    <Zap className="w-3 h-3 text-[hsl(var(--warning))]" /> Quick replies available
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs rounded-full px-3 py-1 gap-1.5">
+                    <Paperclip className="w-3 h-3 text-primary" /> File attachments
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs rounded-full px-3 py-1 gap-1.5">
+                    <Smile className="w-3 h-3 text-[hsl(var(--success))]" /> Emoji reactions
+                  </Badge>
+                </div>
+              </motion.div>
             </div>
           )}
         </div>
