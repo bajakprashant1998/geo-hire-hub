@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { SEOHead } from '@/components/SEOHead';
 import { BreadcrumbNav, buildBreadcrumbJsonLd } from '@/components/BreadcrumbNav';
 import { SalaryBadge } from '@/components/SalaryBadge';
+import { DeadlineCountdown } from '@/components/DeadlineCountdown';
 
 const PAGE_SIZE = 20;
 
