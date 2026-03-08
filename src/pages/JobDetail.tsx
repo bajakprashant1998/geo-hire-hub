@@ -117,6 +117,7 @@ const JobDetail = () => {
   const [contacting, setContacting] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [activeSection, setActiveSection] = useState('about');
+  const [viewLang, setViewLang] = useState('en');
 
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
