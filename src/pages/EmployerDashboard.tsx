@@ -132,7 +132,7 @@ const RecentMessagesWidget = ({ profileId, onOpenChat }: { profileId: string; on
   );
 };
 
-
+const AIScreeningWithJobSelector = ({ jobs }: { jobs: any[] }) => {
   const [selectedJobId, setSelectedJobId] = useState('');
   const selectedJob = jobs.find(j => j.id === selectedJobId);
 
