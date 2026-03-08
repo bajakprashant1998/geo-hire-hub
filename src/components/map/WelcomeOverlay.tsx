@@ -66,6 +66,20 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
     fetchStats();
   }, []);
 
+  useEffect(() => {
+    const fetchTestimonial = async () => {
+      const { data } = await supabase
+        .from('employer_testimonials')
+        .select('author_name, company_name, quote')
+        .eq('is_featured', true)
+        .eq('is_approved', true)
+        .order('sort_order')
+        .limit(1)
+        .maybeSingle();
+      if (data) setTestimonial(data);
+    };
+    fetchTestimonial();
+
   const handleDismiss = (dontShowAgain = false) => {
     setIsVisible(false);
     if (dontShowAgain) localStorage.setItem(STORAGE_KEY, 'true');
