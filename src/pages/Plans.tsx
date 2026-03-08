@@ -7,7 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import {
   ArrowLeft, Check, Crown, Zap, Building2, X, HelpCircle, Shield, Headphones,
-  Users, Briefcase, Star, ArrowRight, Sparkles, Gift
+  Users, Briefcase, Star, ArrowRight, Sparkles, Gift, Globe
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -16,6 +16,47 @@ import { SEOHead } from '@/components/SEOHead';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { TestimonialsSection } from '@/components/TestimonialsSection';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+// Approximate exchange rates from USD (updated periodically)
+const EXCHANGE_RATES: Record<string, { symbol: string; rate: number; flag: string; name: string }> = {
+  USD: { symbol: '$', rate: 1, flag: '🇺🇸', name: 'US Dollar' },
+  INR: { symbol: '₹', rate: 83.5, flag: '🇮🇳', name: 'Indian Rupee' },
+  EUR: { symbol: '€', rate: 0.92, flag: '🇪🇺', name: 'Euro' },
+  GBP: { symbol: '£', rate: 0.79, flag: '🇬🇧', name: 'British Pound' },
+  JPY: { symbol: '¥', rate: 149.5, flag: '🇯🇵', name: 'Japanese Yen' },
+  CAD: { symbol: 'C$', rate: 1.36, flag: '🇨🇦', name: 'Canadian Dollar' },
+  AUD: { symbol: 'A$', rate: 1.53, flag: '🇦🇺', name: 'Australian Dollar' },
+  AED: { symbol: 'د.إ', rate: 3.67, flag: '🇦🇪', name: 'UAE Dirham' },
+  SGD: { symbol: 'S$', rate: 1.34, flag: '🇸🇬', name: 'Singapore Dollar' },
+  BRL: { symbol: 'R$', rate: 4.97, flag: '🇧🇷', name: 'Brazilian Real' },
+  SAR: { symbol: '﷼', rate: 3.75, flag: '🇸🇦', name: 'Saudi Riyal' },
+  MYR: { symbol: 'RM', rate: 4.47, flag: '🇲🇾', name: 'Malaysian Ringgit' },
+  NGN: { symbol: '₦', rate: 1550, flag: '🇳🇬', name: 'Nigerian Naira' },
+  PKR: { symbol: '₨', rate: 278, flag: '🇵🇰', name: 'Pakistani Rupee' },
+  KES: { symbol: 'KSh', rate: 153, flag: '🇰🇪', name: 'Kenyan Shilling' },
+  ZAR: { symbol: 'R', rate: 18.2, flag: '🇿🇦', name: 'South African Rand' },
+};
+
+const convertPrice = (usdPrice: number, currency: string): number => {
+  const rate = EXCHANGE_RATES[currency]?.rate ?? 1;
+  return usdPrice * rate;
+};
+
+const formatPrice = (amount: number, currency: string): string => {
+  const info = EXCHANGE_RATES[currency];
+  if (!info) return `$${amount.toFixed(0)}`;
+  // For high-value currencies, no decimals
+  if (info.rate >= 50) return `${info.symbol}${Math.round(amount).toLocaleString()}`;
+  if (amount % 1 === 0) return `${info.symbol}${amount.toFixed(0)}`;
+  return `${info.symbol}${amount.toFixed(2)}`;
+};
 import {
   Accordion,
   AccordionContent,
