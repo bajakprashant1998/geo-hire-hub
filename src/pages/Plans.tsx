@@ -535,17 +535,17 @@ const ComparisonTable = ({ plans }: { plans: Plan[] }) => {
                   <th className="text-left p-4 font-semibold text-foreground min-w-[220px]">Feature</th>
                   <th className="text-center p-4 w-[140px]">
                     <div className="font-semibold text-muted-foreground">{freePlan?.name || 'Free'}</div>
-                    <div className="text-xs text-muted-foreground/70 mt-0.5">${freePlan?.price_monthly ?? 0}/mo</div>
+                    <div className="text-xs text-muted-foreground/70 mt-0.5">Free</div>
                   </th>
                   <th className="text-center p-4 w-[140px] bg-primary/5">
                     <div className="font-semibold text-primary flex items-center justify-center gap-1">
                       <Sparkles className="w-3.5 h-3.5" /> {proPlan?.name || 'Pro'}
                     </div>
-                    <div className="text-xs text-primary/70 mt-0.5">${proPlan?.price_monthly ?? 0}/mo</div>
+                    <div className="text-xs text-primary/70 mt-0.5">{formatPrice(convertPrice(proPlan?.price_monthly ?? 0, currency), currency)}/mo</div>
                   </th>
                   <th className="text-center p-4 w-[140px]">
                     <div className="font-semibold text-foreground">{entPlan?.name || 'Enterprise'}</div>
-                    <div className="text-xs text-muted-foreground/70 mt-0.5">${entPlan?.price_monthly ?? 0}/mo</div>
+                    <div className="text-xs text-muted-foreground/70 mt-0.5">{formatPrice(convertPrice(entPlan?.price_monthly ?? 0, currency), currency)}/mo</div>
                   </th>
                 </tr>
               </thead>
