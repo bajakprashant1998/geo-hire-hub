@@ -1,3 +1,4 @@
+import { Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,67 +9,72 @@ import { MessageNotificationProvider } from "@/components/messaging/MessageNotif
 import { EmailVerificationBanner } from "@/components/auth/EmailVerificationBanner";
 import { LocationGate } from "@/components/LocationGate";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { PageTransition } from "@/components/PageTransition";
+
+// Critical path — keep eager
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import ForgotPassword from "./pages/ForgotPassword";
-import UpdatePassword from "./pages/UpdatePassword";
-import VerifyEmail from "./pages/VerifyEmail";
-import ProfileSetup from "./pages/ProfileSetup";
-import AuthCallback from "./pages/auth/AuthCallback";
-import RoleSelection from "./pages/auth/RoleSelection";
-import TermsOfService from "./pages/TermsOfService";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import BrowseJobs from "./pages/BrowseJobs";
-import JobsNearMe from "./pages/JobsNearMe";
-import CandidateDashboard from "./pages/CandidateDashboard";
-import CandidateSettings from "./pages/CandidateSettings";
-import CandidateProfileEdit from "./pages/CandidateProfileEdit";
-import EmployerDashboard from "./pages/EmployerDashboard";
-
-import AIResumeBuilder from "./pages/AIResumeBuilder";
-import PostJob from "./pages/PostJob";
-import Messages from "./pages/Messages";
-import CandidateDetail from "./pages/CandidateDetail";
-import CandidateResumeRedirect from "./pages/CandidateResumeRedirect";
-import EmployerDetail from "./pages/EmployerDetail";
-import JobDetail from "./pages/JobDetail";
-import SEOJobDetail from "./pages/SEOJobDetail";
-import SEOEmployerDetail from "./pages/SEOEmployerDetail";
-import SEOCandidateDetail from "./pages/SEOCandidateDetail";
-import Plans from "./pages/Plans";
-import CompanyProfileEdit from "./pages/CompanyProfileEdit";
-import VideoCall from "./pages/VideoCall";
 import NotFound from "./pages/NotFound";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminEmployers from "./pages/admin/AdminEmployers";
-import AdminJobs from "./pages/admin/AdminJobs";
-import AdminCandidates from "./pages/admin/AdminCandidates";
-import AdminPlans from "./pages/admin/AdminPlans";
-import AdminReports from "./pages/admin/AdminReports";
-import AdminSettings from "./pages/admin/AdminSettings";
-import AdminUsers from "./pages/admin/AdminUsers";
-import AdminAnalytics from "./pages/admin/AdminAnalytics";
-import AdminGovernment from "./pages/admin/AdminGovernment";
-import AdminMessages from "./pages/admin/AdminMessages";
-import AdminJobCategories from "./pages/admin/AdminJobCategories";
-import AdminApplications from "./pages/admin/AdminApplications";
-import AdminNotifications from "./pages/admin/AdminNotifications";
-import AdminModeration from "./pages/admin/AdminModeration";
-import AdminEmailTemplates from "./pages/admin/AdminEmailTemplates";
-import AdminSystemHealth from "./pages/admin/AdminSystemHealth";
-import AdminContentSEO from "./pages/admin/AdminContentSEO";
-import AdminAutoApply from "./pages/admin/AdminAutoApply";
-import AdminRevenue from "./pages/admin/AdminRevenue";
-import AdminRoleManagement from "./pages/admin/AdminRoleManagement";
-import AdminFraudDetection from "./pages/admin/AdminFraudDetection";
-import AdminScheduledJobs from "./pages/admin/AdminScheduledJobs";
-import AdminTasks from "./pages/admin/AdminTasks";
-import AdminSEOAgent from "./pages/admin/AdminSEOAgent";
+
+// Lazy-loaded routes
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const UpdatePassword = lazy(() => import("./pages/UpdatePassword"));
+const VerifyEmail = lazy(() => import("./pages/VerifyEmail"));
+const ProfileSetup = lazy(() => import("./pages/ProfileSetup"));
+const AuthCallback = lazy(() => import("./pages/auth/AuthCallback"));
+const RoleSelection = lazy(() => import("./pages/auth/RoleSelection"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const BrowseJobs = lazy(() => import("./pages/BrowseJobs"));
+const JobsNearMe = lazy(() => import("./pages/JobsNearMe"));
+const CandidateDashboard = lazy(() => import("./pages/CandidateDashboard"));
+const CandidateSettings = lazy(() => import("./pages/CandidateSettings"));
+const CandidateProfileEdit = lazy(() => import("./pages/CandidateProfileEdit"));
+const EmployerDashboard = lazy(() => import("./pages/EmployerDashboard"));
+const AIResumeBuilder = lazy(() => import("./pages/AIResumeBuilder"));
+const PostJob = lazy(() => import("./pages/PostJob"));
+const Messages = lazy(() => import("./pages/Messages"));
+const CandidateDetail = lazy(() => import("./pages/CandidateDetail"));
+const CandidateResumeRedirect = lazy(() => import("./pages/CandidateResumeRedirect"));
+const EmployerDetail = lazy(() => import("./pages/EmployerDetail"));
+const JobDetail = lazy(() => import("./pages/JobDetail"));
+const SEOJobDetail = lazy(() => import("./pages/SEOJobDetail"));
+const SEOEmployerDetail = lazy(() => import("./pages/SEOEmployerDetail"));
+const SEOCandidateDetail = lazy(() => import("./pages/SEOCandidateDetail"));
+const Plans = lazy(() => import("./pages/Plans"));
+const CompanyProfileEdit = lazy(() => import("./pages/CompanyProfileEdit"));
+const VideoCall = lazy(() => import("./pages/VideoCall"));
+
+// Admin routes — always lazy
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminEmployers = lazy(() => import("./pages/admin/AdminEmployers"));
+const AdminJobs = lazy(() => import("./pages/admin/AdminJobs"));
+const AdminCandidates = lazy(() => import("./pages/admin/AdminCandidates"));
+const AdminPlans = lazy(() => import("./pages/admin/AdminPlans"));
+const AdminReports = lazy(() => import("./pages/admin/AdminReports"));
+const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
+const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
+const AdminAnalytics = lazy(() => import("./pages/admin/AdminAnalytics"));
+const AdminGovernment = lazy(() => import("./pages/admin/AdminGovernment"));
+const AdminMessages = lazy(() => import("./pages/admin/AdminMessages"));
+const AdminJobCategories = lazy(() => import("./pages/admin/AdminJobCategories"));
+const AdminApplications = lazy(() => import("./pages/admin/AdminApplications"));
+const AdminNotifications = lazy(() => import("./pages/admin/AdminNotifications"));
+const AdminModeration = lazy(() => import("./pages/admin/AdminModeration"));
+const AdminEmailTemplates = lazy(() => import("./pages/admin/AdminEmailTemplates"));
+const AdminSystemHealth = lazy(() => import("./pages/admin/AdminSystemHealth"));
+const AdminContentSEO = lazy(() => import("./pages/admin/AdminContentSEO"));
+const AdminAutoApply = lazy(() => import("./pages/admin/AdminAutoApply"));
+const AdminRevenue = lazy(() => import("./pages/admin/AdminRevenue"));
+const AdminRoleManagement = lazy(() => import("./pages/admin/AdminRoleManagement"));
+const AdminFraudDetection = lazy(() => import("./pages/admin/AdminFraudDetection"));
+const AdminScheduledJobs = lazy(() => import("./pages/admin/AdminScheduledJobs"));
+const AdminTasks = lazy(() => import("./pages/admin/AdminTasks"));
+const AdminSEOAgent = lazy(() => import("./pages/admin/AdminSEOAgent"));
 
 const queryClient = new QueryClient();
 
-// Proper redirect component that preserves the :id param
 const JobRedirect = () => {
   const { id } = useParams();
   return <Navigate to={`/jobs/${id}`} replace />;
@@ -78,7 +84,6 @@ const JobRedirect = () => {
 if (typeof window !== 'undefined') {
   window.addEventListener('unhandledrejection', (event) => {
     const msg = event.reason?.message || '';
-    // Suppress known Google Maps cleanup errors
     if (msg.includes('getRootNode') || msg.includes('AdvancedMarker')) {
       event.preventDefault();
       return;
@@ -86,6 +91,16 @@ if (typeof window !== 'undefined') {
     console.error('Unhandled rejection:', event.reason);
   });
 }
+
+// Route loading fallback
+const RouteFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="flex flex-col items-center gap-3">
+      <div className="w-10 h-10 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+      <p className="text-sm text-muted-foreground animate-pulse">Loading...</p>
+    </div>
+  </div>
+);
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -98,64 +113,62 @@ const App = () => (
             <EmailVerificationBanner />
             <LocationGate>
             <ErrorBoundary>
+            <Suspense fallback={<RouteFallback />}>
             <Routes>
               {/* ==================== PUBLIC ROUTES ==================== */}
               <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/update-password" element={<UpdatePassword />} />
-              <Route path="/verify-email" element={<VerifyEmail />} />
-              <Route path="/profile-setup" element={<ProfileSetup />} />
-              <Route path="/plans" element={<Plans />} />
+              <Route path="/login" element={<PageTransition><Login /></PageTransition>} />
+              <Route path="/signup" element={<PageTransition><Signup /></PageTransition>} />
+              <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
+              <Route path="/update-password" element={<PageTransition><UpdatePassword /></PageTransition>} />
+              <Route path="/verify-email" element={<PageTransition><VerifyEmail /></PageTransition>} />
+              <Route path="/profile-setup" element={<PageTransition><ProfileSetup /></PageTransition>} />
+              <Route path="/plans" element={<PageTransition><Plans /></PageTransition>} />
               <Route path="/auth/callback" element={<AuthCallback />} />
-              <Route path="/select-role" element={<RoleSelection />} />
-              <Route path="/terms" element={<TermsOfService />} />
-              <Route path="/privacy" element={<PrivacyPolicy />} />
-              <Route path="/browse-jobs" element={<BrowseJobs />} />
-              <Route path="/jobs-near-me" element={<JobsNearMe />} />
+              <Route path="/select-role" element={<PageTransition><RoleSelection /></PageTransition>} />
+              <Route path="/terms" element={<PageTransition><TermsOfService /></PageTransition>} />
+              <Route path="/privacy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
+              <Route path="/browse-jobs" element={<PageTransition><BrowseJobs /></PageTransition>} />
+              <Route path="/jobs-near-me" element={<PageTransition><JobsNearMe /></PageTransition>} />
               <Route path="/job-listings-near-me" element={<Navigate to="/jobs-near-me" replace />} />
               <Route path="/jobs-hiring-near-me" element={<Navigate to="/jobs-near-me" replace />} />
               <Route path="/hire-for-job" element={<Navigate to="/jobs-near-me" replace />} />
 
               {/* ==================== SHARED ROUTES ==================== */}
-              <Route path="/messages" element={<Messages />} />
-              <Route path="/messages/:conversationId" element={<Messages />} />
+              <Route path="/messages" element={<PageTransition><Messages /></PageTransition>} />
+              <Route path="/messages/:conversationId" element={<PageTransition><Messages /></PageTransition>} />
 
               {/* ==================== SEO-FRIENDLY DETAIL PAGES ==================== */}
-              {/* Jobs: /jobs/:slug or /jobs/:country/:slug or /jobs/:country/:state/:slug or /jobs/:country/:state/:city/:slug */}
-              <Route path="/jobs/:id" element={<JobDetail />} />
-              <Route path="/jobs/:country/:slug" element={<SEOJobDetail />} />
-              <Route path="/jobs/:country/:state/:slug" element={<SEOJobDetail />} />
-              <Route path="/jobs/:country/:state/:city/:slug" element={<SEOJobDetail />} />
+              <Route path="/jobs/:id" element={<PageTransition><JobDetail /></PageTransition>} />
+              <Route path="/jobs/:country/:slug" element={<PageTransition><SEOJobDetail /></PageTransition>} />
+              <Route path="/jobs/:country/:state/:slug" element={<PageTransition><SEOJobDetail /></PageTransition>} />
+              <Route path="/jobs/:country/:state/:city/:slug" element={<PageTransition><SEOJobDetail /></PageTransition>} />
 
-              {/* Candidates: /candidates/:slug or with location hierarchy */}
               <Route path="/candidates/:id/resume.pdf" element={<CandidateResumeRedirect />} />
-              <Route path="/candidates/:id" element={<CandidateDetail />} />
-              <Route path="/candidates/:country/:slug" element={<SEOCandidateDetail />} />
-              <Route path="/candidates/:country/:state/:slug" element={<SEOCandidateDetail />} />
-              <Route path="/candidates/:country/:state/:city/:slug" element={<SEOCandidateDetail />} />
+              <Route path="/candidates/:id" element={<PageTransition><CandidateDetail /></PageTransition>} />
+              <Route path="/candidates/:country/:slug" element={<PageTransition><SEOCandidateDetail /></PageTransition>} />
+              <Route path="/candidates/:country/:state/:slug" element={<PageTransition><SEOCandidateDetail /></PageTransition>} />
+              <Route path="/candidates/:country/:state/:city/:slug" element={<PageTransition><SEOCandidateDetail /></PageTransition>} />
 
-              {/* Companies/Employers: /companies/:slug or with location hierarchy */}
-              <Route path="/employers/:id" element={<EmployerDetail />} />
-              <Route path="/companies/:slug" element={<EmployerDetail />} />
-              <Route path="/companies/:country/:slug" element={<SEOEmployerDetail />} />
-              <Route path="/companies/:country/:state/:slug" element={<SEOEmployerDetail />} />
-              <Route path="/companies/:country/:state/:city/:slug" element={<SEOEmployerDetail />} />
+              <Route path="/employers/:id" element={<PageTransition><EmployerDetail /></PageTransition>} />
+              <Route path="/companies/:slug" element={<PageTransition><EmployerDetail /></PageTransition>} />
+              <Route path="/companies/:country/:slug" element={<PageTransition><SEOEmployerDetail /></PageTransition>} />
+              <Route path="/companies/:country/:state/:slug" element={<PageTransition><SEOEmployerDetail /></PageTransition>} />
+              <Route path="/companies/:country/:state/:city/:slug" element={<PageTransition><SEOEmployerDetail /></PageTransition>} />
 
               {/* ==================== CANDIDATE ROUTES ==================== */}
               <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
-              <Route path="/candidate-settings" element={<CandidateSettings />} />
-              <Route path="/candidate-profile" element={<CandidateProfileEdit />} />
-              <Route path="/ai-resume-builder" element={<AIResumeBuilder />} />
+              <Route path="/candidate-settings" element={<PageTransition><CandidateSettings /></PageTransition>} />
+              <Route path="/candidate-profile" element={<PageTransition><CandidateProfileEdit /></PageTransition>} />
+              <Route path="/ai-resume-builder" element={<PageTransition><AIResumeBuilder /></PageTransition>} />
 
               {/* ==================== EMPLOYER ROUTES ==================== */}
               <Route path="/employer-dashboard" element={<EmployerDashboard />} />
               <Route path="/employer-settings" element={<Navigate to="/employer-dashboard?tab=security" replace />} />
               <Route path="/post-job" element={<Navigate to="/employer-dashboard?tab=post-job" replace />} />
-              <Route path="/edit-job/:jobId" element={<PostJob />} />
+              <Route path="/edit-job/:jobId" element={<PageTransition><PostJob /></PageTransition>} />
               <Route path="/company-profile" element={<Navigate to="/employer-dashboard?tab=company" replace />} />
-              <Route path="/video-call/:interviewId" element={<VideoCall />} />
+              <Route path="/video-call/:interviewId" element={<PageTransition><VideoCall /></PageTransition>} />
 
               {/* ==================== ADMIN ROUTES ==================== */}
               <Route path="/admin" element={<AdminDashboard />} />
@@ -186,19 +199,20 @@ const App = () => (
 
               {/* ==================== REDIRECTS & ALIASES ==================== */}
               <Route path="/dashboard" element={<Navigate to="/candidate-dashboard" replace />} />
-              <Route path="/employer/:id" element={<EmployerDetail />} />
+              <Route path="/employer/:id" element={<PageTransition><EmployerDetail /></PageTransition>} />
               <Route path="/job/:id" element={<JobRedirect />} />
 
               {/* ==================== CATCH-ALL ==================== */}
               <Route path="*" element={<NotFound />} />
-            </Routes >
+            </Routes>
+            </Suspense>
             </ErrorBoundary>
             </LocationGate>
-          </MessageNotificationProvider >
-        </BrowserRouter >
-      </TooltipProvider >
-    </AuthProvider >
-  </QueryClientProvider >
+          </MessageNotificationProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
+  </QueryClientProvider>
 );
 
 export default App;
