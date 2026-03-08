@@ -25,6 +25,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AdvancedFilters, MapFilters, defaultFilters } from './AdvancedFilters';
 import { NearbyCompanies } from './NearbyCompanies';
 import { HeatmapToggle } from './HeatmapToggle';
+import { SalaryHeatmapPanel } from './SalaryHeatmapPanel';
 
 interface Job {
   id: string;
