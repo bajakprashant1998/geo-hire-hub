@@ -1104,6 +1104,8 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                 const isSelected = selectedIds.includes(candidate.applicationId || '');
                 const isTopPick = aiInsights?.topPick?.name?.toLowerCase().includes(candidate.fullName.split(' ')[0].toLowerCase());
                 const timeAgo = candidate.appliedAt ? formatDistanceToNow(new Date(candidate.appliedAt), { addSuffix: false }) : null;
+                const isNew = candidate.appliedAt && (Date.now() - new Date(candidate.appliedAt).getTime()) < 48 * 60 * 60 * 1000;
+                const locationStr = [candidate.locationCity, candidate.locationCountry].filter(Boolean).join(', ');
 
                 return (
                   <motion.div
@@ -1166,6 +1168,11 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                                   {candidate.fullName}
                                 </h4>
                                 {getStatusBadge(candidate.applicationStatus || 'pending')}
+                                {isNew && (
+                                  <Badge className="bg-primary/15 text-primary text-[9px] font-bold border-primary/20 px-1.5 py-0 animate-pulse">
+                                    NEW
+                                  </Badge>
+                                )}
                               </div>
 
                               {/* Meta row */}
@@ -1175,6 +1182,12 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                                   <span className="truncate max-w-[120px] sm:max-w-none">{candidate.jobTitle}</span>
                                 </span>
                                 <span className="font-semibold text-foreground/70">{candidate.experienceYears}y exp</span>
+                                {locationStr && (
+                                  <span className="flex items-center gap-1">
+                                    <MapPin className="w-3 h-3 shrink-0 text-muted-foreground/60" />
+                                    <span className="truncate max-w-[100px] sm:max-w-[140px]">{locationStr}</span>
+                                  </span>
+                                )}
                                 {timeAgo && (
                                   <span className="flex items-center gap-1 text-muted-foreground/60">
                                     <Clock className="w-3 h-3 shrink-0" /> {timeAgo}
@@ -1185,25 +1198,60 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                               {/* Skills */}
                               {candidate.skills.length > 0 && (
                                 <div className="flex flex-wrap gap-1 mt-2">
-                                  {candidate.skills.slice(0, 3).map(skill => (
+                                  {candidate.skills.slice(0, 4).map(skill => (
                                     <span key={skill} className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-muted/50 text-muted-foreground border border-border/30 truncate max-w-[100px] sm:max-w-[140px]">
                                       {skill}
                                     </span>
                                   ))}
-                                  {candidate.skills.length > 3 && (
+                                  {candidate.skills.length > 4 && (
                                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-md border border-dashed border-border/50 text-muted-foreground/60">
-                                      +{candidate.skills.length - 3}
+                                      +{candidate.skills.length - 4}
                                     </span>
                                   )}
                                 </div>
                               )}
 
-                              {/* Applied for */}
-                              {candidate.jobTitle_applied && (
-                                <p className="text-[10px] text-muted-foreground/70 mt-1.5">
-                                  Applied for <span className="font-semibold text-foreground/70">{candidate.jobTitle_applied}</span>
-                                </p>
-                              )}
+                              {/* Applied for + indicators */}
+                              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                                {candidate.jobTitle_applied && (
+                                  <p className="text-[10px] text-muted-foreground/70">
+                                    Applied for <span className="font-semibold text-foreground/70">{candidate.jobTitle_applied}</span>
+                                  </p>
+                                )}
+                                {/* Resume/Portfolio indicators */}
+                                <div className="flex items-center gap-1 ml-auto">
+                                  {candidate.resumeUrl && (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <div className="w-5 h-5 rounded-md bg-success/10 flex items-center justify-center">
+                                          <FileText className="w-3 h-3 text-success" />
+                                        </div>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="text-xs">Has resume</TooltipContent>
+                                    </Tooltip>
+                                  )}
+                                  {candidate.portfolioUrls.length > 0 && (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <div className="w-5 h-5 rounded-md bg-primary/10 flex items-center justify-center">
+                                          <Link2 className="w-3 h-3 text-primary" />
+                                        </div>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="text-xs">Has portfolio</TooltipContent>
+                                    </Tooltip>
+                                  )}
+                                  {candidate.certifications.length > 0 && (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <div className="w-5 h-5 rounded-md bg-warning/10 flex items-center justify-center">
+                                          <Award className="w-3 h-3 text-warning-foreground" />
+                                        </div>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="text-xs">{candidate.certifications.length} certification{candidate.certifications.length > 1 ? 's' : ''}</TooltipContent>
+                                    </Tooltip>
+                                  )}
+                                </div>
+                              </div>
                             </div>
 
                             {/* Desktop actions */}
