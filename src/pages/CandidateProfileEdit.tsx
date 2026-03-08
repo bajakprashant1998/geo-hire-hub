@@ -405,14 +405,21 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                             </div>
                             <Separator />
                             <div className="grid md:grid-cols-2 gap-4">
-                                <div className="space-y-2"><Label>Full Name *</Label>
-                                    <Input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Your full name" /></div>
+                                <div className="space-y-2">
+                                    <Label>Full Name *</Label>
+                                    <Input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Your full name"
+                                        className={!fullName.trim() ? 'border-destructive/50 focus-visible:ring-destructive/30' : ''} />
+                                    {!fullName.trim() && <p className="text-[11px] text-destructive">Required</p>}
+                                </div>
                                 <div className="space-y-2"><Label>WhatsApp Number</Label>
                                     <Input value={whatsappNumber} onChange={e => setWhatsappNumber(e.target.value)} placeholder="e.g., 919876543210" /></div>
                             </div>
                             <div className="grid md:grid-cols-2 gap-4">
-                                <div className="space-y-2"><Label>Current Job Title *</Label>
-                                    <JobCategorySearch value={jobTitle} onChange={setJobTitle} placeholder="e.g., Software Engineer" /></div>
+                                <div className="space-y-2">
+                                    <Label>Current Job Title *</Label>
+                                    <JobCategorySearch value={jobTitle} onChange={setJobTitle} placeholder="e.g., Software Engineer" />
+                                    {(!jobTitle.trim() || jobTitle === 'Not specified') && <p className="text-[11px] text-destructive">Required</p>}
+                                </div>
                                 <div className="space-y-2"><Label>Professional Headline</Label>
                                     <Input value={headline} onChange={e => setHeadline(e.target.value)} placeholder="e.g., Senior Full Stack Developer | React & Node.js" /></div>
                             </div>
