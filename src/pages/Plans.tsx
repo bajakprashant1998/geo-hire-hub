@@ -615,14 +615,36 @@ const Plans = () => {
             .maybeSingle();
 
           if (empData) {
-            const { data: subData } = await supabase
-              .from('employer_subscriptions')
-              .select('plan_id')
-              .eq('employer_id', empData.id)
-              .eq('status', 'active')
-              .maybeSingle();
+            const [subResult, activeResult] = await Promise.all([
+              supabase
+                .from('employer_subscriptions')
+                .select('plan_id, current_period_end, employer_plans(name, max_active_jobs)')
+                .eq('employer_id', empData.id)
+                .eq('status', 'active')
+                .maybeSingle(),
+              supabase
+                .from('jobs')
+                .select('*', { count: 'exact', head: true })
+                .eq('employer_id', empData.id)
+                .eq('is_active', true)
+                .eq('status', 'open'),
+            ]);
 
-            if (subData) setCurrentPlanId(subData.plan_id);
+            setActiveJobCount(activeResult.count || 0);
+
+            if (subResult.data) {
+              setCurrentPlanId(subResult.data.plan_id);
+              const ep = subResult.data.employer_plans as any;
+              if (ep) {
+                setCurrentPlanName(ep.name);
+                setMaxActiveJobs(ep.max_active_jobs);
+              }
+              setPeriodEnd(subResult.data.current_period_end);
+            } else {
+              // Default free plan
+              setCurrentPlanName('Free');
+              setMaxActiveJobs(1);
+            }
           }
         }
       } catch (error) {
