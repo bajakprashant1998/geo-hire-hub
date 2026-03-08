@@ -13,7 +13,7 @@ import {
   Users, Mail, Heart, Share2, ExternalLink, ShieldCheck,
   Image as ImageIcon, CheckCircle2,
   Clock, FileText, Lock, LogIn, UserPlus, Award, Zap,
-  Code, GraduationCap, TrendingUp, DollarSign, Laptop,
+  Code, GraduationCap, TrendingUp, Banknote, Laptop,
   Star, BookOpen, Shield, ChevronRight,
 } from 'lucide-react';
 import { toast } from 'sonner';
