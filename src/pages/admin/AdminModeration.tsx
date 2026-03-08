@@ -15,13 +15,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { BulkActionsBar } from '@/components/admin/BulkActionsBar';
-import { ShieldAlert, Clock, CheckCircle, XCircle, AlertTriangle, Search, Download, Eye, MessageSquare, Briefcase, User, FileText, Flag } from 'lucide-react';
+import { ShieldAlert, Clock, CheckCircle, XCircle, AlertTriangle, Search, Download, Eye, MessageSquare, Briefcase, User, FileText, Flag, Brain, Loader2, Zap, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, formatDistanceToNow } from 'date-fns';
 import { PaginationControls } from '@/components/admin/PaginationControls';
 import { exportToCSV } from '@/lib/adminExport';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { Progress } from '@/components/ui/progress';
 
 const PAGE_SIZE = 20;
 
@@ -72,7 +73,60 @@ function StatusBadge({ status }: { status: string }) {
   }
 }
 
-function DetailDialog({ item, open, onClose }: { item: any; open: boolean; onClose: () => void }) {
+function RiskScoreBadge({ score, recommendation }: { score: number | null; recommendation: string | null }) {
+  if (score === null || score === undefined) return null;
+  const color = score >= 70 ? 'bg-red-500/10 text-red-600 border-red-500/20' : score >= 40 ? 'bg-amber-500/10 text-amber-600 border-amber-500/20' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20';
+  const icon = score >= 70 ? <ShieldAlert className="h-3 w-3" /> : score >= 40 ? <AlertTriangle className="h-3 w-3" /> : <Shield className="h-3 w-3" />;
+  return (
+    <div className="flex flex-col items-start gap-1">
+      <Badge className={cn('gap-1 text-[11px]', color)}>
+        {icon} {score}/100
+      </Badge>
+      {recommendation && (
+        <span className="text-[10px] text-muted-foreground capitalize">{recommendation}</span>
+      )}
+    </div>
+  );
+}
+
+function AIRiskDetail({ item }: { item: any }) {
+  if (!item.ai_risk_score && item.ai_risk_score !== 0) return null;
+  return (
+    <div className="space-y-3 mt-3">
+      <div className="flex items-center gap-2">
+        <Brain className="h-4 w-4 text-primary" />
+        <span className="text-sm font-medium">AI Risk Analysis</span>
+      </div>
+      <div className="flex items-center gap-3">
+        <Progress value={item.ai_risk_score} className="flex-1 h-2" />
+        <span className={cn('text-sm font-bold', item.ai_risk_score >= 70 ? 'text-red-600' : item.ai_risk_score >= 40 ? 'text-amber-600' : 'text-emerald-600')}>
+          {item.ai_risk_score}%
+        </span>
+      </div>
+      {item.ai_risk_reasons?.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="text-xs text-muted-foreground font-medium">Risk Factors</p>
+          <div className="flex flex-wrap gap-1.5">
+            {item.ai_risk_reasons.map((reason: string, i: number) => (
+              <Badge key={i} variant="outline" className="text-[10px] bg-muted/50">{reason}</Badge>
+            ))}
+          </div>
+        </div>
+      )}
+      {item.ai_recommendation && (
+        <div className="rounded-lg bg-muted/50 p-2.5">
+          <p className="text-xs text-muted-foreground mb-0.5">AI Recommendation</p>
+          <p className="text-sm font-medium capitalize">{item.ai_recommendation}</p>
+        </div>
+      )}
+      {item.ai_scanned_at && (
+        <p className="text-[10px] text-muted-foreground">Scanned {formatDistanceToNow(new Date(item.ai_scanned_at), { addSuffix: true })}</p>
+      )}
+    </div>
+  );
+}
+
+function DetailDialog({ item, open, onClose, onScan, scanning }: { item: any; open: boolean; onClose: () => void; onScan: (id: string) => void; scanning: boolean }) {
   if (!item) return null;
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -125,6 +179,15 @@ function DetailDialog({ item, open, onClose }: { item: any; open: boolean; onClo
               <p className="text-sm leading-relaxed">{item.admin_notes}</p>
             </div>
           )}
+
+          <AIRiskDetail item={item} />
+
+          {!item.ai_scanned_at && (
+            <Button variant="outline" className="w-full gap-2" onClick={() => onScan(item.id)} disabled={scanning}>
+              {scanning ? <Loader2 className="h-4 w-4 animate-spin" /> : <Brain className="h-4 w-4" />}
+              {scanning ? 'Scanning…' : 'Run AI Analysis'}
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>
@@ -158,7 +221,6 @@ export default function AdminModeration() {
     },
   });
 
-  // Counts query
   const { data: countsData } = useQuery({
     queryKey: ['admin-moderation-counts'],
     queryFn: async () => {
@@ -199,6 +261,49 @@ export default function AdminModeration() {
     onError: (e) => toast.error('Failed: ' + e.message),
   });
 
+  // AI Scan mutation
+  const aiScanMutation = useMutation({
+    mutationFn: async (moderationItemId: string) => {
+      const { data, error } = await supabase.functions.invoke('ai-content-moderator', {
+        body: { action: 'scan_moderation_item', moderation_item_id: moderationItemId },
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-moderation-queue'] });
+      const score = data?.risk_score ?? 0;
+      const label = score >= 70 ? '🔴 High Risk' : score >= 40 ? '🟡 Medium Risk' : '🟢 Low Risk';
+      toast.success(`AI Scan Complete: ${label} (${score}/100)`);
+      // Refresh detail item
+      if (detailItem) {
+        setDetailItem((prev: any) => prev ? { ...prev, ai_risk_score: data.risk_score, ai_risk_reasons: data.risk_reasons, ai_recommendation: data.recommendation, ai_scanned_at: new Date().toISOString() } : prev);
+      }
+    },
+    onError: (e) => toast.error('AI Scan failed: ' + e.message),
+  });
+
+  // Bulk AI scan
+  const bulkAIScanMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      let scanned = 0;
+      for (const id of ids) {
+        try {
+          await supabase.functions.invoke('ai-content-moderator', {
+            body: { action: 'scan_moderation_item', moderation_item_id: id },
+          });
+          scanned++;
+        } catch { /* continue */ }
+      }
+      return scanned;
+    },
+    onSuccess: (count) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-moderation-queue'] });
+      toast.success(`AI scanned ${count} items`);
+    },
+    onError: (e) => toast.error('Bulk scan failed: ' + e.message),
+  });
+
   const items = data?.items || [];
   const totalPages = Math.ceil((data?.total || 0) / PAGE_SIZE);
 
@@ -220,9 +325,9 @@ export default function AdminModeration() {
   const handleExport = () => {
     if (!filteredItems.length) return;
     exportToCSV(
-      filteredItems.map((item: any) => ({ type: item.content_type, reason: item.reason, status: item.status, created: item.created_at, notes: item.admin_notes || '' })),
+      filteredItems.map((item: any) => ({ type: item.content_type, reason: item.reason, status: item.status, ai_score: item.ai_risk_score ?? '', ai_rec: item.ai_recommendation ?? '', created: item.created_at, notes: item.admin_notes || '' })),
       'admin-moderation',
-      [{ key: 'type', label: 'Type' }, { key: 'reason', label: 'Reason' }, { key: 'status', label: 'Status' }, { key: 'created', label: 'Created' }, { key: 'notes', label: 'Admin Notes' }]
+      [{ key: 'type', label: 'Type' }, { key: 'reason', label: 'Reason' }, { key: 'status', label: 'Status' }, { key: 'ai_score', label: 'AI Score' }, { key: 'ai_rec', label: 'AI Recommendation' }, { key: 'created', label: 'Created' }, { key: 'notes', label: 'Admin Notes' }]
     );
     toast.success('Moderation data exported');
   };
@@ -238,14 +343,17 @@ export default function AdminModeration() {
   const actionLabel = actionDialog?.action === 'approved' ? 'Approve' : actionDialog?.action === 'rejected' ? 'Reject' : 'Escalate';
   const actionVariant = actionDialog?.action === 'approved' ? 'default' : actionDialog?.action === 'rejected' ? 'destructive' : 'default' as const;
 
+  const unscannedPendingIds = filteredItems.filter((i: any) => i.status === 'pending' && !i.ai_scanned_at).map((i: any) => i.id);
+
   return (
     <AdminLayout title="Content Moderation">
       {/* KPI Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
         <KPICard title="Total Queue" value={totalCount} icon={ShieldAlert} gradient="bg-gradient-to-br from-primary to-primary/70" delay={0} />
         <KPICard title="Pending Review" value={pendingCount} icon={Clock} gradient="bg-gradient-to-br from-amber-600 to-amber-500" delay={0.05} />
         <KPICard title="Approved" value={approvedCount} icon={CheckCircle} gradient="bg-gradient-to-br from-emerald-600 to-emerald-500" delay={0.1} />
         <KPICard title="Escalated" value={escalatedCount} icon={AlertTriangle} gradient="bg-gradient-to-br from-destructive to-destructive/70" delay={0.15} />
+        <KPICard title="AI Scanned" value={filteredItems.filter((i: any) => i.ai_scanned_at).length} icon={Brain} gradient="bg-gradient-to-br from-violet-600 to-violet-500" delay={0.2} />
       </div>
 
       {/* Filters */}
@@ -262,6 +370,18 @@ export default function AdminModeration() {
             </TabsList>
           </Tabs>
           <div className="flex-1" />
+          {unscannedPendingIds.length > 0 && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5 h-9 shrink-0 border-violet-500/30 text-violet-600 hover:bg-violet-500/10"
+              onClick={() => bulkAIScanMutation.mutate(unscannedPendingIds)}
+              disabled={bulkAIScanMutation.isPending}
+            >
+              {bulkAIScanMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
+              AI Scan All ({unscannedPendingIds.length})
+            </Button>
+          )}
           <AdminDateRangeFilter value={dateRange} onChange={setDateRange} />
           <Button size="sm" variant="outline" className="gap-1.5 h-9 shrink-0" onClick={handleExport}>
             <Download className="h-3.5 w-3.5" /> Export
@@ -293,8 +413,9 @@ export default function AdminModeration() {
                     <TableHead>Content</TableHead>
                     <TableHead className="hidden md:table-cell">Reason</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead className="hidden lg:table-cell">AI Risk</TableHead>
                     <TableHead className="hidden sm:table-cell">Reported</TableHead>
-                    <TableHead className="text-right w-[200px]">Actions</TableHead>
+                    <TableHead className="text-right w-[220px]">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -321,6 +442,13 @@ export default function AdminModeration() {
                         <p className="text-sm text-muted-foreground max-w-[250px] truncate">{item.reason || '—'}</p>
                       </TableCell>
                       <TableCell><StatusBadge status={item.status} /></TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        {item.ai_scanned_at ? (
+                          <RiskScoreBadge score={item.ai_risk_score} recommendation={item.ai_recommendation} />
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
                       <TableCell className="hidden sm:table-cell">
                         <TooltipProvider>
                           <Tooltip>
@@ -333,6 +461,21 @@ export default function AdminModeration() {
                       </TableCell>
                       <TableCell className="text-right" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-0.5 opacity-60 group-hover:opacity-100 transition-opacity">
+                          {!item.ai_scanned_at && item.status === 'pending' && (
+                            <TooltipProvider>
+                              <Tooltip><TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-violet-600 hover:text-violet-600"
+                                  onClick={() => aiScanMutation.mutate(item.id)}
+                                  disabled={aiScanMutation.isPending}
+                                >
+                                  {aiScanMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Brain className="h-4 w-4" />}
+                                </Button>
+                              </TooltipTrigger><TooltipContent><p className="text-xs">AI Scan</p></TooltipContent></Tooltip>
+                            </TooltipProvider>
+                          )}
                           <TooltipProvider>
                             <Tooltip><TooltipTrigger asChild>
                               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDetailItem(item)}><Eye className="h-4 w-4" /></Button>
@@ -381,7 +524,7 @@ export default function AdminModeration() {
       />
 
       {/* Detail Dialog */}
-      <DetailDialog item={detailItem} open={!!detailItem} onClose={() => setDetailItem(null)} />
+      <DetailDialog item={detailItem} open={!!detailItem} onClose={() => setDetailItem(null)} onScan={(id) => aiScanMutation.mutate(id)} scanning={aiScanMutation.isPending} />
 
       {/* Action Dialog */}
       <Dialog open={!!actionDialog} onOpenChange={() => { setActionDialog(null); setNotes(''); }}>
@@ -399,6 +542,17 @@ export default function AdminModeration() {
               {actionDialog?.action === 'escalated' && 'This item will be escalated for further review by senior moderators.'}
             </DialogDescription>
           </DialogHeader>
+          {actionDialog?.item?.ai_risk_score != null && (
+            <div className="rounded-lg bg-muted/50 p-3 flex items-center gap-3">
+              <Brain className="h-4 w-4 text-violet-600 shrink-0" />
+              <div>
+                <p className="text-xs text-muted-foreground">AI Risk Score</p>
+                <p className={cn('text-sm font-bold', actionDialog.item.ai_risk_score >= 70 ? 'text-red-600' : actionDialog.item.ai_risk_score >= 40 ? 'text-amber-600' : 'text-emerald-600')}>
+                  {actionDialog.item.ai_risk_score}/100 — {actionDialog.item.ai_recommendation}
+                </p>
+              </div>
+            </div>
+          )}
           {actionDialog?.item?.reason && (
             <div className="rounded-lg bg-muted/50 p-3">
               <p className="text-xs text-muted-foreground mb-1">Reported reason</p>
