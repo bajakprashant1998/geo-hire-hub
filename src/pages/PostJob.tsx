@@ -17,7 +17,8 @@ import {
   Users,
   Clock,
   Building2,
-  Eye
+  Eye,
+  Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
