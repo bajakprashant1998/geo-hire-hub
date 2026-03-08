@@ -182,7 +182,7 @@ export default function AdminRevenue() {
   return (
     <AdminLayout title="Revenue & Forecasting">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatsCard title="Monthly Revenue (MRR)" value={`$${totalMRR.toLocaleString()}`} icon={DollarSign} variant="success" />
+        <StatsCard title="Monthly Revenue (MRR)" value={`$${totalMRR.toLocaleString()}`} icon={Banknote} variant="success" />
         <StatsCard title="Paid Subscribers" value={paidActive.length} icon={TrendingUp} />
         <StatsCard title="Churn Rate" value={`${churnRate}%`} icon={TrendingDown} variant={Number(churnRate) > 10 ? 'destructive' : 'default'} />
         <StatsCard title="Overdue Payments" value={overdue.length} icon={AlertTriangle} variant={overdue.length > 0 ? 'warning' : 'default'} />
