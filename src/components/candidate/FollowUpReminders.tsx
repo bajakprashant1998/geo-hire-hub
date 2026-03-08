@@ -181,7 +181,7 @@ const EmptyState = ({ type }: { type: 'overdue' | 'all' }) => (
       <p className="text-xs text-muted-foreground mt-1">
         {type === 'overdue'
           ? "You've followed up on all your pending applications."
-          : 'Apply to jobs and we'll help you track follow-ups automatically.'}
+          : "Apply to jobs and we'll help you track follow-ups automatically."}
       </p>
     </div>
   </div>
