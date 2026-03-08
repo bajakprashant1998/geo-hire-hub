@@ -90,6 +90,7 @@ interface Filters {
   resumeKeyword: string;
   pipelineStatus: string;
   availability: string;
+  jobId: string;
 }
 
 interface AIInsights {
@@ -126,6 +127,7 @@ const defaultFilters: Filters = {
   resumeKeyword: '',
   pipelineStatus: 'all',
   availability: '',
+  jobId: 'all',
 };
 
 export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
@@ -295,8 +297,21 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
     return Math.min(Math.round(score), 100);
   };
 
+  // Unique jobs list for the job filter dropdown
+  const uniqueJobs = useMemo(() => {
+    const jobMap = new Map<string, string>();
+    candidates.forEach(c => {
+      if (c.jobId && c.jobTitle_applied) jobMap.set(c.jobId, c.jobTitle_applied);
+    });
+    return Array.from(jobMap.entries()).map(([id, title]) => ({ id, title }));
+  }, [candidates]);
+
   const filteredCandidates = useMemo(() => {
     let result = [...candidates];
+    // Job filter
+    if (filters.jobId && filters.jobId !== 'all') {
+      result = result.filter(c => c.jobId === filters.jobId);
+    }
     if (filters.search) {
       const q = filters.search.toLowerCase();
       result = result.filter(c => c.fullName.toLowerCase().includes(q) || c.jobTitle.toLowerCase().includes(q) || c.skills.some(s => s.toLowerCase().includes(q)));
@@ -389,12 +404,17 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
     if (filters.workType) count++;
     if (filters.resumeKeyword) count++;
     if (filters.availability) count++;
+    if (filters.jobId && filters.jobId !== 'all') count++;
     return count;
   }, [filters]);
 
   // Generate active filter labels for chip display
   const activeFilterChips = useMemo(() => {
     const chips: { label: string; key: string }[] = [];
+    if (filters.jobId && filters.jobId !== 'all') {
+      const jobName = uniqueJobs.find(j => j.id === filters.jobId)?.title || 'Job';
+      chips.push({ label: `Job: ${jobName}`, key: 'job' });
+    }
     if (filters.skills.length > 0) filters.skills.forEach(s => chips.push({ label: `Skill: ${s}`, key: `skill-${s}` }));
     if (filters.experienceRange[0] > 0 || filters.experienceRange[1] < 30) chips.push({ label: `${filters.experienceRange[0]}-${filters.experienceRange[1]}y exp`, key: 'exp' });
     if (filters.location) chips.push({ label: `📍 ${filters.location}`, key: 'loc' });
@@ -406,10 +426,11 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
     if (filters.availability) chips.push({ label: `${filters.availability}`, key: 'avail' });
     if (filters.resumeKeyword) chips.push({ label: `"${filters.resumeKeyword}"`, key: 'kw' });
     return chips;
-  }, [filters]);
+  }, [filters, uniqueJobs]);
 
   const removeFilterChip = (key: string) => {
-    if (key.startsWith('skill-')) {
+    if (key === 'job') setFilters(prev => ({ ...prev, jobId: 'all' }));
+    else if (key.startsWith('skill-')) {
       const skill = key.replace('skill-', '');
       removeSkillFilter(skill);
     } else if (key === 'exp') setFilters(prev => ({ ...prev, experienceRange: [0, 30] }));
@@ -422,6 +443,29 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
     else if (key === 'avail') setFilters(prev => ({ ...prev, availability: '' }));
     else if (key === 'kw') setFilters(prev => ({ ...prev, resumeKeyword: '' }));
   };
+
+  const exportCSV = useCallback(() => {
+    if (filteredCandidates.length === 0) { toast.error('No candidates to export'); return; }
+    const headers = ['Name', 'Job Title', 'Experience (years)', 'Match Score', 'Status', 'Location', 'Skills', 'Applied For', 'Applied Date'];
+    const rows = filteredCandidates.map(c => [
+      c.fullName,
+      c.jobTitle,
+      c.experienceYears,
+      c.matchScore + '%',
+      c.applicationStatus || 'pending',
+      [c.locationCity, c.locationCountry].filter(Boolean).join(', '),
+      c.skills.join('; '),
+      c.jobTitle_applied || '',
+      c.appliedAt ? new Date(c.appliedAt).toLocaleDateString() : '',
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `candidates-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+    toast.success(`Exported ${filteredCandidates.length} candidates`);
+  }, [filteredCandidates]);
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-success bg-success/10 border-success/30';
@@ -784,28 +828,56 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
         </motion.div>
       )}
 
-      {/* Header Stats — Cleaner cards with subtle depth */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-        {[
-          { label: 'Candidates', value: candidates.length, icon: Users, color: 'text-primary', bg: 'bg-primary/10', ring: 'ring-primary/10' },
-          { label: 'Avg Match', value: `${avgScore}%`, icon: Target, color: 'text-success', bg: 'bg-success/10', ring: 'ring-success/10' },
-          { label: 'Shortlisted', value: pipelineCounts['shortlisted'] || 0, icon: CheckCircle2, color: 'text-success', bg: 'bg-success/10', ring: 'ring-success/10' },
-          { label: 'Top Matches', value: candidates.filter(c => c.matchScore >= 80).length, icon: Sparkles, color: 'text-warning', bg: 'bg-warning/10', ring: 'ring-warning/10' },
-        ].map((stat, i) => (
-          <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-            <Card className="border-border/30 bg-card hover:shadow-md transition-all duration-300 rounded-2xl ring-1 ring-inset hover:scale-[1.02] group" style={{ '--tw-ring-color': undefined } as any}>
-              <CardContent className="p-3 sm:p-4 flex items-center gap-3">
-                <div className={cn("w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-110", stat.bg)}>
-                  <stat.icon className={cn("w-5 h-5", stat.color)} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-lg sm:text-2xl font-extrabold text-foreground leading-none tracking-tight">{stat.value}</p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 font-medium">{stat.label}</p>
-                </div>
-              </CardContent>
-            </Card>
+      {/* Job Filter + Stats Row */}
+      <div className="space-y-3">
+        {/* Job filter + Export */}
+        {uniqueJobs.length > 1 && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+            className="flex items-center gap-2 flex-wrap"
+          >
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <Briefcase className="w-4 h-4 text-muted-foreground shrink-0" />
+              <Select value={filters.jobId} onValueChange={v => setFilters(prev => ({ ...prev, jobId: v }))}>
+                <SelectTrigger className="h-9 rounded-xl text-xs border-border/50 max-w-[280px]">
+                  <SelectValue placeholder="All job postings" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All job postings ({candidates.length})</SelectItem>
+                  {uniqueJobs.map(j => (
+                    <SelectItem key={j.id} value={j.id}>{j.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5 rounded-xl border-border/50 shrink-0" onClick={exportCSV}>
+              <Download className="w-3.5 h-3.5" /> Export
+            </Button>
           </motion.div>
-        ))}
+        )}
+
+        {/* Stats cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+          {[
+            { label: 'Candidates', value: filteredCandidates.length, icon: Users, color: 'text-primary', bg: 'bg-primary/10' },
+            { label: 'Avg Match', value: `${avgScore}%`, icon: Target, color: 'text-success', bg: 'bg-success/10' },
+            { label: 'Shortlisted', value: pipelineCounts['shortlisted'] || 0, icon: CheckCircle2, color: 'text-success', bg: 'bg-success/10' },
+            { label: 'Top Matches', value: candidates.filter(c => c.matchScore >= 80).length, icon: Sparkles, color: 'text-warning-foreground', bg: 'bg-warning/10' },
+          ].map((stat, i) => (
+            <motion.div key={stat.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+              <Card className="border-border/30 bg-card hover:shadow-md transition-all duration-300 rounded-2xl hover:scale-[1.02] group">
+                <CardContent className="p-3 sm:p-4 flex items-center gap-3">
+                  <div className={cn("w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-110", stat.bg)}>
+                    <stat.icon className={cn("w-5 h-5", stat.color)} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-lg sm:text-2xl font-extrabold text-foreground leading-none tracking-tight">{stat.value}</p>
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-0.5 font-medium">{stat.label}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
       </div>
 
       {/* Pipeline Tabs */}
@@ -995,16 +1067,23 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
             )}
           </AnimatePresence>
 
-          {/* Results count */}
+          {/* Results count + actions */}
           <div className="flex items-center justify-between">
             <p className="text-xs text-muted-foreground">
               <span className="font-semibold text-foreground">{filteredCandidates.length}</span> candidate{filteredCandidates.length !== 1 ? 's' : ''} found
             </p>
-            {filteredCandidates.length > 1 && selectedIds.length === 0 && (
-              <button onClick={() => setSelectedIds(filteredCandidates.map(c => c.applicationId || '').filter(Boolean))} className="text-xs text-primary hover:underline font-medium">
-                Select all
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              {uniqueJobs.length <= 1 && filteredCandidates.length > 0 && (
+                <button onClick={exportCSV} className="text-xs text-muted-foreground hover:text-foreground font-medium flex items-center gap-1">
+                  <Download className="w-3 h-3" /> Export CSV
+                </button>
+              )}
+              {filteredCandidates.length > 1 && selectedIds.length === 0 && (
+                <button onClick={() => setSelectedIds(filteredCandidates.map(c => c.applicationId || '').filter(Boolean))} className="text-xs text-primary hover:underline font-medium">
+                  Select all
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Candidate Cards */}
@@ -1032,6 +1111,8 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                 const isSelected = selectedIds.includes(candidate.applicationId || '');
                 const isTopPick = aiInsights?.topPick?.name?.toLowerCase().includes(candidate.fullName.split(' ')[0].toLowerCase());
                 const timeAgo = candidate.appliedAt ? formatDistanceToNow(new Date(candidate.appliedAt), { addSuffix: false }) : null;
+                const isNew = candidate.appliedAt && (Date.now() - new Date(candidate.appliedAt).getTime()) < 48 * 60 * 60 * 1000;
+                const locationStr = [candidate.locationCity, candidate.locationCountry].filter(Boolean).join(', ');
 
                 return (
                   <motion.div
@@ -1094,6 +1175,11 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                                   {candidate.fullName}
                                 </h4>
                                 {getStatusBadge(candidate.applicationStatus || 'pending')}
+                                {isNew && (
+                                  <Badge className="bg-primary/15 text-primary text-[9px] font-bold border-primary/20 px-1.5 py-0 animate-pulse">
+                                    NEW
+                                  </Badge>
+                                )}
                               </div>
 
                               {/* Meta row */}
@@ -1103,6 +1189,12 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                                   <span className="truncate max-w-[120px] sm:max-w-none">{candidate.jobTitle}</span>
                                 </span>
                                 <span className="font-semibold text-foreground/70">{candidate.experienceYears}y exp</span>
+                                {locationStr && (
+                                  <span className="flex items-center gap-1">
+                                    <MapPin className="w-3 h-3 shrink-0 text-muted-foreground/60" />
+                                    <span className="truncate max-w-[100px] sm:max-w-[140px]">{locationStr}</span>
+                                  </span>
+                                )}
                                 {timeAgo && (
                                   <span className="flex items-center gap-1 text-muted-foreground/60">
                                     <Clock className="w-3 h-3 shrink-0" /> {timeAgo}
@@ -1113,25 +1205,60 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                               {/* Skills */}
                               {candidate.skills.length > 0 && (
                                 <div className="flex flex-wrap gap-1 mt-2">
-                                  {candidate.skills.slice(0, 3).map(skill => (
+                                  {candidate.skills.slice(0, 4).map(skill => (
                                     <span key={skill} className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-muted/50 text-muted-foreground border border-border/30 truncate max-w-[100px] sm:max-w-[140px]">
                                       {skill}
                                     </span>
                                   ))}
-                                  {candidate.skills.length > 3 && (
+                                  {candidate.skills.length > 4 && (
                                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-md border border-dashed border-border/50 text-muted-foreground/60">
-                                      +{candidate.skills.length - 3}
+                                      +{candidate.skills.length - 4}
                                     </span>
                                   )}
                                 </div>
                               )}
 
-                              {/* Applied for */}
-                              {candidate.jobTitle_applied && (
-                                <p className="text-[10px] text-muted-foreground/70 mt-1.5">
-                                  Applied for <span className="font-semibold text-foreground/70">{candidate.jobTitle_applied}</span>
-                                </p>
-                              )}
+                              {/* Applied for + indicators */}
+                              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                                {candidate.jobTitle_applied && (
+                                  <p className="text-[10px] text-muted-foreground/70">
+                                    Applied for <span className="font-semibold text-foreground/70">{candidate.jobTitle_applied}</span>
+                                  </p>
+                                )}
+                                {/* Resume/Portfolio indicators */}
+                                <div className="flex items-center gap-1 ml-auto">
+                                  {candidate.resumeUrl && (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <div className="w-5 h-5 rounded-md bg-success/10 flex items-center justify-center">
+                                          <FileText className="w-3 h-3 text-success" />
+                                        </div>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="text-xs">Has resume</TooltipContent>
+                                    </Tooltip>
+                                  )}
+                                  {candidate.portfolioUrls.length > 0 && (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <div className="w-5 h-5 rounded-md bg-primary/10 flex items-center justify-center">
+                                          <Link2 className="w-3 h-3 text-primary" />
+                                        </div>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="text-xs">Has portfolio</TooltipContent>
+                                    </Tooltip>
+                                  )}
+                                  {candidate.certifications.length > 0 && (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <div className="w-5 h-5 rounded-md bg-warning/10 flex items-center justify-center">
+                                          <Award className="w-3 h-3 text-warning-foreground" />
+                                        </div>
+                                      </TooltipTrigger>
+                                      <TooltipContent side="top" className="text-xs">{candidate.certifications.length} certification{candidate.certifications.length > 1 ? 's' : ''}</TooltipContent>
+                                    </Tooltip>
+                                  )}
+                                </div>
+                              </div>
                             </div>
 
                             {/* Desktop actions */}
