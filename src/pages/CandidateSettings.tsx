@@ -27,7 +27,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { SecuritySettings } from '@/components/candidate/SecuritySettings';
 import { JobAlertsManager } from '@/components/candidate/JobAlertsManager';
-import { EmailVerificationGuard } from '@/components/auth/EmailVerificationGuard';
+
 import { LocationMapPicker } from '@/components/post-job/LocationMapPicker';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -295,8 +295,7 @@ const CandidateSettings = () => {
   }
 
   return (
-    <EmailVerificationGuard fallbackMessage="Please verify your email to access settings.">
-      <div className="min-h-screen bg-secondary py-8 px-4">
+    <div className="min-h-screen bg-secondary py-8 px-4">
         <div className="max-w-4xl mx-auto space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -462,7 +461,6 @@ const CandidateSettings = () => {
           )}
         </AnimatePresence>
       </div>
-    </EmailVerificationGuard>
   );
 };
 
