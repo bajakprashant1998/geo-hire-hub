@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Info, AlertTriangle, CheckCircle, XCircle, X } from 'lucide-react';
+import { Info, AlertTriangle, CheckCircle, XCircle, X, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 
@@ -10,13 +10,17 @@ interface PlatformNotificationBannerProps {
 }
 
 export const PlatformNotificationBanner = ({ userType }: PlatformNotificationBannerProps) => {
-  const [dismissed, setDismissed] = useState<string[]>([]);
+  const [dismissed, setDismissed] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('dismissed-banners') || '[]');
+    } catch { return []; }
+  });
 
-  const { data: notifications } = useQuery({
-    queryKey: ['platform-notifications', userType],
+  const { data: banners } = useQuery({
+    queryKey: ['platform-banners', userType],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('platform_notifications')
+        .from('platform_banners')
         .select('*')
         .eq('is_active', true)
         .in('target_audience', ['all', userType + 's'])
@@ -28,9 +32,15 @@ export const PlatformNotificationBanner = ({ userType }: PlatformNotificationBan
     },
   });
 
-  const visibleNotifications = notifications?.filter(n => !dismissed.includes(n.id)) || [];
+  const handleDismiss = (id: string) => {
+    const next = [...dismissed, id];
+    setDismissed(next);
+    localStorage.setItem('dismissed-banners', JSON.stringify(next));
+  };
 
-  if (visibleNotifications.length === 0) return null;
+  const visibleBanners = banners?.filter(b => !dismissed.includes(b.id)) || [];
+
+  if (visibleBanners.length === 0) return null;
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -47,21 +57,30 @@ export const PlatformNotificationBanner = ({ userType }: PlatformNotificationBan
 
   return (
     <div className="space-y-2">
-      {visibleNotifications.map((notification) => (
-        <Alert key={notification.id} variant={getVariant(notification.type || 'info')}>
-          {getIcon(notification.type || 'info')}
+      {visibleBanners.map((banner) => (
+        <Alert key={banner.id} variant={getVariant(banner.type || 'info')}>
+          {getIcon(banner.type || 'info')}
           <AlertTitle className="flex items-center justify-between">
-            {notification.title}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 -mr-2"
-              onClick={() => setDismissed(prev => [...prev, notification.id])}
-            >
-              <X className="h-3 w-3" />
-            </Button>
+            {banner.title}
+            {banner.is_dismissible && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 -mr-2"
+                onClick={() => handleDismiss(banner.id)}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            )}
           </AlertTitle>
-          <AlertDescription>{notification.message}</AlertDescription>
+          <AlertDescription className="flex items-center gap-2">
+            {banner.message}
+            {banner.link_url && (
+              <a href={banner.link_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline text-xs font-medium">
+                {banner.link_text || 'Learn more'} <ExternalLink className="h-3 w-3" />
+              </a>
+            )}
+          </AlertDescription>
         </Alert>
       ))}
     </div>
