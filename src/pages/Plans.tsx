@@ -830,36 +830,26 @@ const Plans = () => {
           </div>
         ) : (
           <div className="grid md:grid-cols-3 gap-5 lg:gap-6">
-            {plans.map((plan, index) => {
-              // Recommend the cheapest plan whose max_active_jobs exceeds current usage
-              // Only show for employers not already on that plan
-              const isRecommended = profile?.user_type === 'employer' && activeJobCount > 0 && !currentPlanId
-                ? plan.max_active_jobs >= activeJobCount && plan.max_active_jobs > maxActiveJobs
-                : profile?.user_type === 'employer' && activeJobCount > 0 && currentPlanId
-                  ? plan.id !== currentPlanId && plan.max_active_jobs > maxActiveJobs && activeJobCount >= maxActiveJobs * 0.7
-                  : false;
+            {(() => {
+              // Find the cheapest upgrade plan when employer uses ≥70% of slots
+              const recommendedPlanId = profile?.user_type === 'employer' && activeJobCount >= maxActiveJobs * 0.7
+                ? [...plans]
+                    .sort((a, b) => a.max_active_jobs - b.max_active_jobs)
+                    .find(p => p.id !== currentPlanId && p.max_active_jobs > maxActiveJobs)?.id ?? null
+                : null;
 
-              // Only mark the first qualifying plan as recommended
-              const sortedPlans = [...plans].sort((a, b) => a.max_active_jobs - b.max_active_jobs);
-              const recommendedPlan = sortedPlans.find(p =>
-                p.id !== currentPlanId &&
-                p.max_active_jobs > maxActiveJobs &&
-                profile?.user_type === 'employer' &&
-                activeJobCount >= maxActiveJobs * 0.7
-              );
-
-              return (
+              return plans.map((plan, index) => (
                 <PlanCard
                   key={plan.id}
                   plan={plan}
                   index={index}
                   billingCycle={billingCycle}
                   isCurrentPlan={plan.id === currentPlanId}
-                  isRecommended={recommendedPlan?.id === plan.id}
+                  isRecommended={plan.id === recommendedPlanId}
                   onSelect={handleSelectPlan}
                 />
-              );
-            })}
+              ));
+            })()}
           </div>
         )}
 
