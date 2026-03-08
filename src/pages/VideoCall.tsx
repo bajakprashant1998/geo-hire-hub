@@ -56,6 +56,10 @@ const VideoCall = () => {
   const [recordingTime, setRecordingTime] = useState(0);
   const [recordingNotes, setRecordingNotes] = useState('');
 
+  // Screen sharing state
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
+
   // AI Summary
   const [aiSummary, setAiSummary] = useState<AISummary | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
