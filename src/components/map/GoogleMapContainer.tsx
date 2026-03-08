@@ -22,6 +22,8 @@ interface GoogleMapContainerProps {
   isEmployer?: boolean;
   centerTrigger?: number;
   heatmapEnabled?: boolean;
+  salaryHeatmapEnabled?: boolean;
+  salaryRoleFilter?: string;
 }
 
 const defaultCenter = { lat: 20.5937, lng: 78.9629 };
