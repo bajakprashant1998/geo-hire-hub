@@ -16,7 +16,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import {
     ArrowLeft, User, Save, Loader2, Briefcase, GraduationCap, Plus, X,
     Globe, FileText, Target, MapPin, Heart, Trophy, Clock, Shield, Car,
-    Video, Lightbulb, Building2, DollarSign, Compass, Flag
+    Video, Lightbulb, Building2, Banknote, Compass, Flag
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
