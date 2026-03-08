@@ -25,6 +25,7 @@ import { SEOHead } from '@/components/SEOHead';
 import { motion } from 'framer-motion';
 import { VerificationBadge } from '@/components/employer/VerificationBadge';
 import { TrustScoreDisplay } from '@/components/employer/TrustScoreDisplay';
+import { ResponseRateBadge } from '@/components/employer/ResponseRateBadge';
 import { BreadcrumbNav, buildBreadcrumbJsonLd } from '@/components/BreadcrumbNav';
 import { CompanyReviews } from '@/components/employer/CompanyReviews';
 import { CompanyQAForum } from '@/components/employer/CompanyQAForum';
@@ -85,6 +86,8 @@ interface EmployerProfile {
   verification_method: string | null;
   google_business_verified: boolean | null;
   trust_score: number | null;
+  response_rate: number | null;
+  avg_response_hours: number | null;
 }
 
 interface Job {
@@ -236,8 +239,13 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
         verification_method: data.verification_method || null,
         google_business_verified: data.google_business_verified || null,
         trust_score: data.trust_score || null,
+        response_rate: data.response_rate ?? null,
+        avg_response_hours: data.avg_response_hours ?? null,
         whatsapp_number: data.profiles.whatsapp_number,
       });
+
+      // Calculate response rate in background (refreshes cached value)
+      supabase.rpc('calculate_employer_response_rate', { p_employer_id: id }).then(() => {});
 
       // Track profile view (authenticated, non-own-profile only)
       if (user && data.profile_id !== authProfile?.id) {
@@ -392,6 +400,11 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
                     {employer.trust_score !== null && employer.trust_score !== undefined && employer.trust_score > 0 && (
                       <TrustScoreDisplay score={employer.trust_score} size="sm" />
                     )}
+                    <ResponseRateBadge
+                      responseRate={employer.response_rate}
+                      avgResponseHours={employer.avg_response_hours}
+                      size="sm"
+                    />
                   </div>
 
                   {/* Info */}
