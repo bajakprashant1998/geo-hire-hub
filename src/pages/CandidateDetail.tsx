@@ -447,7 +447,7 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
                     )}
                     {candidate.expected_salary && canView && (
                       <span className="inline-flex items-center gap-1.5 text-xs font-medium text-success bg-success/5 border border-success/15 px-3 py-1.5 rounded-full">
-                        <DollarSign className="w-3 h-3" />{candidate.salary_currency || ''} {candidate.expected_salary}
+                        <Banknote className="w-3 h-3" />{candidate.salary_currency || ''} {candidate.expected_salary}
                       </span>
                     )}
                     {locationStr && (
