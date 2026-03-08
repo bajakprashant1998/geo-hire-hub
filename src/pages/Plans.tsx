@@ -174,7 +174,7 @@ const BillingToggle = ({ billingCycle, onChange }: { billingCycle: 'monthly' | '
     initial={{ opacity: 0, y: 10 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay: 0.2, duration: 0.4 }}
-    className="flex items-center justify-center mt-8"
+    className="flex items-center justify-center"
   >
     <div className="inline-flex items-center bg-muted/80 backdrop-blur-sm rounded-full p-1.5 gap-1 border border-border/50">
       <button
