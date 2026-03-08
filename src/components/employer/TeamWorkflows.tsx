@@ -186,7 +186,7 @@ export const TeamWorkflows = ({ employerId }: Props) => {
   const addMember = async () => {
     if (!memberForm.email.trim() || !profile) return;
     // Find profile by email - search in profiles
-    const { data: foundProfile } = await supabase.from('profiles').select('id').eq('email', memberForm.email.trim()).maybeSingle();
+    const { data: foundProfile } = await (supabase.from('profiles').select('id') as any).eq('email', memberForm.email.trim()).maybeSingle();
     if (!foundProfile) {
       toast.error('User not found. They must have an account first.');
       return;
