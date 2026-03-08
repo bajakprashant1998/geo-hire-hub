@@ -734,6 +734,7 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                                         </div>
                                         <Input value={headline} onChange={e => setHeadline(e.target.value)} placeholder="e.g., Senior Full Stack Developer | React & Node.js" className="bg-background/50" />
                                     </div>
+                                </div>
                                 <div className="grid md:grid-cols-2 gap-4">
                                     <div className="space-y-2"><Label className="text-sm font-medium">Current Company</Label>
                                         <Input value={currentCompany} onChange={e => setCurrentCompany(e.target.value)} placeholder="Where you currently work" className="bg-background/50" /></div>
