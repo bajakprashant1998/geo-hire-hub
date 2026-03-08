@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { LucideIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
 
 interface DashboardStatCardProps {
   icon: LucideIcon;
@@ -13,7 +13,7 @@ interface DashboardStatCardProps {
   delay?: number;
 }
 
-const useCountUp = (target: number, duration = 800) => {
+const useCountUp = (target: number, duration = 600) => {
   const [count, setCount] = useState(0);
   const hasAnimated = useRef(false);
 
@@ -39,44 +39,36 @@ const useCountUp = (target: number, duration = 800) => {
 
 const colorClasses = {
   blue: {
-    gradient: 'from-primary/15 via-primary/5 to-transparent',
-    border: 'border-primary/15 hover:border-primary/30',
+    gradient: 'from-primary/12 to-primary/3',
+    border: 'border-primary/10 hover:border-primary/25',
     icon: 'text-primary',
-    bg: 'bg-primary/10',
-    glow: 'hover:shadow-[0_8px_40px_hsl(217,89%,61%,0.15)]',
-    ring: 'ring-primary/15',
+    iconBg: 'bg-primary/10',
+    glow: 'hover:shadow-lg hover:shadow-primary/10',
     dot: 'bg-primary',
-    orbColor: 'bg-primary/20',
   },
   green: {
-    gradient: 'from-success/15 via-success/5 to-transparent',
-    border: 'border-success/15 hover:border-success/30',
+    gradient: 'from-success/12 to-success/3',
+    border: 'border-success/10 hover:border-success/25',
     icon: 'text-success',
-    bg: 'bg-success/10',
-    glow: 'hover:shadow-[0_8px_40px_hsl(142,53%,43%,0.15)]',
-    ring: 'ring-success/15',
+    iconBg: 'bg-success/10',
+    glow: 'hover:shadow-lg hover:shadow-success/10',
     dot: 'bg-success',
-    orbColor: 'bg-success/20',
   },
   amber: {
-    gradient: 'from-warning/15 via-warning/5 to-transparent',
-    border: 'border-warning/15 hover:border-warning/30',
+    gradient: 'from-warning/12 to-warning/3',
+    border: 'border-warning/10 hover:border-warning/25',
     icon: 'text-warning-foreground',
-    bg: 'bg-warning/10',
-    glow: 'hover:shadow-[0_8px_40px_hsl(44,98%,50%,0.15)]',
-    ring: 'ring-warning/15',
+    iconBg: 'bg-warning/10',
+    glow: 'hover:shadow-lg hover:shadow-warning/10',
     dot: 'bg-warning',
-    orbColor: 'bg-warning/20',
   },
   purple: {
-    gradient: 'from-[hsl(262,83%,58%)]/15 via-[hsl(262,83%,58%)]/5 to-transparent',
-    border: 'border-[hsl(262,83%,58%)]/15 hover:border-[hsl(262,83%,58%)]/30',
+    gradient: 'from-[hsl(262,83%,58%)]/12 to-[hsl(262,83%,58%)]/3',
+    border: 'border-[hsl(262,83%,58%)]/10 hover:border-[hsl(262,83%,58%)]/25',
     icon: 'text-[hsl(262,83%,58%)]',
-    bg: 'bg-[hsl(262,83%,58%)]/10',
-    glow: 'hover:shadow-[0_8px_40px_hsl(262,83%,58%,0.15)]',
-    ring: 'ring-[hsl(262,83%,58%)]/15',
+    iconBg: 'bg-[hsl(262,83%,58%)]/10',
+    glow: 'hover:shadow-lg hover:shadow-[hsl(262,83%,58%)]/10',
     dot: 'bg-[hsl(262,83%,58%)]',
-    orbColor: 'bg-[hsl(262,83%,58%)]/20',
   }
 };
 
@@ -92,62 +84,40 @@ export const DashboardStatCard = ({
   const isNumber = typeof value === 'number';
   const animatedValue = useCountUp(isNumber ? value : 0);
   const displayValue = isNumber ? animatedValue : value;
-
   const colors = colorClasses[accentColor];
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24, scale: 0.94 }}
+      initial={{ opacity: 0, y: 16, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.5, delay: delay * 0.1, type: 'spring', stiffness: 130, damping: 16 }}
+      transition={{ duration: 0.4, delay: delay * 0.08, type: 'spring', stiffness: 150, damping: 18 }}
       onClick={onClick}
       className={cn(
-        "relative h-full rounded-2xl border transition-all duration-300 overflow-hidden group",
-        "bg-card/50 backdrop-blur-2xl",
-        "hover:-translate-y-1.5 active:scale-[0.97]",
+        "relative h-full rounded-2xl border transition-all duration-200 overflow-hidden group",
+        "bg-card/60 backdrop-blur-xl",
+        "hover:-translate-y-1 active:scale-[0.98]",
         colors.border,
         colors.glow,
         onClick && "cursor-pointer"
       )}
     >
-      {/* Glassmorphism gradient overlay */}
-      <div className={cn(
-        "absolute inset-0 bg-gradient-to-br opacity-50 group-hover:opacity-80 transition-opacity duration-500",
-        colors.gradient
-      )} />
+      <div className={cn("absolute inset-0 bg-gradient-to-br opacity-60", colors.gradient)} />
       
-      {/* Decorative blur orb */}
-      <div className={cn(
-        "absolute -top-10 -right-10 w-28 h-28 rounded-full blur-3xl opacity-30 group-hover:opacity-50 transition-all duration-700 group-hover:scale-110",
-        colors.orbColor
-      )} />
-
-      {/* Frosted inner border line */}
-      <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 dark:ring-white/5 pointer-events-none" />
-      
-      <div className="relative z-10 p-4 sm:p-5 flex flex-col justify-between h-full">
-        <div className="flex items-start justify-between gap-2">
+      <div className="relative z-10 p-3 sm:p-4 flex flex-col justify-between h-full gap-2">
+        <div className="flex items-start justify-between">
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5 mb-2">
-              <div className={cn("w-1.5 h-1.5 rounded-full animate-pulse", colors.dot)} />
-              <p className="text-[10px] sm:text-xs text-muted-foreground font-semibold uppercase tracking-wider truncate">{label}</p>
-            </div>
-            <p className="text-3xl sm:text-4xl font-extrabold text-foreground tabular-nums tracking-tight leading-none">{displayValue}</p>
+            <p className="text-[10px] sm:text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate mb-1">{label}</p>
+            <p className="text-2xl sm:text-3xl font-extrabold text-foreground tabular-nums tracking-tight leading-none">{displayValue}</p>
           </div>
           <motion.div
-            whileHover={{ scale: 1.15, rotate: 5 }}
-            transition={{ type: 'spring', stiffness: 300 }}
-            className={cn(
-              "w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shrink-0",
-              "bg-card/70 backdrop-blur-md ring-1 shadow-sm",
-              colors.ring
-            )}
+            whileHover={{ scale: 1.1, rotate: 5 }}
+            className={cn("w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0", colors.iconBg)}
           >
-            <Icon className={cn("w-5 h-5 sm:w-6 sm:h-6", colors.icon)} />
+            <Icon className={cn("w-4 h-4 sm:w-5 sm:h-5", colors.icon)} />
           </motion.div>
         </div>
         {subtitle && (
-          <p className={cn("text-[10px] sm:text-xs mt-2 font-medium opacity-70", colors.icon)}>{subtitle}</p>
+          <p className={cn("text-[10px] sm:text-[11px] font-medium truncate", colors.icon, "opacity-70")}>{subtitle}</p>
         )}
       </div>
     </motion.div>

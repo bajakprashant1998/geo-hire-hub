@@ -1,11 +1,13 @@
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-  Home, Settings, LogOut, ChevronLeft
+  Home, Settings, LogOut, ChevronLeft, ChevronDown, Search, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -14,6 +16,11 @@ interface SidebarItem {
   label: string;
   value: string;
   badge?: number;
+}
+
+interface SidebarGroup {
+  label: string;
+  items: string[];
 }
 
 interface DashboardSidebarProps {
@@ -30,73 +37,100 @@ interface DashboardSidebarProps {
   profileCompleteness?: number;
 }
 
-const SidebarButton = ({ item, activeItem, onItemClick, index }: { item: SidebarItem; activeItem: string | null; onItemClick: (v: string) => void; index: number }) => {
-  const isActive = activeItem === item.value;
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <motion.button
-          initial={{ opacity: 0, x: -12 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: index * 0.02, duration: 0.25 }}
-          onClick={() => onItemClick(item.value)}
-          className={cn(
-            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group/item relative",
-            isActive
-              ? "bg-primary/12 text-primary border border-primary/20 shadow-[0_2px_12px_hsl(var(--primary)/0.1)]"
-              : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-          )}
-        >
-          {isActive && (
-            <motion.div
-              layoutId="sidebar-active-indicator"
-              className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary"
-              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-            />
-          )}
-          <div className={cn(
-            "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200",
-            isActive
-              ? "bg-primary/15"
-              : "bg-transparent group-hover/item:bg-muted"
-          )}>
-            <item.icon className={cn(
-              "w-[17px] h-[17px] transition-colors",
-              isActive ? "text-primary" : "text-muted-foreground group-hover/item:text-foreground"
-            )} />
-          </div>
-          <span className="flex-1 text-left truncate">{item.label}</span>
-          {item.badge !== undefined && item.badge > 0 && (
-            <motion.span
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              className={cn(
-                "min-w-[22px] h-[22px] px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center shrink-0 shadow-sm",
-                isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-destructive text-destructive-foreground"
-              )}
-            >
-              {item.badge > 99 ? '99+' : item.badge}
-            </motion.span>
-          )}
-        </motion.button>
-      </TooltipTrigger>
-      <TooltipContent side="right" className="text-xs">{item.label}</TooltipContent>
-    </Tooltip>
-  );
-};
+const CANDIDATE_GROUPS: SidebarGroup[] = [
+  { label: 'Job Search', items: ['map', 'job-radar', 'jobs', 'saved', 'recommended', 'auto-apply', 'compare-jobs'] },
+  { label: 'Communication', items: ['messages', 'interviews', 'tasks', 'follow-ups', 'availability'] },
+  { label: 'Career Tools', items: ['career-buddy', 'app-tracker', 'salary-insights', 'interview-prep', 'skill-gap', 'career-path', 'culture-match', 'market-value'] },
+  { label: 'Profile & Docs', items: ['resume', 'audio-resume', 'ai-resume', 'profile', 'public-profile', 'badges', 'referrals'] },
+  { label: 'Settings', items: ['notifications', 'alerts', 'security', 'smart-digest', 'leaderboard', 'assessments'] },
+];
 
-const SectionLabel = ({ label }: { label: string }) => (
-  <div className="px-3 pt-4 pb-1.5 flex items-center gap-2">
-    <span className="text-[10px] font-semibold text-muted-foreground/50 uppercase tracking-[0.12em]">{label}</span>
-    <div className="flex-1 h-px bg-border/40" />
-  </div>
+const EMPLOYER_GROUPS: SidebarGroup[] = [
+  { label: 'Jobs & Hiring', items: ['jobs', 'candidates', 'drafts', 'post-job'] },
+  { label: 'Communication', items: ['chat', 'interviews', 'tasks'] },
+  { label: 'AI & Analytics', items: ['ai-screening', 'analytics', 'jd-optimizer', 'ab-testing'] },
+  { label: 'Company', items: ['company', 'spotlight', 'offer-letters', 'compare-candidates', 'talent-pool'] },
+  { label: 'Settings', items: ['notifications', 'security', 'upgrade-plan'] },
+];
+
+const SidebarButton = ({ item, isActive, onItemClick }: { item: SidebarItem; isActive: boolean; onItemClick: (v: string) => void }) => (
+  <button
+    onClick={() => onItemClick(item.value)}
+    className={cn(
+      "w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150 group/item relative",
+      isActive
+        ? "bg-primary/10 text-primary shadow-sm"
+        : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+    )}
+  >
+    {isActive && (
+      <motion.div
+        layoutId="sidebar-active"
+        className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-primary"
+        transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+      />
+    )}
+    <div className={cn(
+      "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all",
+      isActive ? "bg-primary/15" : "bg-transparent group-hover/item:bg-muted/80"
+    )}>
+      <item.icon className={cn("w-4 h-4", isActive ? "text-primary" : "text-muted-foreground group-hover/item:text-foreground")} />
+    </div>
+    <span className="flex-1 text-left truncate">{item.label}</span>
+    {item.badge !== undefined && item.badge > 0 && (
+      <span className={cn(
+        "min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center shrink-0",
+        isActive ? "bg-primary text-primary-foreground" : "bg-destructive/90 text-white"
+      )}>
+        {item.badge > 99 ? '99+' : item.badge}
+      </span>
+    )}
+  </button>
 );
 
-const ACTIVITY_ITEMS = ['map', 'job-radar', 'jobs', 'messages', 'chat', 'interviews', 'tasks', 'saved', 'recommended', 'candidates', 'drafts', 'career-buddy', 'auto-apply', 'follow-ups', 'compare-jobs', 'offer-letters', 'compare-candidates', 'interview-feedback', 'talent-pool', 'team-notes'];
-const PROFILE_ITEMS = ['resume', 'audio-resume', 'ai-resume', 'profile', 'public-profile', 'company', 'analytics', 'skill-gap', 'career-path', 'availability', 'culture-match', 'ab-testing', 'accessibility-check'];
-const SETTINGS_ITEMS = ['notifications', 'alerts', 'security', 'upgrade-plan', 'salary-insights', 'smart-digest'];
+const CollapsibleGroup = ({ label, items, activeItem, onItemClick, defaultOpen = false }: {
+  label: string;
+  items: SidebarItem[];
+  activeItem: string | null;
+  onItemClick: (v: string) => void;
+  defaultOpen?: boolean;
+}) => {
+  const hasActive = items.some(i => i.value === activeItem);
+  const [isOpen, setIsOpen] = useState(defaultOpen || hasActive);
+  const totalBadge = items.reduce((sum, i) => sum + (i.badge || 0), 0);
+
+  return (
+    <div className="mb-1">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center gap-2 px-3 py-1.5 group hover:bg-muted/30 rounded-lg transition-colors"
+      >
+        <ChevronDown className={cn("w-3 h-3 text-muted-foreground/50 transition-transform duration-200", !isOpen && "-rotate-90")} />
+        <span className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-[0.1em] flex-1 text-left">{label}</span>
+        {!isOpen && totalBadge > 0 && (
+          <span className="w-2 h-2 rounded-full bg-destructive animate-pulse" />
+        )}
+      </button>
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            className="overflow-hidden"
+          >
+            <div className="space-y-0.5 py-0.5">
+              {items.map((item) => (
+                <SidebarButton key={item.value} item={item} isActive={activeItem === item.value} onItemClick={onItemClick} />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
 
 export const DashboardSidebar = ({
   type,
@@ -111,11 +145,26 @@ export const DashboardSidebar = ({
   onClose,
   profileCompleteness = 0
 }: DashboardSidebarProps) => {
-  const activityItems = items.filter(i => ACTIVITY_ITEMS.includes(i.value));
-  const profileItems = items.filter(i => PROFILE_ITEMS.includes(i.value));
-  const settingsItems = items.filter(i => SETTINGS_ITEMS.includes(i.value));
+  const [searchQuery, setSearchQuery] = useState('');
+  const groups = type === 'candidate' ? CANDIDATE_GROUPS : EMPLOYER_GROUPS;
 
-  let globalIndex = 0;
+  const itemMap = useMemo(() => {
+    const map = new Map<string, SidebarItem>();
+    items.forEach(i => map.set(i.value, i));
+    return map;
+  }, [items]);
+
+  const filteredGroups = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return groups.map(g => ({
+        ...g,
+        resolvedItems: g.items.map(v => itemMap.get(v)).filter(Boolean) as SidebarItem[],
+      })).filter(g => g.resolvedItems.length > 0);
+    }
+    const q = searchQuery.toLowerCase();
+    const allFiltered = items.filter(i => i.label.toLowerCase().includes(q));
+    return [{ label: 'Search Results', items: allFiltered.map(i => i.value), resolvedItems: allFiltered }];
+  }, [searchQuery, groups, items, itemMap]);
 
   return (
     <>
@@ -126,7 +175,6 @@ export const DashboardSidebar = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
             className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
             onClick={onClose}
           />
@@ -136,185 +184,128 @@ export const DashboardSidebar = ({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 h-full z-50 w-[272px] transform transition-transform duration-300 ease-out lg:translate-x-0 lg:static lg:z-auto",
+          "fixed top-0 left-0 h-full z-50 w-[264px] transform transition-transform duration-300 ease-out lg:translate-x-0 lg:static lg:z-auto",
           isOpen ? "translate-x-0" : "-translate-x-full",
-          "bg-card/90 backdrop-blur-2xl border-r border-border/40"
+          "bg-card/95 backdrop-blur-2xl border-r border-border/30"
         )}
       >
         <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="p-4 flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2.5 group">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/20 group-hover:shadow-primary/30 transition-shadow">
-                <img
-                  src="/logo.png"
-                  alt="Hire for Job"
-                  className="w-7 h-7 rounded-lg object-contain"
-                />
+          {/* Header */}
+          <div className="p-3 flex items-center justify-between border-b border-border/20">
+            <Link to="/" className="flex items-center gap-2 group">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-md shadow-primary/20">
+                <img src="/logo.png" alt="Hire for Job" className="w-6 h-6 rounded-lg object-contain" />
               </div>
-              <div>
-                <span className="font-bold text-foreground text-[17px] leading-none tracking-tight">Hire for Job</span>
-                <p className="text-[10px] text-muted-foreground capitalize font-medium mt-0.5">{type}</p>
-              </div>
+              <span className="font-bold text-foreground text-[15px] tracking-tight">Hire for Job</span>
             </Link>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden text-muted-foreground hover:bg-muted rounded-xl h-8 w-8"
-              onClick={onClose}
-            >
+            <Button variant="ghost" size="icon" className="lg:hidden h-7 w-7 rounded-lg" onClick={onClose}>
               <ChevronLeft className="w-4 h-4" />
             </Button>
           </div>
 
-          {/* User Profile Card */}
-          <div className="px-3 pb-3">
-            <div className="rounded-2xl bg-gradient-to-br from-primary/8 via-primary/4 to-accent/6 p-3.5 border border-primary/10 relative overflow-hidden">
-              {/* Decorative orb */}
-              <div className="absolute -top-6 -right-6 w-20 h-20 rounded-full bg-primary/8 blur-2xl" />
-              
-              <div className="relative flex items-center gap-3">
-                <div className="relative">
-                  <Avatar className="w-11 h-11 ring-2 ring-primary/25 ring-offset-2 ring-offset-card shadow-md">
-                    <AvatarImage src={avatarUrl || undefined} />
-                    <AvatarFallback className="bg-gradient-to-br from-primary to-primary/70 text-primary-foreground font-bold text-sm">
-                      {userName?.charAt(0)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-card" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-[13px] text-foreground truncate leading-tight">{userName}</p>
-                  <p className="text-[11px] text-muted-foreground truncate mt-0.5">{userTitle || (type === 'candidate' ? 'Job Seeker' : 'Employer')}</p>
-                </div>
+          {/* User Card */}
+          <div className="px-3 py-2.5">
+            <div className="flex items-center gap-2.5">
+              <div className="relative">
+                <Avatar className="w-9 h-9 ring-2 ring-primary/20 ring-offset-1 ring-offset-card">
+                  <AvatarImage src={avatarUrl || undefined} />
+                  <AvatarFallback className="bg-gradient-to-br from-primary to-primary/70 text-primary-foreground font-bold text-xs">
+                    {userName?.charAt(0)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-[1.5px] border-card" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold text-xs text-foreground truncate">{userName}</p>
+                <p className="text-[10px] text-muted-foreground truncate">{userTitle || (type === 'candidate' ? 'Job Seeker' : 'Employer')}</p>
               </div>
               {profileCompleteness > 0 && profileCompleteness < 100 && (
-                <div className="mt-3 relative">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] text-muted-foreground font-medium">Profile Strength</span>
-                    <span className={cn(
-                      "text-[10px] font-bold",
-                      profileCompleteness >= 70 ? "text-emerald-600 dark:text-emerald-400" : profileCompleteness >= 40 ? "text-amber-600 dark:text-amber-400" : "text-destructive"
-                    )}>
-                      {profileCompleteness}%
-                    </span>
-                  </div>
-                  <div className="relative h-1.5 rounded-full bg-muted/80 overflow-hidden">
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${profileCompleteness}%` }}
-                      transition={{ duration: 1, delay: 0.3, ease: 'easeOut' }}
-                      className={cn(
-                        "absolute inset-y-0 left-0 rounded-full",
-                        profileCompleteness >= 70
-                          ? "bg-gradient-to-r from-emerald-500 to-emerald-400"
-                          : profileCompleteness >= 40
-                          ? "bg-gradient-to-r from-amber-500 to-amber-400"
-                          : "bg-gradient-to-r from-destructive to-destructive/80"
-                      )}
+                <div className="relative w-8 h-8 shrink-0">
+                  <svg className="w-8 h-8 -rotate-90">
+                    <circle cx="50%" cy="50%" r="12" fill="none" stroke="hsl(var(--border))" strokeWidth="2" />
+                    <circle
+                      cx="50%" cy="50%" r="12" fill="none"
+                      stroke={profileCompleteness >= 70 ? 'hsl(var(--primary))' : profileCompleteness >= 40 ? 'hsl(44,98%,50%)' : 'hsl(var(--destructive))'}
+                      strokeWidth="2"
+                      strokeDasharray={`${profileCompleteness * 0.754} 75.4`}
+                      strokeLinecap="round"
+                      className="transition-all duration-700"
                     />
-                  </div>
+                  </svg>
+                  <span className="absolute inset-0 flex items-center justify-center text-[7px] font-bold text-foreground">
+                    {profileCompleteness}%
+                  </span>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Navigation Items */}
-          <nav className="flex-1 px-2.5 overflow-y-auto scrollbar-thin">
+          {/* Search */}
+          <div className="px-3 pb-2">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search menu..."
+                className="h-8 pl-8 pr-8 text-xs rounded-lg bg-muted/40 border-border/30 focus-visible:ring-primary/30"
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2">
+                  <X className="w-3.5 h-3.5 text-muted-foreground/50 hover:text-foreground" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Navigation */}
+          <ScrollArea className="flex-1 px-2">
             {/* Dashboard Home */}
-            <div className="mb-1">
+            <div className="mb-1 px-0.5">
               <SidebarButton
-                item={{ icon: Home, label: 'Dashboard', value: 'home' }}
-                activeItem={activeItem === null ? 'home' : activeItem}
+                item={{ icon: Home, label: 'Dashboard', value: 'home' } as SidebarItem}
+                isActive={activeItem === null || activeItem === 'home'}
                 onItemClick={onItemClick}
-                index={0}
               />
             </div>
 
-            {/* Activity Group */}
-            {activityItems.length > 0 && (
-              <div>
-                <SectionLabel label="Activity" />
-                {activityItems.map((item) => {
-                  globalIndex++;
-                  return (
-                    <SidebarButton key={item.value} item={item} activeItem={activeItem} onItemClick={onItemClick} index={globalIndex} />
-                  );
-                })}
-              </div>
-            )}
+            {/* Groups */}
+            {filteredGroups.map((group, i) => (
+              <CollapsibleGroup
+                key={group.label}
+                label={group.label}
+                items={group.resolvedItems}
+                activeItem={activeItem}
+                onItemClick={onItemClick}
+                defaultOpen={i < 2}
+              />
+            ))}
+          </ScrollArea>
 
-            {/* Profile Group */}
-            {profileItems.length > 0 && (
-              <div>
-                <SectionLabel label="Profile" />
-                {profileItems.map((item) => {
-                  globalIndex++;
-                  return (
-                    <SidebarButton key={item.value} item={item} activeItem={activeItem} onItemClick={onItemClick} index={globalIndex} />
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Settings Group */}
-            {settingsItems.length > 0 && (
-              <div>
-                <SectionLabel label="Settings" />
-                {settingsItems.map((item) => {
-                  globalIndex++;
-                  return (
-                    <SidebarButton key={item.value} item={item} activeItem={activeItem} onItemClick={onItemClick} index={globalIndex} />
-                  );
-                })}
-              </div>
-            )}
-          </nav>
-
-          {/* CTA Button */}
-          <div className="p-3">
-            {type === 'candidate' ? (
+          {/* Footer */}
+          <div className="px-2.5 pb-3 pt-2 border-t border-border/20 space-y-0.5">
+            {type === 'candidate' && (
               <Link to="/" className="block">
-                <Button
-                  variant="outline"
-                  className="w-full justify-center gap-2 border-primary/25 text-primary hover:bg-primary/8 h-10 rounded-xl font-medium text-[13px]"
-                >
-                  <Home className="w-4 h-4 shrink-0" />
+                <Button variant="outline" size="sm" className="w-full justify-center gap-2 border-primary/20 text-primary hover:bg-primary/5 h-8 rounded-xl text-xs font-medium">
+                  <Home className="w-3.5 h-3.5" />
                   Find Jobs on Map
                 </Button>
               </Link>
-            ) : (
-              <Link to="/post-job" className="block">
-                <Button className="w-full bg-gradient-to-r from-primary to-primary/80 text-primary-foreground hover:opacity-90 gap-2 h-10 rounded-xl shadow-lg shadow-primary/15 font-medium text-[13px]">
-                  <Home className="w-4 h-4 shrink-0" />
-                  Post New Job
-                </Button>
-              </Link>
             )}
-          </div>
-
-          {/* Footer */}
-          <div className="px-2.5 pb-3 pt-1 border-t border-border/40 space-y-0.5">
-            {type !== 'employer' && (
-              <Link
-                to="/candidate-settings"
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted/60 hover:text-foreground transition-all group"
-              >
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center group-hover:bg-muted transition-all">
-                  <Settings className="w-[17px] h-[17px] shrink-0" />
-                </div>
-                <span>Settings</span>
-              </Link>
-            )}
-            <button
-              onClick={onSignOut}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/8 transition-all group"
-            >
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center group-hover:bg-destructive/10 transition-all">
-                <LogOut className="w-[17px] h-[17px] shrink-0" />
-              </div>
-              <span>Logout</span>
-            </button>
+            <div className="flex gap-1 mt-1">
+              {type !== 'employer' && (
+                <Link to="/candidate-settings" className="flex-1">
+                  <Button variant="ghost" size="sm" className="w-full h-8 text-xs text-muted-foreground rounded-lg gap-1.5">
+                    <Settings className="w-3.5 h-3.5" />
+                    Settings
+                  </Button>
+                </Link>
+              )}
+              <Button variant="ghost" size="sm" onClick={onSignOut} className="flex-1 h-8 text-xs text-destructive hover:bg-destructive/5 rounded-lg gap-1.5">
+                <LogOut className="w-3.5 h-3.5" />
+                Logout
+              </Button>
+            </div>
           </div>
         </div>
       </aside>

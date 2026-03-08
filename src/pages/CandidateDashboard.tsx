@@ -255,16 +255,16 @@ const CandidateDashboard = () => {
     { icon: Sparkles, label: 'Smart Digest', value: 'smart-digest' },
   ];
 
-  // Quick action buttons for dashboard home — full 8-item grid
+  // Quick action buttons for dashboard home
   const quickActions = [
     { icon: MapPin, label: 'Find Jobs', onClick: () => navigate('/'), color: 'text-primary', bg: 'bg-primary/10' },
-    { icon: Briefcase, label: 'Applications', onClick: () => handleSectionClick('jobs'), color: 'text-[hsl(217,89%,61%)]', bg: 'bg-[hsl(217,89%,61%)]/10' },
+    { icon: Briefcase, label: 'Applications', onClick: () => handleSectionClick('jobs'), color: 'text-primary', bg: 'bg-primary/10' },
     { icon: MessageSquare, label: 'Messages', onClick: () => handleSectionClick('messages'), color: 'text-success', bg: 'bg-success/10' },
-    { icon: Calendar, label: 'Interviews', onClick: () => handleSectionClick('interviews'), color: 'text-[hsl(262,83%,58%)]', bg: 'bg-[hsl(262,83%,58%)]/10' },
+    { icon: Calendar, label: 'Interviews', onClick: () => handleSectionClick('interviews'), color: 'text-accent', bg: 'bg-accent/10' },
     { icon: FileText, label: 'Resume', onClick: () => handleSectionClick('resume'), color: 'text-warning-foreground', bg: 'bg-warning/10' },
-    { icon: Sparkles, label: 'AI Match', onClick: () => handleSectionClick('ai-resume'), color: 'text-primary', bg: 'bg-primary/10' },
+    { icon: Sparkles, label: 'AI Resume', onClick: () => handleSectionClick('ai-resume'), color: 'text-primary', bg: 'bg-primary/10' },
     { icon: Zap, label: 'Auto Apply', onClick: () => handleSectionClick('auto-apply'), color: 'text-success', bg: 'bg-success/10' },
-    { icon: Bot, label: 'Career Buddy', onClick: () => handleSectionClick('career-buddy'), color: 'text-[hsl(262,83%,58%)]', bg: 'bg-[hsl(262,83%,58%)]/10' },
+    { icon: Bot, label: 'Career Buddy', onClick: () => handleSectionClick('career-buddy'), color: 'text-accent', bg: 'bg-accent/10' },
   ];
 
   if (authLoading) {
@@ -475,11 +475,21 @@ const CandidateDashboard = () => {
 
   if (dataLoading) {
     return (
-      <div className="min-h-screen bg-secondary flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground font-medium">Loading your dashboard...</p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/80 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <div className="relative w-16 h-16 mx-auto mb-5">
+            <div className="absolute inset-0 rounded-2xl bg-primary/20 animate-ping" />
+            <div className="relative w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-xl shadow-primary/20">
+              <Briefcase className="w-7 h-7 text-primary-foreground" />
+            </div>
+          </div>
+          <p className="text-sm font-medium text-foreground mb-1">Loading your dashboard</p>
+          <p className="text-xs text-muted-foreground">Fetching your latest activity...</p>
+        </motion.div>
       </div>
     );
   }
@@ -603,7 +613,7 @@ const CandidateDashboard = () => {
                 </div>
               </motion.div>
             ) : (
-              <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
+              <div className="max-w-6xl mx-auto space-y-4 sm:space-y-5">
                 <PlatformNotificationBanner userType="candidate" />
 
                 {candidate && (
@@ -616,173 +626,135 @@ const CandidateDashboard = () => {
                 )}
 
                 {completeness < 100 && (
-                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                    <div className="bg-gradient-to-r from-primary/12 via-primary/5 to-transparent backdrop-blur-xl border border-primary/15 rounded-2xl overflow-hidden p-3 sm:p-4">
-                      <div className="flex items-start gap-3 mb-3">
-                        <div className="w-10 h-10 rounded-xl bg-primary/15 backdrop-blur-sm flex items-center justify-center shrink-0 shadow-lg shadow-primary/10">
-                          <TrendingUp className="w-5 h-5 text-primary" />
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                    <div className="bg-gradient-to-r from-primary/10 to-transparent border border-primary/10 rounded-2xl p-3 sm:p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center shrink-0">
+                          <TrendingUp className="w-4.5 h-4.5 text-primary" />
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-foreground text-sm sm:text-base">Complete your profile ({completeness}%)</p>
-                          <p className="text-[11px] sm:text-sm text-muted-foreground leading-snug">
-                            Profiles with 80%+ completeness get 3x more views
-                          </p>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-sm text-foreground">Complete your profile — {completeness}%</p>
+                          <p className="text-[11px] text-muted-foreground">Complete profiles get 3× more views</p>
                         </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button variant="outline" size="sm" className="text-xs sm:text-sm h-9 rounded-xl backdrop-blur-sm border-border/50" onClick={() => setEditModalOpen(true)}>
-                          Quick Edit
-                        </Button>
-                        <Button size="sm" className="text-xs sm:text-sm h-9 rounded-xl bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/20" onClick={() => navigate('/candidate-profile')}>
-                          Edit Profile
+                        <Button size="sm" className="rounded-xl text-xs h-8 shadow-sm shrink-0" onClick={() => navigate('/candidate-profile')}>
+                          Complete
                         </Button>
                       </div>
                     </div>
                   </motion.div>
                 )}
 
-                {/* Bento Grid Layout */}
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
-                  {/* Row 1: Stat Cards */}
-                  <div className="col-span-1 md:col-span-1 lg:col-span-1">
-                    <DashboardStatCard icon={FileText} label="Applied" value={stats.applications} subtitle="all time" accentColor="blue" onClick={() => setActiveSection('jobs')} delay={0} />
-                  </div>
-                  <div className="col-span-1 md:col-span-1 lg:col-span-1">
-                    <DashboardStatCard icon={Eye} label="Profile Views" value={stats.views} subtitle="all time" accentColor="green" onClick={() => setEditModalOpen(true)} delay={1} />
-                  </div>
-                  <div className="col-span-1 md:col-span-1 lg:col-span-1">
-                    <DashboardStatCard icon={MessageSquare} label="Messages" value={stats.unreadMessages} subtitle={stats.unreadMessages > 0 ? 'unread' : 'all caught up'} accentColor="amber" onClick={() => setActiveSection('messages')} delay={2} />
-                  </div>
-                  <div className="col-span-1 md:col-span-1 lg:col-span-1">
-                    <DashboardStatCard icon={Calendar} label="Interviews" value={stats.interviews} subtitle={nextInterviewLabel} accentColor="purple" delay={3} />
-                  </div>
+                {/* Stats Row */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+                  <DashboardStatCard icon={FileText} label="Applied" value={stats.applications} subtitle="total" accentColor="blue" onClick={() => setActiveSection('jobs')} delay={0} />
+                  <DashboardStatCard icon={Eye} label="Views" value={stats.views} subtitle="profile views" accentColor="green" onClick={() => setEditModalOpen(true)} delay={1} />
+                  <DashboardStatCard icon={MessageSquare} label="Messages" value={stats.unreadMessages} subtitle={stats.unreadMessages > 0 ? 'unread' : 'all read'} accentColor="amber" onClick={() => setActiveSection('messages')} delay={2} />
+                  <DashboardStatCard icon={Calendar} label="Interviews" value={stats.interviews} subtitle={nextInterviewLabel} accentColor="purple" onClick={() => setActiveSection('interviews')} delay={3} />
+                </div>
 
-                  {/* Row 1 cont: Hero Welcome Card (desktop only) */}
+                {/* Welcome + Quick Actions Row */}
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
+                  {/* Welcome Card */}
                   <motion.div
-                    initial={{ opacity: 0, y: 20 }}
+                    initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4, type: 'spring', stiffness: 120, damping: 16 }}
-                    className="hidden lg:flex col-span-2 row-span-1 relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary to-primary/70 p-5 flex-col justify-between border border-primary/20"
+                    transition={{ delay: 0.2 }}
+                    className="lg:col-span-2 relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary to-primary/70 p-5 flex flex-col justify-between min-h-[140px]"
                   >
-                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
-                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full blur-2xl" />
+                    <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
                     <div className="relative z-10">
-                      <p className="text-primary-foreground/80 text-xs font-semibold uppercase tracking-wider mb-1">Welcome back</p>
-                      <h3 className="text-xl font-bold text-primary-foreground leading-tight">
+                      <p className="text-primary-foreground/70 text-[11px] font-semibold uppercase tracking-wider mb-1">Welcome back</p>
+                      <h3 className="text-xl font-bold text-primary-foreground">
                         {profile.full_name?.split(' ')[0] || 'there'} 👋
                       </h3>
-                      <p className="text-primary-foreground/70 text-sm mt-1.5 leading-snug">
+                      <p className="text-primary-foreground/60 text-sm mt-1 leading-snug">
                         {stats.applications > 0
-                          ? `You have ${stats.applications} active application${stats.applications > 1 ? 's' : ''}`
-                          : 'Start applying to find your dream job'}
+                          ? `${stats.applications} active application${stats.applications > 1 ? 's' : ''}`
+                          : 'Start applying to jobs today'}
                       </p>
                     </div>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      className="relative z-10 mt-3 w-fit rounded-xl text-xs font-semibold shadow-lg"
-                      onClick={() => navigate('/')}
-                    >
-                      <MapPin className="w-3.5 h-3.5 mr-1" />
-                      Explore Jobs
+                    <Button size="sm" variant="secondary" className="relative z-10 mt-3 w-fit rounded-xl text-xs font-semibold shadow-md" onClick={() => navigate('/')}>
+                      <MapPin className="w-3.5 h-3.5 mr-1" /> Explore Jobs
                     </Button>
                   </motion.div>
+
+                  {/* Quick Actions */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.25 }}
+                    className="lg:col-span-3 rounded-2xl border border-border/30 bg-card/50 backdrop-blur-xl p-4"
+                  >
+                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">Quick Actions</p>
+                    <div className="grid grid-cols-4 gap-2">
+                      {quickActions.map((action, i) => (
+                        <motion.button
+                          key={action.label}
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: 0.3 + i * 0.03 }}
+                          whileHover={{ y: -2 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={action.onClick}
+                          className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl hover:bg-muted/40 transition-colors"
+                        >
+                          <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center", action.bg)}>
+                            <action.icon className={cn("w-4 h-4", action.color)} />
+                          </div>
+                          <span className="text-[10px] font-medium text-muted-foreground leading-tight text-center">{action.label}</span>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </motion.div>
                 </div>
 
-                {/* Quick Actions Grid — all screens */}
-                <motion.div
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl p-4 overflow-hidden"
-                >
-                  <div className="absolute -top-16 -right-16 w-40 h-40 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-                  <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[hsl(262,83%,58%)]/10 rounded-full blur-3xl pointer-events-none" />
-                  <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 dark:ring-white/5 pointer-events-none" />
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 relative z-10">Quick Actions</p>
-                  <div className="grid grid-cols-4 lg:grid-cols-8 gap-2 relative z-10">
-                    {quickActions.map((action, i) => (
-                      <motion.button
-                        key={action.label}
-                        initial={{ opacity: 0, y: 12 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.35 + i * 0.04 }}
-                        whileHover={{ scale: 1.03, y: -2 }}
-                        whileTap={{ scale: 0.96 }}
-                        onClick={action.onClick}
-                        className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-card/70 backdrop-blur-md border border-border/30 hover:border-border/60 hover:shadow-lg transition-all"
-                      >
-                        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", action.bg)}>
-                          <action.icon className={cn("w-5 h-5", action.color)} />
-                        </div>
-                        <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground">{action.label}</span>
-                      </motion.button>
-                    ))}
-                  </div>
-                </motion.div>
-
-                {/* Messages + Interview — Glassmorphism bento containers */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
+                {/* Messages + Interviews */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
                   <motion.div
-                    initial={{ opacity: 0, y: 16 }}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.35 }}
+                    className="lg:col-span-2 rounded-2xl border border-border/30 bg-card/50 backdrop-blur-xl overflow-hidden"
+                  >
+                    <MessagesPreview profileId={profile.id} onOpenChat={() => setActiveSection('messages')} />
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="lg:col-span-2 relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl overflow-hidden"
+                    className="rounded-2xl border border-border/30 bg-card/50 backdrop-blur-xl overflow-hidden"
                   >
-                    <div className="absolute -top-12 -left-12 w-36 h-36 bg-warning/10 rounded-full blur-3xl pointer-events-none" />
-                    <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 dark:ring-white/5 pointer-events-none" />
-                    <div className="relative z-10">
-                      <MessagesPreview profileId={profile.id} onOpenChat={() => setActiveSection('messages')} />
-                    </div>
-                  </motion.div>
-                  <motion.div
-                    initial={{ opacity: 0, y: 16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className="relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl overflow-hidden"
-                  >
-                    <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-[hsl(262,83%,58%)]/10 rounded-full blur-3xl pointer-events-none" />
-                    <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 dark:ring-white/5 pointer-events-none" />
-                    <div className="relative z-10">
-                      <UpcomingInterviewCard />
-                    </div>
+                    <UpcomingInterviewCard />
                   </motion.div>
                 </div>
 
-                {/* Pending Tasks + AI Matches */}
+                {/* Tasks + AI Matches */}
                 {candidate && (
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
                     <motion.div
-                      initial={{ opacity: 0, y: 16 }}
+                      initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.55 }}
-                      className="relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl overflow-hidden"
+                      transition={{ delay: 0.45 }}
+                      className="rounded-2xl border border-border/30 bg-card/50 backdrop-blur-xl p-4"
                     >
-                      <div className="absolute -top-12 -left-12 w-36 h-36 bg-warning/10 rounded-full blur-3xl pointer-events-none" />
-                      <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 dark:ring-white/5 pointer-events-none" />
-                      <div className="relative z-10 p-4 sm:p-5">
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Pending Tasks</p>
-                        <PendingTasksWidget
-                          type="candidate"
-                          candidateId={candidate.id}
-                          onViewAll={() => handleSectionClick('tasks')}
-                        />
-                      </div>
+                      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">Pending Tasks</p>
+                      <PendingTasksWidget type="candidate" candidateId={candidate.id} onViewAll={() => handleSectionClick('tasks')} />
                     </motion.div>
                     <motion.div
-                      initial={{ opacity: 0, y: 16 }}
+                      initial={{ opacity: 0, y: 12 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.6 }}
+                      transition={{ delay: 0.5 }}
                       className="lg:col-span-2"
                     >
                       <AIJobMatches candidateId={candidate.id} />
                     </motion.div>
                   </div>
                 )}
+
                 <RecentlyViewedJobs />
 
                 {candidate && (
-                  <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65 }}>
+                  <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}>
                     <JobMatchCarousel candidateId={candidate.id} skills={candidate.skills || []} />
                   </motion.div>
                 )}
