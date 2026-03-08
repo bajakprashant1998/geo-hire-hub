@@ -47,6 +47,7 @@ import { ApplicationTracker } from '@/components/candidate/ApplicationTracker';
 import { ReferralDashboard } from '@/components/candidate/ReferralDashboard';
 import { TakeAssessment } from '@/components/candidate/TakeAssessment';
 import { InterviewPrepCoach } from '@/components/candidate/InterviewPrepCoach';
+import { MarketValueScore } from '@/components/candidate/MarketValueScore';
 import { PendingTasksWidget } from '@/components/dashboard/PendingTasksWidget';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { motion } from 'framer-motion';
