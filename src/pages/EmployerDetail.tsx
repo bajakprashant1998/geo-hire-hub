@@ -400,6 +400,11 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
                     {employer.trust_score !== null && employer.trust_score !== undefined && employer.trust_score > 0 && (
                       <TrustScoreDisplay score={employer.trust_score} size="sm" />
                     )}
+                    <ResponseRateBadge
+                      responseRate={employer.response_rate}
+                      avgResponseHours={employer.avg_response_hours}
+                      size="sm"
+                    />
                   </div>
 
                   {/* Info */}
