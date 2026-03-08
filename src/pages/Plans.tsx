@@ -346,65 +346,142 @@ const TrustBar = () => (
   </motion.div>
 );
 
-const ComparisonTable = () => (
-  <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    whileInView={{ opacity: 1, y: 0 }}
-    viewport={{ once: true }}
-    transition={{ duration: 0.5 }}
-    className="mt-20"
-  >
-    <div className="text-center mb-10">
-      <Badge variant="secondary" className="mb-3 px-3 py-1 text-xs">Detailed Comparison</Badge>
-      <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Compare Plans Side by Side</h2>
-      <p className="text-muted-foreground mt-2 max-w-lg mx-auto">Every feature, every plan — see exactly what you get</p>
-    </div>
+const ComparisonTable = ({ plans }: { plans: Plan[] }) => {
+  // Build comparison rows dynamically from DB plans
+  const freePlan = plans.find(p => p.name.toLowerCase() === 'free');
+  const proPlan = plans.find(p => p.name.toLowerCase() === 'professional');
+  const entPlan = plans.find(p => p.name.toLowerCase() === 'enterprise');
 
-    <Card className="overflow-hidden border-border/80 shadow-sm">
-      <div className="overflow-x-auto">
-        <TooltipProvider>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-muted/50">
-                <th className="text-left p-4 font-semibold text-foreground min-w-[220px]">Feature</th>
-                <th className="text-center p-4 w-[140px]">
-                  <div className="font-semibold text-muted-foreground">Free</div>
-                  <div className="text-xs text-muted-foreground/70 mt-0.5">$0/mo</div>
-                </th>
-                <th className="text-center p-4 w-[140px] bg-primary/5">
-                  <div className="font-semibold text-primary flex items-center justify-center gap-1">
-                    <Sparkles className="w-3.5 h-3.5" /> Pro
-                  </div>
-                  <div className="text-xs text-primary/70 mt-0.5">Best value</div>
-                </th>
-                <th className="text-center p-4 w-[140px]">
-                  <div className="font-semibold text-foreground">Enterprise</div>
-                  <div className="text-xs text-muted-foreground/70 mt-0.5">Custom</div>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {comparisonFeatures.map((feat, i) => (
-                <tr key={i} className="border-b border-border/50 last:border-0 hover:bg-muted/20 transition-colors">
-                  <td className="p-4 text-muted-foreground font-medium">
-                    <Tooltip>
-                      <TooltipTrigger className="flex items-center gap-1.5 cursor-help">
-                        {feat.label}
-                        {feat.tooltip && <HelpCircle className="w-3.5 h-3.5 text-muted-foreground/40" />}
-                      </TooltipTrigger>
-                      <TooltipContent side="right" className="max-w-[200px]">
-                        <p className="text-xs">{feat.tooltip}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </td>
-                  {(['free', 'pro', 'enterprise'] as const).map(tier => {
-                    const val = feat[tier];
-                    return (
-                      <td key={tier} className={cn("text-center p-4", tier === 'pro' && 'bg-primary/5')}>
+  const hasFeature = (plan: Plan | undefined, keyword: string): boolean => {
+    if (!plan?.features) return false;
+    return (plan.features as string[]).some((f: string) =>
+      f.toLowerCase().includes(keyword.toLowerCase())
+    );
+  };
+
+  const comparisonRows: { label: string; values: (string | boolean)[]; tooltip: string }[] = [
+    {
+      label: 'Active Job Listings',
+      values: [
+        String(freePlan?.max_active_jobs ?? 0),
+        String(proPlan?.max_active_jobs ?? 0),
+        String(entPlan?.max_active_jobs ?? 0),
+      ],
+      tooltip: 'Number of jobs you can have active simultaneously',
+    },
+    {
+      label: 'Applicant Tracking',
+      values: [
+        hasFeature(freePlan, 'applicant') ? 'Basic' : 'Basic',
+        hasFeature(proPlan, 'analytics') ? 'Advanced' : 'Basic',
+        hasFeature(entPlan, 'suite') ? 'Full Suite' : 'Advanced',
+      ],
+      tooltip: 'Tools to manage and track applicants through your hiring pipeline',
+    },
+    {
+      label: 'Analytics Dashboard',
+      values: [
+        hasFeature(freePlan, 'analytics'),
+        hasFeature(proPlan, 'analytics'),
+        hasFeature(entPlan, 'analytics'),
+      ],
+      tooltip: 'Detailed insights on job performance and applicant metrics',
+    },
+    {
+      label: 'Priority Support',
+      values: [
+        hasFeature(freePlan, 'priority') || hasFeature(freePlan, 'dedicated'),
+        hasFeature(proPlan, 'priority') || hasFeature(proPlan, 'dedicated'),
+        hasFeature(entPlan, 'priority') || hasFeature(entPlan, 'dedicated'),
+      ],
+      tooltip: '24/7 dedicated support with faster response times',
+    },
+    {
+      label: 'Featured Listings',
+      values: [
+        hasFeature(freePlan, 'featured'),
+        hasFeature(proPlan, 'featured'),
+        hasFeature(entPlan, 'featured'),
+      ],
+      tooltip: 'Your jobs appear at the top of search results',
+    },
+    {
+      label: 'Custom Branding',
+      values: [
+        hasFeature(freePlan, 'branding'),
+        hasFeature(proPlan, 'branding'),
+        hasFeature(entPlan, 'branding'),
+      ],
+      tooltip: 'White-label your job listings with company branding',
+    },
+    {
+      label: 'Priority Listing',
+      values: [
+        hasFeature(freePlan, 'priority listing'),
+        hasFeature(proPlan, 'priority listing'),
+        hasFeature(entPlan, 'priority listing') || hasFeature(entPlan, 'featured listing'),
+      ],
+      tooltip: 'Jobs appear higher in candidate search results',
+    },
+  ];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5 }}
+      className="mt-20"
+    >
+      <div className="text-center mb-10">
+        <Badge variant="secondary" className="mb-3 px-3 py-1 text-xs">Detailed Comparison</Badge>
+        <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Compare Plans Side by Side</h2>
+        <p className="text-muted-foreground mt-2 max-w-lg mx-auto">Every feature, every plan — see exactly what you get</p>
+      </div>
+
+      <Card className="overflow-hidden border-border/80 shadow-sm">
+        <div className="overflow-x-auto">
+          <TooltipProvider>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="text-left p-4 font-semibold text-foreground min-w-[220px]">Feature</th>
+                  <th className="text-center p-4 w-[140px]">
+                    <div className="font-semibold text-muted-foreground">{freePlan?.name || 'Free'}</div>
+                    <div className="text-xs text-muted-foreground/70 mt-0.5">${freePlan?.price_monthly ?? 0}/mo</div>
+                  </th>
+                  <th className="text-center p-4 w-[140px] bg-primary/5">
+                    <div className="font-semibold text-primary flex items-center justify-center gap-1">
+                      <Sparkles className="w-3.5 h-3.5" /> {proPlan?.name || 'Pro'}
+                    </div>
+                    <div className="text-xs text-primary/70 mt-0.5">${proPlan?.price_monthly ?? 0}/mo</div>
+                  </th>
+                  <th className="text-center p-4 w-[140px]">
+                    <div className="font-semibold text-foreground">{entPlan?.name || 'Enterprise'}</div>
+                    <div className="text-xs text-muted-foreground/70 mt-0.5">${entPlan?.price_monthly ?? 0}/mo</div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {comparisonRows.map((row, i) => (
+                  <tr key={i} className="border-b border-border/50 last:border-0 hover:bg-muted/20 transition-colors">
+                    <td className="p-4 text-muted-foreground font-medium">
+                      <Tooltip>
+                        <TooltipTrigger className="flex items-center gap-1.5 cursor-help">
+                          {row.label}
+                          <HelpCircle className="w-3.5 h-3.5 text-muted-foreground/40" />
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="max-w-[200px]">
+                          <p className="text-xs">{row.tooltip}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </td>
+                    {row.values.map((val, vi) => (
+                      <td key={vi} className={cn("text-center p-4", vi === 1 && 'bg-primary/5')}>
                         {typeof val === 'boolean' ? (
                           val ? (
-                            <div className="w-6 h-6 rounded-full bg-emerald-500/15 flex items-center justify-center mx-auto">
-                              <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                            <div className="w-6 h-6 rounded-full bg-success/15 flex items-center justify-center mx-auto">
+                              <Check className="w-3.5 h-3.5 text-success" />
                             </div>
                           ) : (
                             <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center mx-auto">
@@ -414,23 +491,23 @@ const ComparisonTable = () => (
                         ) : (
                           <span className={cn(
                             "text-sm font-semibold",
-                            tier === 'pro' ? 'text-primary' : 'text-foreground'
+                            vi === 1 ? 'text-primary' : 'text-foreground'
                           )}>
                             {val}
                           </span>
                         )}
                       </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </TooltipProvider>
-      </div>
-    </Card>
-  </motion.div>
-);
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </TooltipProvider>
+        </div>
+      </Card>
+    </motion.div>
+  );
+};
 
 const FAQSection = () => (
   <motion.div
