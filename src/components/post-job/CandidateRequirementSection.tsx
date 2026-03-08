@@ -24,6 +24,8 @@ interface CandidateRequirementSectionProps {
   setSalaryMax: (salary: string) => void;
   hasBonus: boolean;
   setHasBonus: (hasBonus: boolean) => void;
+  referralBounty: string;
+  setReferralBounty: (bounty: string) => void;
   description: string;
   setDescription: (desc: string) => void;
   skills: string[];
