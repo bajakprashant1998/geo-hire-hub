@@ -108,6 +108,7 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
   const [salaryMin, setSalaryMin] = useState('');
   const [salaryMax, setSalaryMax] = useState('');
   const [hasBonus, setHasBonus] = useState(false);
+  const [referralBounty, setReferralBounty] = useState('');
   const [description, setDescription] = useState('');
   const [skills, setSkills] = useState<string[]>([]);
   const [salaryCurrency, setSalaryCurrency] = useState('INR');
@@ -292,6 +293,7 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
         }
         
         setHasBonus(jobData.has_bonus || false);
+        setReferralBounty(jobData.referral_bounty ? String(jobData.referral_bounty) : '');
         setDescription(jobData.description || '');
         setSkills(jobData.skills || []);
         setGender((jobData.gender_preference as 'Any' | 'Male' | 'Female') || 'Any');
@@ -602,6 +604,7 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
         min_experience: minExperience ? parseInt(minExperience) : null,
         max_experience: maxExperience ? parseInt(maxExperience) : null,
         has_bonus: hasBonus,
+        referral_bounty: referralBounty ? parseInt(referralBounty) : 0,
         skills,
         gender_preference: gender,
         min_age: ageMin ? parseInt(ageMin) : null,
@@ -923,6 +926,8 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
                           setSalaryMax={setSalaryMax}
                           hasBonus={hasBonus}
                           setHasBonus={setHasBonus}
+                          referralBounty={referralBounty}
+                          setReferralBounty={setReferralBounty}
                           description={description}
                           setDescription={setDescription}
                           skills={skills}

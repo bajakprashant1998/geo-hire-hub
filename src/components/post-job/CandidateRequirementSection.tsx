@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Switch } from '@/components/ui/switch';
-import { ChevronDown, ChevronUp, Plus, X, Sparkles, Loader2, Users, Info, GraduationCap, Award } from 'lucide-react';
+import { ChevronDown, ChevronUp, Plus, X, Sparkles, Loader2, Users, Info, GraduationCap, Award, Gift } from 'lucide-react';
 import { CURRENCIES, getCurrencyByCode } from '@/lib/currencies';
 
 interface CandidateRequirementSectionProps {
@@ -24,6 +24,8 @@ interface CandidateRequirementSectionProps {
   setSalaryMax: (salary: string) => void;
   hasBonus: boolean;
   setHasBonus: (hasBonus: boolean) => void;
+  referralBounty: string;
+  setReferralBounty: (bounty: string) => void;
   description: string;
   setDescription: (desc: string) => void;
   skills: string[];
@@ -71,6 +73,7 @@ export const CandidateRequirementSection = ({
   salaryMin, setSalaryMin,
   salaryMax, setSalaryMax,
   hasBonus, setHasBonus,
+  referralBounty, setReferralBounty,
   description, setDescription,
   skills, setSkills,
   gender, setGender,
@@ -227,6 +230,23 @@ export const CandidateRequirementSection = ({
               <Label className="text-sm text-muted-foreground cursor-pointer">Includes bonus / incentive</Label>
             </div>
             {hasBonus && <Badge variant="outline" className="text-success border-success/30">+ Bonus</Badge>}
+          </div>
+
+          {/* Referral Bounty */}
+          <div className="pt-2">
+            <Label className="text-sm font-medium flex items-center gap-1.5">
+              <Gift className="w-3.5 h-3.5 text-primary" />
+              Referral Bounty (Optional)
+            </Label>
+            <p className="text-xs text-muted-foreground mb-2">Offer points to users who refer successful candidates</p>
+            <Input
+              placeholder="e.g., 500 (points awarded on hire)"
+              value={referralBounty}
+              onChange={(e) => setReferralBounty(e.target.value)}
+              type="number"
+              min="0"
+              className="h-11"
+            />
           </div>
         </div>
       </div>

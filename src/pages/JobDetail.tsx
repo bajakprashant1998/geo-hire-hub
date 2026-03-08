@@ -60,6 +60,7 @@ import {
   Flame,
   ExternalLink,
   Shield,
+  Trophy,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
@@ -112,6 +113,7 @@ interface JobDetails {
   hiring_frequency: string | null;
   job_address: string | null;
   job_category: string | null;
+  referral_bounty: number | null;
   employer: {
     id: string;
     company_name: string;
@@ -429,6 +431,37 @@ const JobDetail = () => {
     }
   };
 
+  const handleReferFriend = async () => {
+    if (!user || !profile) { toast.error('Please log in to refer a friend'); return; }
+    try {
+      // Generate referral code
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+      let code = 'HFJ-';
+      for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+      
+      const { error } = await supabase.from('referrals').insert({
+        referrer_id: profile.id,
+        referral_code: code,
+        job_id: resolvedId,
+      });
+      if (error) throw error;
+
+      const link = `${window.location.origin}/signup?ref=${code}`;
+      try {
+        await navigator.share({
+          title: `Referral: ${job?.title} at ${job?.employer.company_name}`,
+          text: `I think you'd be great for this role! ${(job?.referral_bounty ?? 0) > 0 ? `🏆 ${job?.referral_bounty} points bounty!` : ''}`,
+          url: link,
+        });
+      } catch {
+        await navigator.clipboard.writeText(link);
+        toast.success('Referral link copied!');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to create referral');
+    }
+  };
+
   const handleContactEmployer = async () => {
     if (!job?.employer.user_id) { toast.error('Unable to contact this employer'); return; }
     setContacting(true);
@@ -524,6 +557,13 @@ const JobDetail = () => {
               <Share2 className="w-5 h-5" />
             </Button>
             </TooltipTrigger><TooltipContent>Share</TooltipContent></Tooltip>
+            {user && profile?.user_type === 'candidate' && (
+              <Tooltip><TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={handleReferFriend} className="rounded-full text-muted-foreground hover:text-primary">
+                <Trophy className="w-5 h-5" />
+              </Button>
+              </TooltipTrigger><TooltipContent>Refer a Friend{(job?.referral_bounty ?? 0) > 0 ? ` (+${job?.referral_bounty} pts)` : ''}</TooltipContent></Tooltip>
+            )}
             <ReportDialog targetId={id || ''} targetType="job" />
           </div>
         </div>
@@ -594,6 +634,11 @@ const JobDetail = () => {
             {job.has_bonus && (
               <Badge className="gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-warning/10 text-warning border-warning/20">
                 <Gift className="w-3.5 h-3.5" /> +Bonus
+              </Badge>
+            )}
+            {(job.referral_bounty ?? 0) > 0 && (
+              <Badge className="gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-primary/10 text-primary border-primary/20">
+                <Trophy className="w-3.5 h-3.5" /> {job.referral_bounty} pts Bounty
               </Badge>
             )}
           </div>
@@ -961,6 +1006,11 @@ const JobDetail = () => {
             <Button variant="outline" size="icon" onClick={handleShare} className="w-11 h-11 rounded-xl shrink-0">
               <Share2 className="w-5 h-5" />
             </Button>
+            {user && profile?.user_type === 'candidate' && (
+              <Button variant="outline" size="icon" onClick={handleReferFriend} className="w-11 h-11 rounded-xl shrink-0 text-primary border-primary/30">
+                <Trophy className="w-5 h-5" />
+              </Button>
+            )}
             {job.employer.whatsapp_number && (
               <WhatsAppButton phoneNumber={job.employer.whatsapp_number} variant="icon" className="shrink-0 w-11 h-11 rounded-xl" />
             )}

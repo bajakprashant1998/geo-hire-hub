@@ -2047,6 +2047,8 @@ export type Database = {
           moderation_status: string | null
           openings: number | null
           organization_size: string | null
+          referral_bounty: number | null
+          referral_bounty_currency: string | null
           salary_currency: string | null
           salary_range: string | null
           shift_type: string | null
@@ -2102,6 +2104,8 @@ export type Database = {
           moderation_status?: string | null
           openings?: number | null
           organization_size?: string | null
+          referral_bounty?: number | null
+          referral_bounty_currency?: string | null
           salary_currency?: string | null
           salary_range?: string | null
           shift_type?: string | null
@@ -2157,6 +2161,8 @@ export type Database = {
           moderation_status?: string | null
           openings?: number | null
           organization_size?: string | null
+          referral_bounty?: number | null
+          referral_bounty_currency?: string | null
           salary_currency?: string | null
           salary_range?: string | null
           shift_type?: string | null
@@ -2548,6 +2554,7 @@ export type Database = {
           points_earned: number
           referral_code: string
           referred_email: string | null
+          referred_name: string | null
           referred_user_id: string | null
           referrer_id: string
           status: string
@@ -2560,6 +2567,7 @@ export type Database = {
           points_earned?: number
           referral_code: string
           referred_email?: string | null
+          referred_name?: string | null
           referred_user_id?: string | null
           referrer_id: string
           status?: string
@@ -2572,6 +2580,7 @@ export type Database = {
           points_earned?: number
           referral_code?: string
           referred_email?: string | null
+          referred_name?: string | null
           referred_user_id?: string | null
           referrer_id?: string
           status?: string
