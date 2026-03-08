@@ -295,7 +295,7 @@ const CandidateSettings = () => {
   }
 
   return (
-    <EmailVerificationGuard fallbackMessage="Please verify your email to access settings.">
+    <div className="min-h-screen bg-secondary py-8 px-4">
       <div className="min-h-screen bg-secondary py-8 px-4">
         <div className="max-w-4xl mx-auto space-y-6">
           {/* Header */}
