@@ -65,6 +65,7 @@ import { InterviewFeedbackForms } from '@/components/employer/InterviewFeedbackF
 import { TalentPoolCRM } from '@/components/employer/TalentPoolCRM';
 import { JobABTesting } from '@/components/employer/JobABTesting';
 import { TeamCollaborationNotes } from '@/components/employer/TeamCollaborationNotes';
+import { TeamWorkflows } from '@/components/employer/TeamWorkflows';
 import { AccessibilityScoreChecker } from '@/components/employer/AccessibilityScoreChecker';
 import { BrandingPageBuilder } from '@/components/employer/BrandingPageBuilder';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -405,6 +406,7 @@ const EmployerDashboard = () => {
     { icon: Database, label: 'Talent Pool', value: 'talent-pool' },
     { icon: FlaskConical, label: 'A/B Testing', value: 'ab-testing' },
     { icon: MessageCircle, label: 'Team Notes', value: 'team-notes' },
+    { icon: Users, label: 'Team Workflows', value: 'team-workflows' },
     { icon: Sparkles, label: 'Accessibility Check', value: 'accessibility-check' },
     { icon: Palette, label: 'Branding Page', value: 'branding' },
     { icon: CreditCard, label: 'Upgrade Plan', value: 'upgrade-plan' }
@@ -1115,6 +1117,8 @@ const EmployerDashboard = () => {
         return employer && <JobABTesting employerId={employer.id} />;
       case 'team-notes':
         return employer && <TeamCollaborationNotes employerId={employer.id} />;
+      case 'team-workflows':
+        return employer && <TeamWorkflows employerId={employer.id} />;
       case 'accessibility-check':
         return <AccessibilityScoreChecker />;
       case 'branding':

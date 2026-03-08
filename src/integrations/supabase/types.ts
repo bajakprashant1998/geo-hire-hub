@@ -170,6 +170,138 @@ export type Database = {
           },
         ]
       }
+      approval_requests: {
+        Row: {
+          created_at: string | null
+          current_step: number | null
+          employer_id: string
+          entity_id: string
+          entity_type: string
+          history: Json | null
+          id: string
+          notes: string | null
+          requested_by: string
+          status: string
+          updated_at: string | null
+          workflow_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_step?: number | null
+          employer_id: string
+          entity_id: string
+          entity_type: string
+          history?: Json | null
+          id?: string
+          notes?: string | null
+          requested_by: string
+          status?: string
+          updated_at?: string | null
+          workflow_id: string
+        }
+        Update: {
+          created_at?: string | null
+          current_step?: number | null
+          employer_id?: string
+          entity_id?: string
+          entity_type?: string
+          history?: Json | null
+          id?: string
+          notes?: string | null
+          requested_by?: string
+          status?: string
+          updated_at?: string | null
+          workflow_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approval_requests_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "employers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approval_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approval_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approval_requests_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "approval_workflows"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      approval_workflows: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          employer_id: string
+          id: string
+          is_active: boolean | null
+          name: string
+          steps: Json
+          updated_at: string | null
+          workflow_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          employer_id: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          steps?: Json
+          updated_at?: string | null
+          workflow_type?: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          employer_id?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          steps?: Json
+          updated_at?: string | null
+          workflow_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "approval_workflows_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approval_workflows_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approval_workflows_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "employers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assessment_questions: {
         Row: {
           assessment_id: string
@@ -1341,6 +1473,70 @@ export type Database = {
             columns: ["plan_id"]
             isOneToOne: false
             referencedRelation: "employer_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employer_team_members: {
+        Row: {
+          accepted_at: string | null
+          created_at: string | null
+          employer_id: string
+          id: string
+          invited_at: string | null
+          invited_email: string | null
+          is_active: boolean | null
+          permissions: Json | null
+          profile_id: string
+          team_role: Database["public"]["Enums"]["team_role"]
+          updated_at: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string | null
+          employer_id: string
+          id?: string
+          invited_at?: string | null
+          invited_email?: string | null
+          is_active?: boolean | null
+          permissions?: Json | null
+          profile_id: string
+          team_role?: Database["public"]["Enums"]["team_role"]
+          updated_at?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string | null
+          employer_id?: string
+          id?: string
+          invited_at?: string | null
+          invited_email?: string | null
+          is_active?: boolean | null
+          permissions?: Json | null
+          profile_id?: string
+          team_role?: Database["public"]["Enums"]["team_role"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employer_team_members_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "employers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employer_team_members_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employer_team_members_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -3443,6 +3639,110 @@ export type Database = {
           },
         ]
       }
+      team_tasks: {
+        Row: {
+          assigned_to: string | null
+          candidate_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          created_by: string
+          description: string | null
+          due_date: string | null
+          employer_id: string
+          id: string
+          job_id: string | null
+          priority: string
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          candidate_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          due_date?: string | null
+          employer_id: string
+          id?: string
+          job_id?: string | null
+          priority?: string
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          candidate_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          due_date?: string | null
+          employer_id?: string
+          id?: string
+          job_id?: string | null
+          priority?: string
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_tasks_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_tasks_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_tasks_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "employers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_tasks_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_badges: {
         Row: {
           badge_id: string
@@ -3708,6 +4008,12 @@ export type Database = {
     Enums: {
       app_role: "admin" | "moderator" | "user"
       job_status: "open" | "closed"
+      team_role:
+        | "owner"
+        | "hiring_manager"
+        | "recruiter"
+        | "interviewer"
+        | "viewer"
       user_type: "candidate" | "employer"
     }
     CompositeTypes: {
@@ -3838,6 +4144,13 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "moderator", "user"],
       job_status: ["open", "closed"],
+      team_role: [
+        "owner",
+        "hiring_manager",
+        "recruiter",
+        "interviewer",
+        "viewer",
+      ],
       user_type: ["candidate", "employer"],
     },
   },
