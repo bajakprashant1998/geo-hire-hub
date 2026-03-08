@@ -1,9 +1,10 @@
 import { useState, useRef } from 'react';
-import { Paperclip, X, Loader2, Image, FileText } from 'lucide-react';
+import { Paperclip, X, Loader2, Image, FileText, ZoomIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 interface PendingAttachment {
   file: File;
@@ -34,6 +35,12 @@ const ALLOWED_TYPES = [
 
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
+const formatFileSize = (bytes: number): string => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
 export const AttachmentUpload = ({ 
   userId, 
   conversationId, 
@@ -42,6 +49,7 @@ export const AttachmentUpload = ({
   onClearAttachment
 }: AttachmentUploadProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -82,25 +90,40 @@ export const AttachmentUpload = ({
       />
       
       {pendingAttachment ? (
-        <div className="relative inline-flex items-center gap-2 p-2 bg-muted rounded-lg mr-2">
+        <div className="relative inline-flex items-center gap-3 p-2.5 bg-muted/80 rounded-xl border border-border/40">
           {pendingAttachment.preview ? (
-            <img 
-              src={pendingAttachment.preview} 
-              alt="Preview" 
-              className="w-10 h-10 object-cover rounded"
-            />
+            <div className="relative group">
+              <img 
+                src={pendingAttachment.preview} 
+                alt="Preview" 
+                className="w-16 h-16 object-cover rounded-lg shadow-sm"
+              />
+              <button
+                type="button"
+                onClick={() => setPreviewOpen(true)}
+                className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <ZoomIn className="w-4 h-4 text-white" />
+              </button>
+            </div>
           ) : (
-            <div className="w-10 h-10 bg-background rounded flex items-center justify-center">
-              <FileText className="w-5 h-5 text-muted-foreground" />
+            <div className="w-16 h-16 bg-background rounded-lg flex items-center justify-center border border-border/30">
+              <FileText className="w-6 h-6 text-muted-foreground" />
             </div>
           )}
-          <span className="text-sm truncate max-w-[100px]">
-            {pendingAttachment.file.name}
-          </span>
+          <div className="flex flex-col min-w-0">
+            <span className="text-sm font-medium truncate max-w-[140px]">
+              {pendingAttachment.file.name}
+            </span>
+            <span className="text-[10px] text-muted-foreground">
+              {formatFileSize(pendingAttachment.file.size)}
+            </span>
+          </div>
           <Button
+            type="button"
             variant="ghost"
             size="icon"
-            className="w-6 h-6"
+            className="w-7 h-7 rounded-full hover:bg-destructive/10 hover:text-destructive shrink-0"
             onClick={() => {
               if (pendingAttachment.preview) {
                 URL.revokeObjectURL(pendingAttachment.preview);
@@ -110,6 +133,22 @@ export const AttachmentUpload = ({
           >
             <X className="w-4 h-4" />
           </Button>
+
+          {/* Full-size image preview dialog */}
+          {pendingAttachment.preview && (
+            <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+              <DialogContent className="max-w-2xl p-2">
+                <img
+                  src={pendingAttachment.preview}
+                  alt="Full preview"
+                  className="w-full h-auto max-h-[70vh] object-contain rounded-lg"
+                />
+                <p className="text-xs text-muted-foreground text-center mt-1">
+                  {pendingAttachment.file.name} • {formatFileSize(pendingAttachment.file.size)}
+                </p>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       ) : (
         <Button

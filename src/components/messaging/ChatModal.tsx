@@ -23,6 +23,7 @@ import { ChatHeader } from './ChatHeader';
 import { ConversationCard } from './ConversationCard';
 import { MessageBubble } from './MessageBubble';
 import { ChatInput } from './ChatInput';
+import { SmartReplies } from './SmartReplies';
 import { cn } from '@/lib/utils';
 
 interface Attachment {
@@ -614,6 +615,17 @@ export const ChatModal = ({ isOpen, onClose, initialConversationId }: ChatModalP
                     </AnimatePresence>
                   </div>
                 </ScrollArea>
+
+                <SmartReplies
+                  messages={messages}
+                  currentUserId={user.id}
+                  userRole={profile.user_type || undefined}
+                  onSelect={(reply) => {
+                    setNewMessage(reply);
+                    inputRef.current?.focus();
+                  }}
+                  visible={!!activeConversation && messages.length > 0}
+                />
 
                 <ChatInput
                   value={newMessage}

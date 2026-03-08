@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   Video, Calendar, Clock, MapPin, ArrowLeft, ExternalLink, Mic, Camera,
   CheckCircle2, User, Briefcase, Circle, Square, FileText, Loader2, Sparkles, 
-  ClipboardCopy, Download, AlertTriangle
+  ClipboardCopy, Download, AlertTriangle, MonitorUp, MonitorOff
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -55,6 +55,10 @@ const VideoCall = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [recordingNotes, setRecordingNotes] = useState('');
+
+  // Screen sharing state
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
 
   // AI Summary
   const [aiSummary, setAiSummary] = useState<AISummary | null>(null);
@@ -315,6 +319,79 @@ const VideoCall = () => {
                         </div>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {/* Screen Sharing Controls */}
+                {interview.interview_type === 'video' && (
+                  <div className="p-4 rounded-xl bg-muted/30 border border-border/40 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {isScreenSharing ? (
+                          <MonitorUp className="w-4 h-4 text-emerald-500" />
+                        ) : (
+                          <MonitorOff className="w-4 h-4 text-muted-foreground" />
+                        )}
+                        <div>
+                          <p className="text-sm font-medium">Screen Sharing</p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {isScreenSharing ? 'Your screen is being shared' : 'Share your screen during the call'}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant={isScreenSharing ? 'destructive' : 'outline'}
+                        size="sm"
+                        className="rounded-xl gap-1.5 text-xs"
+                        onClick={async () => {
+                          if (isScreenSharing) {
+                            screenStream?.getTracks().forEach(t => t.stop());
+                            setScreenStream(null);
+                            setIsScreenSharing(false);
+                            toast.info('Screen sharing stopped');
+                          } else {
+                            try {
+                              const stream = await navigator.mediaDevices.getDisplayMedia({
+                                video: true,
+                                audio: false,
+                              });
+                              setScreenStream(stream);
+                              setIsScreenSharing(true);
+                              toast.success('Screen sharing started');
+                              stream.getVideoTracks()[0].addEventListener('ended', () => {
+                                setScreenStream(null);
+                                setIsScreenSharing(false);
+                                toast.info('Screen sharing stopped');
+                              });
+                            } catch {
+                              toast.error('Screen sharing was cancelled or not supported');
+                            }
+                          }
+                        }}
+                      >
+                        {isScreenSharing ? (
+                          <><MonitorOff className="w-3.5 h-3.5" /> Stop</>
+                        ) : (
+                          <><MonitorUp className="w-3.5 h-3.5" /> Share Screen</>
+                        )}
+                      </Button>
+                    </div>
+                    {isScreenSharing && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20"
+                      >
+                        <motion.div
+                          animate={{ opacity: [1, 0.4, 1] }}
+                          transition={{ duration: 1.5, repeat: Infinity }}
+                          className="w-2 h-2 rounded-full bg-emerald-500"
+                        />
+                        <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                          Screen is being shared — visible to others in the call
+                        </span>
+                      </motion.div>
+                    )}
                   </div>
                 )}
 
