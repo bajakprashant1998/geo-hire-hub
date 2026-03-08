@@ -351,7 +351,7 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
 
   const handleRefresh = () => {
     setRefreshing(true);
-    fetchRecommendedJobs();
+    fetchAIRecommendations();
     fetchSavedJobs();
   };
 
