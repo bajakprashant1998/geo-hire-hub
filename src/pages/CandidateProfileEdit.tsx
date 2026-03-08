@@ -29,6 +29,8 @@ import { EmailVerificationGuard } from '@/components/auth/EmailVerificationGuard
 import { DatePicker } from '@/components/ui/date-picker';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { AIGenerateButton, AIIndustrySuggestButton } from '@/components/candidate/AIGenerateButton';
+import { WorldCityAutocomplete } from '@/components/WorldCityAutocomplete';
 import {
     WorkExperienceSection, SocialLinksSection, LanguagesSection,
     CertificationsSection, AvailabilitySection,
