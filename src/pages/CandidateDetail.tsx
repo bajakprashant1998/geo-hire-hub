@@ -235,6 +235,13 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
         location_city: (data.profiles as any).location_city,
         location_country: (data.profiles as any).location_country,
       });
+
+      // Track profile view (authenticated, non-own-profile only)
+      if (user && data.profile_id !== profile?.id) {
+        supabase.from('profile_views').insert({ profile_id: data.profile_id }).then(({ error: viewErr }) => {
+          if (viewErr) console.warn('Failed to record profile view:', viewErr.message);
+        });
+      }
     } catch (error) {
       console.error('Error fetching candidate:', error);
       toast.error('Failed to load candidate profile');
