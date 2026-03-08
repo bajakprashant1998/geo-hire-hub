@@ -28,6 +28,7 @@ import { ReportDialog } from '@/components/ReportDialog';
 import { SEOHead } from '@/components/SEOHead';
 import { SkillEndorsements } from '@/components/candidate/SkillEndorsements';
 import { motion } from 'framer-motion';
+import { ProfileStrengthBadge } from '@/components/candidate/ProfileStrengthBadge';
 
 interface Education { institution: string; degree: string; field: string; startYear: string; endYear: string; }
 interface WorkExperience { company: string; title: string; startDate: string; endDate: string; isCurrent: boolean; description: string; }
@@ -435,6 +436,7 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
                       <span className={`w-1.5 h-1.5 rounded-full ${getAvailabilityDot(candidate.availability_status)}`} />
                       {getAvailabilityLabel(candidate.availability_status)}
                     </Badge>
+                    <ProfileStrengthBadge score={completeness} size="sm" />
                   </div>
                   
                   <p className="text-primary font-semibold mt-1 text-base">{candidate.job_title}</p>
