@@ -39,8 +39,17 @@ const SECTORS = [
 
 const Signup = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const geolocation = useGeolocation();
   const { isEnabledFor: isGoogleEnabledFor } = useGoogleOAuthSettings();
+
+  // Capture referral code from URL
+  const referralCode = searchParams.get('ref');
+  useEffect(() => {
+    if (referralCode) {
+      sessionStorage.setItem('referral_code', referralCode);
+    }
+  }, [referralCode]);
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
