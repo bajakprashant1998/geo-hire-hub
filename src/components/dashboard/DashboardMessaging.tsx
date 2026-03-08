@@ -477,47 +477,30 @@ export const DashboardMessaging = () => {
     <div className="space-y-3">
       {/* Stats Bar */}
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-card border border-border rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2 sm:gap-3"
-        >
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-            <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">Total Chats</p>
-            <p className="text-lg sm:text-xl font-bold text-foreground">{stats.totalConversations}</p>
-          </div>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="bg-card border border-border rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2 sm:gap-3"
-        >
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-destructive/10 flex items-center justify-center shrink-0">
-            <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-destructive" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">Unread</p>
-            <p className="text-lg sm:text-xl font-bold text-foreground">{stats.totalUnread}</p>
-          </div>
-        </motion.div>
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-card border border-border rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2 sm:gap-3"
-        >
-          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-accent/50 flex items-center justify-center shrink-0">
-            <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-          </div>
-          <div className="min-w-0">
-            <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">Active Today</p>
-            <p className="text-lg sm:text-xl font-bold text-foreground">{stats.activeToday}</p>
-          </div>
-        </motion.div>
+        {[
+          { icon: MessageSquare, label: 'Conversations', value: stats.totalConversations, color: 'bg-primary/10 text-primary', delay: 0 },
+          { icon: Mail, label: 'Unread', value: stats.totalUnread, color: 'bg-destructive/10 text-destructive', delay: 0.05 },
+          { icon: Clock, label: 'Active Today', value: stats.activeToday, color: 'bg-[hsl(var(--success))]/10 text-[hsl(var(--success))]', delay: 0.1 },
+        ].map((stat) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: stat.delay }}
+            className="bg-card border border-border rounded-xl p-2.5 sm:p-3.5 flex items-center gap-2 sm:gap-3 hover:shadow-[var(--shadow-sm)] transition-shadow"
+          >
+            <div className={cn("w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0", stat.color)}>
+              <stat.icon className="w-4 h-4 sm:w-5 sm:h-5" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight">{stat.label}</p>
+              <p className="text-lg sm:text-xl font-bold text-foreground">{stat.value}</p>
+            </div>
+            {stat.label === 'Unread' && stat.value > 0 && (
+              <div className="w-2 h-2 rounded-full bg-destructive animate-pulse ml-auto shrink-0" />
+            )}
+          </motion.div>
+        ))}
       </div>
 
       {/* Main Chat Area */}
