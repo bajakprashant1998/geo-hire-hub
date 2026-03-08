@@ -35,7 +35,7 @@ import { TaskList } from '@/components/candidate/TaskList';
 import { AudioResumeCard } from '@/components/candidate/AudioResumeCard';
 import { SalaryInsights } from '@/components/candidate/SalaryInsights';
 import { CareerBuddyChat } from '@/components/candidate/CareerBuddyChat';
-import CandidateDetail from '@/pages/CandidateDetail';
+
 import CandidateProfileEdit from '@/pages/CandidateProfileEdit';
 import { ProfileCompletionPrompts } from '@/components/candidate/ProfileCompletionPrompts';
 import { PublicProfilePreview } from '@/components/candidate/PublicProfilePreview';
