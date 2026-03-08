@@ -31,18 +31,44 @@ const LazyMapContainer = lazy(() =>
 
 const Index = () => {
   const { user, profile, loading: authLoading } = useAuth();
-  const [mode, setMode] = useState<ViewMode>('seeking');
-  const [radius, setRadius] = useState(10);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Initialize state from URL params
+  const [mode, setMode] = useState<ViewMode>((searchParams.get('mode') as ViewMode) || 'seeking');
+  const [radius, setRadius] = useState(Number(searchParams.get('radius')) || 10);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Candidate | Job | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [showWelcome, setShowWelcome] = useState(!user);
   const [centerTrigger, setCenterTrigger] = useState(0);
-  const [filters, setFilters] = useState<MapFilters>(defaultFilters);
+  const [filters, setFilters] = useState<MapFilters>(() => {
+    const jobTypes = searchParams.get('jobTypes');
+    const category = searchParams.get('category') as MapFilters['category'];
+    return {
+      ...defaultFilters,
+      ...(jobTypes ? { jobTypes: jobTypes.split(',') } : {}),
+      ...(category && ['all', 'private', 'government'].includes(category) ? { category } : {}),
+      experienceMin: Number(searchParams.get('expMin')) || 0,
+      experienceMax: Number(searchParams.get('expMax')) || 30,
+    };
+  });
   const [heatmapEnabled, setHeatmapEnabled] = useState(false);
   const [salaryHeatmapEnabled, setSalaryHeatmapEnabled] = useState(false);
   const [salaryRoleFilter, setSalaryRoleFilter] = useState('');
+
+  // Sync state → URL params
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (mode !== 'seeking') params.set('mode', mode);
+    if (radius !== 10) params.set('radius', String(radius));
+    if (searchQuery) params.set('q', searchQuery);
+    if (filters.jobTypes.length > 0) params.set('jobTypes', filters.jobTypes.join(','));
+    if (filters.category !== 'all') params.set('category', filters.category);
+    if (filters.experienceMin > 0) params.set('expMin', String(filters.experienceMin));
+    if (filters.experienceMax < 30) params.set('expMax', String(filters.experienceMax));
+    setSearchParams(params, { replace: true });
+  }, [mode, radius, searchQuery, filters, setSearchParams]);
 
   const geolocation = useGeolocation();
   const hasRealLocation = !!(geolocation.latitude && geolocation.longitude);
