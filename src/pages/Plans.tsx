@@ -1,15 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Check, Crown, Zap, Building2, X, HelpCircle, Shield, Headphones, BarChart3, Users, Briefcase, Star, ArrowRight } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import {
+  ArrowLeft, Check, Crown, Zap, Building2, X, HelpCircle, Shield, Headphones,
+  Users, Briefcase, Star, ArrowRight, Sparkles, TrendingUp, Clock, Gift,
+  ChevronDown, Globe, BarChart3, MessageSquare, Bot, Lock
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { SEOHead } from '@/components/SEOHead';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import {
   Accordion,
@@ -17,6 +22,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Plan {
   id: string;
@@ -30,45 +41,475 @@ interface Plan {
 }
 
 const comparisonFeatures = [
-  { label: 'Active Job Listings', free: '1', pro: '10', enterprise: 'Unlimited' },
-  { label: 'Applicant Tracking', free: 'Basic', pro: 'Advanced', enterprise: 'Full Suite' },
-  { label: 'AI Job Matching', free: false, pro: true, enterprise: true },
-  { label: 'Analytics Dashboard', free: false, pro: true, enterprise: true },
-  { label: 'Priority Support', free: false, pro: true, enterprise: true },
-  { label: 'Custom Branding', free: false, pro: false, enterprise: true },
-  { label: 'API Access', free: false, pro: false, enterprise: true },
-  { label: 'Dedicated Account Manager', free: false, pro: false, enterprise: true },
+  { label: 'Active Job Listings', free: '1', pro: '10', enterprise: 'Unlimited', tooltip: 'Number of jobs you can have active simultaneously' },
+  { label: 'Applicant Tracking', free: 'Basic', pro: 'Advanced', enterprise: 'Full Suite', tooltip: 'Tools to manage and track applicants through your hiring pipeline' },
+  { label: 'AI Job Matching', free: false, pro: true, enterprise: true, tooltip: 'Smart algorithm matches candidates to your job requirements' },
+  { label: 'Analytics Dashboard', free: false, pro: true, enterprise: true, tooltip: 'Detailed insights on job performance and applicant metrics' },
+  { label: 'Priority Support', free: false, pro: true, enterprise: true, tooltip: '24/7 dedicated support with faster response times' },
+  { label: 'Custom Branding', free: false, pro: false, enterprise: true, tooltip: 'White-label your job listings with company branding' },
+  { label: 'API Access', free: false, pro: false, enterprise: true, tooltip: 'Integrate with your existing HR tools via REST API' },
+  { label: 'Dedicated Account Manager', free: false, pro: false, enterprise: true, tooltip: 'Personal point of contact for your hiring needs' },
 ];
 
 const faqs = [
-  {
-    q: 'Can I switch plans at any time?',
-    a: 'Yes! You can upgrade or downgrade your plan at any time. When upgrading, you get immediate access to new features. Downgrade takes effect at the end of your billing cycle.',
-  },
-  {
-    q: 'Is there a free trial for paid plans?',
-    a: 'We offer a 14-day free trial for the Professional plan so you can explore all features risk-free. No credit card required to start.',
-  },
-  {
-    q: 'What payment methods do you accept?',
-    a: 'We accept all major credit cards, debit cards, and UPI payments. Enterprise customers can also pay via bank transfer.',
-  },
-  {
-    q: 'What happens when my job slots are full?',
-    a: 'You can deactivate existing jobs to free up slots, or upgrade your plan for more capacity. Your existing jobs remain active even if you hit the limit.',
-  },
-  {
-    q: 'Do you offer refunds?',
-    a: 'Yes, we offer a 30-day money-back guarantee on all paid plans. If you\'re not satisfied, contact our support team for a full refund.',
-  },
+  { q: 'Can I switch plans at any time?', a: 'Yes! You can upgrade or downgrade your plan at any time. When upgrading, you get immediate access to new features. Downgrade takes effect at the end of your billing cycle.' },
+  { q: 'Is there a free trial for paid plans?', a: 'We offer a 14-day free trial for the Professional plan so you can explore all features risk-free. No credit card required to start.' },
+  { q: 'What payment methods do you accept?', a: 'We accept all major credit cards, debit cards, and UPI payments. Enterprise customers can also pay via bank transfer.' },
+  { q: 'What happens when my job slots are full?', a: 'You can deactivate existing jobs to free up slots, or upgrade your plan for more capacity. Your existing jobs remain active even if you hit the limit.' },
+  { q: 'Do you offer refunds?', a: "Yes, we offer a 30-day money-back guarantee on all paid plans. If you're not satisfied, contact our support team for a full refund." },
 ];
 
 const trustBadges = [
-  { icon: Shield, label: 'SSL Secured' },
-  { icon: Users, label: '10K+ Employers' },
-  { icon: Briefcase, label: '50K+ Jobs Posted' },
-  { icon: Star, label: '4.8★ Rating' },
+  { icon: Shield, label: 'SSL Secured', value: '256-bit' },
+  { icon: Users, label: 'Employers', value: '10K+' },
+  { icon: Briefcase, label: 'Jobs Posted', value: '50K+' },
+  { icon: Star, label: 'Rating', value: '4.8★' },
 ];
+
+const PLAN_THEMES: Record<string, {
+  gradient: string;
+  iconBg: string;
+  iconColor: string;
+  accentBorder: string;
+  buttonVariant: 'outline' | 'default' | 'secondary';
+  featureCheck: string;
+  featureCheckBg: string;
+  ring: string;
+}> = {
+  free: {
+    gradient: 'from-muted/50 to-muted/20',
+    iconBg: 'bg-muted',
+    iconColor: 'text-muted-foreground',
+    accentBorder: 'border-border',
+    buttonVariant: 'outline',
+    featureCheck: 'text-muted-foreground',
+    featureCheckBg: 'bg-muted',
+    ring: '',
+  },
+  professional: {
+    gradient: 'from-primary/10 to-primary/5',
+    iconBg: 'bg-primary/10',
+    iconColor: 'text-primary',
+    accentBorder: 'border-primary',
+    buttonVariant: 'default',
+    featureCheck: 'text-primary',
+    featureCheckBg: 'bg-primary/10',
+    ring: 'ring-2 ring-primary/20',
+  },
+  enterprise: {
+    gradient: 'from-amber-500/10 to-orange-500/5',
+    iconBg: 'bg-amber-500/10',
+    iconColor: 'text-amber-600',
+    accentBorder: 'border-amber-500/40',
+    buttonVariant: 'secondary',
+    featureCheck: 'text-amber-600',
+    featureCheckBg: 'bg-amber-500/10',
+    ring: '',
+  },
+};
+
+const getPlanTheme = (name: string) => {
+  const key = name.toLowerCase();
+  return PLAN_THEMES[key] || PLAN_THEMES.free;
+};
+
+// --- Sub-components ---
+
+const BillingToggle = ({ billingCycle, onChange }: { billingCycle: 'monthly' | 'yearly'; onChange: (v: 'monthly' | 'yearly') => void }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 10 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.2, duration: 0.4 }}
+    className="flex items-center justify-center mt-8"
+  >
+    <div className="inline-flex items-center bg-muted/80 backdrop-blur-sm rounded-full p-1.5 gap-1 border border-border/50">
+      <button
+        onClick={() => onChange('monthly')}
+        className={cn(
+          "px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300",
+          billingCycle === 'monthly'
+            ? 'bg-background text-foreground shadow-md'
+            : 'text-muted-foreground hover:text-foreground'
+        )}
+      >
+        Monthly
+      </button>
+      <button
+        onClick={() => onChange('yearly')}
+        className={cn(
+          "px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 flex items-center gap-2",
+          billingCycle === 'yearly'
+            ? 'bg-background text-foreground shadow-md'
+            : 'text-muted-foreground hover:text-foreground'
+        )}
+      >
+        Yearly
+        <span className="text-[10px] font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
+          -17%
+        </span>
+      </button>
+    </div>
+  </motion.div>
+);
+
+const PlanCard = ({
+  plan,
+  index,
+  billingCycle,
+  isCurrentPlan,
+  onSelect,
+}: {
+  plan: Plan;
+  index: number;
+  billingCycle: 'monthly' | 'yearly';
+  isCurrentPlan: boolean;
+  onSelect: (plan: Plan) => void;
+}) => {
+  const isPro = plan.name.toLowerCase() === 'professional';
+  const isFree = plan.name.toLowerCase() === 'free';
+  const theme = getPlanTheme(plan.name);
+  const price = billingCycle === 'yearly' && plan.price_yearly
+    ? plan.price_yearly / 12
+    : plan.price_monthly;
+  const monthlyPrice = plan.price_monthly;
+  const showSavings = billingCycle === 'yearly' && plan.price_yearly && !isFree;
+  const savings = showSavings ? (monthlyPrice * 12) - (plan.price_yearly || 0) : 0;
+
+  const getPlanIcon = () => {
+    switch (plan.name.toLowerCase()) {
+      case 'free': return <Zap className="w-7 h-7" />;
+      case 'professional': return <Crown className="w-7 h-7" />;
+      default: return <Building2 className="w-7 h-7" />;
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1 * (index + 1), duration: 0.5 }}
+      className="relative"
+    >
+      {isPro && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.4, duration: 0.3 }}
+          className="absolute -top-3.5 left-1/2 -translate-x-1/2 z-10"
+        >
+          <Badge className="bg-primary text-primary-foreground shadow-lg px-4 py-1.5 text-xs font-semibold tracking-wider uppercase flex items-center gap-1.5 border-0">
+            <Sparkles className="w-3.5 h-3.5" />
+            Most Popular
+          </Badge>
+        </motion.div>
+      )}
+
+      <Card className={cn(
+        "relative overflow-hidden h-full flex flex-col transition-all duration-300 group",
+        isPro
+          ? `border-primary border-2 shadow-lg ${theme.ring} hover:shadow-xl`
+          : 'border-border hover:border-primary/30 hover:shadow-lg'
+      )}>
+        {/* Gradient header accent */}
+        <div className={cn("h-1.5 w-full bg-gradient-to-r", theme.gradient)} />
+
+        <CardHeader className="text-center pb-2 pt-8">
+          <motion.div
+            whileHover={{ scale: 1.05, rotate: 3 }}
+            transition={{ type: 'spring', stiffness: 300 }}
+            className={cn("w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center", theme.iconBg, theme.iconColor)}
+          >
+            {getPlanIcon()}
+          </motion.div>
+          <CardTitle className="text-xl font-bold">{plan.name}</CardTitle>
+          <CardDescription className="text-sm mt-1.5 leading-relaxed">{plan.description}</CardDescription>
+        </CardHeader>
+
+        <CardContent className="text-center flex-1 flex flex-col px-6">
+          {/* Price */}
+          <div className="py-5">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${billingCycle}-${plan.id}`}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.25 }}
+                className="flex items-baseline justify-center gap-1"
+              >
+                {!isFree && <span className="text-lg text-muted-foreground font-medium">$</span>}
+                <span className="text-5xl font-extrabold text-foreground tabular-nums tracking-tight">
+                  {isFree ? 'Free' : price.toFixed(price % 1 === 0 ? 0 : 2)}
+                </span>
+                {!isFree && <span className="text-muted-foreground text-sm font-medium">/mo</span>}
+              </motion.div>
+            </AnimatePresence>
+
+            {billingCycle === 'yearly' && plan.price_yearly ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="mt-2 space-y-1"
+              >
+                <p className="text-xs text-muted-foreground">
+                  Billed ${plan.price_yearly}/year
+                </p>
+                {savings > 0 && (
+                  <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center justify-center gap-1">
+                    <Gift className="w-3 h-3" />
+                    Save ${savings}/year
+                  </p>
+                )}
+              </motion.div>
+            ) : !isFree ? (
+              <p className="text-xs text-muted-foreground mt-2">Billed monthly</p>
+            ) : (
+              <p className="text-xs text-muted-foreground mt-2">No credit card required</p>
+            )}
+          </div>
+
+          {/* Job slots indicator */}
+          <div className="bg-muted/50 rounded-xl p-3 mb-4 border border-border/50">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-medium text-muted-foreground">Active Job Slots</span>
+              <span className="text-xs font-bold text-foreground">{plan.max_active_jobs === -1 ? '∞' : plan.max_active_jobs}</span>
+            </div>
+            <Progress
+              value={plan.max_active_jobs === -1 ? 100 : Math.min((plan.max_active_jobs / 20) * 100, 100)}
+              className="h-1.5"
+            />
+          </div>
+
+          <Separator className="mb-4" />
+
+          {/* Features */}
+          <ul className="space-y-3 text-left flex-1">
+            {plan.features.map((feature, i) => (
+              <motion.li
+                key={i}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.05 * i + 0.3 }}
+                className="flex items-start gap-2.5"
+              >
+                <div className={cn("w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5", theme.featureCheckBg)}>
+                  <Check className={cn("w-3 h-3", theme.featureCheck)} />
+                </div>
+                <span className="text-sm text-muted-foreground leading-snug">{feature}</span>
+              </motion.li>
+            ))}
+          </ul>
+        </CardContent>
+
+        <CardFooter className="pt-4 pb-8 px-6">
+          <Button
+            className={cn(
+              "w-full h-12 rounded-xl font-semibold text-sm transition-all duration-300",
+              isPro && !isCurrentPlan && 'shadow-md hover:shadow-lg hover:scale-[1.02]',
+              isCurrentPlan && 'opacity-60'
+            )}
+            variant={theme.buttonVariant}
+            disabled={isCurrentPlan}
+            onClick={() => onSelect(plan)}
+          >
+            {isCurrentPlan ? (
+              <span className="flex items-center gap-2">
+                <Check className="w-4 h-4" /> Current Plan
+              </span>
+            ) : isFree ? (
+              'Get Started Free'
+            ) : (
+              <span className="flex items-center gap-1">
+                Upgrade Now <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-0.5 transition-transform" />
+              </span>
+            )}
+          </Button>
+          {isPro && !isCurrentPlan && (
+            <p className="text-[11px] text-muted-foreground text-center w-full mt-2">
+              14-day free trial · Cancel anytime
+            </p>
+          )}
+        </CardFooter>
+      </Card>
+    </motion.div>
+  );
+};
+
+const TrustBar = () => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ delay: 0.6 }}
+    className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-14"
+  >
+    {trustBadges.map(({ icon: Icon, label, value }) => (
+      <div key={label} className="flex items-center gap-3 bg-muted/40 rounded-xl p-4 border border-border/50">
+        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+          <Icon className="w-5 h-5 text-primary" />
+        </div>
+        <div>
+          <p className="text-sm font-bold text-foreground">{value}</p>
+          <p className="text-xs text-muted-foreground">{label}</p>
+        </div>
+      </div>
+    ))}
+  </motion.div>
+);
+
+const ComparisonTable = () => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ duration: 0.5 }}
+    className="mt-20"
+  >
+    <div className="text-center mb-10">
+      <Badge variant="secondary" className="mb-3 px-3 py-1 text-xs">Detailed Comparison</Badge>
+      <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Compare Plans Side by Side</h2>
+      <p className="text-muted-foreground mt-2 max-w-lg mx-auto">Every feature, every plan — see exactly what you get</p>
+    </div>
+
+    <Card className="overflow-hidden border-border/80 shadow-sm">
+      <div className="overflow-x-auto">
+        <TooltipProvider>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border bg-muted/50">
+                <th className="text-left p-4 font-semibold text-foreground min-w-[220px]">Feature</th>
+                <th className="text-center p-4 w-[140px]">
+                  <div className="font-semibold text-muted-foreground">Free</div>
+                  <div className="text-xs text-muted-foreground/70 mt-0.5">$0/mo</div>
+                </th>
+                <th className="text-center p-4 w-[140px] bg-primary/5">
+                  <div className="font-semibold text-primary flex items-center justify-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5" /> Pro
+                  </div>
+                  <div className="text-xs text-primary/70 mt-0.5">Best value</div>
+                </th>
+                <th className="text-center p-4 w-[140px]">
+                  <div className="font-semibold text-foreground">Enterprise</div>
+                  <div className="text-xs text-muted-foreground/70 mt-0.5">Custom</div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {comparisonFeatures.map((feat, i) => (
+                <tr key={i} className="border-b border-border/50 last:border-0 hover:bg-muted/20 transition-colors">
+                  <td className="p-4 text-muted-foreground font-medium">
+                    <Tooltip>
+                      <TooltipTrigger className="flex items-center gap-1.5 cursor-help">
+                        {feat.label}
+                        {feat.tooltip && <HelpCircle className="w-3.5 h-3.5 text-muted-foreground/40" />}
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="max-w-[200px]">
+                        <p className="text-xs">{feat.tooltip}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </td>
+                  {(['free', 'pro', 'enterprise'] as const).map(tier => {
+                    const val = feat[tier];
+                    return (
+                      <td key={tier} className={cn("text-center p-4", tier === 'pro' && 'bg-primary/5')}>
+                        {typeof val === 'boolean' ? (
+                          val ? (
+                            <div className="w-6 h-6 rounded-full bg-emerald-500/15 flex items-center justify-center mx-auto">
+                              <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                            </div>
+                          ) : (
+                            <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center mx-auto">
+                              <X className="w-3.5 h-3.5 text-muted-foreground/40" />
+                            </div>
+                          )
+                        ) : (
+                          <span className={cn(
+                            "text-sm font-semibold",
+                            tier === 'pro' ? 'text-primary' : 'text-foreground'
+                          )}>
+                            {val}
+                          </span>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </TooltipProvider>
+      </div>
+    </Card>
+  </motion.div>
+);
+
+const FAQSection = () => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ duration: 0.5 }}
+    className="mt-20 max-w-3xl mx-auto"
+  >
+    <div className="text-center mb-10">
+      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+        <HelpCircle className="w-6 h-6 text-primary" />
+      </div>
+      <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Frequently Asked Questions</h2>
+      <p className="text-muted-foreground mt-2">Everything you need to know about our plans</p>
+    </div>
+
+    <Accordion type="single" collapsible className="space-y-3">
+      {faqs.map((faq, i) => (
+        <AccordionItem key={i} value={`faq-${i}`} className="border border-border rounded-xl px-5 data-[state=open]:bg-muted/30 data-[state=open]:shadow-sm transition-all">
+          <AccordionTrigger className="text-left text-sm font-medium text-foreground hover:no-underline py-4">
+            {faq.q}
+          </AccordionTrigger>
+          <AccordionContent className="text-sm text-muted-foreground pb-4 leading-relaxed">
+            {faq.a}
+          </AccordionContent>
+        </AccordionItem>
+      ))}
+    </Accordion>
+  </motion.div>
+);
+
+const CTASection = () => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ duration: 0.5 }}
+    className="mt-20 mb-20"
+  >
+    <Card className="bg-gradient-to-br from-primary/5 via-primary/8 to-primary/5 border-primary/20 overflow-hidden relative">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,hsl(var(--primary)/0.1),transparent_50%)]" />
+      <div className="absolute top-0 right-0 w-64 h-64 bg-[radial-gradient(circle,hsl(var(--primary)/0.06),transparent_70%)]" />
+      <CardContent className="p-8 sm:p-14 text-center relative">
+        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-5">
+          <Headphones className="w-8 h-8 text-primary" />
+        </div>
+        <h3 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">Need a custom plan?</h3>
+        <p className="text-muted-foreground mb-8 max-w-md mx-auto leading-relaxed">
+          Get tailored pricing for large teams with dedicated support, custom integrations, and volume discounts.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <Button size="lg" className="rounded-xl gap-2 shadow-md hover:shadow-lg hover:scale-[1.02] transition-all">
+            <Headphones className="w-4 h-4" />
+            Contact Sales
+          </Button>
+          <Button size="lg" variant="outline" className="rounded-xl hover:scale-[1.02] transition-all" asChild>
+            <a href="mailto:support@hireforjob.com">Email Us</a>
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground mt-4">
+          Typically responds within 2 hours during business hours
+        </p>
+      </CardContent>
+    </Card>
+  </motion.div>
+);
+
+// --- Main component ---
 
 const Plans = () => {
   const navigate = useNavigate();
@@ -128,18 +569,19 @@ const Plans = () => {
     toast.info('Payment integration coming soon! Contact us for enterprise plans.');
   };
 
-  const getPlanIcon = (name: string) => {
-    switch (name.toLowerCase()) {
-      case 'free': return <Zap className="w-7 h-7" />;
-      case 'professional': return <Crown className="w-7 h-7" />;
-      default: return <Building2 className="w-7 h-7" />;
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Loading plans...</div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="flex flex-col items-center gap-3"
+        >
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center animate-pulse">
+            <Sparkles className="w-5 h-5 text-primary" />
+          </div>
+          <p className="text-sm text-muted-foreground">Loading plans...</p>
+        </motion.div>
       </div>
     );
   }
@@ -149,8 +591,9 @@ const Plans = () => {
       <SEOHead title="Hiring Plans & Pricing – Hire For Job" description="Choose the right plan to hire for job positions. Post jobs near me, reach candidates, and grow your team with Hire For Job." canonicalUrl="https://www.hireforjob.com/plans" />
 
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/10 pt-8 pb-16 px-4">
+      <div className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/8 pt-8 pb-20 px-4">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(var(--primary)/0.08),transparent_60%)]" />
+        <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent" />
         <div className="max-w-6xl mx-auto relative">
           <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="mb-6 gap-2 text-muted-foreground hover:text-foreground">
             <ArrowLeft className="w-4 h-4" /> Back
@@ -162,284 +605,42 @@ const Plans = () => {
             transition={{ duration: 0.5 }}
             className="text-center max-w-2xl mx-auto"
           >
-            <Badge variant="secondary" className="mb-4 px-4 py-1.5 text-xs font-medium tracking-wide uppercase">
-              Simple Pricing
+            <Badge variant="secondary" className="mb-4 px-4 py-1.5 text-xs font-medium tracking-wide uppercase gap-1.5">
+              <Zap className="w-3 h-3" />
+              Simple, Transparent Pricing
             </Badge>
-            <h1 className="text-4xl sm:text-5xl font-bold text-foreground tracking-tight mb-4">
-              Find the perfect plan for your hiring needs
+            <h1 className="text-4xl sm:text-5xl font-bold text-foreground tracking-tight mb-4 leading-[1.1]">
+              Find the perfect plan
+              <span className="block text-primary">for your hiring needs</span>
             </h1>
-            <p className="text-lg text-muted-foreground leading-relaxed">
-              Start free and scale as you grow. No hidden fees, cancel anytime.
+            <p className="text-lg text-muted-foreground leading-relaxed max-w-lg mx-auto">
+              Start free and scale as you grow. No hidden fees, no surprises. Cancel anytime.
             </p>
           </motion.div>
 
-          {/* Billing Toggle */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.4 }}
-            className="flex items-center justify-center mt-8"
-          >
-            <div className="inline-flex items-center bg-muted rounded-full p-1 gap-1">
-              <button
-                onClick={() => setBillingCycle('monthly')}
-                className={cn(
-                  "px-5 py-2 rounded-full text-sm font-medium transition-all duration-200",
-                  billingCycle === 'monthly'
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                Monthly
-              </button>
-              <button
-                onClick={() => setBillingCycle('yearly')}
-                className={cn(
-                  "px-5 py-2 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2",
-                  billingCycle === 'yearly'
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                Yearly
-                <span className="text-[10px] font-bold bg-success/10 text-success px-2 py-0.5 rounded-full">
-                  SAVE 17%
-                </span>
-              </button>
-            </div>
-          </motion.div>
+          <BillingToggle billingCycle={billingCycle} onChange={setBillingCycle} />
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 -mt-8">
+      <div className="max-w-6xl mx-auto px-4 -mt-10">
         {/* Plans Grid */}
         <div className="grid md:grid-cols-3 gap-5 lg:gap-6">
-          {plans.map((plan, index) => {
-            const isCurrentPlan = plan.id === currentPlanId;
-            const isPro = plan.name.toLowerCase() === 'professional';
-            const isFree = plan.name.toLowerCase() === 'free';
-            const price = billingCycle === 'yearly' && plan.price_yearly
-              ? plan.price_yearly / 12
-              : plan.price_monthly;
-
-            return (
-              <motion.div
-                key={plan.id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 * (index + 1), duration: 0.5 }}
-              >
-                <Card className={cn(
-                  "relative overflow-hidden h-full flex flex-col transition-all duration-300 hover:shadow-lg",
-                  isPro
-                    ? 'border-primary border-2 shadow-md ring-1 ring-primary/10'
-                    : 'border-border hover:border-primary/30'
-                )}>
-                  {isPro && (
-                    <div className="bg-primary text-primary-foreground text-center py-2 text-xs font-semibold tracking-wider uppercase">
-                      ⭐ Most Popular
-                    </div>
-                  )}
-
-                  <CardHeader className="text-center pb-2 pt-8">
-                    <div className={cn(
-                      "w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center",
-                      isFree ? 'bg-muted text-muted-foreground' :
-                      isPro ? 'bg-primary/10 text-primary' :
-                      'bg-warning/10 text-warning'
-                    )}>
-                      {getPlanIcon(plan.name)}
-                    </div>
-                    <CardTitle className="text-xl">{plan.name}</CardTitle>
-                    <CardDescription className="text-sm mt-1">{plan.description}</CardDescription>
-                  </CardHeader>
-
-                  <CardContent className="text-center flex-1 flex flex-col">
-                    {/* Price */}
-                    <div className="py-4">
-                      <div className="flex items-baseline justify-center gap-1">
-                        <span className="text-4xl font-extrabold text-foreground tabular-nums">
-                          ${price.toFixed(price % 1 === 0 ? 0 : 2)}
-                        </span>
-                        <span className="text-muted-foreground text-sm">/mo</span>
-                      </div>
-                      {billingCycle === 'yearly' && plan.price_yearly ? (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Billed ${plan.price_yearly}/year
-                        </p>
-                      ) : null}
-                    </div>
-
-                    <Separator className="my-4" />
-
-                    {/* Features */}
-                    <ul className="space-y-3 text-left flex-1">
-                      {plan.features.map((feature, i) => (
-                        <li key={i} className="flex items-start gap-2.5">
-                          <div className={cn(
-                            "w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5",
-                            isPro ? 'bg-primary/10' : 'bg-success/10'
-                          )}>
-                            <Check className={cn("w-3 h-3", isPro ? 'text-primary' : 'text-success')} />
-                          </div>
-                          <span className="text-sm text-muted-foreground">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-
-                  <CardFooter className="pt-4 pb-8 px-6">
-                    <Button
-                      className={cn(
-                        "w-full h-12 rounded-xl font-semibold text-sm transition-all",
-                        isPro && !isCurrentPlan && 'shadow-md hover:shadow-lg'
-                      )}
-                      variant={isPro ? 'default' : 'outline'}
-                      disabled={isCurrentPlan}
-                      onClick={() => handleSelectPlan(plan)}
-                    >
-                      {isCurrentPlan ? 'Current Plan' :
-                       isFree ? 'Get Started Free' :
-                       <>Upgrade Now <ArrowRight className="w-4 h-4 ml-1" /></>
-                      }
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </motion.div>
-            );
-          })}
+          {plans.map((plan, index) => (
+            <PlanCard
+              key={plan.id}
+              plan={plan}
+              index={index}
+              billingCycle={billingCycle}
+              isCurrentPlan={plan.id === currentPlanId}
+              onSelect={handleSelectPlan}
+            />
+          ))}
         </div>
 
-        {/* Trust Badges */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="flex flex-wrap items-center justify-center gap-6 sm:gap-10 mt-12 py-6"
-        >
-          {trustBadges.map(({ icon: Icon, label }) => (
-            <div key={label} className="flex items-center gap-2 text-muted-foreground">
-              <Icon className="w-4 h-4" />
-              <span className="text-xs font-medium">{label}</span>
-            </div>
-          ))}
-        </motion.div>
-
-        {/* Comparison Table */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="mt-16"
-        >
-          <div className="text-center mb-8">
-            <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Compare Plans</h2>
-            <p className="text-muted-foreground mt-2">See what's included in each plan</p>
-          </div>
-
-          <Card className="overflow-hidden border-border">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-muted/50">
-                    <th className="text-left p-4 font-semibold text-foreground min-w-[200px]">Feature</th>
-                    <th className="text-center p-4 font-semibold text-foreground w-[140px]">Free</th>
-                    <th className="text-center p-4 font-semibold text-primary w-[140px]">Professional</th>
-                    <th className="text-center p-4 font-semibold text-foreground w-[140px]">Enterprise</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {comparisonFeatures.map((feat, i) => (
-                    <tr key={i} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
-                      <td className="p-4 text-muted-foreground font-medium">{feat.label}</td>
-                      {(['free', 'pro', 'enterprise'] as const).map(tier => {
-                        const val = feat[tier];
-                        return (
-                          <td key={tier} className="text-center p-4">
-                            {typeof val === 'boolean' ? (
-                              val ? (
-                                <Check className="w-5 h-5 text-success mx-auto" />
-                              ) : (
-                                <X className="w-5 h-5 text-muted-foreground/30 mx-auto" />
-                              )
-                            ) : (
-                              <span className={cn(
-                                "text-sm font-medium",
-                                tier === 'pro' ? 'text-primary' : 'text-foreground'
-                              )}>
-                                {val}
-                              </span>
-                            )}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        </motion.div>
-
-        {/* FAQ Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="mt-16 max-w-3xl mx-auto"
-        >
-          <div className="text-center mb-8">
-            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-              <HelpCircle className="w-6 h-6 text-primary" />
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-foreground">Frequently Asked Questions</h2>
-            <p className="text-muted-foreground mt-2">Everything you need to know about our plans</p>
-          </div>
-
-          <Accordion type="single" collapsible className="space-y-3">
-            {faqs.map((faq, i) => (
-              <AccordionItem key={i} value={`faq-${i}`} className="border border-border rounded-xl px-5 data-[state=open]:bg-muted/30">
-                <AccordionTrigger className="text-left text-sm font-medium text-foreground hover:no-underline py-4">
-                  {faq.q}
-                </AccordionTrigger>
-                <AccordionContent className="text-sm text-muted-foreground pb-4 leading-relaxed">
-                  {faq.a}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </motion.div>
-
-        {/* CTA Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="mt-16 mb-16"
-        >
-          <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 overflow-hidden relative">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,hsl(var(--primary)/0.08),transparent_50%)]" />
-            <CardContent className="p-8 sm:p-12 text-center relative">
-              <Headphones className="w-10 h-10 text-primary mx-auto mb-4" />
-              <h3 className="text-2xl font-bold text-foreground mb-2">Need a custom plan?</h3>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Get tailored pricing for large teams with dedicated support, custom integrations, and volume discounts.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Button size="lg" className="rounded-xl gap-2 shadow-md">
-                  <Headphones className="w-4 h-4" />
-                  Contact Sales
-                </Button>
-                <Button size="lg" variant="outline" className="rounded-xl" asChild>
-                  <a href="mailto:support@hireforjob.com">Email Us</a>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+        <TrustBar />
+        <ComparisonTable />
+        <FAQSection />
+        <CTASection />
       </div>
     </div>
   );
