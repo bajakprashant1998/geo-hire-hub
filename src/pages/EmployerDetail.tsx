@@ -239,8 +239,13 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
         verification_method: data.verification_method || null,
         google_business_verified: data.google_business_verified || null,
         trust_score: data.trust_score || null,
+        response_rate: data.response_rate ?? null,
+        avg_response_hours: data.avg_response_hours ?? null,
         whatsapp_number: data.profiles.whatsapp_number,
       });
+
+      // Calculate response rate in background (refreshes cached value)
+      supabase.rpc('calculate_employer_response_rate', { p_employer_id: id }).then(() => {});
 
       // Track profile view (authenticated, non-own-profile only)
       if (user && data.profile_id !== authProfile?.id) {
