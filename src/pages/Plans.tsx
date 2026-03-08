@@ -930,7 +930,7 @@ const Plans = () => {
 
         <TrustBar />
         <TestimonialsSection compact />
-        <ComparisonTable plans={plans} />
+        <ComparisonTable plans={plans} currency={currency} />
         <FAQSection />
         <CTASection />
       </div>
