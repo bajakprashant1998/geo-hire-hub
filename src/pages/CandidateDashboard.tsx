@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import {
   Briefcase, Bell, Shield, FileText, Sparkles, Loader2,
   Eye, Calendar, Star, ChevronRight, User, MessageSquare, Bookmark, Mic,
+  MapPin, TrendingUp, Zap, DollarSign, Bot, Radar, GraduationCap, Brain, BarChart3, Award
   MapPin, TrendingUp, Zap, DollarSign, Bot, Radar, GraduationCap, Brain, BarChart3
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
