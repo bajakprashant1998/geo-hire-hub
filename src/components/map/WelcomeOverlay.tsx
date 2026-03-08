@@ -37,6 +37,7 @@ const AnimatedNumber = ({ value }: { value: number }) => {
 export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeOverlayProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const [liveStats, setLiveStats] = useState({ jobs: 0, candidates: 0, employers: 0 });
+  const [testimonial, setTestimonial] = useState<{ author_name: string; company_name: string; quote: string } | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
