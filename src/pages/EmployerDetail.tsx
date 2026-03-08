@@ -134,7 +134,7 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
   const identifier = propId || params.slug || params.id || params['*']?.split('/').pop();
   const [resolvedId, setResolvedId] = useState<string | null>(propId || null);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile: authProfile } = useAuth();
   const { isAdmin } = useAdminAuth();
   const isAuthenticated = !!user;
   const isOwnProfile = !!propId;
@@ -238,6 +238,13 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
         trust_score: data.trust_score || null,
         whatsapp_number: data.profiles.whatsapp_number,
       });
+
+      // Track profile view (authenticated, non-own-profile only)
+      if (user && data.profile_id !== authProfile?.id) {
+        supabase.from('profile_views').insert({ profile_id: data.profile_id }).then(({ error: viewErr }) => {
+          if (viewErr) console.warn('Failed to record profile view:', viewErr.message);
+        });
+      }
     } catch (error) {
       console.error('Error fetching employer:', error);
       toast.error('Failed to load company profile');

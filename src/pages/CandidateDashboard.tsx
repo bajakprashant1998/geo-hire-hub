@@ -113,7 +113,7 @@ const CandidateDashboard = () => {
 
   useEffect(() => {
     if (authLoading) return;
-    if (!user) return;
+    if (!user) { navigate('/login', { replace: true }); return; }
     if (!profile && profileLoading) return;
     if (!profile) {
       setDataLoading(false);
