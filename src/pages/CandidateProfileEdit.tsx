@@ -898,7 +898,7 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                     {activeTab === 'career' && (
                         <>
                             <AvailabilitySection status={availabilityStatus} onChange={setAvailabilityStatus} />
-                            <WorkExperienceSection experiences={workExperience} onChange={setWorkExperience} />
+                            <WorkExperienceSection experiences={workExperience} onChange={setWorkExperience} skills={skills} />
 
                             <SectionCard icon={GraduationCap} title="Education" subtitle="Your academic background" tip="Include your highest qualification at minimum">
                                 <div className="flex justify-end">
