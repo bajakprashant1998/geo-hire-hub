@@ -321,6 +321,7 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
         setOrganizationSize(jobData.organization_size || '');
         setHiringUrgency((jobData.hiring_urgency as 'Immediately' | 'Can Wait') || 'Immediately');
         setHiringFrequency(jobData.hiring_frequency || '');
+        if (jobData.translations) setJobTranslations(jobData.translations as any);
 
         // In edit mode, skip job limit check since we're editing existing job
         setCanPost(true);
