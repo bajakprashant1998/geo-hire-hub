@@ -88,8 +88,7 @@ const JobCard = ({ job, isSaved, onToggleSave, index }: { job: any; isSaved: boo
   const [expanded, setExpanded] = useState(false);
   const daysAgo = Math.floor((Date.now() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24));
   const timeLabel = daysAgo === 0 ? 'Today' : daysAgo === 1 ? 'Yesterday' : daysAgo < 7 ? `${daysAgo}d ago` : new Date(job.created_at).toLocaleDateString();
-  const isNew = daysAgo <= 3;
-  const isPerfect = job.relevanceScore >= 25;
+  const isPerfect = job.relevanceScore >= 70;
 
   return (
     <motion.div
