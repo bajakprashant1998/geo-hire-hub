@@ -557,6 +557,13 @@ const JobDetail = () => {
               <Share2 className="w-5 h-5" />
             </Button>
             </TooltipTrigger><TooltipContent>Share</TooltipContent></Tooltip>
+            {user && profile?.user_type === 'candidate' && (
+              <Tooltip><TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={handleReferFriend} className="rounded-full text-muted-foreground hover:text-primary">
+                <Trophy className="w-5 h-5" />
+              </Button>
+              </TooltipTrigger><TooltipContent>Refer a Friend{(job?.referral_bounty ?? 0) > 0 ? ` (+${job?.referral_bounty} pts)` : ''}</TooltipContent></Tooltip>
+            )}
             <ReportDialog targetId={id || ''} targetType="job" />
           </div>
         </div>
