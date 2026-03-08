@@ -8,10 +8,11 @@
 
 @layer base {
   :root {
-    /* Pure Google Color Palette */
-    --background: 0 0% 100%;
+    /* Warm-tinted background for depth */
+    --background: 220 20% 97%;
     --foreground: 210 11% 15%;
 
+    /* Cards float above with pure white */
     --card: 0 0% 100%;
     --card-foreground: 210 11% 15%;
 
@@ -22,14 +23,15 @@
     --primary: 217 89% 61%;
     --primary-foreground: 0 0% 100%;
 
-    /* Light Gray Background */
-    --secondary: 210 20% 98%;
+    /* Subtle blue-tinted background for sections */
+    --secondary: 216 25% 95%;
     --secondary-foreground: 210 11% 15%;
 
-    --muted: 210 20% 96%;
+    --muted: 216 20% 93%;
     --muted-foreground: 210 11% 45%;
 
-    --accent: 210 20% 96%;
+    /* Tinted accent for interactive elements */
+    --accent: 217 40% 94%;
     --accent-foreground: 210 11% 15%;
 
     /* Google Red #EA4335 */
@@ -44,33 +46,33 @@
     --warning: 44 98% 50%;
     --warning-foreground: 210 11% 15%;
 
-    /* Google-style borders */
-    --border: 210 14% 89%;
-    --input: 210 14% 89%;
+    /* Refined borders with subtle blue tint */
+    --border: 216 18% 87%;
+    --input: 216 18% 87%;
     --ring: 217 89% 61%;
 
-    --radius: 0.5rem;
+    --radius: 0.625rem;
 
     /* Map marker colors */
     --marker-candidate: 217 89% 61%;
     --marker-job: 5 81% 56%;
 
-    /* Google-style shadows */
-    --shadow-xs: 0 1px 2px 0 rgba(60, 64, 67, 0.1);
-    --shadow-sm: 0 1px 3px 0 rgba(60, 64, 67, 0.15), 0 1px 2px 0 rgba(60, 64, 67, 0.1);
-    --shadow-md: 0 4px 6px -1px rgba(60, 64, 67, 0.1), 0 2px 4px -1px rgba(60, 64, 67, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(60, 64, 67, 0.1), 0 4px 6px -2px rgba(60, 64, 67, 0.05);
-    --shadow-xl: 0 20px 25px -5px rgba(60, 64, 67, 0.1), 0 10px 10px -5px rgba(60, 64, 67, 0.04);
-    --shadow-hover: 0 1px 3px 0 rgba(60, 64, 67, 0.2), 0 8px 16px 0 rgba(60, 64, 67, 0.12);
+    /* Richer shadows with blue undertone */
+    --shadow-xs: 0 1px 2px 0 rgba(30, 42, 74, 0.06);
+    --shadow-sm: 0 1px 3px 0 rgba(30, 42, 74, 0.08), 0 1px 2px -1px rgba(30, 42, 74, 0.06);
+    --shadow-md: 0 4px 8px -2px rgba(30, 42, 74, 0.08), 0 2px 4px -2px rgba(30, 42, 74, 0.04);
+    --shadow-lg: 0 12px 24px -4px rgba(30, 42, 74, 0.1), 0 4px 8px -4px rgba(30, 42, 74, 0.06);
+    --shadow-xl: 0 24px 48px -8px rgba(30, 42, 74, 0.12), 0 8px 16px -4px rgba(30, 42, 74, 0.06);
+    --shadow-hover: 0 2px 8px 0 rgba(30, 42, 74, 0.12), 0 12px 28px -4px rgba(30, 42, 74, 0.1);
 
     /* Sidebar colors */
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 210 11% 25%;
     --sidebar-primary: 217 89% 61%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 20% 96%;
+    --sidebar-accent: 217 40% 96%;
     --sidebar-accent-foreground: 210 11% 15%;
-    --sidebar-border: 210 14% 91%;
+    --sidebar-border: 216 18% 91%;
     --sidebar-ring: 217 89% 61%;
   }
 
