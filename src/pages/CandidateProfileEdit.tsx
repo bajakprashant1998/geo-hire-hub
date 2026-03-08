@@ -160,6 +160,8 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
     const [candidate, setCandidate] = useState<any>(null);
     const [activeTab, setActiveTab] = useState('profile');
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const [suggestingSkills, setSuggestingSkills] = useState(false);
+    const [suggestedSkills, setSuggestedSkills] = useState<string[]>([]);
 
     // Profile fields
     const [fullName, setFullName] = useState('');
