@@ -502,31 +502,36 @@
 
 /* Map InfoWindow card base */
 .map-infowindow-card {
-  min-width: 280px;
-  max-width: 320px;
+  min-width: 290px;
+  max-width: 340px;
   font-family: 'Inter', -apple-system, sans-serif;
   overflow: hidden;
-  border-radius: 16px;
-  background: white;
-  animation: iw-pop-in 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  border-radius: 20px;
+  background: hsl(var(--card));
+  animation: iw-pop-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  box-shadow: 0 8px 32px -4px rgba(0,0,0,0.12), 0 2px 8px -2px rgba(0,0,0,0.08);
+}
+
+.dark .map-infowindow-card {
+  box-shadow: 0 8px 32px -4px rgba(0,0,0,0.4), 0 2px 8px -2px rgba(0,0,0,0.3);
 }
 
 @keyframes iw-pop-in {
-  0% { opacity: 0; transform: scale(0.92) translateY(6px); }
+  0% { opacity: 0; transform: scale(0.88) translateY(8px); }
   100% { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 .map-infowindow-card .iw-accent-bar {
-  height: 3px;
-  border-radius: 16px 16px 0 0;
+  height: 4px;
+  border-radius: 20px 20px 0 0;
 }
 
 .map-infowindow-card .iw-badge {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  padding: 3px 8px;
-  border-radius: 6px;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 8px;
   font-size: 11px;
   font-weight: 600;
   line-height: 1.2;
@@ -537,19 +542,34 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 8px 14px;
-  border-radius: 10px;
+  gap: 5px;
+  padding: 9px 16px;
+  border-radius: 12px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   border: none;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
   white-space: nowrap;
 }
 
+.map-infowindow-card .iw-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
 .map-infowindow-card .iw-action-btn:active {
-  transform: scale(0.97);
+  transform: scale(0.97) translateY(0);
+}
+
+/* Map marker pulse for new listings */
+@keyframes marker-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+}
+
+.marker-new-pulse {
+  animation: marker-pulse 2s ease-in-out infinite;
 }
 
 /* ================================================
