@@ -86,6 +86,8 @@ interface EmployerProfile {
   verification_method: string | null;
   google_business_verified: boolean | null;
   trust_score: number | null;
+  response_rate: number | null;
+  avg_response_hours: number | null;
 }
 
 interface Job {
