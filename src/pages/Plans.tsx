@@ -753,12 +753,61 @@ const Plans = () => {
     fetchPlans();
   }, [profile]);
 
-  const handleSelectPlan = async (plan: Plan) => {
+  const handleSelectPlan = (plan: Plan) => {
     if (!user) { navigate('/login'); return; }
     if (profile?.user_type !== 'employer') { toast.error('Only employers can subscribe to plans'); return; }
     if (plan.id === currentPlanId) { toast.info('You are already on this plan'); return; }
-    if (plan.price_monthly === 0) { toast.info('You are on the free plan by default'); return; }
+    if (plan.price_monthly === 0 && !currentPlanId) { toast.info('You are on the free plan by default'); return; }
+    setConfirmPlan(plan);
+  };
+
+  const handleConfirmPlanChange = async () => {
+    if (!confirmPlan) return;
     toast.info('Payment integration coming soon! Contact us for enterprise plans.');
+    setConfirmPlan(null);
+  };
+
+  // Pro-ration calculation helpers
+  const getProrationDetails = (targetPlan: Plan) => {
+    const now = new Date();
+    const isYearly = billingCycle === 'yearly';
+    const currentPlan = plans.find(p => p.id === currentPlanId);
+    const currentPrice = currentPlan
+      ? (isYearly && currentPlan.price_yearly ? currentPlan.price_yearly / 12 : currentPlan.price_monthly)
+      : 0;
+    const newPrice = isYearly && targetPlan.price_yearly
+      ? targetPlan.price_yearly / 12
+      : targetPlan.price_monthly;
+    const isUpgrade = newPrice > currentPrice;
+    const isDowngrade = newPrice < currentPrice && currentPrice > 0;
+
+    // Estimate days remaining in billing period
+    let daysRemaining = 15; // default estimate
+    let totalDays = 30;
+    if (periodEnd) {
+      const end = new Date(periodEnd);
+      const diff = Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+      daysRemaining = diff;
+      totalDays = isYearly ? 365 : 30;
+    }
+
+    const usedFraction = 1 - (daysRemaining / totalDays);
+    const creditFromCurrent = currentPrice * (1 - usedFraction) * (isYearly ? 12 : 1);
+    const chargeForNew = newPrice * (daysRemaining / totalDays) * (isYearly ? 12 : 1);
+    const proratedAmount = Math.max(0, chargeForNew - creditFromCurrent);
+
+    return {
+      isUpgrade,
+      isDowngrade,
+      currentPrice,
+      newPrice,
+      daysRemaining,
+      totalDays,
+      creditFromCurrent,
+      chargeForNew,
+      proratedAmount,
+      nextBillingAmount: isYearly && targetPlan.price_yearly ? targetPlan.price_yearly : targetPlan.price_monthly,
+    };
   };
 
   if (loading) {
