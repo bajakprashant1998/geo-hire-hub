@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,7 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import {
   ArrowLeft, Briefcase, Users, Mail, Eye, EyeOff, User, MapPin, Phone, Building2,
   Upload, X, Loader2, CheckCircle2, AlertCircle, FileText, Lock, Shield, MessageCircle,
-  Sparkles, TrendingUp, Globe2, Award, Zap,
+  Sparkles, TrendingUp, Globe2, Award, Zap, Gift,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,8 +39,17 @@ const SECTORS = [
 
 const Signup = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const geolocation = useGeolocation();
   const { isEnabledFor: isGoogleEnabledFor } = useGoogleOAuthSettings();
+
+  // Capture referral code from URL
+  const referralCode = searchParams.get('ref');
+  useEffect(() => {
+    if (referralCode) {
+      sessionStorage.setItem('referral_code', referralCode);
+    }
+  }, [referralCode]);
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -175,6 +184,25 @@ const Signup = () => {
           latitude: geolocation.latitude, longitude: geolocation.longitude,
         }).eq('user_id', user.id);
       }
+
+      // Process referral code if present
+      const storedRef = sessionStorage.getItem('referral_code');
+      if (storedRef && user) {
+        // Get the new user's profile ID
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (profileData) {
+          await supabase.rpc('process_referral_signup', {
+            p_referral_code: storedRef,
+            p_new_user_profile_id: profileData.id,
+          });
+          sessionStorage.removeItem('referral_code');
+        }
+      }
+
       sessionStorage.setItem('pendingVerificationEmail', email);
       toast.success('Account created! Please check your inbox for the verification link.');
       navigate('/verify-email');
@@ -346,6 +374,19 @@ const Signup = () => {
             </div>
             <span className="font-bold text-xl tracking-tight">Hire for Job</span>
           </div>
+
+          {/* Referral banner */}
+          {referralCode && (
+            <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-success/10 border border-success/20">
+              <div className="w-10 h-10 rounded-xl bg-success/15 flex items-center justify-center shrink-0">
+                <Gift className="w-5 h-5 text-success" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">You've been referred! 🎉</p>
+                <p className="text-xs text-muted-foreground">Sign up to help your friend earn reward points</p>
+              </div>
+            </div>
+          )}
 
           {/* Form card */}
           <div className="bg-card/60 backdrop-blur-xl border border-border/50 rounded-3xl p-7 space-y-5 shadow-xl shadow-black/5">
