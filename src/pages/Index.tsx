@@ -215,6 +215,10 @@ const Index = () => {
           searchQuery={searchQuery}
           heatmapEnabled={heatmapEnabled}
           onHeatmapToggle={() => setHeatmapEnabled(!heatmapEnabled)}
+          salaryHeatmapEnabled={salaryHeatmapEnabled}
+          onSalaryHeatmapToggle={() => setSalaryHeatmapEnabled(!salaryHeatmapEnabled)}
+          salaryRoleFilter={salaryRoleFilter}
+          onSalaryRoleFilterChange={setSalaryRoleFilter}
         />
         <NearbyAvatarRow mode={mode} candidates={filteredCandidates} jobs={filteredJobs} onSelect={handleSelectFromSidebar} onViewAll={() => setSidebarOpen(true)} />
         <MobileFAB mode={mode} />
