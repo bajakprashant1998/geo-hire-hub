@@ -1160,6 +1160,45 @@ export type Database = {
           },
         ]
       }
+      deadline_reminders_sent: {
+        Row: {
+          candidate_id: string
+          id: string
+          job_id: string
+          reminder_type: string
+          sent_at: string
+        }
+        Insert: {
+          candidate_id: string
+          id?: string
+          job_id: string
+          reminder_type: string
+          sent_at?: string
+        }
+        Update: {
+          candidate_id?: string
+          id?: string
+          job_id?: string
+          reminder_type?: string
+          sent_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deadline_reminders_sent_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deadline_reminders_sent_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_logs: {
         Row: {
           created_at: string
