@@ -115,8 +115,29 @@ export const JobAnalyticsDashboard = ({ employerId }: JobAnalyticsDashboardProps
 
   const totalViews = jobStats?.reduce((s, j) => s + j.views, 0) || 0;
   const totalApps = jobStats?.reduce((s, j) => s + j.applications, 0) || 0;
+  const totalInterviews = jobStats?.reduce((s, j) => s + j.interviews, 0) || 0;
+  const totalHired = jobStats?.reduce((s, j) => s + j.hired, 0) || 0;
   const conversionRate = totalViews > 0 ? ((totalApps / totalViews) * 100).toFixed(1) : '0';
   const activeJobs = jobStats?.filter(j => j.active).length || 0;
+
+  // Full hiring funnel with conversion rates
+  const hiringFunnel = useMemo(() => {
+    const stages = [
+      { label: 'Views', value: totalViews, icon: Eye, color: 'hsl(var(--primary))' },
+      { label: 'Applied', value: totalApps, icon: Users, color: 'hsl(var(--chart-2, 160 60% 45%))' },
+      { label: 'Interviews', value: totalInterviews, icon: Calendar, color: 'hsl(var(--chart-3, 30 80% 55%))' },
+      { label: 'Hired', value: totalHired, icon: CheckCircle2, color: 'hsl(var(--chart-4, 280 65% 60%))' },
+    ];
+    return stages.map((stage, i) => ({
+      ...stage,
+      conversionFromPrev: i === 0 ? null : stages[i - 1].value > 0
+        ? ((stage.value / stages[i - 1].value) * 100).toFixed(1)
+        : '0',
+      overallConversion: i === 0 ? null : totalViews > 0
+        ? ((stage.value / totalViews) * 100).toFixed(1)
+        : '0',
+    }));
+  }, [totalViews, totalApps, totalInterviews, totalHired]);
 
   // Top performing job
   const topJob = useMemo(() => {
