@@ -48,8 +48,8 @@ export const EmployerHeader = ({
   };
 
   return (
-    <header className="sticky top-0 z-30 bg-card/80 backdrop-blur-2xl border-b border-border/50 shadow-[0_1px_20px_hsl(var(--primary)/0.05)] safe-area-pt">
-      <div className="h-14 sm:h-16 px-3 sm:px-4 lg:px-6 flex items-center justify-between">
+    <header className="sticky top-0 z-30 bg-card/80 backdrop-blur-2xl border-b border-border/40 shadow-[0_1px_12px_hsl(var(--primary)/0.04)] safe-area-pt">
+      <div className="h-14 sm:h-[60px] px-3 sm:px-4 lg:px-6 flex items-center justify-between gap-3">
         {/* Left */}
         <div className="flex items-center gap-3 min-w-0">
           <Tooltip>
@@ -67,21 +67,25 @@ export const EmployerHeader = ({
           </Tooltip>
 
           {/* Mobile compact */}
-          <h1 className="sm:hidden text-sm font-semibold text-foreground truncate">
-            Hi, <span className="text-primary">{firstName}</span> 👋
-          </h1>
+          <div className="sm:hidden min-w-0">
+            <h1 className="text-sm font-bold text-foreground truncate">
+              {getGreeting()}, <span className="text-primary">{firstName}</span> 👋
+            </h1>
+          </div>
           {/* Desktop */}
           <motion.div
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            className="hidden sm:block min-w-0"
+            className="hidden sm:flex items-center gap-3 min-w-0"
           >
-            <h1 className="text-base sm:text-lg font-bold text-foreground truncate">
-              {getGreeting()}, <span className="text-primary">{firstName}</span> 👋
-            </h1>
-            <p className="text-xs text-muted-foreground truncate">
-              Manage your hiring pipeline
-            </p>
+            <div className="min-w-0">
+              <h1 className="text-base font-bold text-foreground truncate leading-tight">
+                {getGreeting()}, <span className="text-primary">{firstName}</span> 👋
+              </h1>
+              <p className="text-[11px] text-muted-foreground truncate mt-0.5">
+                Manage your hiring pipeline • <span className="text-primary/80 font-medium">{planName}</span>
+              </p>
+            </div>
           </motion.div>
         </div>
 
