@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/select';
 import { StatsCard } from '@/components/admin/StatsCard';
 import {
-  DollarSign, TrendingUp, TrendingDown, Users, Search, AlertTriangle,
+  Banknote, TrendingUp, TrendingDown, Users, Search, AlertTriangle,
   ArrowUpRight, Target, Sparkles, Calendar
 } from 'lucide-react';
 import { format, subMonths, addMonths } from 'date-fns';
