@@ -199,16 +199,35 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
   const initialFetchDone = useRef(false);
 
   const steps = [
-    { label: 'Basic Info', icon: Building2 },
-    { label: 'Location', icon: MapPin },
-    { label: 'Hiring', icon: Briefcase },
-    { label: 'Compensation', icon: Banknote },
-    { label: 'Growth', icon: TrendingUp },
-    { label: 'Skills Match', icon: Target },
-    { label: 'Culture', icon: Heart },
-    { label: 'Documents', icon: FileText },
-    { label: 'Contact', icon: Phone },
+    { label: 'Basic Info', icon: Building2, fields: ['companyName', 'industry', 'description', 'countryCode', 'taxId', 'teamSize', 'websiteUrl'] },
+    { label: 'Location', icon: MapPin, fields: ['officeLocations'] },
+    { label: 'Hiring', icon: Briefcase, fields: ['hiringProcess', 'interviewRoundsCount', 'hiringTimeline', 'assessmentTypes'] },
+    { label: 'Compensation', icon: Banknote, fields: ['avgSalaryRange', 'benefits', 'paidLeavesPolicy'] },
+    { label: 'Growth', icon: TrendingUp, fields: ['promotionFrequency', 'careerGrowthPaths', 'employeeRetentionRate'] },
+    { label: 'Skills Match', icon: Target, fields: ['keySkillsHiring', 'techStack', 'educationPreference'] },
+    { label: 'Culture', icon: Heart, fields: ['workCultureType', 'cultureDescription', 'companyValues'] },
+    { label: 'Documents', icon: FileText, fields: ['officePhotoUrl', 'businessCardUrl'] },
+    { label: 'Contact', icon: Phone, fields: ['hrContactEmail'] },
   ];
+
+  // Calculate per-step completion
+  const getStepCompletion = (stepIdx: number): 'complete' | 'partial' | 'empty' => {
+    const fieldValues: Record<string, any> = {
+      companyName: companyName && companyName !== 'My Company', industry, description: description?.length >= 20,
+      countryCode, taxId, teamSize, websiteUrl, officeLocations: officeLocations.length > 0,
+      hiringProcess, interviewRoundsCount, hiringTimeline, assessmentTypes: assessmentTypes.length > 0,
+      avgSalaryRange, benefits: benefits.length > 0, paidLeavesPolicy,
+      promotionFrequency, careerGrowthPaths, employeeRetentionRate,
+      keySkillsHiring: keySkillsHiring.length > 0, techStack: techStack.length > 0, educationPreference,
+      workCultureType, cultureDescription, companyValues: companyValues.length > 0,
+      officePhotoUrl, businessCardUrl, hrContactEmail,
+    };
+    const stepFields = steps[stepIdx].fields;
+    const filled = stepFields.filter(f => !!fieldValues[f]).length;
+    if (filled === stepFields.length) return 'complete';
+    if (filled > 0) return 'partial';
+    return 'empty';
+  };
 
   useEffect(() => {
     if (profile && !initialFetchDone.current) {
