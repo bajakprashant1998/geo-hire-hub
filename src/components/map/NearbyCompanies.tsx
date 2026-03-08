@@ -25,6 +25,8 @@ const haversine = (lat1: number, lng1: number, lat2: number, lng2: number) => {
 };
 
 export const NearbyCompanies = ({ userLocation, radius }: NearbyCompaniesProps) => {
+  const { user } = useAuth();
+
   const { data: companies, isLoading } = useQuery({
     queryKey: ['nearby-companies', userLocation?.lat, userLocation?.lng, radius],
     queryFn: async () => {
@@ -43,6 +45,20 @@ export const NearbyCompanies = ({ userLocation, radius }: NearbyCompaniesProps) 
 
       if (error || !data) return [];
 
+      // Also fetch open job counts per employer
+      const employerIds = data.map((e: any) => e.id);
+      const { data: jobCounts } = await supabase
+        .from('jobs')
+        .select('employer_id')
+        .in('employer_id', employerIds)
+        .eq('status', 'open')
+        .eq('is_active', true);
+
+      const jobCountMap = (jobCounts || []).reduce((acc: Record<string, number>, j: any) => {
+        acc[j.employer_id] = (acc[j.employer_id] || 0) + 1;
+        return acc;
+      }, {});
+
       return data
         .map((e: any) => ({
           id: e.id,
@@ -54,6 +70,7 @@ export const NearbyCompanies = ({ userLocation, radius }: NearbyCompaniesProps) 
           city: e.location_city,
           avatar_url: e.profiles?.avatar_url,
           distance_km: haversine(userLocation.lat, userLocation.lng, e.profiles.latitude, e.profiles.longitude),
+          open_jobs: jobCountMap[e.id] || 0,
         }))
         .filter((c: any) => c.distance_km <= radius)
         .sort((a: any, b: any) => a.distance_km - b.distance_km)
@@ -61,6 +78,18 @@ export const NearbyCompanies = ({ userLocation, radius }: NearbyCompaniesProps) 
     },
     enabled: !!userLocation,
   });
+
+  const handleQuickApply = (e: React.MouseEvent, company: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) {
+      toast.error('Please sign in to view open positions');
+      return;
+    }
+    // Navigate to employer detail which shows open jobs
+    window.open(`/employers/${company.id}`, '_blank');
+    toast.success(`Viewing ${company.company_name}'s open positions`);
+  };
 
   if (isLoading) {
     return (
