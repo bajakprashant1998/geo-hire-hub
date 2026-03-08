@@ -616,6 +616,17 @@ export const ChatModal = ({ isOpen, onClose, initialConversationId }: ChatModalP
                   </div>
                 </ScrollArea>
 
+                <SmartReplies
+                  messages={messages}
+                  currentUserId={user.id}
+                  userRole={profile.user_type || undefined}
+                  onSelect={(reply) => {
+                    setNewMessage(reply);
+                    inputRef.current?.focus();
+                  }}
+                  visible={!!activeConversation && messages.length > 0}
+                />
+
                 <ChatInput
                   value={newMessage}
                   onChange={handleMessageChange}
