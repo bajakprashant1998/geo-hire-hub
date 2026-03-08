@@ -623,18 +623,34 @@ const Plans = () => {
 
       <div className="max-w-6xl mx-auto px-4 -mt-10">
         {/* Plans Grid */}
-        <div className="grid md:grid-cols-3 gap-5 lg:gap-6">
-          {plans.map((plan, index) => (
-            <PlanCard
-              key={plan.id}
-              plan={plan}
-              index={index}
-              billingCycle={billingCycle}
-              isCurrentPlan={plan.id === currentPlanId}
-              onSelect={handleSelectPlan}
-            />
-          ))}
-        </div>
+        {plans.length === 0 ? (
+          <div className="text-center py-16 px-4">
+            <div className="w-16 h-16 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
+              <Building2 className="w-8 h-8 text-muted-foreground/40" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-2">No plans available</h3>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
+              We're having trouble loading our plans right now. Please try again in a moment.
+            </p>
+            <Button variant="outline" onClick={() => window.location.reload()} className="gap-2 rounded-xl">
+              <ArrowRight className="w-4 h-4 rotate-180" />
+              Retry
+            </Button>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-3 gap-5 lg:gap-6">
+            {plans.map((plan, index) => (
+              <PlanCard
+                key={plan.id}
+                plan={plan}
+                index={index}
+                billingCycle={billingCycle}
+                isCurrentPlan={plan.id === currentPlanId}
+                onSelect={handleSelectPlan}
+              />
+            ))}
+          </div>
+        )}
 
         <TrustBar />
         <ComparisonTable />
