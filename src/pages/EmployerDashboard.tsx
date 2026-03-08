@@ -66,6 +66,7 @@ import { TalentPoolCRM } from '@/components/employer/TalentPoolCRM';
 import { JobABTesting } from '@/components/employer/JobABTesting';
 import { TeamCollaborationNotes } from '@/components/employer/TeamCollaborationNotes';
 import { AccessibilityScoreChecker } from '@/components/employer/AccessibilityScoreChecker';
+import { BrandingPageBuilder } from '@/components/employer/BrandingPageBuilder';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
