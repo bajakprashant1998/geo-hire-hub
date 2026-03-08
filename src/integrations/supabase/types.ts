@@ -3369,6 +3369,52 @@ export type Database = {
         }
         Relationships: []
       }
+      search_appearances: {
+        Row: {
+          candidate_id: string
+          created_at: string
+          id: string
+          search_query: string | null
+          searcher_id: string | null
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string
+          id?: string
+          search_query?: string | null
+          searcher_id?: string | null
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string
+          id?: string
+          search_query?: string | null
+          searcher_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "search_appearances_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "search_appearances_searcher_id_fkey"
+            columns: ["searcher_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "search_appearances_searcher_id_fkey"
+            columns: ["searcher_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_content: {
         Row: {
           body: string | null
