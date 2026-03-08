@@ -9,7 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AILocationAutocomplete } from './AILocationAutocomplete';
 import {
-  DollarSign, TrendingUp, MapPin, Briefcase, Sparkles, Loader2, Download,
+  Banknote, TrendingUp, MapPin, Briefcase, Sparkles, Loader2, Download,
   BarChart3, Lightbulb, Globe, AlertTriangle, ChevronRight, Trophy,
   Target, Zap, Clock, ArrowUpRight, Building2, GraduationCap, CheckCircle2,
   Share2, BookmarkPlus, RefreshCw, Info, Star
