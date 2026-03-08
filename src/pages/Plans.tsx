@@ -687,6 +687,7 @@ const Plans = () => {
   const [loading, setLoading] = useState(true);
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [currency, setCurrency] = useState('USD');
+  const [confirmPlan, setConfirmPlan] = useState<Plan | null>(null);
 
   useEffect(() => {
     const fetchPlans = async () => {
