@@ -529,10 +529,34 @@ const EmployerDashboard = () => {
 
   if (dataLoading) {
     return (
-      <div className="min-h-screen bg-secondary flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto mb-4" />
-          <p className="text-muted-foreground font-medium">Loading your dashboard...</p>
+      <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/80 flex">
+        <aside className="hidden lg:block w-[264px] bg-card/95 border-r border-border/30 animate-pulse">
+          <div className="p-4 space-y-4">
+            <div className="h-8 bg-muted/60 rounded-xl w-32" />
+            <div className="space-y-2">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="h-9 bg-muted/40 rounded-xl" />
+              ))}
+            </div>
+          </div>
+        </aside>
+        <div className="flex-1">
+          <div className="h-16 bg-card/80 border-b border-border/30 animate-pulse px-6 flex items-center gap-4">
+            <div className="h-6 bg-muted/50 rounded-lg w-48" />
+            <div className="flex-1" />
+            <div className="h-8 w-8 bg-muted/50 rounded-full" />
+          </div>
+          <div className="p-6 space-y-4 max-w-6xl mx-auto animate-pulse">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-28 bg-card/60 border border-border/30 rounded-2xl" />
+              ))}
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="lg:col-span-2 h-64 bg-card/60 border border-border/30 rounded-2xl" />
+              <div className="h-64 bg-card/60 border border-border/30 rounded-2xl" />
+            </div>
+          </div>
         </div>
       </div>
     );
