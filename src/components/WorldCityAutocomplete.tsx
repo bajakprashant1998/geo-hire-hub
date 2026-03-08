@@ -132,14 +132,14 @@ export const WorldCityAutocomplete = ({
               >
                 <MapPin className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                 <span className="truncate flex-1">{highlightMatch(display)}</span>
-                {s.source === 'geonames' && (
-                  <Globe className="w-3 h-3 text-muted-foreground/40 shrink-0" />
-                )}
+                {s.source === 'google' && (
+                   <Globe className="w-3 h-3 text-muted-foreground/40 shrink-0" />
+                 )}
               </button>
             );
           })}
           <div className="px-3 py-1.5 text-[10px] text-muted-foreground/50 border-t border-border/30 bg-secondary/30">
-            {suggestions.some(s => s.source === 'geonames') ? 'Results from database + GeoNames' : `${suggestions.length} cities found`}
+            {suggestions.some(s => s.source === 'google') ? 'Results from database + Google Maps' : `${suggestions.length} cities found`}
           </div>
         </div>
       )}
