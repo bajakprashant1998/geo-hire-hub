@@ -2922,6 +2922,59 @@ export type Database = {
           },
         ]
       }
+      spotlight_stories: {
+        Row: {
+          author_name: string | null
+          author_role: string | null
+          body: string
+          created_at: string
+          employer_id: string
+          id: string
+          image_url: string | null
+          is_published: boolean | null
+          likes_count: number | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_name?: string | null
+          author_role?: string | null
+          body: string
+          created_at?: string
+          employer_id: string
+          id?: string
+          image_url?: string | null
+          is_published?: boolean | null
+          likes_count?: number | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_name?: string | null
+          author_role?: string | null
+          body?: string
+          created_at?: string
+          employer_id?: string
+          id?: string
+          image_url?: string | null
+          is_published?: boolean | null
+          likes_count?: number | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spotlight_stories_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "employers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           candidate_id: string

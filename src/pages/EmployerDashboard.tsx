@@ -56,6 +56,7 @@ import { PendingTasksWidget } from '@/components/dashboard/PendingTasksWidget';
 import { AIScreeningPanel } from '@/components/employer/AIScreeningPanel';
 import { SkillAssessmentManager } from '@/components/employer/SkillAssessmentManager';
 import { JDOptimizer } from '@/components/employer/JDOptimizer';
+import { SpotlightStories } from '@/components/employer/SpotlightStories';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -300,6 +301,7 @@ const EmployerDashboard = () => {
     { icon: Sparkles, label: 'AI Screening', value: 'ai-screening' },
     { icon: FileEdit, label: 'JD Optimizer', value: 'jd-optimizer' },
     { icon: CheckCircle2, label: 'Assessments', value: 'assessments' },
+    { icon: Sparkles, label: 'Spotlight Stories', value: 'spotlight' },
     { icon: CreditCard, label: 'Upgrade Plan', value: 'upgrade-plan' }
   ];
 
@@ -831,6 +833,8 @@ const EmployerDashboard = () => {
         return <JDOptimizer />;
       case 'assessments':
         return employer && <SkillAssessmentManager employerId={employer.id} />;
+      case 'spotlight':
+        return employer && <SpotlightStories employerId={employer.id} companyName={employer.company_name} isOwner />;
       case 'post-job':
         return <PostJob embedded />;
       default:

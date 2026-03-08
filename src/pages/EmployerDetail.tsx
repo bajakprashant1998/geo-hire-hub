@@ -27,6 +27,7 @@ import { VerificationBadge } from '@/components/employer/VerificationBadge';
 import { BreadcrumbNav, buildBreadcrumbJsonLd } from '@/components/BreadcrumbNav';
 import { CompanyReviews } from '@/components/employer/CompanyReviews';
 import { CompanyQAForum } from '@/components/employer/CompanyQAForum';
+import { SpotlightStories } from '@/components/employer/SpotlightStories';
 import type { BreadcrumbItem } from '@/components/BreadcrumbNav';
 
 interface EmployerProfile {
@@ -892,6 +893,13 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
               <Button onClick={() => navigate('/signup')} className="flex-1 h-11 rounded-xl font-medium gap-2"><UserPlus className="w-4 h-4" />Sign Up</Button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Spotlight Stories */}
+      {employer && (
+        <div className="max-w-5xl mx-auto px-4 pb-4">
+          <SpotlightStories employerId={employer.id} companyName={employer.company_name} />
         </div>
       )}
 
