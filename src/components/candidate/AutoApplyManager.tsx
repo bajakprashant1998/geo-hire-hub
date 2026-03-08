@@ -567,7 +567,7 @@ export const AutoApplyManager = ({ candidateId }: AutoApplyManagerProps) => {
               <Card className="border-border rounded-xl">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2 font-heading">
-                    <DollarSign className="w-4 h-4 text-[hsl(var(--success))]" /> Minimum Salary
+                    <Banknote className="w-4 h-4 text-[hsl(var(--success))]" /> Minimum Salary
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="flex gap-2">

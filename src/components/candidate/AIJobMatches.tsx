@@ -345,7 +345,7 @@ export const AIJobMatches = ({ candidateId }: AIJobMatchesProps) => {
                               : 'bg-muted text-muted-foreground'
                           )}
                         >
-                          <DollarSign className="w-3 h-3" />
+                          <Banknote className="w-3 h-3" />
                           {match.salary_match ? 'Salary Aligned' : 'Salary Mismatch'}
                         </span>
                       </div>

@@ -34,7 +34,7 @@ interface JobForComparison {
 }
 
 const COMPARISON_FIELDS = [
-  { key: 'salary', label: 'Salary Range', icon: DollarSign, color: 'text-[hsl(var(--success))]' },
+  { key: 'salary', label: 'Salary Range', icon: Banknote, color: 'text-[hsl(var(--success))]' },
   { key: 'type', label: 'Job Type', icon: Briefcase, color: 'text-primary' },
   { key: 'location', label: 'Location', icon: MapPin, color: 'text-destructive' },
   { key: 'workMode', label: 'Work Mode', icon: Globe, color: 'text-[hsl(var(--warning))]' },
