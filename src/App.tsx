@@ -74,6 +74,7 @@ const AdminScheduledJobs = lazy(() => import("./pages/admin/AdminScheduledJobs")
 const AdminTasks = lazy(() => import("./pages/admin/AdminTasks"));
 const AdminSEOAgent = lazy(() => import("./pages/admin/AdminSEOAgent"));
 const AdminBanners = lazy(() => import("./pages/admin/AdminBanners"));
+const AdminBulkImport = lazy(() => import("./pages/admin/AdminBulkImport"));
 
 const queryClient = new QueryClient();
 
