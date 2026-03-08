@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Filter, X, Briefcase, DollarSign, Clock, Building2, Landmark } from 'lucide-react';
+import { Filter, X, Briefcase, Banknote, Clock, Building2, Landmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
