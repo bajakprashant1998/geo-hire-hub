@@ -15,7 +15,7 @@ import { Progress } from '@/components/ui/progress';
 import { toast } from 'sonner';
 import {
   Zap, Settings, History, Play, Loader2, Undo2, X,
-  Target, MapPin, DollarSign, Building2, Briefcase, Sparkles, Shield,
+  Target, MapPin, Banknote, Building2, Briefcase, Sparkles, Shield,
   CheckCircle2, XCircle, Clock, TrendingUp, AlertTriangle, RefreshCw,
   ChevronDown, ChevronUp, Eye, ExternalLink, Info
 } from 'lucide-react';
