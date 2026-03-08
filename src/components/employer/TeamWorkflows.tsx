@@ -215,7 +215,7 @@ export const TeamWorkflows = ({ employerId }: Props) => {
   };
 
   const updateMemberRole = async (id: string, role: string) => {
-    await supabase.from('employer_team_members').update({ team_role: role }).eq('id', id);
+    await supabase.from('employer_team_members').update({ team_role: role as any }).eq('id', id);
     fetchAll();
   };
 
