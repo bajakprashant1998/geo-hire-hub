@@ -664,6 +664,122 @@ export type Database = {
           },
         ]
       }
+      company_answers: {
+        Row: {
+          answer_text: string
+          answerer_profile_id: string
+          created_at: string
+          helpful_count: number
+          id: string
+          is_employer_official: boolean
+          is_verified_employee: boolean
+          question_id: string
+          updated_at: string
+        }
+        Insert: {
+          answer_text: string
+          answerer_profile_id: string
+          created_at?: string
+          helpful_count?: number
+          id?: string
+          is_employer_official?: boolean
+          is_verified_employee?: boolean
+          question_id: string
+          updated_at?: string
+        }
+        Update: {
+          answer_text?: string
+          answerer_profile_id?: string
+          created_at?: string
+          helpful_count?: number
+          id?: string
+          is_employer_official?: boolean
+          is_verified_employee?: boolean
+          question_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_answers_answerer_profile_id_fkey"
+            columns: ["answerer_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_answers_answerer_profile_id_fkey"
+            columns: ["answerer_profile_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "company_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_questions: {
+        Row: {
+          asker_profile_id: string
+          created_at: string
+          employer_id: string
+          id: string
+          is_anonymous: boolean
+          question_text: string
+          status: string
+          updated_at: string
+          upvote_count: number
+        }
+        Insert: {
+          asker_profile_id: string
+          created_at?: string
+          employer_id: string
+          id?: string
+          is_anonymous?: boolean
+          question_text: string
+          status?: string
+          updated_at?: string
+          upvote_count?: number
+        }
+        Update: {
+          asker_profile_id?: string
+          created_at?: string
+          employer_id?: string
+          id?: string
+          is_anonymous?: boolean
+          question_text?: string
+          status?: string
+          updated_at?: string
+          upvote_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_questions_asker_profile_id_fkey"
+            columns: ["asker_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_questions_asker_profile_id_fkey"
+            columns: ["asker_profile_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_questions_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "employers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_reviews: {
         Row: {
           cons: string | null
