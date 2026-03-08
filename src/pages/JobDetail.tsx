@@ -240,6 +240,14 @@ const JobDetail = () => {
       });
       const { data: related } = await supabase.from('jobs').select('id, title, job_type, salary_range, created_at, slug').eq('employer_id', data.employers.id).neq('id', id).eq('status', 'open').limit(3);
       setRelatedJobs(related || []);
+
+      // Record job view
+      supabase.from('job_views').insert({
+        job_id: resolvedId!,
+        viewer_id: user?.id || null,
+      }).then(({ error: viewErr }) => {
+        if (viewErr) console.warn('Failed to record job view:', viewErr.message);
+      });
     } catch (error: any) {
       console.error('Error fetching job:', error);
       toast.error('Failed to load job details');
