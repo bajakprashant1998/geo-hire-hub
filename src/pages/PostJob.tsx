@@ -999,6 +999,7 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
                       )}
 
                       {currentStep === 2 && (
+                        <>
                         <CandidateRequirementSection
                           experienceType={experienceType}
                           setExperienceType={setExperienceType}
@@ -1048,6 +1049,7 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
                             onTranslationsChange={setJobTranslations}
                           />
                         </div>
+                        </>
                       )}
 
                       {currentStep === 3 && (
