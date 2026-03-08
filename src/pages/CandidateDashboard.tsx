@@ -564,6 +564,7 @@ const CandidateDashboard = () => {
       case 'watchlist': return candidate && <CompanyWatchlist candidateId={candidate.id} />;
       case 'negotiation-coach': return <SalaryNegotiationCoach candidateId={candidate.id} />;
       case 'portfolio': return <PortfolioShowcase candidateId={candidate.id} />;
+      case 'analytics': return <CandidateAnalyticsDashboard candidateId={candidate.id} />;
       default: return null;
     }
   };
