@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { ViewMode, Candidate, Job } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Users, MapPin, Briefcase, ChevronRight } from 'lucide-react';
+import { Users, MapPin, Briefcase, ChevronRight, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface NearbyAvatarRowProps {
@@ -28,24 +28,24 @@ export const NearbyAvatarRow = ({ mode, candidates, jobs, onSelect, onViewAll }:
         <div className="flex items-center justify-between px-2 pb-2">
           <div className="flex items-center gap-1.5">
             {mode === 'hiring' ? (
-              <div className="w-5 h-5 rounded-md bg-primary/10 flex items-center justify-center">
+              <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Users className="w-3 h-3 text-primary" />
               </div>
             ) : (
-              <div className="w-5 h-5 rounded-md bg-destructive/10 flex items-center justify-center">
+              <div className="w-6 h-6 rounded-lg bg-destructive/10 flex items-center justify-center">
                 <Briefcase className="w-3 h-3 text-destructive" />
               </div>
             )}
-            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+            <span className="text-[10px] font-bold text-foreground uppercase tracking-wider">
               {mode === 'hiring' ? 'Nearby Talent' : 'Nearby Jobs'}
             </span>
-            <span className="text-[10px] font-medium text-muted-foreground/60">
-              ({items.length})
+            <span className="text-[10px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">
+              {items.length}
             </span>
           </div>
           <button
             onClick={onViewAll}
-            className="flex items-center gap-0.5 text-[10px] font-semibold text-primary hover:underline"
+            className="flex items-center gap-0.5 text-[10px] font-bold text-primary hover:underline active:scale-95 transition-transform"
           >
             View All
             <ChevronRight className="w-3 h-3" />
@@ -55,11 +55,12 @@ export const NearbyAvatarRow = ({ mode, candidates, jobs, onSelect, onViewAll }:
         <div className="flex gap-2 overflow-x-auto scrollbar-hide items-center pb-0.5">
           {/* View all button */}
           <motion.button
-            whileTap={{ scale: 0.9 }}
+            whileTap={{ scale: 0.85 }}
             onClick={onViewAll}
-            className="flex-shrink-0 w-12 h-12 rounded-xl border-2 border-dashed border-border/40 flex items-center justify-center bg-muted/20 hover:bg-muted/40 transition-colors"
+            className="flex-shrink-0 w-12 h-12 rounded-xl border-2 border-dashed border-primary/20 flex flex-col items-center justify-center bg-primary/5 hover:bg-primary/10 transition-colors gap-0.5"
           >
-            <Users className="w-4 h-4 text-muted-foreground" />
+            <Sparkles className="w-3.5 h-3.5 text-primary" />
+            <span className="text-[7px] font-bold text-primary">ALL</span>
           </motion.button>
 
           {items.map((item, i) => {
@@ -75,8 +76,8 @@ export const NearbyAvatarRow = ({ mode, candidates, jobs, onSelect, onViewAll }:
                 key={item.id}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.04 * i + 0.3 }}
-                whileTap={{ scale: 0.88 }}
+                transition={{ delay: 0.03 * i + 0.3 }}
+                whileTap={{ scale: 0.85 }}
                 onClick={() => onSelect(item)}
                 className="flex flex-col items-center gap-0.5 flex-shrink-0 w-14"
               >

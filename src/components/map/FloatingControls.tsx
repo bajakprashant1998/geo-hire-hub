@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Navigation, List, Search, X, Radar, Flame, Layers } from 'lucide-react';
+import { Navigation, List, Search, X, Radar, Layers } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { SearchBar } from './SearchBar';
@@ -42,17 +42,17 @@ const FAB = ({
   <Tooltip>
     <TooltipTrigger asChild>
       <motion.button
-        initial={{ opacity: 0, x: 10 }}
+        initial={{ opacity: 0, x: 12 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay }}
-        whileTap={{ scale: 0.85 }}
+        whileTap={{ scale: 0.82 }}
         whileHover={{ scale: 1.08 }}
         onClick={onClick}
         className={cn(
           "w-11 h-11 rounded-2xl flex items-center justify-center",
           "bg-card/95 backdrop-blur-xl border border-border/20 shadow-xl",
           "hover:shadow-2xl transition-all duration-200",
-          isActive && "ring-2 ring-primary/30 bg-primary/5",
+          isActive && "ring-2 ring-primary/30 bg-primary/5 border-primary/20",
           className
         )}
       >
@@ -62,7 +62,7 @@ const FAB = ({
         )} />)}
       </motion.button>
     </TooltipTrigger>
-    <TooltipContent side="left" className="text-xs rounded-lg">{label}</TooltipContent>
+    <TooltipContent side="left" className="text-xs rounded-xl">{label}</TooltipContent>
   </Tooltip>
 );
 
@@ -136,7 +136,7 @@ export const FloatingControls = ({
           onClick={onCenterOnUser}
           label="My location"
           delay={0.44}
-          className="ring-2 ring-emerald-500/20"
+          className="ring-2 ring-[hsl(var(--success))]/20"
         />
 
         <FAB
@@ -145,8 +145,8 @@ export const FloatingControls = ({
           delay={0.52}
         >
           <div className="flex flex-col items-center">
-            <Radar className="w-3 h-3 text-muted-foreground mb-0.5" />
-            <span className="text-[9px] font-bold text-foreground leading-none">{radius}km</span>
+            <Radar className="w-3.5 h-3.5 text-primary mb-0.5" />
+            <span className="text-[9px] font-extrabold text-foreground leading-none">{radius}km</span>
           </div>
         </FAB>
 
