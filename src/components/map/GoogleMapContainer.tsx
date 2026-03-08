@@ -582,6 +582,13 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
           </div>
         </InfoWindow>
       )}
+
+      {/* Salary Heatmap Overlay */}
+      <SalaryHeatmapOverlay
+        jobs={jobs}
+        enabled={salaryHeatmapEnabled}
+        roleFilter={salaryRoleFilter}
+      />
     </GoogleMapView>
   );
 };
