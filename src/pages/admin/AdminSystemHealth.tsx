@@ -39,7 +39,7 @@ const MotionCard = motion.create(Card);
 
 const cardAnim = (i: number) => ({
   initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0, transition: { delay: i * 0.08, duration: 0.4, ease: 'easeOut' } },
+  animate: { opacity: 1, y: 0, transition: { delay: i * 0.08, duration: 0.4, ease: [0.25, 0.1, 0.25, 1] as [number, number, number, number] } },
 });
 
 function PulsingDot({ color }: { color: string }) {
