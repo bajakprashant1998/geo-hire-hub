@@ -1149,6 +1149,7 @@ const EmployerDashboard = () => {
             notificationCount={stats.notificationCount}
             profileCompleteness={employer?.profile_completeness || 0}
             onNotificationClick={() => handleSectionClick('notifications')}
+            onPostJob={() => handleSectionClick('post-job')}
           />
 
           <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto pb-24 md:pb-6">
