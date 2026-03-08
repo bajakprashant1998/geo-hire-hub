@@ -61,6 +61,7 @@ import { CareerPathVisualizer } from '@/components/candidate/CareerPathVisualize
 import { CultureMatchScore } from '@/components/candidate/CultureMatchScore';
 import { SmartNotificationDigest } from '@/components/candidate/SmartNotificationDigest';
 import { CompanyWatchlist } from '@/components/candidate/CompanyWatchlist';
+import { PortfolioShowcase } from '@/components/candidate/PortfolioShowcase';
 import { PendingTasksWidget } from '@/components/dashboard/PendingTasksWidget';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { motion } from 'framer-motion';
