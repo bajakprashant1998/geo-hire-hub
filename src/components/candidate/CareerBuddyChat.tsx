@@ -651,7 +651,7 @@ export const CareerBuddyChat = () => {
                       <TypingIndicator />
                     )
                   ) : (
-                    <p className="text-sm leading-relaxed font-medium">{message.content}</p>
+                    <p className="text-sm leading-relaxed font-medium text-primary-foreground">{message.content}</p>
                   )}
                   {message.content && (
                     <p className={cn(
