@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
-  Scale, X, MapPin, DollarSign, Clock, Building2, Briefcase, Loader2, Trophy,
+  Scale, X, MapPin, Banknote, Clock, Building2, Briefcase, Loader2, Trophy,
   CheckCircle2, XCircle, Star, Globe, Users, GraduationCap, Zap, ArrowRight,
   Eye, Info, Sparkles, Heart
 } from 'lucide-react';
