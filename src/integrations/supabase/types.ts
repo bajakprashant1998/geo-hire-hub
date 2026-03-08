@@ -1422,6 +1422,66 @@ export type Database = {
         }
         Relationships: []
       }
+      interview_prep_sessions: {
+        Row: {
+          answers: Json
+          candidate_id: string
+          company_name: string | null
+          created_at: string
+          feedback: Json
+          id: string
+          job_id: string | null
+          job_title: string
+          overall_score: number | null
+          questions: Json
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          answers?: Json
+          candidate_id: string
+          company_name?: string | null
+          created_at?: string
+          feedback?: Json
+          id?: string
+          job_id?: string | null
+          job_title: string
+          overall_score?: number | null
+          questions?: Json
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          answers?: Json
+          candidate_id?: string
+          company_name?: string | null
+          created_at?: string
+          feedback?: Json
+          id?: string
+          job_id?: string | null
+          job_title?: string
+          overall_score?: number | null
+          questions?: Json
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_prep_sessions_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_prep_sessions_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interviews: {
         Row: {
           application_id: string
