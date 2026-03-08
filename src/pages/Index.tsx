@@ -143,6 +143,8 @@ const Index = () => {
         isEmployer={profile?.user_type === 'employer'}
         centerTrigger={centerTrigger}
         heatmapEnabled={heatmapEnabled}
+        salaryHeatmapEnabled={salaryHeatmapEnabled}
+        salaryRoleFilter={salaryRoleFilter}
       />
     </Suspense>
   );
