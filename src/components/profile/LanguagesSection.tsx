@@ -1,7 +1,7 @@
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -9,7 +9,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Languages, Plus, X } from 'lucide-react';
+import { Languages, Plus, X, Sparkles, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 
 export interface Language {
   name: string;
@@ -28,7 +30,31 @@ const proficiencyLevels = [
   { value: 'native', label: 'Native / Bilingual' },
 ];
 
+const COMMON_LANGUAGES = [
+  'English', 'Hindi', 'Spanish', 'French', 'Arabic', 'Mandarin Chinese', 'Portuguese',
+  'Bengali', 'Russian', 'Japanese', 'German', 'Korean', 'Italian', 'Turkish',
+  'Vietnamese', 'Tamil', 'Telugu', 'Marathi', 'Urdu', 'Gujarati', 'Kannada',
+  'Malayalam', 'Punjabi', 'Thai', 'Dutch', 'Polish', 'Swedish', 'Greek',
+  'Czech', 'Romanian', 'Hungarian', 'Indonesian', 'Malay', 'Swahili', 'Persian',
+];
+
 export const LanguagesSection = ({ languages, onChange }: LanguagesSectionProps) => {
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState<number | null>(null);
+  const [inputValues, setInputValues] = useState<Record<number, string>>({});
+  const containerRefs = useRef<Record<number, HTMLDivElement | null>>({});
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (showSuggestions !== null) {
+        const ref = containerRefs.current[showSuggestions];
+        if (ref && !ref.contains(e.target as Node)) setShowSuggestions(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showSuggestions]);
+
   const addLanguage = () => {
     onChange([...languages, { name: '', proficiency: 'conversational' }]);
   };
@@ -41,6 +67,30 @@ export const LanguagesSection = ({ languages, onChange }: LanguagesSectionProps)
 
   const removeLanguage = (index: number) => {
     onChange(languages.filter((_, i) => i !== index));
+  };
+
+  const filterSuggestions = (query: string) => {
+    const existing = languages.map(l => l.name.toLowerCase());
+    return COMMON_LANGUAGES.filter(
+      lang => lang.toLowerCase().includes(query.toLowerCase()) && !existing.includes(lang.toLowerCase())
+    ).slice(0, 6);
+  };
+
+  const handleNameChange = (index: number, value: string) => {
+    setInputValues(prev => ({ ...prev, [index]: value }));
+    updateLanguage(index, 'name', value);
+    if (value.length >= 1) {
+      setSuggestions(filterSuggestions(value));
+      setShowSuggestions(index);
+    } else {
+      setShowSuggestions(null);
+    }
+  };
+
+  const selectSuggestion = (index: number, lang: string) => {
+    updateLanguage(index, 'name', lang);
+    setInputValues(prev => ({ ...prev, [index]: lang }));
+    setShowSuggestions(null);
   };
 
   return (
@@ -66,12 +116,31 @@ export const LanguagesSection = ({ languages, onChange }: LanguagesSectionProps)
         ) : (
           languages.map((lang, index) => (
             <div key={index} className="flex items-center gap-3">
-              <div className="flex-1">
+              <div className="flex-1 relative" ref={el => { containerRefs.current[index] = el; }}>
                 <Input
                   value={lang.name}
-                  onChange={(e) => updateLanguage(index, 'name', e.target.value)}
-                  placeholder="Language name"
+                  onChange={(e) => handleNameChange(index, e.target.value)}
+                  onFocus={() => {
+                    if (lang.name.length >= 1) {
+                      setSuggestions(filterSuggestions(lang.name));
+                      setShowSuggestions(index);
+                    }
+                  }}
+                  placeholder="Type language name..."
                 />
+                {showSuggestions === index && suggestions.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-popover border border-border rounded-lg shadow-lg overflow-hidden">
+                    {suggestions.map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => selectSuggestion(index, s)}
+                        className="w-full px-3 py-2 text-sm text-left hover:bg-accent transition-colors"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="w-40">
                 <Select

@@ -29,6 +29,8 @@ import { EmailVerificationGuard } from '@/components/auth/EmailVerificationGuard
 import { DatePicker } from '@/components/ui/date-picker';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { AIGenerateButton, AIIndustrySuggestButton } from '@/components/candidate/AIGenerateButton';
+import { WorldCityAutocomplete } from '@/components/WorldCityAutocomplete';
 import {
     WorkExperienceSection, SocialLinksSection, LanguagesSection,
     CertificationsSection, AvailabilitySection,
@@ -162,6 +164,7 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     const [suggestingSkills, setSuggestingSkills] = useState(false);
     const [suggestedSkills, setSuggestedSkills] = useState<string[]>([]);
+    const [suggestedIndustries, setSuggestedIndustries] = useState<string[]>([]);
 
     // Profile fields
     const [fullName, setFullName] = useState('');
@@ -719,8 +722,19 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                                         <JobCategorySearch value={jobTitle} onChange={setJobTitle} placeholder="e.g., Software Engineer" />
                                         {(!jobTitle.trim() || jobTitle === 'Not specified') && <p className="text-[11px] text-destructive flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Required</p>}
                                     </div>
-                                    <div className="space-y-2"><Label className="text-sm font-medium">Professional Headline</Label>
-                                        <Input value={headline} onChange={e => setHeadline(e.target.value)} placeholder="e.g., Senior Full Stack Developer | React & Node.js" className="bg-background/50" /></div>
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <Label className="text-sm font-medium">Professional Headline</Label>
+                                            <AIGenerateButton
+                                                type="headline"
+                                                context={{ jobTitle, skills, experienceYears, currentCompany }}
+                                                onGenerated={setHeadline}
+                                                label="AI Generate"
+                                                disabled={!jobTitle.trim() || jobTitle === 'Not specified'}
+                                            />
+                                        </div>
+                                        <Input value={headline} onChange={e => setHeadline(e.target.value)} placeholder="e.g., Senior Full Stack Developer | React & Node.js" className="bg-background/50" />
+                                    </div>
                                 </div>
                                 <div className="grid md:grid-cols-2 gap-4">
                                     <div className="space-y-2"><Label className="text-sm font-medium">Current Company</Label>
@@ -729,7 +743,16 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                                         <Input type="number" min={0} max={50} value={experienceYears} onChange={e => setExperienceYears(Number(e.target.value))} className="bg-background/50" /></div>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label className="text-sm font-medium">About / Summary</Label>
+                                    <div className="flex items-center justify-between">
+                                        <Label className="text-sm font-medium">About / Summary</Label>
+                                        <AIGenerateButton
+                                            type="summary"
+                                            context={{ jobTitle, skills, experienceYears, currentCompany }}
+                                            onGenerated={setBio}
+                                            label="AI Write"
+                                            disabled={!jobTitle.trim() || jobTitle === 'Not specified'}
+                                        />
+                                    </div>
                                     <Textarea value={bio} onChange={e => setBio(e.target.value)} placeholder="Write a brief professional summary..." rows={4} className="bg-background/50" />
                                     <div className="flex items-center justify-between">
                                         <p className="text-[11px] text-muted-foreground">{bio?.length || 0} characters</p>
@@ -877,7 +900,7 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                     {activeTab === 'career' && (
                         <>
                             <AvailabilitySection status={availabilityStatus} onChange={setAvailabilityStatus} />
-                            <WorkExperienceSection experiences={workExperience} onChange={setWorkExperience} />
+                            <WorkExperienceSection experiences={workExperience} onChange={setWorkExperience} skills={skills} />
 
                             <SectionCard icon={GraduationCap} title="Education" subtitle="Your academic background" tip="Include your highest qualification at minimum">
                                 <div className="flex justify-end">
@@ -1018,7 +1041,45 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                             </SectionCard>
 
                             <SectionCard icon={Building2} title="Industry Preferences" subtitle="Which industries interest you?">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-sm text-muted-foreground">Add industries or get AI suggestions</span>
+                                    <AIIndustrySuggestButton
+                                        jobTitle={jobTitle}
+                                        currentIndustries={industryPreference}
+                                        onSuggest={(suggestions) => {
+                                            setSuggestedIndustries(suggestions);
+                                        }}
+                                    />
+                                </div>
                                 <TagInput items={industryPreference} onAdd={() => addTag(industryPreference, setIndustryPreference, industryInput, setIndustryInput)} onRemove={s => removeTag(industryPreference, setIndustryPreference, s)} input={industryInput} setInput={setIndustryInput} placeholder="e.g., IT, Healthcare, Finance" />
+                                <AnimatePresence>
+                                    {suggestedIndustries.length > 0 && (
+                                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+                                            <div className="p-3 rounded-xl bg-primary/[0.04] border border-primary/10 space-y-2 mt-3">
+                                                <p className="text-xs text-muted-foreground">Click to add:</p>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {suggestedIndustries.map((ind) => (
+                                                        <motion.button key={ind} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} whileTap={{ scale: 0.95 }}
+                                                            onClick={() => {
+                                                                if (!industryPreference.includes(ind)) {
+                                                                    setIndustryPreference(prev => [...prev, ind]);
+                                                                    setSuggestedIndustries(prev => prev.filter(s => s !== ind));
+                                                                    toast.success(`Added "${ind}"`);
+                                                                }
+                                                            }}
+                                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border border-primary/20 bg-card hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all cursor-pointer"
+                                                        >
+                                                            <Plus className="w-3 h-3" />{ind}
+                                                        </motion.button>
+                                                    ))}
+                                                </div>
+                                                <Button type="button" variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground" onClick={() => setSuggestedIndustries([])}>
+                                                    <X className="w-3 h-3 mr-1" /> Dismiss
+                                                </Button>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </SectionCard>
                         </>
                     )}
@@ -1099,7 +1160,22 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                                 <div className="space-y-2"><Label className="text-sm font-medium">Address Line</Label>
                                     <Input value={addressLine} onChange={e => setAddressLine(e.target.value)} placeholder="Street address" className="bg-background/50" /></div>
                                 <div className="grid md:grid-cols-2 gap-4">
-                                    <div className="space-y-2"><Label className="text-sm font-medium">City</Label><Input value={city} onChange={e => setCity(e.target.value)} placeholder="City" className="bg-background/50" /></div>
+                                    <div className="space-y-2"><Label className="text-sm font-medium">City</Label>
+                                        <WorldCityAutocomplete
+                                            value={city}
+                                            onChange={(val, structured) => {
+                                                if (structured) {
+                                                    setCity(structured.city);
+                                                    if (structured.state) setState(structured.state);
+                                                    setCountry(structured.country);
+                                                } else {
+                                                    setCity(val);
+                                                }
+                                            }}
+                                            placeholder="Start typing city..."
+                                            inputClassName="bg-background/50"
+                                        />
+                                    </div>
                                     <div className="space-y-2"><Label className="text-sm font-medium">State / Province</Label><Input value={state} onChange={e => setState(e.target.value)} placeholder="State" className="bg-background/50" /></div>
                                 </div>
                                 <div className="grid md:grid-cols-2 gap-4">
@@ -1165,8 +1241,18 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                             </SectionCard>
 
                             <SectionCard icon={FileText} title="Default Cover Letter" subtitle="Pre-filled when you apply to jobs">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-sm text-muted-foreground">This will be pre-filled when applying to jobs</span>
+                                    <AIGenerateButton
+                                        type="cover_letter"
+                                        context={{ jobTitle, skills, experienceYears, currentCompany }}
+                                        onGenerated={setCoverLetterDefault}
+                                        label="AI Write"
+                                        disabled={!jobTitle.trim() || jobTitle === 'Not specified'}
+                                    />
+                                </div>
                                 <Textarea value={coverLetterDefault} onChange={e => setCoverLetterDefault(e.target.value)}
-                                    placeholder="Write a default cover letter..." rows={5} className="bg-background/50" />
+                                    placeholder="Write a default cover letter..." rows={6} className="bg-background/50" />
                                 <p className="text-[11px] text-muted-foreground">{coverLetterDefault?.length || 0} characters</p>
                             </SectionCard>
                         </>
