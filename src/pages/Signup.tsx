@@ -9,7 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import {
   ArrowLeft, Briefcase, Users, Mail, Eye, EyeOff, User, MapPin, Phone, Building2,
   Upload, X, Loader2, CheckCircle2, AlertCircle, FileText, Lock, Shield, MessageCircle,
-  Sparkles, TrendingUp, Globe2, Award, Zap,
+  Sparkles, TrendingUp, Globe2, Award, Zap, Gift,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
