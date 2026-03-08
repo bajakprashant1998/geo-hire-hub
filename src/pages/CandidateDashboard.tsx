@@ -47,6 +47,7 @@ import { JobRadar } from '@/components/candidate/JobRadar';
 import { ApplicationTracker } from '@/components/candidate/ApplicationTracker';
 import { ReferralDashboard } from '@/components/candidate/ReferralDashboard';
 import { TakeAssessment } from '@/components/candidate/TakeAssessment';
+import { AssessmentHub } from '@/components/candidate/AssessmentHub';
 import { InterviewPrepCoach } from '@/components/candidate/InterviewPrepCoach';
 import { MarketValueScore } from '@/components/candidate/MarketValueScore';
 import { ProfileBadges } from '@/components/candidate/ProfileBadges';
