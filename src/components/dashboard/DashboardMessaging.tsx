@@ -917,6 +917,17 @@ export const DashboardMessaging = () => {
 
               {/* Input */}
               <div className="border-t border-border bg-card p-3 sm:p-4">
+                {pendingAttachment && (
+                  <div className="mb-2">
+                    <AttachmentUpload
+                      userId={user?.id || ''}
+                      conversationId={activeConversation.id}
+                      onAttachmentReady={setPendingAttachment}
+                      pendingAttachment={pendingAttachment}
+                      onClearAttachment={() => setPendingAttachment(null)}
+                    />
+                  </div>
+                )}
                 <form onSubmit={sendMessage} className="flex items-center gap-2">
                   {!pendingAttachment && (
                     <AttachmentUpload
@@ -933,7 +944,10 @@ export const DashboardMessaging = () => {
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="h-9 w-9 shrink-0 text-muted-foreground hover:text-primary"
+                        className={cn(
+                          "h-9 w-9 shrink-0 rounded-xl transition-colors",
+                          showQuickReplies ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-primary"
+                        )}
                         onClick={() => setShowQuickReplies(!showQuickReplies)}
                       >
                         <Zap className="w-4 h-4" />
@@ -941,39 +955,38 @@ export const DashboardMessaging = () => {
                     </TooltipTrigger>
                     <TooltipContent>Quick replies</TooltipContent>
                   </Tooltip>
-                  <Input
-                    ref={inputRef}
-                    value={newMessage}
-                    onChange={(e) => handleMessageChange(e.target.value)}
-                    placeholder="Type a message..."
-                    className="flex-1 h-10 bg-muted/50 border-border/50 text-sm rounded-full px-4"
-                    disabled={sending}
-                  />
+                  <div className="flex-1 relative">
+                    <Input
+                      ref={inputRef}
+                      value={newMessage}
+                      onChange={(e) => handleMessageChange(e.target.value)}
+                      placeholder="Type a message..."
+                      className="h-10 bg-secondary/50 border-border/50 text-sm rounded-full px-4 pr-12"
+                      disabled={sending}
+                    />
+                    {newMessage.length > 0 && (
+                      <span className={cn(
+                        "absolute right-3 top-1/2 -translate-y-1/2 text-[10px]",
+                        newMessage.length > MAX_MESSAGE_LENGTH * 0.9 ? "text-destructive" : "text-muted-foreground/50"
+                      )}>
+                        {newMessage.length.toLocaleString()}
+                      </span>
+                    )}
+                  </div>
                   <Button
                     type="submit"
                     size="icon"
                     disabled={(!newMessage.trim() && !pendingAttachment) || sending}
                     className={cn(
-                      "rounded-full h-10 w-10 transition-all",
+                      "rounded-full h-10 w-10 transition-all shrink-0",
                       (newMessage.trim() || pendingAttachment) && !sending
-                        ? "bg-primary hover:bg-primary/90 shadow-md"
+                        ? "bg-primary hover:bg-primary/90 shadow-[var(--shadow-sm)]"
                         : "bg-muted text-muted-foreground"
                     )}
                   >
-                    <Send className="w-4 h-4" />
+                    {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   </Button>
                 </form>
-                {pendingAttachment && (
-                  <div className="mt-2">
-                    <AttachmentUpload
-                      userId={user?.id || ''}
-                      conversationId={activeConversation.id}
-                      onAttachmentReady={setPendingAttachment}
-                      pendingAttachment={pendingAttachment}
-                      onClearAttachment={() => setPendingAttachment(null)}
-                    />
-                  </div>
-                )}
               </div>
             </>
           ) : (
