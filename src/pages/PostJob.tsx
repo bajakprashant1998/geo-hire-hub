@@ -636,6 +636,8 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
         location_city: geoComponents.city || null,
         moderation_status: 'approved',
       };
+
+      if (isEditMode && jobId) {
         // Update existing job
         const { error } = await supabase
           .from('jobs')
