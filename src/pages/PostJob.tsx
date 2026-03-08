@@ -990,6 +990,7 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
                           isGovernmentEmployer={isGovernmentEmployer}
                           workMode={workMode}
                           setWorkMode={setWorkMode}
+                          onGeoComponents={setGeoComponents}
                         />
                       )}
 
