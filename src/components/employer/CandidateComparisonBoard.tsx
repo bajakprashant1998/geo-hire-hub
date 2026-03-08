@@ -43,16 +43,26 @@ const AVAILABILITY_COLORS: Record<string, string> = {
   not_available: 'bg-red-500/10 text-red-600 border-red-200',
 };
 
-const COMPARE_FIELDS = [
+interface CompareField {
+  key: string;
+  label: string;
+  icon: any;
+  highlight: boolean;
+  format?: (v: any) => string;
+  type?: 'tags' | 'status';
+  best?: 'max' | 'count';
+}
+
+const COMPARE_FIELDS: CompareField[] = [
   { key: 'job_title', label: 'Current Role', icon: Briefcase, highlight: false },
-  { key: 'experience_years', label: 'Experience', icon: TrendingUp, highlight: true, format: (v: any) => v ? `${v} year${v !== 1 ? 's' : ''}` : '—', best: 'max' as const },
+  { key: 'experience_years', label: 'Experience', icon: TrendingUp, highlight: true, format: (v: any) => v ? `${v} year${v !== 1 ? 's' : ''}` : '—', best: 'max' },
   { key: 'expected_salary', label: 'Expected Salary', icon: Star, highlight: false, format: (v: any) => v || '—' },
-  { key: 'availability_status', label: 'Availability', icon: Clock, highlight: false, type: 'status' as const },
+  { key: 'availability_status', label: 'Availability', icon: Clock, highlight: false, type: 'status' },
   { key: 'notice_period', label: 'Notice Period', icon: Clock, highlight: false, format: (v: any) => v || '—' },
   { key: 'remote_preference', label: 'Work Mode', icon: MapPin, highlight: false, format: (v: any) => v ? v.replace(/_/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()) : '—' },
   { key: 'city', label: 'Location', icon: MapPin, highlight: false, format: (v: any) => v || '—' },
-  { key: 'skills', label: 'Skills', icon: Zap, type: 'tags' as const, highlight: true, best: 'count' as const },
-  { key: 'certifications', label: 'Certifications', icon: GraduationCap, type: 'tags' as const, highlight: true, best: 'count' as const },
+  { key: 'skills', label: 'Skills', icon: Zap, type: 'tags', highlight: true, best: 'count' },
+  { key: 'certifications', label: 'Certifications', icon: GraduationCap, type: 'tags', highlight: true, best: 'count' },
 ];
 
 function computeScore(c: CompareCandidate): number {
