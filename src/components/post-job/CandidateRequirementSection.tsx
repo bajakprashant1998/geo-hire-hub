@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Switch } from '@/components/ui/switch';
-import { ChevronDown, ChevronUp, Plus, X, Sparkles, Loader2, Users, Info, GraduationCap, Award } from 'lucide-react';
+import { ChevronDown, ChevronUp, Plus, X, Sparkles, Loader2, Users, Info, GraduationCap, Award, Gift } from 'lucide-react';
 import { CURRENCIES, getCurrencyByCode } from '@/lib/currencies';
 
 interface CandidateRequirementSectionProps {
