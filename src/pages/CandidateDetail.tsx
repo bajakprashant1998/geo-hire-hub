@@ -539,23 +539,15 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
                 </SectionCard>
               )}
 
-              {/* Skills */}
+              {/* Skills & Endorsements */}
               {candidate.skills && candidate.skills.length > 0 && (
-                <SectionCard title="Skills & Expertise" icon={Zap} delay={0.1}
+                <SectionCard title="Skills & Endorsements" icon={Zap} delay={0.1}
                   badge={<Badge variant="secondary" className="text-[10px]">{candidate.skills.length} skills</Badge>}>
-                  <div className="flex flex-wrap gap-2">
-                    {candidate.skills.map((skill, i) => (
-                      <motion.span
-                        key={i}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.1 + i * 0.02 }}
-                        className="px-3 py-1.5 text-xs font-medium bg-primary/5 text-primary rounded-lg border border-primary/10 hover:bg-primary/10 hover:border-primary/20 transition-all cursor-default"
-                      >
-                        {skill}
-                      </motion.span>
-                    ))}
-                  </div>
+                  <SkillEndorsements
+                    candidateId={candidate.id}
+                    skills={candidate.skills}
+                    isOwnProfile={isOwnProfile}
+                  />
                 </SectionCard>
               )}
 
