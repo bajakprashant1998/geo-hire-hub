@@ -1,6 +1,5 @@
 import { useState, useMemo, lazy, Suspense, useCallback, useEffect } from 'react';
 import { SEOHead } from '@/components/SEOHead';
-import { SEOContentFooter } from '@/components/SEOContentFooter';
 import { ViewMode, Candidate, Job } from '@/types';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { useMapData } from '@/hooks/useMapData';
