@@ -12,6 +12,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { SEOHead } from '@/components/SEOHead';
 import { BreadcrumbNav, buildBreadcrumbJsonLd } from '@/components/BreadcrumbNav';
 import { SalaryBadge } from '@/components/SalaryBadge';
+import { DeadlineCountdown } from '@/components/DeadlineCountdown';
 
 const PAGE_SIZE = 20;
 
@@ -39,7 +40,7 @@ const BrowseJobs = () => {
 
     let query = supabase
       .from('jobs')
-      .select('id, title, job_type, salary_range, created_at, job_address, slug, location_country, location_state, location_city, employers!inner(company_name)', { count: 'exact' })
+      .select('id, title, job_type, salary_range, created_at, job_address, slug, location_country, location_state, location_city, expires_at, employers!inner(company_name)', { count: 'exact' })
       .eq('status', 'open')
       .eq('is_active', true)
       .order('created_at', { ascending: false })
@@ -181,6 +182,7 @@ const BrowseJobs = () => {
                               <MapPin className="w-3 h-3" />{job.job_address}
                             </span>
                           )}
+                          {job.expires_at && <DeadlineCountdown expiresAt={job.expires_at} variant="inline" />}
                         </div>
                       </div>
                       <span className="text-xs text-muted-foreground whitespace-nowrap flex items-center gap-1">

@@ -72,6 +72,7 @@ import { SEOHead } from '@/components/SEOHead';
 import { BreadcrumbNav, buildBreadcrumbJsonLd } from '@/components/BreadcrumbNav';
 import type { BreadcrumbItem } from '@/components/BreadcrumbNav';
 import { SalaryBadge } from '@/components/SalaryBadge';
+import { DeadlineCountdown } from '@/components/DeadlineCountdown';
 
 interface JobDetails {
   id: string;
@@ -114,6 +115,7 @@ interface JobDetails {
   job_address: string | null;
   job_category: string | null;
   referral_bounty: number | null;
+  expires_at: string | null;
   employer: {
     id: string;
     company_name: string;
@@ -585,6 +587,7 @@ const JobDetail = () => {
                 <Flame className="w-3 h-3" /> Urgent Hiring
               </Badge>
             )}
+            {job.expires_at && <DeadlineCountdown expiresAt={job.expires_at} />}
           </div>
 
           {/* Title */}
@@ -681,6 +684,9 @@ const JobDetail = () => {
               </div>
             ) : (
               <>
+                {job.expires_at && (
+                  <DeadlineCountdown expiresAt={job.expires_at} variant="card" className="mb-3" />
+                )}
                 <div>
                   <p className="font-semibold text-foreground">Interested in this role?</p>
                   <p className="text-sm text-muted-foreground">Apply now and take the next step in your career</p>
