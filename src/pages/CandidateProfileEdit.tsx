@@ -741,7 +741,16 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                                         <Input type="number" min={0} max={50} value={experienceYears} onChange={e => setExperienceYears(Number(e.target.value))} className="bg-background/50" /></div>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label className="text-sm font-medium">About / Summary</Label>
+                                    <div className="flex items-center justify-between">
+                                        <Label className="text-sm font-medium">About / Summary</Label>
+                                        <AIGenerateButton
+                                            type="summary"
+                                            context={{ jobTitle, skills, experienceYears, currentCompany }}
+                                            onGenerated={setBio}
+                                            label="AI Write"
+                                            disabled={!jobTitle.trim() || jobTitle === 'Not specified'}
+                                        />
+                                    </div>
                                     <Textarea value={bio} onChange={e => setBio(e.target.value)} placeholder="Write a brief professional summary..." rows={4} className="bg-background/50" />
                                     <div className="flex items-center justify-between">
                                         <p className="text-[11px] text-muted-foreground">{bio?.length || 0} characters</p>
