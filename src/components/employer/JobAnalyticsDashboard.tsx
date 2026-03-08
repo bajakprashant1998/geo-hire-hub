@@ -249,9 +249,84 @@ export const JobAnalyticsDashboard = ({ employerId }: JobAnalyticsDashboardProps
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
         <StatCard title="Total Views" value={totalViews.toLocaleString()} icon={Eye} />
         <StatCard title="Applications" value={totalApps} icon={Users} variant="success" />
+        <StatCard title="Interviews" value={totalInterviews} icon={Calendar} />
+        <StatCard title="Hired" value={totalHired} icon={CheckCircle2} variant="success" />
         <StatCard title="Conversion Rate" value={conversionRate} icon={TrendingUp} suffix="%" />
         <StatCard title="Active Jobs" value={activeJobs} icon={Briefcase} />
       </div>
+
+      {/* Hiring Funnel Analytics */}
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}>
+        <Card className="border border-border overflow-hidden">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-primary/10">
+                <Filter className="h-4 w-4 text-primary" />
+              </div>
+              Hiring Funnel
+            </CardTitle>
+            <CardDescription className="text-xs">Conversion rates across every stage of your pipeline</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {totalViews > 0 || totalApps > 0 ? (
+              <div className="space-y-1">
+                {hiringFunnel.map((stage, i) => {
+                  const maxVal = hiringFunnel[0].value || 1;
+                  const widthPercent = Math.max(8, (stage.value / maxVal) * 100);
+                  return (
+                    <div key={stage.label}>
+                      {/* Conversion arrow between stages */}
+                      {stage.conversionFromPrev !== null && (
+                        <div className="flex items-center justify-center py-1">
+                          <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-muted/60">
+                            <ArrowUpRight className="w-3 h-3 text-muted-foreground rotate-90" />
+                            <span className="text-[10px] font-bold text-foreground tabular-nums">
+                              {stage.conversionFromPrev}%
+                            </span>
+                            <span className="text-[10px] text-muted-foreground">conversion</span>
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 w-24 sm:w-28 shrink-0">
+                          <stage.icon className="w-4 h-4 shrink-0" style={{ color: stage.color }} />
+                          <span className="text-xs font-medium text-foreground">{stage.label}</span>
+                        </div>
+                        <div className="flex-1 relative h-9 flex items-center">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${widthPercent}%` }}
+                            transition={{ delay: 0.2 + i * 0.12, duration: 0.6, ease: 'easeOut' }}
+                            className="h-full rounded-lg flex items-center justify-end px-3"
+                            style={{ 
+                              background: `linear-gradient(90deg, ${stage.color}22, ${stage.color}55)`,
+                              border: `1px solid ${stage.color}40`,
+                            }}
+                          >
+                            <span className="text-xs font-bold text-foreground tabular-nums whitespace-nowrap">
+                              {stage.value.toLocaleString()}
+                            </span>
+                          </motion.div>
+                        </div>
+                        {stage.overallConversion !== null && (
+                          <span className="text-[10px] text-muted-foreground w-14 text-right tabular-nums shrink-0">
+                            {stage.overallConversion}% total
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Filter className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                <p className="text-sm">Post jobs and get views to see your funnel</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Top Performer + Application Funnel */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
