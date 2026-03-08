@@ -64,6 +64,7 @@ const navSections = [
       { href: '/admin/applications', label: 'Applications', icon: Briefcase },
       { href: '/admin/categories', label: 'Categories', icon: Globe },
       { href: '/admin/content-seo', label: 'Content & SEO', icon: FileText },
+      { href: '/admin/seo-agent', label: 'SEO AI Agent', icon: Bot },
     ],
   },
   {
