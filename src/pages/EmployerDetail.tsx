@@ -897,8 +897,15 @@ const EmployerDetail = ({ id: propId }: { id?: string }) => {
 
       {/* Company Reviews */}
       {employer && (
-        <div className="max-w-5xl mx-auto px-4 pb-8">
+        <div className="max-w-5xl mx-auto px-4 pb-4">
           <CompanyReviews employerId={employer.id} companyName={employer.company_name} />
+        </div>
+      )}
+
+      {/* Company Q&A Forum */}
+      {employer && (
+        <div className="max-w-5xl mx-auto px-4 pb-8">
+          <CompanyQAForum employerId={employer.id} companyName={employer.company_name} />
         </div>
       )}
     </div>
