@@ -298,6 +298,7 @@ const EmployerDashboard = () => {
     { icon: Bell, label: 'Notifications', value: 'notifications', badge: stats.notificationCount },
     { icon: Shield, label: 'Security', value: 'security' },
     { icon: Sparkles, label: 'AI Screening', value: 'ai-screening' },
+    { icon: FileEdit, label: 'JD Optimizer', value: 'jd-optimizer' },
     { icon: CheckCircle2, label: 'Assessments', value: 'assessments' },
     { icon: CreditCard, label: 'Upgrade Plan', value: 'upgrade-plan' }
   ];
