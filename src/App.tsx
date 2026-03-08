@@ -216,6 +216,7 @@ const App = () => (
             </Suspense>
             </ErrorBoundary>
             </LocationGate>
+            <LiveChatWidget />
           </MessageNotificationProvider>
         </BrowserRouter>
       </TooltipProvider>
