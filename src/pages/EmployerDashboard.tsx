@@ -848,13 +848,24 @@ const EmployerDashboard = () => {
         return employer && <SkillAssessmentManager employerId={employer.id} />;
       case 'spotlight':
         return employer && <SpotlightStories employerId={employer.id} companyName={employer.company_name} isOwner />;
+      case 'offer-letters':
+        return employer && <OfferLetterGenerator employerId={employer.id} companyName={employer.company_name} />;
+      case 'compare-candidates':
+        return employer && <CandidateComparisonBoard employerId={employer.id} />;
+      case 'interview-feedback':
+        return employer && <InterviewFeedbackForms employerId={employer.id} />;
+      case 'talent-pool':
+        return employer && <TalentPoolCRM employerId={employer.id} />;
+      case 'ab-testing':
+        return employer && <JobABTesting employerId={employer.id} />;
+      case 'team-notes':
+        return employer && <TeamCollaborationNotes employerId={employer.id} />;
       case 'post-job':
         return <PostJob embedded />;
       default:
         return null;
     }
   };
-
   return (
     <EmailVerificationGuard fallbackMessage="Please verify your email to access your employer dashboard.">
       <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/80 flex overflow-x-hidden">
