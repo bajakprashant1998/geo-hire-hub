@@ -65,7 +65,7 @@ const LocationMapPickerInner = ({
   useEffect(() => {
     if (!placesLib || !inputRef.current) return;
     const ac = new placesLib.Autocomplete(inputRef.current, {
-      fields: ['geometry', 'formatted_address', 'name'],
+      fields: ['geometry', 'formatted_address', 'name', 'address_components'],
     });
     ac.addListener('place_changed', () => {
       const place = ac.getPlace();
