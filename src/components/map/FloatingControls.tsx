@@ -69,6 +69,8 @@ const FAB = ({
 export const FloatingControls = ({
   onCenterOnUser, onToggleSidebar, radius, onRadiusChange, onSearch, searchQuery,
   heatmapEnabled = false, onHeatmapToggle,
+  salaryHeatmapEnabled = false, onSalaryHeatmapToggle,
+  salaryRoleFilter = '', onSalaryRoleFilterChange,
 }: FloatingControlsProps) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const radiusCycle = [5, 10, 25, 50, 100, 500];
