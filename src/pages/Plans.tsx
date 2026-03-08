@@ -314,9 +314,9 @@ const PlanCard = ({
                 transition={{ duration: 0.25 }}
                 className="flex items-baseline justify-center gap-1"
               >
-                {!isFree && <span className="text-lg text-muted-foreground font-medium">$</span>}
+                {!isFree && <span className="text-lg text-muted-foreground font-medium">{currencySymbol}</span>}
                 <span className="text-5xl font-extrabold text-foreground tabular-nums tracking-tight">
-                  {isFree ? 'Free' : price.toFixed(price % 1 === 0 ? 0 : 2)}
+                  {isFree ? 'Free' : (EXCHANGE_RATES[currency]?.rate >= 50 ? Math.round(price).toLocaleString() : price.toFixed(price % 1 === 0 ? 0 : 2))}
                 </span>
                 {!isFree && <span className="text-muted-foreground text-sm font-medium">/mo</span>}
               </motion.div>
