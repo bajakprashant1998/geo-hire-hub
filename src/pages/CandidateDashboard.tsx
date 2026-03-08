@@ -50,6 +50,7 @@ import { TakeAssessment } from '@/components/candidate/TakeAssessment';
 import { AssessmentHub } from '@/components/candidate/AssessmentHub';
 import { InterviewPrepCoach } from '@/components/candidate/InterviewPrepCoach';
 import { MarketValueScore } from '@/components/candidate/MarketValueScore';
+import { SalaryNegotiationCoach } from '@/components/candidate/SalaryNegotiationCoach';
 import { ProfileBadges } from '@/components/candidate/ProfileBadges';
 import { CandidateLeaderboard } from '@/components/candidate/CandidateLeaderboard';
 import { FollowUpReminders } from '@/components/candidate/FollowUpReminders';
@@ -241,6 +242,7 @@ const CandidateDashboard = () => {
     { icon: Shield, label: 'Security', value: 'security' },
     { icon: Zap, label: 'Auto Apply', value: 'auto-apply' },
     { icon: Banknote, label: 'Salary Insights', value: 'salary-insights' },
+    { icon: Banknote, label: 'Negotiation Coach', value: 'negotiation-coach' },
     { icon: Bot, label: 'Talk to My Buddy', value: 'career-buddy' },
     { icon: TrendingUp, label: 'Application Tracker', value: 'app-tracker' },
     { icon: Star, label: 'Referrals & Rewards', value: 'referrals' },
@@ -556,6 +558,7 @@ const CandidateDashboard = () => {
       case 'culture-match': return <CultureMatchScore candidateId={candidate.id} />;
       case 'smart-digest': return <SmartNotificationDigest />;
       case 'watchlist': return candidate && <CompanyWatchlist candidateId={candidate.id} />;
+      case 'negotiation-coach': return <SalaryNegotiationCoach candidateId={candidate.id} />;
       default: return null;
     }
   };

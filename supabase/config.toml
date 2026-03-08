@@ -71,3 +71,6 @@ verify_jwt = false
 
 [functions.ai-content-moderator]
 verify_jwt = false
+
+[functions.salary-negotiation-coach]
+verify_jwt = false
