@@ -85,6 +85,8 @@ export const LeftSidebarPanel = ({
   onCenterOnUser, userLocation, onClose,
   filters = defaultFilters, onFiltersChange,
   heatmapEnabled = false, onHeatmapToggle,
+  salaryHeatmapEnabled = false, onSalaryHeatmapToggle,
+  salaryRoleFilter = '', onSalaryRoleFilterChange,
 }: LeftSidebarPanelProps) => {
   const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
