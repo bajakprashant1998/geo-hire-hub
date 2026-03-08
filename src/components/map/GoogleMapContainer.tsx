@@ -33,6 +33,7 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
     mode, candidates, jobs, userLocation, radius,
     onMarkerClick, selectedItem, isEmployer,
     centerTrigger = 0, heatmapEnabled = false,
+    salaryHeatmapEnabled = false, salaryRoleFilter = '',
   } = props;
 
   const map = useMap();
