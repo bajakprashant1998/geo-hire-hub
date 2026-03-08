@@ -516,6 +516,7 @@ const CandidateDashboard = () => {
         </div>
       );
       case 'interview-prep': return <InterviewPrepCoach candidateId={candidate.id} />;
+      case 'market-value': return <MarketValueScore />;
       default: return null;
     }
   };
