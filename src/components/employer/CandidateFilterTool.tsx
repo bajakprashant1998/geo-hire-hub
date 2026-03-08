@@ -297,8 +297,21 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
     return Math.min(Math.round(score), 100);
   };
 
+  // Unique jobs list for the job filter dropdown
+  const uniqueJobs = useMemo(() => {
+    const jobMap = new Map<string, string>();
+    candidates.forEach(c => {
+      if (c.jobId && c.jobTitle_applied) jobMap.set(c.jobId, c.jobTitle_applied);
+    });
+    return Array.from(jobMap.entries()).map(([id, title]) => ({ id, title }));
+  }, [candidates]);
+
   const filteredCandidates = useMemo(() => {
     let result = [...candidates];
+    // Job filter
+    if (filters.jobId && filters.jobId !== 'all') {
+      result = result.filter(c => c.jobId === filters.jobId);
+    }
     if (filters.search) {
       const q = filters.search.toLowerCase();
       result = result.filter(c => c.fullName.toLowerCase().includes(q) || c.jobTitle.toLowerCase().includes(q) || c.skills.some(s => s.toLowerCase().includes(q)));
