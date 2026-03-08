@@ -47,6 +47,7 @@ import { JobRadar } from '@/components/candidate/JobRadar';
 import { ApplicationTracker } from '@/components/candidate/ApplicationTracker';
 import { ReferralDashboard } from '@/components/candidate/ReferralDashboard';
 import { TakeAssessment } from '@/components/candidate/TakeAssessment';
+import { AssessmentHub } from '@/components/candidate/AssessmentHub';
 import { InterviewPrepCoach } from '@/components/candidate/InterviewPrepCoach';
 import { MarketValueScore } from '@/components/candidate/MarketValueScore';
 import { ProfileBadges } from '@/components/candidate/ProfileBadges';
@@ -539,10 +540,7 @@ const CandidateDashboard = () => {
         </Suspense>
       );
       case 'assessments': return (
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Skill Assessments</h2>
-          <p className="text-sm text-muted-foreground">Take assessments linked to jobs you've applied for. Check job details for available assessments.</p>
-        </div>
+        <AssessmentHub candidateId={candidate.id} />
       );
       case 'interview-prep': return <InterviewPrepCoach candidateId={candidate.id} />;
       case 'market-value': return <MarketValueScore />;
