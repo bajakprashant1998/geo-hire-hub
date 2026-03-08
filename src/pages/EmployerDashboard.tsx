@@ -315,6 +315,7 @@ const EmployerDashboard = () => {
     { icon: Database, label: 'Talent Pool', value: 'talent-pool' },
     { icon: FlaskConical, label: 'A/B Testing', value: 'ab-testing' },
     { icon: MessageCircle, label: 'Team Notes', value: 'team-notes' },
+    { icon: Sparkles, label: 'Accessibility Check', value: 'accessibility-check' },
     { icon: CreditCard, label: 'Upgrade Plan', value: 'upgrade-plan' }
   ];
 
