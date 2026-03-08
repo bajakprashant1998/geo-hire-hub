@@ -5,6 +5,7 @@ import { Map as GoogleMapView, AdvancedMarker, useMap, InfoWindow } from '@vis.g
 import { MarkerClusterer, type Cluster } from '@googlemaps/markerclusterer';
 import { ViewMode, Candidate, Job } from '@/types';
 import { GoogleMapsProvider } from '@/components/map/GoogleMapsProvider';
+import { SalaryHeatmapOverlay } from '@/components/map/SalaryHeatmapOverlay';
 
 
 // Map ID required for AdvancedMarkerElement — use a generic one or your own
