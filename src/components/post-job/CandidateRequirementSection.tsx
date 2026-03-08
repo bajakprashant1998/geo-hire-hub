@@ -73,6 +73,7 @@ export const CandidateRequirementSection = ({
   salaryMin, setSalaryMin,
   salaryMax, setSalaryMax,
   hasBonus, setHasBonus,
+  referralBounty, setReferralBounty,
   description, setDescription,
   skills, setSkills,
   gender, setGender,
