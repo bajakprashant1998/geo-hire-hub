@@ -759,12 +759,80 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
       </AnimatePresence>
 
       {activeFilterCount > 0 && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-2">
           <Button variant="ghost" size="sm" onClick={clearFilters} className="w-full text-xs text-destructive hover:text-destructive hover:bg-destructive/5 rounded-xl gap-1.5">
             <X className="w-3.5 h-3.5" /> Clear all filters ({activeFilterCount})
           </Button>
+          <Button variant="outline" size="sm" onClick={() => setSaveSearchOpen(true)} className="w-full text-xs rounded-xl gap-1.5 border-primary/20 text-primary hover:bg-primary/5">
+            <Bell className="w-3.5 h-3.5" /> Save as alert
+          </Button>
         </motion.div>
       )}
+
+      {/* Saved Searches List */}
+      {savedSearches.length > 0 && (
+        <div className="pt-3 border-t border-border/50">
+          <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">Saved Alerts</p>
+          <div className="space-y-1.5">
+            {savedSearches.slice(0, 5).map(s => (
+              <div key={s.id} className="flex items-center gap-1.5 group">
+                <button
+                  onClick={() => { setFilters({ ...defaultFilters, ...s.filters }); }}
+                  className="flex-1 text-left text-xs text-foreground hover:text-primary truncate"
+                  title={s.name}
+                >
+                  <Bell className={cn('w-3 h-3 inline mr-1', s.is_active ? 'text-primary' : 'text-muted-foreground')} />
+                  {s.name}
+                  {s.matched_count > 0 && (
+                    <span className="ml-1 text-[10px] text-muted-foreground">({s.matched_count})</span>
+                  )}
+                </button>
+                <button onClick={() => toggleSearchActive(s.id, s.is_active)} className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5" title={s.is_active ? 'Pause' : 'Resume'}>
+                  {s.is_active ? <Bell className="w-3 h-3 text-primary" /> : <Bell className="w-3 h-3 text-muted-foreground" />}
+                </button>
+                <button onClick={() => deleteSearch(s.id)} className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5" title="Delete">
+                  <X className="w-3 h-3 text-destructive" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Save Search Dialog */}
+      <Dialog open={saveSearchOpen} onOpenChange={setSaveSearchOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2"><Bell className="w-5 h-5 text-primary" /> Save Search Alert</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div>
+              <p className="text-sm text-muted-foreground mb-3">
+                Get notified via push & email when new candidates match your current filters.
+              </p>
+              <Input
+                placeholder="Alert name (e.g. Senior React Devs)"
+                value={searchName}
+                onChange={e => setSearchName(e.target.value)}
+                className="rounded-xl"
+                onKeyDown={e => e.key === 'Enter' && handleSaveSearch()}
+              />
+            </div>
+            {activeFilterCount > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {activeFilterChips.slice(0, 5).map(c => (
+                  <Badge key={c.key} variant="secondary" className="text-[10px]">{c.label}</Badge>
+                ))}
+                {activeFilterChips.length > 5 && <Badge variant="outline" className="text-[10px]">+{activeFilterChips.length - 5} more</Badge>}
+              </div>
+            )}
+            <Button onClick={handleSaveSearch} disabled={savingSearch || !searchName.trim()} className="w-full rounded-xl gap-2">
+              {savingSearch ? <Loader2 className="w-4 h-4 animate-spin" /> : <BookmarkPlus className="w-4 h-4" />}
+              Save Alert
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 
