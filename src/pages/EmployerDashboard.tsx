@@ -951,108 +951,123 @@ const EmployerDashboard = () => {
                 )}
               </motion.div>
             ) : (
-              <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
+              <div className="max-w-6xl mx-auto space-y-4 sm:space-y-5">
                 <PlatformNotificationBanner userType="employer" />
 
-                {employer && (
-                  <EmployerProfileCompletionPrompts employer={employer} jobCount={jobs.length} />
-                )}
-
-                {/* Bento Grid Layout */}
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-4">
-                  {/* Row 1: Stat Cards */}
-                  <div className="col-span-1">
-                    <DashboardStatCard icon={Briefcase} label="Active Jobs" value={stats.activeJobs} subtitle="currently open" accentColor="blue" onClick={() => setActiveSection('jobs')} delay={0} />
-                  </div>
-                  <div className="col-span-1">
-                    <DashboardStatCard icon={Users} label="Applications" value={stats.totalApplications} subtitle="across all jobs" accentColor="amber" onClick={() => setActiveSection('jobs')} delay={1} />
-                  </div>
-                  <div className="col-span-1">
-                    <DashboardStatCard icon={Calendar} label="Interviews" value={stats.scheduledInterviews} subtitle="upcoming" accentColor="green" onClick={() => setActiveSection('interviews')} delay={2} />
-                  </div>
-                  <div className="col-span-1">
-                    <DashboardStatCard icon={Eye} label="Profile Views" value={stats.profileViews} subtitle="all time" accentColor="purple" delay={3} />
-                  </div>
-
-                  {/* Hero Welcome Card (desktop only) */}
+                {/* Welcome Banner + Stats Row */}
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 sm:gap-4">
+                  {/* Welcome Card */}
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4, type: 'spring', stiffness: 120, damping: 16 }}
-                    className="hidden lg:flex col-span-2 row-span-1 relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary to-primary/70 p-5 flex-col justify-between border border-primary/20"
+                    transition={{ delay: 0.1, type: 'spring', stiffness: 120, damping: 16 }}
+                    className="lg:col-span-2 relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary to-primary/70 p-5 sm:p-6 flex flex-col justify-between border border-primary/20 min-h-[160px]"
                   >
                     <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
                     <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full blur-2xl" />
                     <div className="relative z-10">
-                      <p className="text-primary-foreground/80 text-xs font-semibold uppercase tracking-wider mb-1">Welcome back</p>
-                      <h3 className="text-xl font-bold text-primary-foreground leading-tight">
-                        {employer?.company_name || 'Your Company'} 👋
+                      <p className="text-primary-foreground/70 text-[11px] font-semibold uppercase tracking-wider mb-1.5">
+                        {(() => { const h = new Date().getHours(); return h < 12 ? '🌅 Good morning' : h < 17 ? '☀️ Good afternoon' : '🌙 Good evening'; })()}
+                      </p>
+                      <h3 className="text-xl sm:text-2xl font-bold text-primary-foreground leading-tight">
+                        {employer?.company_name || 'Your Company'}
                       </h3>
-                      <p className="text-primary-foreground/70 text-sm mt-1.5 leading-snug">
-                        {stats.activeJobs > 0
-                          ? `You have ${stats.activeJobs} active job${stats.activeJobs > 1 ? 's' : ''} and ${stats.totalApplications} application${stats.totalApplications !== 1 ? 's' : ''} waiting.`
-                          : 'Post your first job to start receiving applications from top talent.'}
+                      <p className="text-primary-foreground/60 text-sm mt-2 leading-relaxed max-w-xs">
+                        {stats.totalApplications > 0
+                          ? `${stats.totalApplications} new application${stats.totalApplications !== 1 ? 's' : ''} waiting for review across ${stats.activeJobs} active job${stats.activeJobs !== 1 ? 's' : ''}.`
+                          : stats.activeJobs > 0
+                            ? `Your ${stats.activeJobs} job${stats.activeJobs > 1 ? 's are' : ' is'} live and attracting candidates.`
+                            : 'Post your first job to start receiving applications from top talent.'}
                       </p>
                     </div>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      className="relative z-10 mt-3 w-fit rounded-xl text-xs font-semibold shadow-lg"
-                      onClick={() => setActiveSection('post-job')}
-                    >
-                      <Plus className="w-3.5 h-3.5 mr-1" />
-                      Post a Job
-                    </Button>
+                    <div className="relative z-10 flex items-center gap-2 mt-4">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="rounded-xl text-xs font-semibold shadow-lg gap-1.5"
+                        onClick={() => setActiveSection('post-job')}
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        Post a Job
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="rounded-xl text-xs font-medium text-primary-foreground/70 hover:text-primary-foreground hover:bg-white/10 gap-1.5"
+                        onClick={() => setActiveSection('candidates')}
+                      >
+                        <Search className="w-3.5 h-3.5" />
+                        Find Talent
+                      </Button>
+                    </div>
                   </motion.div>
+
+                  {/* Stat Cards Grid */}
+                  <div className="lg:col-span-3 grid grid-cols-2 gap-2 sm:gap-3">
+                    <DashboardStatCard icon={Briefcase} label="Active Jobs" value={stats.activeJobs} subtitle="currently open" accentColor="blue" onClick={() => setActiveSection('jobs')} delay={0} />
+                    <DashboardStatCard icon={Users} label="Applications" value={stats.totalApplications} subtitle="across all jobs" accentColor="amber" onClick={() => setActiveSection('jobs')} delay={1} />
+                    <DashboardStatCard icon={Calendar} label="Interviews" value={stats.scheduledInterviews} subtitle="upcoming" accentColor="green" onClick={() => setActiveSection('interviews')} delay={2} />
+                    <DashboardStatCard icon={Eye} label="Profile Views" value={stats.profileViews} subtitle="all time" accentColor="purple" delay={3} />
+                  </div>
                 </div>
 
-                {/* Quick Actions Grid */}
+                {/* Profile Completion (compact inline) */}
+                {employer && (employer.profile_completeness || 0) < 80 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.25 }}
+                  >
+                    <EmployerProfileCompletionPrompts employer={employer} jobCount={jobs.length} />
+                  </motion.div>
+                )}
+
+                {/* Quick Actions — Compact row */}
                 <motion.div
-                  initial={{ opacity: 0, y: 16 }}
+                  initial={{ opacity: 0, y: 14 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl p-4 overflow-hidden"
+                  className="relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl p-3 sm:p-4 overflow-hidden"
                 >
-                  <div className="absolute -top-16 -right-16 w-40 h-40 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-                  <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-[hsl(262,83%,58%)]/10 rounded-full blur-3xl pointer-events-none" />
+                  <div className="absolute -top-16 -right-16 w-40 h-40 bg-primary/8 rounded-full blur-3xl pointer-events-none" />
                   <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 dark:ring-white/5 pointer-events-none" />
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 relative z-10">Quick Actions</p>
-                  <div className="grid grid-cols-4 lg:grid-cols-8 gap-2 relative z-10">
+                  <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-2.5 relative z-10">Quick Actions</p>
+                  <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5 sm:gap-2 relative z-10">
                     {[
                       { icon: Plus, label: 'Create Job', onClick: () => setActiveSection('post-job'), color: 'text-primary', bg: 'bg-primary/10' },
-                      { icon: Briefcase, label: 'My Jobs', onClick: () => setActiveSection('jobs'), color: 'text-[hsl(217,89%,61%)]', bg: 'bg-[hsl(217,89%,61%)]/10' },
+                      { icon: Briefcase, label: 'My Jobs', onClick: () => setActiveSection('jobs'), color: 'text-primary', bg: 'bg-primary/8' },
                       { icon: Filter, label: 'Find Talent', onClick: () => setActiveSection('candidates'), color: 'text-success', bg: 'bg-success/10' },
                       { icon: MessageSquare, label: 'Messages', onClick: () => setActiveSection('chat'), color: 'text-[hsl(262,83%,58%)]', bg: 'bg-[hsl(262,83%,58%)]/10' },
                       { icon: Calendar, label: 'Interviews', onClick: () => setActiveSection('interviews'), color: 'text-warning-foreground', bg: 'bg-warning/10' },
                       { icon: BarChart3, label: 'Analytics', onClick: () => setActiveSection('analytics'), color: 'text-primary', bg: 'bg-primary/10' },
-                      { icon: FileEdit, label: 'Drafts', onClick: () => setActiveSection('drafts'), color: 'text-success', bg: 'bg-success/10' },
-                      { icon: Users, label: 'Tasks', onClick: () => setActiveSection('tasks'), color: 'text-[hsl(262,83%,58%)]', bg: 'bg-[hsl(262,83%,58%)]/10' },
+                      { icon: Sparkles, label: 'AI Screen', onClick: () => setActiveSection('ai-screening'), color: 'text-[hsl(262,83%,58%)]', bg: 'bg-[hsl(262,83%,58%)]/10' },
+                      { icon: Building2, label: 'Company', onClick: () => setActiveSection('company'), color: 'text-success', bg: 'bg-success/10' },
                     ].map((action, i) => (
                       <motion.button
                         key={action.label}
-                        initial={{ opacity: 0, y: 12 }}
+                        initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.35 + i * 0.04 }}
-                        whileHover={{ scale: 1.03, y: -2 }}
+                        transition={{ delay: 0.32 + i * 0.03 }}
+                        whileHover={{ scale: 1.04, y: -2 }}
                         whileTap={{ scale: 0.96 }}
                         onClick={action.onClick}
-                        className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-card/70 backdrop-blur-md border border-border/30 hover:border-border/60 hover:shadow-lg transition-all"
+                        className="flex flex-col items-center gap-1 p-2.5 sm:p-3 rounded-xl bg-card/70 backdrop-blur-md border border-border/30 hover:border-border/60 hover:shadow-md transition-all"
                       >
-                        <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center", action.bg)}>
-                          <action.icon className={cn("w-5 h-5", action.color)} />
+                        <div className={cn("w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center", action.bg)}>
+                          <action.icon className={cn("w-4 h-4 sm:w-5 sm:h-5", action.color)} />
                         </div>
-                        <span className="text-[10px] sm:text-[11px] font-semibold text-muted-foreground">{action.label}</span>
+                        <span className="text-[9px] sm:text-[10px] font-semibold text-muted-foreground leading-tight">{action.label}</span>
                       </motion.button>
                     ))}
                   </div>
                 </motion.div>
 
-                {/* Active Jobs + Hiring Pipeline — Glassmorphism bento */}
+                {/* Active Jobs + Hiring Pipeline */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
                   <motion.div
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
+                    transition={{ delay: 0.38 }}
                     className="lg:col-span-2 relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl overflow-hidden"
                   >
                     <div className="absolute -top-12 -left-12 w-36 h-36 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
@@ -1069,7 +1084,7 @@ const EmployerDashboard = () => {
                   <motion.div
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
+                    transition={{ delay: 0.44 }}
                     className="relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl overflow-hidden"
                   >
                     <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-success/10 rounded-full blur-3xl pointer-events-none" />
@@ -1080,8 +1095,20 @@ const EmployerDashboard = () => {
                   </motion.div>
                 </div>
 
-                {/* Pending Tasks + Recent Activity */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
+                {/* Interviews + Pending Tasks row */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl overflow-hidden"
+                  >
+                    <div className="absolute -bottom-16 -right-16 w-48 h-48 bg-[hsl(262,83%,58%)]/10 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 dark:ring-white/5 pointer-events-none" />
+                    <div className="relative z-10 p-1">
+                      {employer && <EmployerInterviewsCard employerId={employer.id} />}
+                    </div>
+                  </motion.div>
                   <motion.div
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -1101,32 +1128,20 @@ const EmployerDashboard = () => {
                       )}
                     </div>
                   </motion.div>
-                  <motion.div
-                    initial={{ opacity: 0, y: 16 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6 }}
-                    className="lg:col-span-2 relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl overflow-hidden"
-                  >
-                    <div className="absolute -top-16 -right-16 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-                    <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 dark:ring-white/5 pointer-events-none" />
-                    <div className="relative z-10 p-4 sm:p-5">
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Recent Activity</p>
-                      {employer && profile && <RecentActivityFeed employerId={employer.id} profileId={profile.id} />}
-                    </div>
-                  </motion.div>
                 </div>
 
-                {/* Interviews Card */}
+                {/* Recent Activity — full width */}
                 <motion.div
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.65 }}
+                  transition={{ delay: 0.6 }}
                   className="relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl overflow-hidden"
                 >
-                  <div className="absolute -bottom-16 -right-16 w-48 h-48 bg-[hsl(262,83%,58%)]/10 rounded-full blur-3xl pointer-events-none" />
+                  <div className="absolute -top-16 -right-16 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
                   <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 dark:ring-white/5 pointer-events-none" />
-                  <div className="relative z-10 p-1">
-                    {employer && <EmployerInterviewsCard employerId={employer.id} />}
+                  <div className="relative z-10 p-4 sm:p-5">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Recent Activity</p>
+                    {employer && profile && <RecentActivityFeed employerId={employer.id} profileId={profile.id} />}
                   </div>
                 </motion.div>
               </div>
