@@ -3997,8 +3997,6 @@ export type Database = {
         }
         Returns: string
       }
-      show_limit: { Args: never; Returns: number }
-      show_trgm: { Args: { "": string }; Returns: string[] }
       track_category_usage: {
         Args: { p_category_name: string; p_is_selection?: boolean }
         Returns: undefined
