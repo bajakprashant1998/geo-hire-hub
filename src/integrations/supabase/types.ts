@@ -4043,6 +4043,10 @@ export type Database = {
         }
         Returns: string
       }
+      process_referral_signup: {
+        Args: { p_new_user_profile_id: string; p_referral_code: string }
+        Returns: undefined
+      }
       track_category_usage: {
         Args: { p_category_name: string; p_is_selection?: boolean }
         Returns: undefined
