@@ -33,6 +33,7 @@ import { TimingsSection } from '@/components/post-job/TimingsSection';
 import { CompanyInfoSection } from '@/components/post-job/CompanyInfoSection';
 import { JobPreviewStep } from '@/components/post-job/JobPreviewStep';
 import { PerformanceInsightsPanel } from '@/components/post-job/PerformanceInsightsPanel';
+import { JobTranslationsPanel } from '@/components/post-job/JobTranslationsPanel';
 
 const STEPS = [
   { id: 1, title: 'Job Basics', icon: Briefcase, description: 'Title, type & location', tip: 'A clear title gets 3x more views' },
@@ -125,6 +126,7 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
   const [certifications, setCertifications] = useState('');
   const [additionalNotes, setAdditionalNotes] = useState('');
   const [benefits, setBenefits] = useState<string[]>([]);
+  const [jobTranslations, setJobTranslations] = useState<Record<string, { title: string; description: string }>>({});
 
   // Section 3: Timings
   const [shiftType, setShiftType] = useState('Day Shift');
@@ -319,6 +321,7 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
         setOrganizationSize(jobData.organization_size || '');
         setHiringUrgency((jobData.hiring_urgency as 'Immediately' | 'Can Wait') || 'Immediately');
         setHiringFrequency(jobData.hiring_frequency || '');
+        if (jobData.translations) setJobTranslations(jobData.translations as any);
 
         // In edit mode, skip job limit check since we're editing existing job
         setCanPost(true);
@@ -635,6 +638,7 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
         location_state: geoComponents.state || null,
         location_city: geoComponents.city || null,
         moderation_status: 'approved',
+        translations: Object.keys(jobTranslations).length > 0 ? jobTranslations : null,
       };
 
       if (isEditMode && jobId) {
@@ -995,6 +999,7 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
                       )}
 
                       {currentStep === 2 && (
+                        <>
                         <CandidateRequirementSection
                           experienceType={experienceType}
                           setExperienceType={setExperienceType}
@@ -1036,6 +1041,15 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
                           benefits={benefits}
                           setBenefits={setBenefits}
                         />
+                        <div className="mt-5">
+                          <JobTranslationsPanel
+                            title={title}
+                            description={description}
+                            translations={jobTranslations}
+                            onTranslationsChange={setJobTranslations}
+                          />
+                        </div>
+                        </>
                       )}
 
                       {currentStep === 3 && (
