@@ -631,7 +631,10 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
         hiring_frequency: hiringFrequency,
         job_address: jobAddress || address,
         job_category: jobCategory,
-      };
+        location_country: geoComponents.country || null,
+        location_state: geoComponents.state || null,
+        location_city: geoComponents.city || null,
+        moderation_status: 'approved',
 
       if (isEditMode && jobId) {
         // Update existing job
