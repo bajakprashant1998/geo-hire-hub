@@ -182,6 +182,7 @@ const BrowseJobs = () => {
                               <MapPin className="w-3 h-3" />{job.job_address}
                             </span>
                           )}
+                          {job.expires_at && <DeadlineCountdown expiresAt={job.expires_at} variant="inline" />}
                         </div>
                       </div>
                       <span className="text-xs text-muted-foreground whitespace-nowrap flex items-center gap-1">

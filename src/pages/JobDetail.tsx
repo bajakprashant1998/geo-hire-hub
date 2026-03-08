@@ -587,6 +587,7 @@ const JobDetail = () => {
                 <Flame className="w-3 h-3" /> Urgent Hiring
               </Badge>
             )}
+            {job.expires_at && <DeadlineCountdown expiresAt={job.expires_at} />}
           </div>
 
           {/* Title */}
