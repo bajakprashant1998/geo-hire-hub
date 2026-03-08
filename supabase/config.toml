@@ -53,3 +53,6 @@ verify_jwt = false
 
 [functions.send-whatsapp-notification]
 verify_jwt = false
+
+[functions.optimize-job-description]
+verify_jwt = false

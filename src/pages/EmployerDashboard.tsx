@@ -827,6 +827,8 @@ const EmployerDashboard = () => {
         return <SecuritySettings />;
       case 'ai-screening':
         return employer && <AIScreeningWithJobSelector jobs={jobs} />;
+      case 'jd-optimizer':
+        return <JDOptimizer />;
       case 'assessments':
         return employer && <SkillAssessmentManager employerId={employer.id} />;
       case 'post-job':
