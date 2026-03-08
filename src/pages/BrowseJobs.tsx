@@ -40,7 +40,7 @@ const BrowseJobs = () => {
 
     let query = supabase
       .from('jobs')
-      .select('id, title, job_type, salary_range, created_at, job_address, slug, location_country, location_state, location_city, employers!inner(company_name)', { count: 'exact' })
+      .select('id, title, job_type, salary_range, created_at, job_address, slug, location_country, location_state, location_city, expires_at, employers!inner(company_name)', { count: 'exact' })
       .eq('status', 'open')
       .eq('is_active', true)
       .order('created_at', { ascending: false })
