@@ -55,6 +55,7 @@ import { HiringPipeline } from '@/components/employer/HiringPipeline';
 import { PendingTasksWidget } from '@/components/dashboard/PendingTasksWidget';
 import { AIScreeningPanel } from '@/components/employer/AIScreeningPanel';
 import { SkillAssessmentManager } from '@/components/employer/SkillAssessmentManager';
+import { JDOptimizer } from '@/components/employer/JDOptimizer';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -297,6 +298,7 @@ const EmployerDashboard = () => {
     { icon: Bell, label: 'Notifications', value: 'notifications', badge: stats.notificationCount },
     { icon: Shield, label: 'Security', value: 'security' },
     { icon: Sparkles, label: 'AI Screening', value: 'ai-screening' },
+    { icon: FileEdit, label: 'JD Optimizer', value: 'jd-optimizer' },
     { icon: CheckCircle2, label: 'Assessments', value: 'assessments' },
     { icon: CreditCard, label: 'Upgrade Plan', value: 'upgrade-plan' }
   ];
@@ -825,6 +827,8 @@ const EmployerDashboard = () => {
         return <SecuritySettings />;
       case 'ai-screening':
         return employer && <AIScreeningWithJobSelector jobs={jobs} />;
+      case 'jd-optimizer':
+        return <JDOptimizer />;
       case 'assessments':
         return employer && <SkillAssessmentManager employerId={employer.id} />;
       case 'post-job':
