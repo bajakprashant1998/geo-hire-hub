@@ -184,6 +184,25 @@ const Signup = () => {
           latitude: geolocation.latitude, longitude: geolocation.longitude,
         }).eq('user_id', user.id);
       }
+
+      // Process referral code if present
+      const storedRef = sessionStorage.getItem('referral_code');
+      if (storedRef && user) {
+        // Get the new user's profile ID
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (profileData) {
+          await supabase.rpc('process_referral_signup', {
+            p_referral_code: storedRef,
+            p_new_user_profile_id: profileData.id,
+          });
+          sessionStorage.removeItem('referral_code');
+        }
+      }
+
       sessionStorage.setItem('pendingVerificationEmail', email);
       toast.success('Account created! Please check your inbox for the verification link.');
       navigate('/verify-email');
