@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { MapPin, Briefcase, Users, X, Sparkles, ArrowRight, Globe2, UserPlus, LogIn, Zap, Building2, Star, Target, Shield } from 'lucide-react';
+import { MapPin, Briefcase, Users, X, Sparkles, ArrowRight, Globe2, UserPlus, LogIn, Zap, Building2, Star, Target, Shield, Quote } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
