@@ -16,6 +16,10 @@ interface FloatingControlsProps {
   searchQuery: string;
   heatmapEnabled?: boolean;
   onHeatmapToggle?: () => void;
+  salaryHeatmapEnabled?: boolean;
+  onSalaryHeatmapToggle?: () => void;
+  salaryRoleFilter?: string;
+  onSalaryRoleFilterChange?: (role: string) => void;
 }
 
 const FAB = ({
