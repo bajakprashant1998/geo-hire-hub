@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { ArrowLeft, Lock, Eye, EyeOff, MapPin, CheckCircle2, Loader2, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { isPasswordLeaked } from '@/lib/passwordCheck';
 import { motion } from 'framer-motion';
 
 const UpdatePassword = () => {
