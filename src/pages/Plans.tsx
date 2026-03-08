@@ -211,9 +211,11 @@ const PlanCard = ({
 
       <Card className={cn(
         "relative overflow-hidden h-full flex flex-col transition-all duration-300 group",
-        isPro
-          ? `border-primary border-2 shadow-lg ${theme.ring} hover:shadow-xl`
-          : 'border-border hover:border-primary/30 hover:shadow-lg'
+        isRecommended && !isCurrentPlan
+          ? 'border-emerald-500 border-2 shadow-lg ring-2 ring-emerald-500/20 hover:shadow-xl'
+          : isPro
+            ? `border-primary border-2 shadow-lg ${theme.ring} hover:shadow-xl`
+            : 'border-border hover:border-primary/30 hover:shadow-lg'
       )}>
         {/* Gradient header accent */}
         <div className={cn("h-1.5 w-full bg-gradient-to-r", theme.gradient)} />
