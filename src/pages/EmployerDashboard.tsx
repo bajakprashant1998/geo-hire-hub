@@ -67,8 +67,71 @@ import { TeamCollaborationNotes } from '@/components/employer/TeamCollaborationN
 import { AccessibilityScoreChecker } from '@/components/employer/AccessibilityScoreChecker';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
+import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Brain } from 'lucide-react';
+
+const RecentMessagesWidget = ({ profileId, onOpenChat }: { profileId: string; onOpenChat: () => void }) => {
+  const [convos, setConvos] = useState<{ id: string; name: string; avatar: string | null; lastMsg: string; time: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('conversations')
+          .select('id, participant_1, participant_2, last_message_at')
+          .or(`participant_1.eq.${profileId},participant_2.eq.${profileId}`)
+          .order('last_message_at', { ascending: false })
+          .limit(4);
+
+        if (!data || data.length === 0) { setLoading(false); return; }
+
+        const results = await Promise.all(data.map(async (c) => {
+          const otherId = c.participant_1 === profileId ? c.participant_2 : c.participant_1;
+          const { data: prof } = await supabase.from('profiles').select('full_name, avatar_url').eq('id', otherId).maybeSingle();
+          const { data: msg } = await supabase.from('messages').select('content').eq('conversation_id', c.id).order('created_at', { ascending: false }).limit(1).maybeSingle();
+          return { id: c.id, name: prof?.full_name || 'Unknown', avatar: prof?.avatar_url || null, lastMsg: msg?.content || 'No messages', time: c.last_message_at };
+        }));
+        setConvos(results);
+      } catch (e) { console.error(e); } finally { setLoading(false); }
+    })();
+  }, [profileId]);
+
+  if (loading) return <div className="space-y-2">{[1,2,3].map(i => <div key={i} className="h-12 bg-muted/40 animate-pulse rounded-xl" />)}</div>;
+  if (convos.length === 0) return (
+    <div className="text-center py-6">
+      <MessageSquare className="w-8 h-8 mx-auto mb-2 text-muted-foreground/30" />
+      <p className="text-xs text-muted-foreground">No conversations yet</p>
+    </div>
+  );
+
+  return (
+    <div className="space-y-1.5">
+      {convos.map((c, i) => (
+        <motion.button
+          key={c.id}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: i * 0.04 }}
+          onClick={onOpenChat}
+          className="w-full flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-muted/40 transition-colors text-left group"
+        >
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
+            {c.avatar ? <img src={c.avatar} className="w-full h-full object-cover" /> : <span className="text-[10px] font-bold text-primary">{c.name.slice(0,2).toUpperCase()}</span>}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-medium text-foreground truncate">{c.name}</p>
+            <p className="text-[10px] text-muted-foreground truncate">{c.lastMsg}</p>
+          </div>
+          <span className="text-[9px] text-muted-foreground/50 shrink-0">
+            {c.time ? formatDistanceToNow(new Date(c.time), { addSuffix: false }) : ''}
+          </span>
+        </motion.button>
+      ))}
+    </div>
+  );
+};
 
 const AIScreeningWithJobSelector = ({ jobs }: { jobs: any[] }) => {
   const [selectedJobId, setSelectedJobId] = useState('');
@@ -951,17 +1014,17 @@ const EmployerDashboard = () => {
                 )}
               </motion.div>
             ) : (
-              <div className="max-w-6xl mx-auto space-y-4 sm:space-y-5">
+              <div className="max-w-6xl mx-auto space-y-5 sm:space-y-6">
                 <PlatformNotificationBanner userType="employer" />
 
-                {/* Welcome Banner + Stats Row */}
-                <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 sm:gap-4">
-                  {/* Welcome Card */}
+                {/* ─── Hero Welcome + Stats ─── */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4">
+                  {/* Welcome Card — spans 5 cols */}
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1, type: 'spring', stiffness: 120, damping: 16 }}
-                    className="lg:col-span-2 relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary to-primary/70 p-5 sm:p-6 flex flex-col justify-between border border-primary/20 min-h-[160px]"
+                    transition={{ delay: 0.08, type: 'spring', stiffness: 120, damping: 16 }}
+                    className="lg:col-span-5 relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary to-primary/70 p-5 sm:p-6 flex flex-col justify-between border border-primary/20 min-h-[180px]"
                   >
                     <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
                     <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full blur-2xl" />
@@ -974,7 +1037,7 @@ const EmployerDashboard = () => {
                       </h3>
                       <p className="text-primary-foreground/60 text-sm mt-2 leading-relaxed max-w-xs">
                         {stats.totalApplications > 0
-                          ? `${stats.totalApplications} new application${stats.totalApplications !== 1 ? 's' : ''} waiting for review across ${stats.activeJobs} active job${stats.activeJobs !== 1 ? 's' : ''}.`
+                          ? `${stats.totalApplications} application${stats.totalApplications !== 1 ? 's' : ''} awaiting review across ${stats.activeJobs} active job${stats.activeJobs !== 1 ? 's' : ''}.`
                           : stats.activeJobs > 0
                             ? `Your ${stats.activeJobs} job${stats.activeJobs > 1 ? 's are' : ' is'} live and attracting candidates.`
                             : 'Post your first job to start receiving applications from top talent.'}
@@ -1002,8 +1065,8 @@ const EmployerDashboard = () => {
                     </div>
                   </motion.div>
 
-                  {/* Stat Cards Grid */}
-                  <div className="lg:col-span-3 grid grid-cols-2 gap-2 sm:gap-3">
+                  {/* Stat Cards — spans 7 cols, 2x2 grid */}
+                  <div className="lg:col-span-7 grid grid-cols-2 gap-2 sm:gap-3">
                     <DashboardStatCard icon={Briefcase} label="Active Jobs" value={stats.activeJobs} subtitle="currently open" accentColor="blue" onClick={() => setActiveSection('jobs')} delay={0} />
                     <DashboardStatCard icon={Users} label="Applications" value={stats.totalApplications} subtitle="across all jobs" accentColor="amber" onClick={() => setActiveSection('jobs')} delay={1} />
                     <DashboardStatCard icon={Calendar} label="Interviews" value={stats.scheduledInterviews} subtitle="upcoming" accentColor="green" onClick={() => setActiveSection('interviews')} delay={2} />
@@ -1011,18 +1074,68 @@ const EmployerDashboard = () => {
                   </div>
                 </div>
 
-                {/* Profile Completion (compact inline) */}
+                {/* ─── Profile Completion (compact inline) ─── */}
                 {employer && (employer.profile_completeness || 0) < 80 && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.25 }}
+                    transition={{ delay: 0.2 }}
                   >
                     <EmployerProfileCompletionPrompts employer={employer} jobCount={jobs.length} />
                   </motion.div>
                 )}
 
-                {/* Quick Actions — Compact row */}
+                {/* ─── Today's Focus — Smart Contextual Nudges ─── */}
+                {(() => {
+                  const nudges: { icon: any; label: string; desc: string; action: string; color: string; bg: string }[] = [];
+                  if (stats.totalApplications > 0) nudges.push({ icon: Users, label: 'Review Applications', desc: `${stats.totalApplications} applicant${stats.totalApplications > 1 ? 's' : ''} waiting`, action: 'jobs', color: 'text-primary', bg: 'bg-primary/10' });
+                  if (stats.scheduledInterviews > 0) nudges.push({ icon: Calendar, label: 'Upcoming Interviews', desc: `${stats.scheduledInterviews} scheduled`, action: 'interviews', color: 'text-success', bg: 'bg-success/10' });
+                  if (stats.notificationCount > 0) nudges.push({ icon: Bell, label: 'Unread Notifications', desc: `${stats.notificationCount} new`, action: 'notifications', color: 'text-warning-foreground', bg: 'bg-warning/10' });
+                  if (employer && (employer.profile_completeness || 0) < 60) nudges.push({ icon: Building2, label: 'Complete Profile', desc: `${employer.profile_completeness || 0}% complete`, action: 'company', color: 'text-destructive', bg: 'bg-destructive/10' });
+                  if (stats.activeJobs === 0) nudges.push({ icon: Plus, label: 'Post Your First Job', desc: 'Start attracting talent', action: 'post-job', color: 'text-primary', bg: 'bg-primary/10' });
+                  if (nudges.length === 0) return null;
+                  return (
+                    <motion.div
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.25 }}
+                      className="relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl p-4 overflow-hidden"
+                    >
+                      <div className="absolute -top-12 -right-12 w-36 h-36 bg-warning/8 rounded-full blur-3xl pointer-events-none" />
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-5 h-5 rounded-md bg-warning/15 flex items-center justify-center">
+                          <Sparkles className="w-3 h-3 text-warning-foreground" />
+                        </div>
+                        <p className="text-xs font-semibold text-foreground">Today's Focus</p>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                        {nudges.slice(0, 4).map((nudge, i) => (
+                          <motion.button
+                            key={nudge.label}
+                            initial={{ opacity: 0, x: -8 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.28 + i * 0.05 }}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => setActiveSection(nudge.action)}
+                            className="flex items-center gap-3 p-3 rounded-xl bg-card/80 border border-border/30 hover:border-border/60 hover:shadow-sm transition-all text-left group"
+                          >
+                            <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center shrink-0', nudge.bg)}>
+                              <nudge.icon className={cn('w-4 h-4', nudge.color)} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs font-semibold text-foreground truncate group-hover:text-primary transition-colors">{nudge.label}</p>
+                              <p className="text-[10px] text-muted-foreground truncate">{nudge.desc}</p>
+                            </div>
+                            <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40 group-hover:text-primary/60 shrink-0 transition-colors" />
+                          </motion.button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  );
+                })()}
+
+                {/* ─── Quick Actions ─── */}
                 <motion.div
                   initial={{ opacity: 0, y: 14 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -1037,10 +1150,10 @@ const EmployerDashboard = () => {
                       { icon: Plus, label: 'Create Job', onClick: () => setActiveSection('post-job'), color: 'text-primary', bg: 'bg-primary/10' },
                       { icon: Briefcase, label: 'My Jobs', onClick: () => setActiveSection('jobs'), color: 'text-primary', bg: 'bg-primary/8' },
                       { icon: Filter, label: 'Find Talent', onClick: () => setActiveSection('candidates'), color: 'text-success', bg: 'bg-success/10' },
-                      { icon: MessageSquare, label: 'Messages', onClick: () => setActiveSection('chat'), color: 'text-[hsl(262,83%,58%)]', bg: 'bg-[hsl(262,83%,58%)]/10' },
+                      { icon: MessageSquare, label: 'Messages', onClick: () => setActiveSection('chat'), color: 'text-accent-foreground', bg: 'bg-accent/10' },
                       { icon: Calendar, label: 'Interviews', onClick: () => setActiveSection('interviews'), color: 'text-warning-foreground', bg: 'bg-warning/10' },
                       { icon: BarChart3, label: 'Analytics', onClick: () => setActiveSection('analytics'), color: 'text-primary', bg: 'bg-primary/10' },
-                      { icon: Sparkles, label: 'AI Screen', onClick: () => setActiveSection('ai-screening'), color: 'text-[hsl(262,83%,58%)]', bg: 'bg-[hsl(262,83%,58%)]/10' },
+                      { icon: Sparkles, label: 'AI Screen', onClick: () => setActiveSection('ai-screening'), color: 'text-accent-foreground', bg: 'bg-accent/10' },
                       { icon: Building2, label: 'Company', onClick: () => setActiveSection('company'), color: 'text-success', bg: 'bg-success/10' },
                     ].map((action, i) => (
                       <motion.button
@@ -1062,12 +1175,12 @@ const EmployerDashboard = () => {
                   </div>
                 </motion.div>
 
-                {/* Active Jobs + Hiring Pipeline */}
+                {/* ─── Active Jobs + Hiring Pipeline ─── */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
                   <motion.div
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.38 }}
+                    transition={{ delay: 0.36 }}
                     className="lg:col-span-2 relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl overflow-hidden"
                   >
                     <div className="absolute -top-12 -left-12 w-36 h-36 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
@@ -1084,7 +1197,7 @@ const EmployerDashboard = () => {
                   <motion.div
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.44 }}
+                    transition={{ delay: 0.42 }}
                     className="relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl overflow-hidden"
                   >
                     <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-success/10 rounded-full blur-3xl pointer-events-none" />
@@ -1095,15 +1208,15 @@ const EmployerDashboard = () => {
                   </motion.div>
                 </div>
 
-                {/* Interviews + Pending Tasks row */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+                {/* ─── Interviews + Pending Tasks + Messages ─── */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
                   <motion.div
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
+                    transition={{ delay: 0.48 }}
                     className="relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl overflow-hidden"
                   >
-                    <div className="absolute -bottom-16 -right-16 w-48 h-48 bg-[hsl(262,83%,58%)]/10 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute -bottom-16 -right-16 w-48 h-48 bg-accent/10 rounded-full blur-3xl pointer-events-none" />
                     <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 dark:ring-white/5 pointer-events-none" />
                     <div className="relative z-10 p-1">
                       {employer && <EmployerInterviewsCard employerId={employer.id} />}
@@ -1112,7 +1225,7 @@ const EmployerDashboard = () => {
                   <motion.div
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.55 }}
+                    transition={{ delay: 0.53 }}
                     className="relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl overflow-hidden"
                   >
                     <div className="absolute -top-12 -left-12 w-36 h-36 bg-warning/10 rounded-full blur-3xl pointer-events-none" />
@@ -1128,13 +1241,31 @@ const EmployerDashboard = () => {
                       )}
                     </div>
                   </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.58 }}
+                    className="relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl overflow-hidden"
+                  >
+                    <div className="absolute -bottom-12 -left-12 w-40 h-40 bg-primary/8 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/10 dark:ring-white/5 pointer-events-none" />
+                    <div className="relative z-10 p-4 sm:p-5">
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Recent Messages</p>
+                        <Button variant="ghost" size="sm" className="h-6 text-[10px] text-primary px-2 rounded-lg" onClick={() => setActiveSection('chat')}>
+                          View All
+                        </Button>
+                      </div>
+                      <RecentMessagesWidget profileId={profile.id} onOpenChat={() => setActiveSection('chat')} />
+                    </div>
+                  </motion.div>
                 </div>
 
-                {/* Recent Activity — full width */}
+                {/* ─── Recent Activity — full width ─── */}
                 <motion.div
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
+                  transition={{ delay: 0.63 }}
                   className="relative rounded-2xl border border-border/40 bg-card/50 backdrop-blur-2xl overflow-hidden"
                 >
                   <div className="absolute -top-16 -right-16 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
