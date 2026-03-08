@@ -114,6 +114,7 @@ interface JobDetails {
   job_address: string | null;
   job_category: string | null;
   referral_bounty: number | null;
+  expires_at: string | null;
   employer: {
     id: string;
     company_name: string;
