@@ -81,7 +81,7 @@ export const DeadlineCountdown = ({ expiresAt, variant = 'badge', className }: D
           isWarning ? 'bg-warning/10 text-warning' :
           'bg-primary/10 text-primary'
         )}>
-          <Icon className="w-4.5 h-4.5" />
+          <Icon className="w-5 h-5" />
         </div>
         <div className="min-w-0">
           <p className={cn(
