@@ -1121,6 +1121,8 @@ const EmployerDashboard = () => {
         return employer && <TeamCollaborationNotes employerId={employer.id} />;
       case 'team-workflows':
         return employer && <TeamWorkflows employerId={employer.id} />;
+      case 'bulk-import':
+        return employer && <BulkJobImport employerId={employer.id} />;
       case 'accessibility-check':
         return <AccessibilityScoreChecker />;
       case 'branding':
