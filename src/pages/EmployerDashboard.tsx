@@ -19,7 +19,7 @@ import {
   CheckCircle2, ChevronRight, FileEdit, CreditCard, UserCheck,
   MessageSquare, Calendar, BarChart3, User, Settings, Pencil, Trash2, Shield,
   Sparkles, Bell, Filter, Search, Clock, FileText, FlaskConical, ClipboardCheck,
-  Database, MessageCircle, Palette
+  Database, MessageCircle, Palette, Upload
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -67,6 +67,7 @@ import { JobABTesting } from '@/components/employer/JobABTesting';
 import { TeamCollaborationNotes } from '@/components/employer/TeamCollaborationNotes';
 import { TeamWorkflows } from '@/components/employer/TeamWorkflows';
 import { AccessibilityScoreChecker } from '@/components/employer/AccessibilityScoreChecker';
+import { BulkJobImport } from '@/components/employer/BulkJobImport';
 import { BrandingPageBuilder } from '@/components/employer/BrandingPageBuilder';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
@@ -409,6 +410,7 @@ const EmployerDashboard = () => {
     { icon: Users, label: 'Team Workflows', value: 'team-workflows' },
     { icon: Sparkles, label: 'Accessibility Check', value: 'accessibility-check' },
     { icon: Palette, label: 'Branding Page', value: 'branding' },
+    { icon: Upload, label: 'Bulk Import', value: 'bulk-import' },
     { icon: CreditCard, label: 'Upgrade Plan', value: 'upgrade-plan' }
   ];
 
@@ -1119,6 +1121,8 @@ const EmployerDashboard = () => {
         return employer && <TeamCollaborationNotes employerId={employer.id} />;
       case 'team-workflows':
         return employer && <TeamWorkflows employerId={employer.id} />;
+      case 'bulk-import':
+        return employer && <BulkJobImport employerId={employer.id} />;
       case 'accessibility-check':
         return <AccessibilityScoreChecker />;
       case 'branding':

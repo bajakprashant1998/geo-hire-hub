@@ -93,6 +93,7 @@ const navSections = [
       { href: '/admin/roles', label: 'Role Management', icon: Crown },
       { href: '/admin/fraud', label: 'Fraud Detection', icon: AlertTriangle },
       { href: '/admin/scheduled-jobs', label: 'Scheduled Jobs', icon: Clock },
+      { href: '/admin/bulk-import', label: 'Bulk Import', icon: Activity },
       { href: '/admin/government', label: 'Government', icon: Shield },
       { href: '/admin/email-templates', label: 'Email Templates', icon: Mail },
       { href: '/admin/tasks', label: 'Tasks', icon: FileText },

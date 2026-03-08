@@ -74,6 +74,7 @@ const AdminScheduledJobs = lazy(() => import("./pages/admin/AdminScheduledJobs")
 const AdminTasks = lazy(() => import("./pages/admin/AdminTasks"));
 const AdminSEOAgent = lazy(() => import("./pages/admin/AdminSEOAgent"));
 const AdminBanners = lazy(() => import("./pages/admin/AdminBanners"));
+const AdminBulkImport = lazy(() => import("./pages/admin/AdminBulkImport"));
 
 const queryClient = new QueryClient();
 
@@ -200,6 +201,7 @@ const App = () => (
               <Route path="/admin/tasks" element={<AdminTasks />} />
               <Route path="/admin/seo-agent" element={<AdminSEOAgent />} />
               <Route path="/admin/banners" element={<AdminBanners />} />
+              <Route path="/admin/bulk-import" element={<AdminBulkImport />} />
 
               {/* ==================== REDIRECTS & ALIASES ==================== */}
               <Route path="/dashboard" element={<Navigate to="/candidate-dashboard" replace />} />
