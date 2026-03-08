@@ -33,11 +33,11 @@ import { JobPreviewStep } from '@/components/post-job/JobPreviewStep';
 import { PerformanceInsightsPanel } from '@/components/post-job/PerformanceInsightsPanel';
 
 const STEPS = [
-  { id: 1, title: 'Job Basics', icon: Briefcase, description: 'Title, type & location' },
-  { id: 2, title: 'Requirements', icon: Users, description: 'Skills & experience' },
-  { id: 3, title: 'Timings', icon: Clock, description: 'Work hours & interview' },
-  { id: 4, title: 'Company', icon: Building2, description: 'Contact & details' },
-  { id: 5, title: 'Preview', icon: Eye, description: 'Review & publish' },
+  { id: 1, title: 'Job Basics', icon: Briefcase, description: 'Title, type & location', tip: 'A clear title gets 3x more views' },
+  { id: 2, title: 'Requirements', icon: Users, description: 'Skills & experience', tip: 'Jobs with 4-6 skills get the most applications' },
+  { id: 3, title: 'Timings', icon: Clock, description: 'Work hours & interview', tip: 'Adding work hours increases trust by 40%' },
+  { id: 4, title: 'Company', icon: Building2, description: 'Contact & details', tip: 'Complete contact info builds candidate confidence' },
+  { id: 5, title: 'Preview', icon: Eye, description: 'Review & publish', tip: 'Double-check before going live!' },
 ];
 
 // Animation variants for step transitions
