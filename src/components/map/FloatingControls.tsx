@@ -163,7 +163,8 @@ export const FloatingControls = ({
               onRoleFilterChange={onSalaryRoleFilterChange || (() => {})}
             />
           </div>
-        )
+        )}
+
         <FAB
           icon={List}
           onClick={onToggleSidebar}
