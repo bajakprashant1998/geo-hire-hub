@@ -2,6 +2,7 @@ import { useLocation, useNavigate, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Home, ArrowLeft, Search, LogIn } from "lucide-react";
+import { SEOHead } from "@/components/SEOHead";
 
 const NotFound = () => {
   const location = useLocation();
@@ -13,6 +14,7 @@ const NotFound = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <SEOHead title="Page Not Found – Hire For Job" description="This page doesn't exist. Find jobs near me, browse job listings, and discover jobs hiring near me on Hire For Job." noindex />
       <div className="text-center max-w-md space-y-6">
         <div className="text-8xl font-bold text-primary/20">404</div>
         <div className="space-y-2">

@@ -199,7 +199,7 @@ const Signup = () => {
 
   return (
     <div className="min-h-screen flex">
-      <SEOHead title="Sign Up | HireForJob" description="Create your HireForJob account. Join as a job seeker or employer to find opportunities and talent near you." canonicalUrl="https://www.hireforjob.com/signup" />
+      <SEOHead title="Sign Up – Hire For Job | Jobs Near Me" description="Create your Hire For Job account. Join as a job seeker or employer to find jobs near me and hire for job opportunities." canonicalUrl="https://www.hireforjob.com/signup" noindex />
 
       {/* Left side - Premium Branding */}
       <div className="hidden lg:flex lg:w-[45%] relative overflow-hidden">
