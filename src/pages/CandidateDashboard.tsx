@@ -251,6 +251,7 @@ const CandidateDashboard = () => {
     { icon: BarChart3, label: 'Compare Jobs', value: 'compare-jobs' },
     { icon: TrendingUp, label: 'Career Path', value: 'career-path' },
     { icon: Star, label: 'Culture Match', value: 'culture-match' },
+    { icon: Sparkles, label: 'Smart Digest', value: 'smart-digest' },
   ];
 
   // Quick action buttons for dashboard home — full 8-item grid
