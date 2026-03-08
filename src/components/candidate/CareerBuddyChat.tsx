@@ -72,39 +72,27 @@ const quickActions: QuickAction[] = [
 
 const formatMarkdown = (text: string) => {
   let html = text
-    // Code blocks
     .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre class="bg-muted/80 border border-border/60 rounded-xl p-3 my-3 overflow-x-auto text-xs font-mono leading-relaxed"><code>$2</code></pre>')
-    // Inline code
     .replace(/`([^`]+)`/g, '<code class="bg-muted px-1.5 py-0.5 rounded-md text-xs font-mono text-primary">$1</code>')
-    // Headers
     .replace(/^#### (.*$)/gim, '<h5 class="font-bold text-[13px] mt-3 mb-1 text-foreground flex items-center gap-1.5">$1</h5>')
     .replace(/^### (.*$)/gim, '<h4 class="font-bold text-sm mt-4 mb-1.5 text-foreground flex items-center gap-1.5"><span class="w-1 h-4 rounded-full bg-primary inline-block"></span>$1</h4>')
     .replace(/^## (.*$)/gim, '<h3 class="font-bold text-[15px] mt-5 mb-2 text-foreground border-b border-border/40 pb-1.5">$1</h3>')
     .replace(/^# (.*$)/gim, '<h2 class="font-bold text-base mt-5 mb-2 text-foreground">$1</h2>')
-    // Links [text](url)
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-primary font-semibold no-underline bg-primary/8 hover:bg-primary/15 px-2 py-0.5 rounded-md transition-all duration-200 text-[13px]">$1 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></a>')
-    // Bold
     .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-foreground">$1</strong>')
-    // Italic
     .replace(/\*(.*?)\*/g, '<em class="italic text-muted-foreground">$1</em>')
-    // Horizontal rule
     .replace(/^---$/gim, '<hr class="my-4 border-border/40" />')
-    // Bullet points
     .replace(/^- (.*$)/gim, '<li class="ml-1 pl-2 text-[13px] leading-[1.7] text-foreground relative before:content-[\'•\'] before:absolute before:-left-3 before:text-primary before:font-bold">$1</li>')
     .replace(/^• (.*$)/gim, '<li class="ml-1 pl-2 text-[13px] leading-[1.7] text-foreground relative before:content-[\'•\'] before:absolute before:-left-3 before:text-primary before:font-bold">$1</li>')
-    // Numbered lists
     .replace(/^\d+\. (.*$)/gim, '<li class="ml-1 pl-2 text-[13px] leading-[1.7] list-decimal text-foreground">$1</li>')
-    // Line breaks
     .replace(/\n\n/g, '</p><p class="mt-2.5">')
     .replace(/\n/g, '<br/>');
 
-  // Wrap lists
   html = html.replace(/((?:<li class="ml-1 pl-2 text-\[13px\] leading-\[1\.7\] text-foreground relative before:content-\[\'•\'\].*?<\/li>(?:<br\/>)?)+)/g,
     '<ul class="space-y-1 my-2.5 ml-4">$1</ul>');
   html = html.replace(/((?:<li class="ml-1 pl-2 text-\[13px\] leading-\[1\.7\] list-decimal text-foreground.*?<\/li>(?:<br\/>)?)+)/g,
     '<ol class="space-y-1 my-2.5 ml-5 list-decimal">$1</ol>');
 
-  // Tables
   html = html.replace(/\|(.+)\|/g, (match) => {
     const cells = match.split('|').filter(c => c.trim());
     if (cells.every(c => /^[-:]+$/.test(c.trim()))) return '';
@@ -117,9 +105,7 @@ const formatMarkdown = (text: string) => {
     return `<tr class="hover:bg-muted/30 transition-colors">${cellHtml}</tr>`;
   });
 
-  // Wrap in paragraph
   html = `<p>${html}</p>`;
-
   return html;
 };
 
@@ -132,7 +118,6 @@ export const CareerBuddyChat = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch candidate profile on mount
   useEffect(() => {
     const fetchProfile = async () => {
       if (!profile) return;
@@ -152,7 +137,6 @@ export const CareerBuddyChat = () => {
     fetchProfile();
   }, [profile]);
 
-  // Auto-scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
       const el = scrollRef.current;
@@ -169,6 +153,8 @@ export const CareerBuddyChat = () => {
       content: content.trim(),
       timestamp: new Date(),
     };
+
+    const assistantId = crypto.randomUUID();
 
     setMessages(prev => [...prev, userMessage]);
     setInput('');
@@ -196,6 +182,7 @@ export const CareerBuddyChat = () => {
             messages: chatHistory,
             candidateProfile,
             siteUrl: window.location.origin,
+            stream: true,
           }),
         }
       );
@@ -204,20 +191,90 @@ export const CareerBuddyChat = () => {
         throw new Error(`API error: ${response.status}`);
       }
 
-      const data = await response.json();
+      // Stream token-by-token
+      const reader = response.body!.getReader();
+      const decoder = new TextDecoder();
+      let assistantSoFar = '';
+      let textBuffer = '';
+      let streamDone = false;
 
-      const assistantMessage: Message = {
-        id: crypto.randomUUID(),
+      // Create initial assistant message
+      setMessages(prev => [...prev, {
+        id: assistantId,
         role: 'assistant',
-        content: data.response || 'Sorry, I couldn\'t generate a response. Please try again.',
+        content: '',
         timestamp: new Date(),
-      };
+      }]);
 
-      setMessages(prev => [...prev, assistantMessage]);
+      while (!streamDone) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        textBuffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex: number;
+        while ((newlineIndex = textBuffer.indexOf('\n')) !== -1) {
+          let line = textBuffer.slice(0, newlineIndex);
+          textBuffer = textBuffer.slice(newlineIndex + 1);
+
+          if (line.endsWith('\r')) line = line.slice(0, -1);
+          if (line.startsWith(':') || line.trim() === '') continue;
+          if (!line.startsWith('data: ')) continue;
+
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === '[DONE]') {
+            streamDone = true;
+            break;
+          }
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const tokenContent = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (tokenContent) {
+              assistantSoFar += tokenContent;
+              const updatedContent = assistantSoFar;
+              setMessages(prev =>
+                prev.map(m => m.id === assistantId ? { ...m, content: updatedContent } : m)
+              );
+            }
+          } catch {
+            // Incomplete JSON, put back and wait
+            textBuffer = line + '\n' + textBuffer;
+            break;
+          }
+        }
+      }
+
+      // Final flush
+      if (textBuffer.trim()) {
+        for (let raw of textBuffer.split('\n')) {
+          if (!raw) continue;
+          if (raw.endsWith('\r')) raw = raw.slice(0, -1);
+          if (!raw.startsWith('data: ')) continue;
+          const jsonStr = raw.slice(6).trim();
+          if (jsonStr === '[DONE]') continue;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const tokenContent = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (tokenContent) {
+              assistantSoFar += tokenContent;
+              setMessages(prev =>
+                prev.map(m => m.id === assistantId ? { ...m, content: assistantSoFar } : m)
+              );
+            }
+          } catch { /* ignore */ }
+        }
+      }
+
+      // If nothing was streamed, remove empty assistant message
+      if (!assistantSoFar) {
+        setMessages(prev => prev.filter(m => m.id !== assistantId));
+        toast.error('Failed to get AI response. Please try again.');
+      }
+
     } catch (error) {
       console.error('Career buddy error:', error);
       toast.error('Failed to get AI response. Please try again.');
-      setMessages(prev => prev.filter(m => m.id !== userMessage.id));
+      setMessages(prev => prev.filter(m => m.id !== userMessage.id && m.id !== assistantId));
     } finally {
       setIsLoading(false);
       inputRef.current?.focus();
@@ -419,57 +476,45 @@ export const CareerBuddyChat = () => {
                     : "bg-secondary border border-border rounded-bl-lg px-5 py-4 shadow-sm"
                 )}>
                   {message.role === 'assistant' ? (
-                    <div
-                      className={cn(
-                        "text-[13.5px] leading-[1.75] text-foreground",
-                        "[&_h2]:text-foreground [&_h3]:text-foreground [&_h4]:text-foreground [&_h5]:text-foreground",
-                        "[&_strong]:text-foreground [&_strong]:font-semibold",
-                        "[&_a]:no-underline",
-                        "[&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_table]:rounded-xl [&_table]:overflow-hidden [&_table]:border [&_table]:border-border/40",
-                        "[&_pre]:my-3",
-                        "[&_p]:text-foreground [&_p]:text-[13.5px] [&_p]:leading-[1.75]",
-                        "[&_li]:text-foreground [&_ul]:list-none [&_ol]:pl-5",
-                        "[&_hr]:my-4 [&_hr]:border-border/40"
-                      )}
-                      dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formatMarkdown(message.content)) }}
-                    />
+                    message.content ? (
+                      <div
+                        className={cn(
+                          "text-[13.5px] leading-[1.75] text-foreground",
+                          "[&_h2]:text-foreground [&_h3]:text-foreground [&_h4]:text-foreground [&_h5]:text-foreground",
+                          "[&_strong]:text-foreground [&_strong]:font-semibold",
+                          "[&_a]:no-underline",
+                          "[&_table]:w-full [&_table]:border-collapse [&_table]:my-3 [&_table]:rounded-xl [&_table]:overflow-hidden [&_table]:border [&_table]:border-border/40",
+                          "[&_pre]:my-3",
+                          "[&_p]:text-foreground [&_p]:text-[13.5px] [&_p]:leading-[1.75]",
+                          "[&_li]:text-foreground [&_ul]:list-none [&_ol]:pl-5",
+                          "[&_hr]:my-4 [&_hr]:border-border/40"
+                        )}
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(formatMarkdown(message.content)) }}
+                      />
+                    ) : (
+                      <div className="flex items-center gap-3">
+                        <div className="flex gap-1">
+                          <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:0ms]" />
+                          <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:150ms]" />
+                          <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:300ms]" />
+                        </div>
+                        <span className="text-sm text-muted-foreground font-medium">Thinking...</span>
+                      </div>
+                    )
                   ) : (
                     <p className="text-sm leading-relaxed font-medium">{message.content}</p>
                   )}
-                  <p className={cn(
-                    "text-[10px] mt-3 font-medium",
-                    message.role === 'user' ? 'text-right text-primary-foreground/50' : 'text-left text-muted-foreground/50'
-                  )}>
-                    {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </p>
+                  {message.content && (
+                    <p className={cn(
+                      "text-[10px] mt-3 font-medium",
+                      message.role === 'user' ? 'text-right text-primary-foreground/50' : 'text-left text-muted-foreground/50'
+                    )}>
+                      {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                  )}
                 </div>
               </motion.div>
             ))}
-
-            {/* Loading indicator */}
-            {isLoading && (
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex gap-3"
-              >
-                <Avatar className="w-9 h-9 ring-2 ring-primary/20 shadow-sm">
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-violet-500 text-primary-foreground">
-                    <Bot className="w-4 h-4" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="bg-card border border-border/60 rounded-2xl rounded-bl-lg px-5 py-4 shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="flex gap-1">
-                      <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:0ms]" />
-                      <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:150ms]" />
-                      <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce [animation-delay:300ms]" />
-                    </div>
-                    <span className="text-sm text-muted-foreground font-medium">Analyzing your profile...</span>
-                  </div>
-                </div>
-              </motion.div>
-            )}
           </AnimatePresence>
         )}
       </div>
