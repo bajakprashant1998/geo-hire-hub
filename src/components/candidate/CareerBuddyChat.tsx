@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  Send, Bot, User, Sparkles, Building2, DollarSign, TrendingUp,
+  Send, Bot, User, Sparkles, Building2, Banknote, TrendingUp,
   BookOpen, Target, MapPin, Loader2, RefreshCw, Lightbulb,
   BriefcaseBusiness, GraduationCap, Zap, Globe, Copy, Check,
   ThumbsUp, ThumbsDown, ChevronRight, Mic, Keyboard, MessageSquarePlus,
