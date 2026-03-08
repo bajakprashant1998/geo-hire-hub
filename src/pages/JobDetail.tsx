@@ -60,6 +60,7 @@ import {
   Flame,
   ExternalLink,
   Shield,
+  Trophy,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
