@@ -164,18 +164,18 @@ const App = () => (
               <Route path="/companies/:country/:state/:city/:slug" element={<PageTransition><SEOEmployerDetail /></PageTransition>} />
 
               {/* ==================== CANDIDATE ROUTES ==================== */}
-              <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
-              <Route path="/candidate-settings" element={<PageTransition><CandidateSettings /></PageTransition>} />
-              <Route path="/candidate-profile" element={<PageTransition><CandidateProfileEdit /></PageTransition>} />
-              <Route path="/ai-resume-builder" element={<PageTransition><AIResumeBuilder /></PageTransition>} />
+              <Route path="/candidate-dashboard" element={<AuthRouteGuard requiredRole="candidate"><CandidateDashboard /></AuthRouteGuard>} />
+              <Route path="/candidate-settings" element={<AuthRouteGuard requiredRole="candidate"><PageTransition><CandidateSettings /></PageTransition></AuthRouteGuard>} />
+              <Route path="/candidate-profile" element={<AuthRouteGuard requiredRole="candidate"><PageTransition><CandidateProfileEdit /></PageTransition></AuthRouteGuard>} />
+              <Route path="/ai-resume-builder" element={<AuthRouteGuard requiredRole="candidate"><PageTransition><AIResumeBuilder /></PageTransition></AuthRouteGuard>} />
 
               {/* ==================== EMPLOYER ROUTES ==================== */}
-              <Route path="/employer-dashboard" element={<EmployerDashboard />} />
-              <Route path="/employer-settings" element={<Navigate to="/employer-dashboard?tab=security" replace />} />
-              <Route path="/post-job" element={<Navigate to="/employer-dashboard?tab=post-job" replace />} />
-              <Route path="/edit-job/:jobId" element={<PageTransition><PostJob /></PageTransition>} />
-              <Route path="/company-profile" element={<Navigate to="/employer-dashboard?tab=company" replace />} />
-              <Route path="/video-call/:interviewId" element={<PageTransition><VideoCall /></PageTransition>} />
+              <Route path="/employer-dashboard" element={<AuthRouteGuard requiredRole="employer"><EmployerDashboard /></AuthRouteGuard>} />
+              <Route path="/employer-settings" element={<AuthRouteGuard requiredRole="employer"><Navigate to="/employer-dashboard?tab=security" replace /></AuthRouteGuard>} />
+              <Route path="/post-job" element={<AuthRouteGuard requiredRole="employer"><Navigate to="/employer-dashboard?tab=post-job" replace /></AuthRouteGuard>} />
+              <Route path="/edit-job/:jobId" element={<AuthRouteGuard requiredRole="employer"><PageTransition><PostJob /></PageTransition></AuthRouteGuard>} />
+              <Route path="/company-profile" element={<AuthRouteGuard requiredRole="employer"><Navigate to="/employer-dashboard?tab=company" replace /></AuthRouteGuard>} />
+              <Route path="/video-call/:interviewId" element={<AuthRouteGuard><PageTransition><VideoCall /></PageTransition></AuthRouteGuard>} />
 
               {/* ==================== ADMIN ROUTES ==================== */}
               <Route path="/admin" element={<AdminRouteGuard><AdminDashboard /></AdminRouteGuard>} />
