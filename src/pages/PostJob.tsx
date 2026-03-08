@@ -637,6 +637,7 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
         location_state: geoComponents.state || null,
         location_city: geoComponents.city || null,
         moderation_status: 'approved',
+        translations: Object.keys(jobTranslations).length > 0 ? jobTranslations : null,
       };
 
       if (isEditMode && jobId) {
