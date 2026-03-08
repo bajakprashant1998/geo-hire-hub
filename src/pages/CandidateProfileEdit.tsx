@@ -1040,7 +1040,45 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                             </SectionCard>
 
                             <SectionCard icon={Building2} title="Industry Preferences" subtitle="Which industries interest you?">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-sm text-muted-foreground">Add industries or get AI suggestions</span>
+                                    <AIIndustrySuggestButton
+                                        jobTitle={jobTitle}
+                                        currentIndustries={industryPreference}
+                                        onSuggest={(suggestions) => {
+                                            setSuggestedIndustries(suggestions);
+                                        }}
+                                    />
+                                </div>
                                 <TagInput items={industryPreference} onAdd={() => addTag(industryPreference, setIndustryPreference, industryInput, setIndustryInput)} onRemove={s => removeTag(industryPreference, setIndustryPreference, s)} input={industryInput} setInput={setIndustryInput} placeholder="e.g., IT, Healthcare, Finance" />
+                                <AnimatePresence>
+                                    {suggestedIndustries.length > 0 && (
+                                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
+                                            <div className="p-3 rounded-xl bg-primary/[0.04] border border-primary/10 space-y-2 mt-3">
+                                                <p className="text-xs text-muted-foreground">Click to add:</p>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {suggestedIndustries.map((ind) => (
+                                                        <motion.button key={ind} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} whileTap={{ scale: 0.95 }}
+                                                            onClick={() => {
+                                                                if (!industryPreference.includes(ind)) {
+                                                                    setIndustryPreference(prev => [...prev, ind]);
+                                                                    setSuggestedIndustries(prev => prev.filter(s => s !== ind));
+                                                                    toast.success(`Added "${ind}"`);
+                                                                }
+                                                            }}
+                                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border border-primary/20 bg-card hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all cursor-pointer"
+                                                        >
+                                                            <Plus className="w-3 h-3" />{ind}
+                                                        </motion.button>
+                                                    ))}
+                                                </div>
+                                                <Button type="button" variant="ghost" size="sm" className="h-7 text-xs text-muted-foreground" onClick={() => setSuggestedIndustries([])}>
+                                                    <X className="w-3 h-3 mr-1" /> Dismiss
+                                                </Button>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </SectionCard>
                         </>
                     )}
