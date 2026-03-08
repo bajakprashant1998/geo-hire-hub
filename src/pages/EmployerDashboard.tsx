@@ -18,7 +18,8 @@ import {
   MapPin, Briefcase, Building2, Plus, Loader2, Eye, Users,
   CheckCircle2, ChevronRight, FileEdit, CreditCard, UserCheck,
   MessageSquare, Calendar, BarChart3, User, Settings, Pencil, Trash2, Shield,
-  Sparkles, Bell, Filter, Search, Clock
+  Sparkles, Bell, Filter, Search, Clock, FileText, FlaskConical, ClipboardCheck,
+  Database, MessageCircle
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -57,6 +58,12 @@ import { AIScreeningPanel } from '@/components/employer/AIScreeningPanel';
 import { SkillAssessmentManager } from '@/components/employer/SkillAssessmentManager';
 import { JDOptimizer } from '@/components/employer/JDOptimizer';
 import { SpotlightStories } from '@/components/employer/SpotlightStories';
+import { OfferLetterGenerator } from '@/components/employer/OfferLetterGenerator';
+import { CandidateComparisonBoard } from '@/components/employer/CandidateComparisonBoard';
+import { InterviewFeedbackForms } from '@/components/employer/InterviewFeedbackForms';
+import { TalentPoolCRM } from '@/components/employer/TalentPoolCRM';
+import { JobABTesting } from '@/components/employer/JobABTesting';
+import { TeamCollaborationNotes } from '@/components/employer/TeamCollaborationNotes';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -302,6 +309,12 @@ const EmployerDashboard = () => {
     { icon: FileEdit, label: 'JD Optimizer', value: 'jd-optimizer' },
     { icon: CheckCircle2, label: 'Assessments', value: 'assessments' },
     { icon: Sparkles, label: 'Spotlight Stories', value: 'spotlight' },
+    { icon: FileText, label: 'Offer Letters', value: 'offer-letters' },
+    { icon: Users, label: 'Compare Candidates', value: 'compare-candidates' },
+    { icon: ClipboardCheck, label: 'Interview Feedback', value: 'interview-feedback' },
+    { icon: Database, label: 'Talent Pool', value: 'talent-pool' },
+    { icon: FlaskConical, label: 'A/B Testing', value: 'ab-testing' },
+    { icon: MessageCircle, label: 'Team Notes', value: 'team-notes' },
     { icon: CreditCard, label: 'Upgrade Plan', value: 'upgrade-plan' }
   ];
 
@@ -835,13 +848,24 @@ const EmployerDashboard = () => {
         return employer && <SkillAssessmentManager employerId={employer.id} />;
       case 'spotlight':
         return employer && <SpotlightStories employerId={employer.id} companyName={employer.company_name} isOwner />;
+      case 'offer-letters':
+        return employer && <OfferLetterGenerator employerId={employer.id} companyName={employer.company_name} />;
+      case 'compare-candidates':
+        return employer && <CandidateComparisonBoard employerId={employer.id} />;
+      case 'interview-feedback':
+        return employer && <InterviewFeedbackForms employerId={employer.id} />;
+      case 'talent-pool':
+        return employer && <TalentPoolCRM employerId={employer.id} />;
+      case 'ab-testing':
+        return employer && <JobABTesting employerId={employer.id} />;
+      case 'team-notes':
+        return employer && <TeamCollaborationNotes employerId={employer.id} />;
       case 'post-job':
         return <PostJob embedded />;
       default:
         return null;
     }
   };
-
   return (
     <EmailVerificationGuard fallbackMessage="Please verify your email to access your employer dashboard.">
       <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/80 flex overflow-x-hidden">
