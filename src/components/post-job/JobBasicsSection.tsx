@@ -3,7 +3,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { JobCategorySearch } from '@/components/JobCategorySearch';
-import { LocationMapPicker } from './LocationMapPicker';
+import { LocationMapPicker, type GeoComponents } from './LocationMapPicker';
 import { JobCategorySelector } from '@/components/government/JobCategorySelector';
 import { Briefcase, MapPin, Users, Info, Wifi, Building } from 'lucide-react';
 
