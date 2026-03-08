@@ -25,6 +25,7 @@ import { SEOHead } from '@/components/SEOHead';
 import { motion } from 'framer-motion';
 import { VerificationBadge } from '@/components/employer/VerificationBadge';
 import { TrustScoreDisplay } from '@/components/employer/TrustScoreDisplay';
+import { ResponseRateBadge } from '@/components/employer/ResponseRateBadge';
 import { BreadcrumbNav, buildBreadcrumbJsonLd } from '@/components/BreadcrumbNav';
 import { CompanyReviews } from '@/components/employer/CompanyReviews';
 import { CompanyQAForum } from '@/components/employer/CompanyQAForum';
