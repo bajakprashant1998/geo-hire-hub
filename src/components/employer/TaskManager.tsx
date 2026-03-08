@@ -387,7 +387,7 @@ export const TaskManager = ({ employerId }: TaskManagerProps) => {
                   >
                     {updatingStatus === task.id
                       ? <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
-                      : <config.icon className={cn('w-4 h-4', STATUS_CONFIG[task.status as keyof typeof STATUS_CONFIG]?.color || 'text-muted-foreground')} />
+                      : (() => { const cfg = STATUS_CONFIG[task.status as keyof typeof STATUS_CONFIG]; return cfg ? <cfg.icon className={cn('w-4 h-4', cfg.color)} /> : <Clock className="w-4 h-4 text-muted-foreground" />; })()
                     }
                   </button>
                 </TooltipTrigger>
