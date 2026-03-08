@@ -3190,6 +3190,33 @@ export type Database = {
         }
         Relationships: []
       }
+      world_cities: {
+        Row: {
+          city: string
+          country: string
+          id: string
+          population: number | null
+          search_text: string | null
+          state: string | null
+        }
+        Insert: {
+          city: string
+          country: string
+          id?: string
+          population?: number | null
+          search_text?: string | null
+          state?: string | null
+        }
+        Update: {
+          city?: string
+          country?: string
+          id?: string
+          population?: number | null
+          search_text?: string | null
+          state?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       employer_ratings: {
@@ -3350,6 +3377,8 @@ export type Database = {
         }
         Returns: string
       }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       track_category_usage: {
         Args: { p_category_name: string; p_is_selection?: boolean }
         Returns: undefined
