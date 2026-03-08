@@ -709,6 +709,25 @@ const AIResumeBuilder = ({ embedded = false }: { embedded?: boolean }) => {
   // ─── FORM VIEW ─────────────────────────────
   const renderForm = () => (
     <div className="max-w-3xl mx-auto space-y-6">
+      {/* Auto-fill Banner */}
+      <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
+        <CardContent className="p-4 flex items-center justify-between gap-4">
+          <div>
+            <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              Auto-fill from Profile
+            </h4>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Import your skills, education, experience and contact info from your profile
+            </p>
+          </div>
+          <Button onClick={autoFillFromProfile} disabled={autoFilling} variant="outline" size="sm" className="rounded-xl gap-1.5 shrink-0">
+            {autoFilling ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+            {autoFilling ? 'Importing...' : 'Import'}
+          </Button>
+        </CardContent>
+      </Card>
+
       {/* Personal Info */}
       <Card>
         <CardHeader><CardTitle className="flex items-center gap-2"><UserIcon className="w-5 h-5" /> Personal Information</CardTitle></CardHeader>

@@ -258,6 +258,19 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
 
     const handleSave = async () => {
         if (!candidate || !profile) return;
+
+        // Inline validation
+        const errors: string[] = [];
+        if (!fullName.trim()) errors.push('Full name is required');
+        if (!jobTitle.trim() || jobTitle === 'Not specified') errors.push('Job title is required');
+        if (expectedSalary && isNaN(Number(expectedSalary))) errors.push('Expected salary must be a number');
+        if (videoIntroUrl && !videoIntroUrl.startsWith('http')) errors.push('Video URL must be a valid link');
+
+        if (errors.length > 0) {
+            errors.forEach(e => toast.error(e));
+            return;
+        }
+
         setSaving(true);
         try {
             const { error: profileError } = await supabase.from('profiles').update({
@@ -274,7 +287,6 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                 certifications, languages: languages as unknown as any,
                 social_links: socialLinks as unknown as any,
                 availability_status: availabilityStatus, preferred_job_types: preferredJobTypes,
-                // New fields
                 notice_period: noticePeriod || null,
                 work_authorization: workAuthorization || null,
                 willing_to_relocate: willingToRelocate,
@@ -305,7 +317,7 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
             if (candidateError) throw candidateError;
 
             await refreshProfile();
-            toast.success('Profile saved successfully');
+            toast.success('Profile saved successfully ✓');
         } catch (error: any) {
             console.error('Error saving:', error);
             toast.error(error.message || 'Failed to save profile');
