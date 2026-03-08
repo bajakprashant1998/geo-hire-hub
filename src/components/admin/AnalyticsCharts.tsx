@@ -3,7 +3,7 @@ import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
-import { TrendingUp, Users, DollarSign, Briefcase, Globe, Target } from 'lucide-react';
+import { TrendingUp, Users, Banknote, Briefcase, Globe, Target } from 'lucide-react';
 
 interface ChartData {
   name: string;
