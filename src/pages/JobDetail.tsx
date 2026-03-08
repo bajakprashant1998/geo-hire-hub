@@ -147,6 +147,34 @@ const JobDetail = () => {
   const [applyDialogOpen, setApplyDialogOpen] = useState(false);
   const [coverLetter, setCoverLetter] = useState('');
   const [applying, setApplying] = useState(false);
+  const [generatingCL, setGeneratingCL] = useState(false);
+
+  const handleGenerateCoverLetter = async () => {
+    if (!resolvedId) return;
+    setGeneratingCL(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { toast.error('Please log in first'); return; }
+      const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-cover-letter`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({ jobId: resolvedId }),
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Failed to generate');
+      setCoverLetter(data.coverLetter);
+      toast.success('Cover letter generated!');
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || 'Failed to generate cover letter');
+    } finally {
+      setGeneratingCL(false);
+    }
+  };
   const [relatedJobs, setRelatedJobs] = useState<any[]>([]);
   const [applicantCount, setApplicantCount] = useState(0);
   const [contacting, setContacting] = useState(false);
