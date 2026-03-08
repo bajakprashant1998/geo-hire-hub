@@ -173,6 +173,18 @@ const JobCard = ({ job, isSaved, onToggleSave, index }: { job: any; isSaved: boo
           </span>
         </div>
 
+        {/* AI Match Reasons */}
+        {job.reasons && job.reasons.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {job.reasons.map((reason: string, i: number) => (
+              <span key={i} className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-primary/5 text-primary border border-primary/10">
+                <Target className="w-2.5 h-2.5" />
+                {reason}
+              </span>
+            ))}
+          </div>
+        )}
+
         {/* Expandable details */}
         {job.description && (
           <div className="mt-2">
