@@ -249,49 +249,76 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
   const [sortBy, setSortBy] = useState<SortOption>('relevance');
   const [matchFilter, setMatchFilter] = useState<MatchFilter>('all');
 
+  const [aiInsight, setAiInsight] = useState('');
+  const [profileSummary, setProfileSummary] = useState<{ skills_count: number; applied_count: number; viewed_count: number; saved_count: number } | null>(null);
+
   useEffect(() => {
-    fetchRecommendedJobs();
+    fetchAIRecommendations();
     fetchSavedJobs();
-  }, [skills, latitude, longitude]);
+  }, [candidateId]);
 
-  const fetchRecommendedJobs = async () => {
+  const fetchAIRecommendations = async () => {
     try {
-      const { data, error } = await supabase
-        .from('jobs')
-        .select(`*, employers!inner(company_name, profile_id, profiles!inner(avatar_url))`)
-        .eq('status', 'open')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
-        .limit(20);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { setLoading(false); return; }
 
-      if (error) throw error;
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-job-recommendations`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({}),
+        }
+      );
 
-      const scoredJobs = (data || []).map(job => {
+      if (!res.ok) throw new Error('Failed to fetch recommendations');
+
+      const data = await res.json();
+      const recs = (data.recommendations || []).map((r: any) => ({
+        ...r,
+        relevanceScore: r.score,
+        employers: { company_name: r.company_name },
+      }));
+
+      setJobs(recs);
+      setAiInsight(data.insight || '');
+      setProfileSummary(data.profile_summary || null);
+    } catch (error) {
+      console.error('AI recommendations error, falling back to basic:', error);
+      // Fallback to basic query
+      await fetchBasicRecommendations();
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const fetchBasicRecommendations = async () => {
+    const { data, error } = await supabase
+      .from('jobs')
+      .select(`*, employers!inner(company_name, profile_id, profiles!inner(avatar_url))`)
+      .eq('status', 'open')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    if (!error && data) {
+      const scoredJobs = data.map(job => {
         let score = 0;
         if (skills.length > 0 && job.description) {
           const descLower = job.description.toLowerCase();
           skills.forEach(skill => { if (descLower.includes(skill.toLowerCase())) score += 10; });
         }
-        if (job.category && skills.some(s => job.category?.toLowerCase().includes(s.toLowerCase()))) score += 5;
-        if (latitude && longitude && job.latitude && job.longitude) {
-          const distance = Math.sqrt(Math.pow(job.latitude - latitude, 2) + Math.pow(job.longitude - longitude, 2));
-          if (distance < 0.5) score += 15;
-          else if (distance < 1) score += 10;
-          else if (distance < 2) score += 5;
-        }
         const daysOld = (Date.now() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24);
         if (daysOld < 7) score += 5;
-        if (daysOld < 3) score += 5;
-        return { ...job, relevanceScore: score };
+        return { ...job, relevanceScore: score, reasons: [] as string[] };
       });
-
       scoredJobs.sort((a, b) => b.relevanceScore - a.relevanceScore);
       setJobs(scoredJobs);
-    } catch (error) {
-      console.error('Error fetching recommended jobs:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
     }
   };
 
