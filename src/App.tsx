@@ -197,6 +197,7 @@ const App = () => (
               <Route path="/admin/scheduled-jobs" element={<AdminScheduledJobs />} />
               <Route path="/admin/tasks" element={<AdminTasks />} />
               <Route path="/admin/seo-agent" element={<AdminSEOAgent />} />
+              <Route path="/admin/banners" element={<AdminBanners />} />
 
               {/* ==================== REDIRECTS & ALIASES ==================== */}
               <Route path="/dashboard" element={<Navigate to="/candidate-dashboard" replace />} />
