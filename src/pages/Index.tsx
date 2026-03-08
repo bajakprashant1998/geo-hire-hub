@@ -176,6 +176,10 @@ const Index = () => {
             onFiltersChange={setFilters}
             heatmapEnabled={heatmapEnabled}
             onHeatmapToggle={() => setHeatmapEnabled(!heatmapEnabled)}
+            salaryHeatmapEnabled={salaryHeatmapEnabled}
+            onSalaryHeatmapToggle={() => setSalaryHeatmapEnabled(!salaryHeatmapEnabled)}
+            salaryRoleFilter={salaryRoleFilter}
+            onSalaryRoleFilterChange={setSalaryRoleFilter}
           />
         </div>
 
