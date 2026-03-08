@@ -1,14 +1,20 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Bell, Plus, Trash2, Mail, Smartphone, MapPin, Briefcase, X, Loader2 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
+import {
+  Bell, Plus, Trash2, Mail, Smartphone, MapPin, Briefcase, X, Loader2,
+  Zap, BellRing, BellOff, Sparkles, Check, Edit2, Power, ChevronRight, Settings
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface JobAlert {
   id: string;
@@ -25,13 +31,174 @@ interface JobAlertsManagerProps {
   candidateId: string;
 }
 
-export const JobAlertsManager = ({ candidateId }: JobAlertsManagerProps) => {
-  const [alerts, setAlerts] = useState<JobAlert[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
+/* ── Stats row ── */
+const AlertStats = ({ total, active, paused }: { total: number; active: number; paused: number }) => (
+  <div className="grid grid-cols-3 gap-3">
+    {[
+      { label: 'Total Alerts', value: total, icon: Bell, color: 'text-muted-foreground', bg: 'bg-muted/50' },
+      { label: 'Active', value: active, icon: BellRing, color: 'text-success', bg: 'bg-success/10' },
+      { label: 'Paused', value: paused, icon: BellOff, color: 'text-warning-foreground', bg: 'bg-warning/10' },
+    ].map((stat, i) => (
+      <motion.div key={stat.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+        <Card className="border border-border/40">
+          <CardContent className="p-3 flex items-center gap-3">
+            <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center shrink-0', stat.bg)}>
+              <stat.icon className={cn('w-4 h-4', stat.color)} />
+            </div>
+            <div>
+              <p className="text-lg font-extrabold text-foreground leading-none">{stat.value}</p>
+              <p className="text-[10px] text-muted-foreground">{stat.label}</p>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    ))}
+  </div>
+);
 
-  // Form state
+/* ── Alert card ── */
+const AlertCard = ({
+  alert,
+  onToggle,
+  onDelete,
+}: {
+  alert: JobAlert;
+  onToggle: (id: string, active: boolean) => void;
+  onDelete: (id: string) => void;
+}) => {
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, height: 0 }}
+      className={cn(
+        'group relative rounded-xl border transition-all overflow-hidden',
+        alert.is_active
+          ? 'border-primary/15 bg-gradient-to-br from-primary/5 to-transparent hover:border-primary/30'
+          : 'border-border/30 bg-muted/10 opacity-70 hover:opacity-90'
+      )}
+    >
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3 flex-1 min-w-0">
+            <div className={cn(
+              'w-10 h-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5',
+              alert.is_active ? 'bg-primary/10' : 'bg-muted/50'
+            )}>
+              <BellRing className={cn('w-5 h-5', alert.is_active ? 'text-primary' : 'text-muted-foreground')} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h4 className="font-bold text-sm text-foreground">{alert.name}</h4>
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    'text-[10px] h-5 border-0',
+                    alert.is_active ? 'bg-success/15 text-success' : 'bg-muted text-muted-foreground'
+                  )}
+                >
+                  {alert.is_active ? '● Active' : '○ Paused'}
+                </Badge>
+              </div>
+
+              {/* Tags */}
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {alert.skills.map((skill, i) => (
+                  <Badge key={i} variant="outline" className="text-[10px] h-5 bg-primary/5 text-primary border-primary/15">
+                    {skill}
+                  </Badge>
+                ))}
+                {alert.location && (
+                  <Badge variant="outline" className="text-[10px] h-5 gap-0.5 bg-muted/50">
+                    <MapPin className="w-3 h-3" /> {alert.location}
+                  </Badge>
+                )}
+                {alert.category && (
+                  <Badge variant="outline" className="text-[10px] h-5 gap-0.5 bg-muted/50">
+                    <Briefcase className="w-3 h-3" /> {alert.category}
+                  </Badge>
+                )}
+              </div>
+
+              {/* Channels */}
+              <div className="flex items-center gap-3 mt-2.5">
+                {alert.is_email_enabled && (
+                  <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                    <Mail className="w-3 h-3" /> Email
+                  </span>
+                )}
+                {alert.is_push_enabled && (
+                  <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                    <Smartphone className="w-3 h-3" /> Push
+                  </span>
+                )}
+                {!alert.is_email_enabled && !alert.is_push_enabled && (
+                  <span className="text-[11px] text-muted-foreground/50">No channels enabled</span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Controls */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <Switch
+                    checked={alert.is_active}
+                    onCheckedChange={(checked) => onToggle(alert.id, checked)}
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>{alert.is_active ? 'Pause alert' : 'Activate alert'}</TooltipContent>
+            </Tooltip>
+
+            {confirmDelete ? (
+              <div className="flex items-center gap-1">
+                <Button size="icon" variant="destructive" className="h-7 w-7" onClick={() => onDelete(alert.id)}>
+                  <Check className="w-3.5 h-3.5" />
+                </Button>
+                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => setConfirmDelete(false)}>
+                  <X className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => setConfirmDelete(true)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Delete alert</TooltipContent>
+              </Tooltip>
+            )}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+/* ── Create alert form ── */
+const CreateAlertForm = ({
+  open,
+  onOpenChange,
+  candidateId,
+  onCreated,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  candidateId: string;
+  onCreated: () => void;
+}) => {
   const [name, setName] = useState('');
   const [skills, setSkills] = useState<string[]>([]);
   const [skillInput, setSkillInput] = useState('');
@@ -39,69 +206,39 @@ export const JobAlertsManager = ({ candidateId }: JobAlertsManagerProps) => {
   const [category, setCategory] = useState('');
   const [emailEnabled, setEmailEnabled] = useState(true);
   const [pushEnabled, setPushEnabled] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    fetchAlerts();
-  }, [candidateId]);
-
-  const fetchAlerts = async () => {
-    const { data } = await supabase
-      .from('job_alerts')
-      .select('*')
-      .eq('candidate_id', candidateId)
-      .order('created_at', { ascending: false });
-
-    setAlerts(data || []);
-    setLoading(false);
+  const resetForm = () => {
+    setName(''); setSkills([]); setSkillInput(''); setLocation(''); setCategory('');
+    setEmailEnabled(true); setPushEnabled(false);
   };
 
   const addSkill = () => {
-    if (skillInput.trim() && !skills.includes(skillInput.trim())) {
-      setSkills([...skills, skillInput.trim()]);
+    const val = skillInput.trim();
+    if (val && !skills.includes(val)) {
+      setSkills([...skills, val]);
       setSkillInput('');
     }
   };
 
-  const removeSkill = (skill: string) => {
-    setSkills(skills.filter(s => s !== skill));
-  };
-
-  const resetForm = () => {
-    setName('');
-    setSkills([]);
-    setSkillInput('');
-    setLocation('');
-    setCategory('');
-    setEmailEnabled(true);
-    setPushEnabled(false);
-  };
-
   const createAlert = async () => {
-    if (!name.trim()) {
-      toast.error('Please enter an alert name');
-      return;
-    }
-
+    if (!name.trim()) { toast.error('Please enter an alert name'); return; }
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from('job_alerts')
-        .insert({
-          candidate_id: candidateId,
-          name: name.trim(),
-          skills,
-          location: location.trim() || null,
-          category: category.trim() || null,
-          is_email_enabled: emailEnabled,
-          is_push_enabled: pushEnabled,
-        });
-
+      const { error } = await supabase.from('job_alerts').insert({
+        candidate_id: candidateId,
+        name: name.trim(),
+        skills,
+        location: location.trim() || null,
+        category: category.trim() || null,
+        is_email_enabled: emailEnabled,
+        is_push_enabled: pushEnabled,
+      });
       if (error) throw error;
-
-      toast.success('Job alert created');
-      setDialogOpen(false);
+      toast.success('Job alert created!');
+      onOpenChange(false);
       resetForm();
-      fetchAlerts();
+      onCreated();
     } catch (error) {
       console.error('Error creating alert:', error);
       toast.error('Failed to create alert');
@@ -110,12 +247,125 @@ export const JobAlertsManager = ({ candidateId }: JobAlertsManagerProps) => {
     }
   };
 
-  const toggleAlert = async (id: string, isActive: boolean) => {
-    const { error } = await supabase
-      .from('job_alerts')
-      .update({ is_active: isActive })
-      .eq('id', id);
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Zap className="w-4 h-4 text-primary" />
+            </div>
+            Create Job Alert
+          </DialogTitle>
+          <DialogDescription>Get notified when jobs matching your criteria are posted</DialogDescription>
+        </DialogHeader>
 
+        <div className="space-y-4 py-2">
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold">Alert Name *</Label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g., React Developer Jobs"
+              className="rounded-xl"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs font-semibold">Skills to match</Label>
+            <div className="flex gap-2">
+              <Input
+                value={skillInput}
+                onChange={(e) => setSkillInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
+                placeholder="Add a skill and press Enter..."
+                className="rounded-xl"
+              />
+              <Button type="button" onClick={addSkill} variant="outline" size="icon" className="shrink-0 rounded-xl">
+                <Plus className="w-4 h-4" />
+              </Button>
+            </div>
+            {skills.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                {skills.map((skill, i) => (
+                  <Badge key={i} variant="secondary" className="gap-1 rounded-lg">
+                    {skill}
+                    <X className="w-3 h-3 cursor-pointer hover:text-destructive" onClick={() => setSkills(skills.filter(s => s !== skill))} />
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5" /> Location
+              </Label>
+              <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g., New York" className="rounded-xl" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold flex items-center gap-1">
+                <Briefcase className="w-3.5 h-3.5" /> Category
+              </Label>
+              <Input value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g., Technology" className="rounded-xl" />
+            </div>
+          </div>
+
+          <div className="space-y-2 pt-1">
+            <Label className="text-xs font-semibold">Notification Channels</Label>
+            <div className="space-y-2">
+              {[
+                { icon: Mail, label: 'Email notifications', desc: 'Daily digest of matching jobs', checked: emailEnabled, onChange: setEmailEnabled },
+                { icon: Smartphone, label: 'Push notifications', desc: 'Real-time browser alerts', checked: pushEnabled, onChange: setPushEnabled },
+              ].map((ch) => (
+                <div key={ch.label} className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border/30">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center">
+                      <ch.icon className="w-4 h-4 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">{ch.label}</p>
+                      <p className="text-[10px] text-muted-foreground">{ch.desc}</p>
+                    </div>
+                  </div>
+                  <Switch checked={ch.checked} onCheckedChange={ch.onChange} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2 pt-1">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="rounded-xl">Cancel</Button>
+          <Button onClick={createAlert} disabled={saving} className="rounded-xl gap-1.5">
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+            Create Alert
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+/* ── Main Component ── */
+export const JobAlertsManager = ({ candidateId }: JobAlertsManagerProps) => {
+  const [alerts, setAlerts] = useState<JobAlert[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => { fetchAlerts(); }, [candidateId]);
+
+  const fetchAlerts = async () => {
+    const { data } = await supabase
+      .from('job_alerts').select('*').eq('candidate_id', candidateId)
+      .order('created_at', { ascending: false });
+    setAlerts(data || []);
+    setLoading(false);
+  };
+
+  const toggleAlert = async (id: string, isActive: boolean) => {
+    const { error } = await supabase.from('job_alerts').update({ is_active: isActive }).eq('id', id);
     if (!error) {
       setAlerts(alerts.map(a => a.id === id ? { ...a, is_active: isActive } : a));
       toast.success(isActive ? 'Alert activated' : 'Alert paused');
@@ -123,207 +373,115 @@ export const JobAlertsManager = ({ candidateId }: JobAlertsManagerProps) => {
   };
 
   const deleteAlert = async (id: string) => {
-    const { error } = await supabase
-      .from('job_alerts')
-      .delete()
-      .eq('id', id);
-
+    const { error } = await supabase.from('job_alerts').delete().eq('id', id);
     if (!error) {
       setAlerts(alerts.filter(a => a.id !== id));
       toast.success('Alert deleted');
     }
   };
 
+  const activeCount = alerts.filter(a => a.is_active).length;
+  const pausedCount = alerts.filter(a => !a.is_active).length;
+
   if (loading) {
     return (
-      <Card className="shadow-google">
-        <CardContent className="p-8 flex justify-center">
-          <Loader2 className="w-6 h-6 animate-spin text-primary" />
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <div className="grid grid-cols-3 gap-3">
+          {[1, 2, 3].map(i => <div key={i} className="h-16 rounded-xl bg-muted/30 animate-pulse" />)}
+        </div>
+        <div className="h-64 rounded-2xl bg-muted/20 animate-pulse" />
+      </div>
     );
   }
 
   return (
-    <Card className="shadow-google">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="flex items-center gap-2">
-          <Bell className="w-5 h-5 text-primary" />
-          Job Alerts
-        </CardTitle>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm">
-              <Plus className="w-4 h-4 mr-1" />
-              Create Alert
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create Job Alert</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Alert Name</Label>
-                <Input 
-                  value={name} 
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g., React Developer Jobs"
-                />
-              </div>
+    <div className="space-y-4">
+      {/* Stats */}
+      <AlertStats total={alerts.length} active={activeCount} paused={pausedCount} />
 
-              <div className="space-y-2">
-                <Label>Skills to match</Label>
-                <div className="flex gap-2">
-                  <Input 
-                    value={skillInput}
-                    onChange={(e) => setSkillInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSkill())}
-                    placeholder="Add a skill..."
-                  />
-                  <Button type="button" onClick={addSkill} variant="outline">
-                    <Plus className="w-4 h-4" />
-                  </Button>
-                </div>
-                {skills.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {skills.map((skill, index) => (
-                      <Badge key={index} variant="secondary" className="gap-1">
-                        {skill}
-                        <X 
-                          className="w-3 h-3 cursor-pointer hover:text-destructive" 
-                          onClick={() => removeSkill(skill)} 
-                        />
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-1">
-                    <MapPin className="w-4 h-4" />
-                    Location
-                  </Label>
-                  <Input 
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="e.g., New York"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-1">
-                    <Briefcase className="w-4 h-4" />
-                    Category
-                  </Label>
-                  <Input 
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    placeholder="e.g., Technology"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-3 pt-2">
-                <Label>Notification preferences</Label>
-                <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-muted-foreground" />
-                    <span>Email notifications</span>
-                  </div>
-                  <Switch checked={emailEnabled} onCheckedChange={setEmailEnabled} />
-                </div>
-                <div className="flex items-center justify-between p-3 bg-secondary rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Smartphone className="w-4 h-4 text-muted-foreground" />
-                    <span>Push notifications</span>
-                  </div>
-                  <Switch checked={pushEnabled} onCheckedChange={setPushEnabled} />
-                </div>
-              </div>
+      {/* Header card */}
+      <Card className="border border-border/40 overflow-hidden rounded-2xl">
+        <div className="flex items-center justify-between p-4 border-b border-border/30 bg-gradient-to-r from-primary/5 to-transparent">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Bell className="w-5 h-5 text-primary" />
             </div>
-
-            <div className="flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-              <Button onClick={createAlert} disabled={saving}>
-                {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                Create Alert
-              </Button>
+            <div>
+              <h3 className="font-bold text-foreground">Job Alerts</h3>
+              <p className="text-xs text-muted-foreground">Get notified when matching jobs are posted</p>
             </div>
-          </DialogContent>
-        </Dialog>
-      </CardHeader>
-      <CardContent>
-        {alerts.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <Bell className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>No job alerts yet</p>
-            <p className="text-sm">Create an alert to get notified about matching jobs</p>
           </div>
-        ) : (
-          <div className="space-y-3">
-            {alerts.map((alert) => (
-              <div 
-                key={alert.id} 
-                className="p-4 bg-secondary/50 rounded-lg flex items-center justify-between"
+          <Button size="sm" onClick={() => setDialogOpen(true)} className="rounded-xl gap-1.5">
+            <Plus className="w-4 h-4" /> New Alert
+          </Button>
+        </div>
+
+        <CardContent className="p-4">
+          {alerts.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-14 px-6"
+            >
+              <motion.div
+                animate={{ y: [0, -6, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4"
               >
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h4 className="font-medium">{alert.name}</h4>
-                    <Badge variant={alert.is_active ? "default" : "secondary"}>
-                      {alert.is_active ? 'Active' : 'Paused'}
-                    </Badge>
-                  </div>
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {alert.skills.map((skill, i) => (
-                      <Badge key={i} variant="outline" className="text-xs">{skill}</Badge>
-                    ))}
-                    {alert.location && (
-                      <Badge variant="outline" className="text-xs">
-                        <MapPin className="w-3 h-3 mr-1" />
-                        {alert.location}
-                      </Badge>
-                    )}
-                    {alert.category && (
-                      <Badge variant="outline" className="text-xs">
-                        <Briefcase className="w-3 h-3 mr-1" />
-                        {alert.category}
-                      </Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                    {alert.is_email_enabled && (
-                      <span className="flex items-center gap-1">
-                        <Mail className="w-3 h-3" /> Email
-                      </span>
-                    )}
-                    {alert.is_push_enabled && (
-                      <span className="flex items-center gap-1">
-                        <Smartphone className="w-3 h-3" /> Push
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Switch 
-                    checked={alert.is_active} 
-                    onCheckedChange={(checked) => toggleAlert(alert.id, checked)} 
+                <Sparkles className="w-8 h-8 text-primary/50" />
+              </motion.div>
+              <h3 className="font-bold text-foreground mb-1">No alerts yet</h3>
+              <p className="text-sm text-muted-foreground mb-4 max-w-xs mx-auto">
+                Create your first job alert and we'll notify you when jobs matching your criteria are posted
+              </p>
+              <Button onClick={() => setDialogOpen(true)} className="rounded-xl gap-1.5">
+                <Plus className="w-4 h-4" /> Create Your First Alert
+              </Button>
+            </motion.div>
+          ) : (
+            <div className="space-y-3">
+              <AnimatePresence>
+                {alerts.map((alert) => (
+                  <AlertCard
+                    key={alert.id}
+                    alert={alert}
+                    onToggle={toggleAlert}
+                    onDelete={deleteAlert}
                   />
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="text-destructive hover:text-destructive"
-                    onClick={() => deleteAlert(alert.id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
+                ))}
+              </AnimatePresence>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Tips */}
+      {alerts.length > 0 && alerts.length < 5 && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
+          <Card className="border border-border/30 bg-muted/10">
+            <CardContent className="p-3.5 flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                <Zap className="w-4 h-4 text-primary" />
               </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-foreground">Pro tip: Create multiple alerts</p>
+                <p className="text-xs text-muted-foreground">
+                  Set up alerts for different roles, locations, or skill sets to cast a wider net.
+                  You can have up to 10 active alerts.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      {/* Create dialog */}
+      <CreateAlertForm
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        candidateId={candidateId}
+        onCreated={fetchAlerts}
+      />
+    </div>
   );
 };
