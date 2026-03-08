@@ -433,7 +433,7 @@ const TrustBar = () => (
   </motion.div>
 );
 
-const ComparisonTable = ({ plans }: { plans: Plan[] }) => {
+const ComparisonTable = ({ plans, currency }: { plans: Plan[]; currency: string }) => {
   // Build comparison rows dynamically from DB plans
   const freePlan = plans.find(p => p.name.toLowerCase() === 'free');
   const proPlan = plans.find(p => p.name.toLowerCase() === 'professional');
