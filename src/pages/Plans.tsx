@@ -41,7 +41,7 @@ interface Plan {
 }
 
 const comparisonFeatures = [
-  { label: 'Active Job Listings', free: '1', pro: '10', enterprise: 'Unlimited', tooltip: 'Number of jobs you can have active simultaneously' },
+  { label: 'Active Job Listings', free: '5', pro: '15', enterprise: '30', tooltip: 'Number of jobs you can have active simultaneously' },
   { label: 'Applicant Tracking', free: 'Basic', pro: 'Advanced', enterprise: 'Full Suite', tooltip: 'Tools to manage and track applicants through your hiring pipeline' },
   { label: 'AI Job Matching', free: false, pro: true, enterprise: true, tooltip: 'Smart algorithm matches candidates to your job requirements' },
   { label: 'Analytics Dashboard', free: false, pro: true, enterprise: true, tooltip: 'Detailed insights on job performance and applicant metrics' },
