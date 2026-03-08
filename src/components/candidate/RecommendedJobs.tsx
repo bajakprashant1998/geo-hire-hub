@@ -461,9 +461,9 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
               <Sparkles className="w-5 h-5 text-[hsl(var(--warning))]" />
             </div>
             <div>
-              <span>Recommended Jobs</span>
+              <span>AI-Powered Recommendations</span>
               <p className="text-xs font-normal text-muted-foreground mt-0.5">
-                Based on your skills & preferences
+                Personalized based on your skills, behavior & preferences
               </p>
             </div>
           </CardTitle>
