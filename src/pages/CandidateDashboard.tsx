@@ -38,6 +38,7 @@ import { CareerBuddyChat } from '@/components/candidate/CareerBuddyChat';
 import CandidateDetail from '@/pages/CandidateDetail';
 import CandidateProfileEdit from '@/pages/CandidateProfileEdit';
 import { ProfileCompletionPrompts } from '@/components/candidate/ProfileCompletionPrompts';
+import { PublicProfilePreview } from '@/components/candidate/PublicProfilePreview';
 import { DashboardBottomNav } from '@/components/dashboard/DashboardBottomNav';
 import { OnboardingTour } from '@/components/onboarding/OnboardingTour';
 import { AutoApplyManager } from '@/components/candidate/AutoApplyManager';
