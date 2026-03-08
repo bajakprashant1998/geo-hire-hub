@@ -517,18 +517,25 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
     );
   }
 
+  const completedSteps = steps.filter((_, i) => getStepCompletion(i) === 'complete').length;
+
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-lg sm:text-2xl font-bold text-foreground">Company Profile</h2>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">Complete your profile to attract top talent & enable AI matching</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/10">
+            <Building2 className="w-6 h-6 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-lg sm:text-xl font-bold text-foreground">Company Profile</h2>
+            <p className="text-xs sm:text-sm text-muted-foreground">Complete your profile to attract top talent & enable AI matching</p>
+          </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <VerificationBadge status={verificationStatus} verificationMethod={verificationMethod} googleBusinessVerified={googleBusinessVerified} />
           {onViewPublicProfile && (
-            <Button variant="outline" size="sm" onClick={onViewPublicProfile} className="gap-1.5 text-xs sm:text-sm h-8 sm:h-9">
+            <Button variant="outline" size="sm" onClick={onViewPublicProfile} className="gap-1.5 text-xs h-8 rounded-xl">
               <Eye className="w-3.5 h-3.5" /> Preview
             </Button>
           )}
@@ -537,9 +544,25 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
 
       {/* Completeness */}
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-        <Card className="border-border bg-gradient-to-br from-primary/5 via-transparent to-transparent">
-          <CardContent className="p-3 sm:p-5">
+        <Card className="border-border/40 bg-gradient-to-br from-primary/5 via-transparent to-transparent shadow-lg overflow-hidden relative">
+          <div className="absolute -top-16 -right-16 w-40 h-40 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
+          <CardContent className="p-3 sm:p-5 relative z-10">
             <ProfileCompletenessBar completeness={completeness} missingFields={calculateMissingFields()} />
+            {/* Quick stats */}
+            <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border/30 flex-wrap">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Check className="w-3.5 h-3.5 text-success" />
+                <span><strong className="text-foreground">{completedSteps}</strong>/{steps.length} sections complete</span>
+              </div>
+              {trustScore > 0 && (
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Shield className="w-3.5 h-3.5 text-primary" />
+                  <span>Trust Score: <strong className={cn(
+                    trustScore >= 80 ? "text-success" : trustScore >= 50 ? "text-warning" : "text-destructive"
+                  )}>{trustScore}/100</strong></span>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </motion.div>
@@ -557,23 +580,34 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
         </Card>
       )}
 
-      {/* Step Navigation - mobile: 2-row grid, desktop: horizontal scroll */}
+      {/* Step Navigation */}
       <div className="grid grid-cols-3 sm:grid-cols-5 md:flex gap-1.5 sm:gap-2 sm:overflow-x-auto sm:pb-1 scrollbar-hide">
-        {steps.map((step, idx) => (
-          <button
-            key={step.label}
-            onClick={() => setActiveStep(idx)}
-            className={cn(
-              "flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-2 sm:py-2 rounded-lg text-[10px] sm:text-xs font-medium transition-all whitespace-nowrap border shrink-0",
-              activeStep === idx
-                ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
-            )}
-          >
-            <step.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-            <span className="leading-tight text-center sm:text-left">{step.label}</span>
-          </button>
-        ))}
+        {steps.map((step, idx) => {
+          const status = getStepCompletion(idx);
+          return (
+            <button
+              key={step.label}
+              onClick={() => setActiveStep(idx)}
+              className={cn(
+                "flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-2 sm:py-2.5 rounded-xl text-[10px] sm:text-xs font-medium transition-all whitespace-nowrap border shrink-0 relative",
+                activeStep === idx
+                  ? "bg-primary text-primary-foreground border-primary shadow-md"
+                  : "bg-card text-muted-foreground border-border/40 hover:bg-muted hover:text-foreground hover:border-border"
+              )}
+            >
+              <div className="relative">
+                <step.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                {activeStep !== idx && status === 'complete' && (
+                  <div className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-success border-2 border-card" />
+                )}
+                {activeStep !== idx && status === 'partial' && (
+                  <div className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-warning border-2 border-card" />
+                )}
+              </div>
+              <span className="leading-tight text-center sm:text-left">{step.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Step Content */}
