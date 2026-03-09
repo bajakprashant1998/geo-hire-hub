@@ -47,7 +47,7 @@ export const RecentlyViewedJobs = () => {
         job_id,
         viewed_at,
         job:jobs!inner (
-          id, title, salary_range, job_type, location_city, location_state, slug,
+          id, title, salary_range, job_type, location_city, location_state, location_country, slug,
           employer:employers!inner ( company_name )
         )
       `)
