@@ -48,6 +48,8 @@ const TRENDING_SEARCHES = [
 /* ─── Main Component ─── */
 const JobsNearMe = () => {
   const navigate = useNavigate();
+  const { user, profile } = useAuth();
+  const [candidateId, setCandidateId] = useState<string | null>(null);
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
