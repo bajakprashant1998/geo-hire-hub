@@ -15,6 +15,11 @@ const BrowseJobs = () => {
     search, setSearch, jobType, setJobType, sortBy, setSortBy,
     viewMode, setViewMode, jobs, loading, loadingMore, hasMore,
     total, debouncedSearch, loadMore, clearAllFilters,
+    isRemote, setIsRemote,
+    experienceLevel, setExperienceLevel,
+    salaryMin, setSalaryMin,
+    salaryMax, setSalaryMax,
+    activeFilterCount,
   } = useBrowseJobs();
 
   // Back to top
@@ -55,6 +60,11 @@ const BrowseJobs = () => {
         viewMode={viewMode} setViewMode={setViewMode}
         total={total} debouncedSearch={debouncedSearch}
         clearAllFilters={clearAllFilters}
+        isRemote={isRemote} setIsRemote={setIsRemote}
+        experienceLevel={experienceLevel} setExperienceLevel={setExperienceLevel}
+        salaryMin={salaryMin} setSalaryMin={setSalaryMin}
+        salaryMax={salaryMax} setSalaryMax={setSalaryMax}
+        activeFilterCount={activeFilterCount}
       />
 
       {/* Job List */}
