@@ -134,7 +134,7 @@ const EmployerDashboard = () => {
     { icon: Filter, label: 'Candidate Finder', value: 'candidates', badge: stats.totalApplications },
     { icon: FileEdit, label: 'Drafts', value: 'drafts' },
     { icon: Users, label: 'Tasks', value: 'tasks' },
-    { icon: MessageSquare, label: 'Messages', value: 'chat' },
+    { icon: MessageSquare, label: 'Messages', value: 'chat', badge: stats.unreadMessages },
     { icon: Calendar, label: 'Interviews', value: 'interviews', badge: stats.scheduledInterviews },
     { icon: BarChart3, label: 'Analytics', value: 'analytics' },
     { icon: Building2, label: 'Company Profile', value: 'company' },

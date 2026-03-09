@@ -88,13 +88,14 @@ export const JobCard = ({ job, index, viewMode, savedJobIds, onSaveToggle }: Job
     if (!cand) return;
     if (saved) {
       await supabase.from('saved_jobs').delete().eq('candidate_id', cand.id).eq('job_id', job.id);
-      setSaved(false);
+      setLocalSaved(false);
       toast.success('Removed from saved');
     } else {
       await supabase.from('saved_jobs').insert({ candidate_id: cand.id, job_id: job.id });
-      setSaved(true);
+      setLocalSaved(true);
       toast.success('Job saved!');
     }
+    onSaveToggle?.();
   };
 
   return (
