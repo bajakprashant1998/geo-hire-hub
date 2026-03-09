@@ -396,9 +396,9 @@ export const SavedJobsSection = ({ candidateId }: SavedJobsSectionProps) => {
             className="grid grid-cols-3 gap-2"
           >
             {[
-              { label: 'Active', value: stats.active, color: 'text-success', bg: 'bg-success/10', icon: Briefcase, onClick: () => setShowClosedOnly(showClosedOnly === false ? null : false) },
-              { label: 'Expiring Soon', value: stats.expiring, color: 'text-warning-foreground', bg: 'bg-warning/10', icon: Clock, onClick: () => setSortBy('expiring') },
-              { label: 'Closed', value: stats.closed, color: 'text-destructive', bg: 'bg-destructive/10', icon: AlertTriangle, onClick: () => setShowClosedOnly(showClosedOnly === true ? null : true) },
+              { label: 'Active', value: stats.active, color: 'text-success', bg: 'bg-success/10', icon: Briefcase, onClick: () => setShowClosedOnly(showClosedOnly === false ? null : false), showClear: false },
+              { label: 'Expiring Soon', value: stats.expiring, color: 'text-warning-foreground', bg: 'bg-warning/10', icon: Clock, onClick: () => setSortBy('expiring'), showClear: false },
+              { label: 'Closed', value: stats.closed, color: 'text-destructive', bg: 'bg-destructive/10', icon: AlertTriangle, onClick: () => setShowClosedOnly(showClosedOnly === true ? null : true), showClear: stats.closed > 0 },
             ].map((stat, i) => (
               <motion.button
                 key={stat.label}
