@@ -98,7 +98,11 @@ export const JobAnalyticsDashboard = ({ employerId }: JobAnalyticsDashboardProps
           created_at: job.created_at,
           category: job.category || 'Uncategorized',
           expires_at: job.expires_at,
-          ...appData.statuses,
+          pending: appData.statuses.pending,
+          reviewed: appData.statuses.reviewed,
+          shortlisted: appData.statuses.shortlisted,
+          rejected: appData.statuses.rejected,
+          hired: appData.statuses.hired,
         };
       });
 
