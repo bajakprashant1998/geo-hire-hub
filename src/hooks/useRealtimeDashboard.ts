@@ -76,7 +76,7 @@ export const useRealtimeDashboard = ({ userId, candidateId, employerId }: UseRea
       );
     }
 
-    // Listen for new applications to employer's jobs
+    // Listen for new applications to employer's jobs (server-side filtered)
     if (employerId) {
       channel.on(
         'postgres_changes',
@@ -84,18 +84,9 @@ export const useRealtimeDashboard = ({ userId, candidateId, employerId }: UseRea
           event: 'INSERT',
           schema: 'public',
           table: 'applications',
+          filter: `employer_id=eq.${employerId}`,
         },
-        async (payload) => {
-          // Verify this application belongs to one of the employer's jobs
-          const app = payload.new as any;
-          const { data: job } = await supabase
-            .from('jobs')
-            .select('id')
-            .eq('id', app.job_id)
-            .eq('employer_id', employerId)
-            .maybeSingle();
-          if (!job) return; // Not our job, ignore
-
+        () => {
           toast.info('New application received', {
             description: 'A candidate has applied to one of your jobs.',
           });

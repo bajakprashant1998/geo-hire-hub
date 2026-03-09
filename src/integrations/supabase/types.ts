@@ -119,6 +119,7 @@ export type Database = {
           candidate_notes: string | null
           cover_letter: string | null
           created_at: string | null
+          employer_id: string | null
           follow_up_date: string | null
           id: string
           job_id: string
@@ -132,6 +133,7 @@ export type Database = {
           candidate_notes?: string | null
           cover_letter?: string | null
           created_at?: string | null
+          employer_id?: string | null
           follow_up_date?: string | null
           id?: string
           job_id: string
@@ -145,6 +147,7 @@ export type Database = {
           candidate_notes?: string | null
           cover_letter?: string | null
           created_at?: string | null
+          employer_id?: string | null
           follow_up_date?: string | null
           id?: string
           job_id?: string
@@ -159,6 +162,13 @@ export type Database = {
             columns: ["candidate_id"]
             isOneToOne: false
             referencedRelation: "candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_employer_id_fkey"
+            columns: ["employer_id"]
+            isOneToOne: false
+            referencedRelation: "employers"
             referencedColumns: ["id"]
           },
           {
