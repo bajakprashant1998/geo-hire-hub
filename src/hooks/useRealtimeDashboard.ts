@@ -85,8 +85,17 @@ export const useRealtimeDashboard = ({ userId, candidateId, employerId }: UseRea
           schema: 'public',
           table: 'applications',
         },
-        (payload) => {
-          // We'll check server-side if this application belongs to the employer's jobs
+        async (payload) => {
+          // Verify this application belongs to one of the employer's jobs
+          const app = payload.new as any;
+          const { data: job } = await supabase
+            .from('jobs')
+            .select('id')
+            .eq('id', app.job_id)
+            .eq('employer_id', employerId)
+            .maybeSingle();
+          if (!job) return; // Not our job, ignore
+
           toast.info('New application received', {
             description: 'A candidate has applied to one of your jobs.',
           });
