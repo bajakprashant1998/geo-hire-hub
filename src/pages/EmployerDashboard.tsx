@@ -92,6 +92,9 @@ const EmployerDashboard = () => {
         const { data: subData } = await supabase.from('employer_subscriptions').select('employer_plans(name)').eq('employer_id', employerData.id).eq('status', 'active').maybeSingle();
         if (subData && (subData as any).employer_plans?.name) setPlanName((subData as any).employer_plans.name + ' Plan');
         setStats({ activeJobs, totalApplications, scheduledInterviews: interviewCount || 0, profileViews: viewCount || 0, notificationCount: notifCount || 0 });
+
+        // Refresh response rate in background
+        supabase.rpc('calculate_employer_response_rate', { p_employer_id: employerData.id }).then(() => {});
       }
     } catch (error) { console.error('Error fetching employer data:', error); toast.error('Failed to load some dashboard data.'); }
     finally { clearTimeout(loadingTimeout); setDataLoading(false); }

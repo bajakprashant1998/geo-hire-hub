@@ -62,11 +62,29 @@ const CandidateDashboard = () => {
       const { data } = await supabase.from('candidates').select('*').eq('profile_id', profile.id).maybeSingle();
       setCandidate(data);
       if (data) {
-        const [appsRes, messagesRes, interviewsRes] = await Promise.all([
+        // First get user's conversation IDs for scoped unread count
+        const { data: userConvos } = await supabase
+          .from('conversations')
+          .select('id')
+          .or(`participant_1.eq.${user.id},participant_2.eq.${user.id}`);
+        const convoIds = (userConvos || []).map(c => c.id);
+
+        const [appsRes, interviewsRes] = await Promise.all([
           supabase.from('applications').select('id, status, job_id').eq('candidate_id', data.id),
-          supabase.from('messages').select('id').eq('is_read', false).neq('sender_id', user.id),
           supabase.from('interviews').select('id', { count: 'exact', head: true }).eq('candidate_id', data.id).in('status', ['requested', 'confirmed', 'scheduled'])
         ]);
+
+        // Scoped unread messages - only from user's conversations
+        let unreadMsgCount = 0;
+        if (convoIds.length > 0) {
+          const { count } = await supabase
+            .from('messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('is_read', false)
+            .neq('sender_id', user.id)
+            .in('conversation_id', convoIds);
+          unreadMsgCount = count || 0;
+        }
         const { count: viewCount } = await supabase.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', profile.id);
         const { count: notifCount } = await supabase.from('notifications').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('is_read', false);
         const { data: nextInterview } = await supabase.from('interviews').select('scheduled_date').eq('candidate_id', data.id).eq('status', 'scheduled').gte('scheduled_date', new Date().toISOString().split('T')[0]).order('scheduled_date', { ascending: true }).limit(1).maybeSingle();
@@ -76,7 +94,7 @@ const CandidateDashboard = () => {
           else if (isTomorrow(d)) setNextInterviewLabel('Next: Tomorrow');
           else setNextInterviewLabel(`Next: ${format(d, 'MMM d')}`);
         } else { setNextInterviewLabel('None scheduled'); }
-        setStats({ applications: (appsRes.data || []).length, views: viewCount || 0, unreadMessages: messagesRes.data?.length || 0, interviews: interviewsRes.count || 0, unreadNotifications: notifCount || 0 });
+        setStats({ applications: (appsRes.data || []).length, views: viewCount || 0, unreadMessages: unreadMsgCount, interviews: interviewsRes.count || 0, unreadNotifications: notifCount || 0 });
       }
     } catch (error) { console.error('Error fetching candidate data:', error); toast.error('Failed to load some dashboard data.'); }
     finally { clearTimeout(loadingTimeout); setDataLoading(false); }
