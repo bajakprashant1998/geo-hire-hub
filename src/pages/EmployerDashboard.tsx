@@ -46,7 +46,7 @@ const EmployerDashboard = () => {
   const [search, setSearch] = useState('');
   const [profileRetryCount, setProfileRetryCount] = useState(0);
   const [planName, setPlanName] = useState('Free Plan');
-  const [stats, setStats] = useState({ activeJobs: 0, totalApplications: 0, scheduledInterviews: 0, profileViews: 0, notificationCount: 0 });
+  const [stats, setStats] = useState({ activeJobs: 0, totalApplications: 0, scheduledInterviews: 0, profileViews: 0, notificationCount: 0, unreadMessages: 0 });
   const [jobToDelete, setJobToDelete] = useState<any>(null);
   const [deletingJob, setDeletingJob] = useState(false);
 
