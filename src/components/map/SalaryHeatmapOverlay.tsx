@@ -230,7 +230,7 @@ export const SalaryHeatmapOverlay = React.forwardRef<HTMLDivElement, SalaryHeatm
       })}
     </>
   );
-};
+});
 
 export { formatSalary, parseSalary };
 export type { SalaryRegion };
