@@ -330,7 +330,7 @@ export const ReferralDashboard = ({ profileId }: { profileId: string }) => {
         supabase.from('referrals').select('*').eq('referrer_id', profileId).order('created_at', { ascending: false }),
         supabase.from('reward_points').select('*').eq('user_id', profileId).order('created_at', { ascending: false }).limit(20),
         supabase.from('jobs').select('id, title, referral_bounty, employers!jobs_employer_id_fkey(company_name)')
-          .gt('referral_bounty', 0).eq('is_active', true).eq('status', 'open').order('referral_bounty', { ascending: false }).limit(20),
+          .gt('referral_bounty', 0).eq('is_active', true).eq('status', 'open').or('expires_at.is.null,expires_at.gt.' + new Date().toISOString()).order('referral_bounty', { ascending: false }).limit(20),
       ]);
 
       const jobIds = (refs || []).filter(r => r.job_id).map(r => r.job_id);

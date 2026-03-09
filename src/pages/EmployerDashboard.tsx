@@ -69,7 +69,7 @@ const EmployerDashboard = () => {
       const { data: employerData } = await supabase.from('employers').select('*').eq('profile_id', profile.id).maybeSingle();
       setEmployer(employerData);
       if (employerData) {
-        const { data: jobsData } = await supabase.from('jobs').select('*').eq('employer_id', employerData.id).order('created_at', { ascending: false });
+        const { data: jobsData } = await supabase.from('jobs').select('id, title, status, is_active, created_at, expires_at, job_type, job_address, view_count, employer_id, job_category, slug').eq('employer_id', employerData.id).order('created_at', { ascending: false });
         const jobIds = (jobsData || []).map(j => j.id);
         // Batch query: fetch all applications for employer's jobs in one call
         let appCountMap: Record<string, number> = {};
@@ -83,7 +83,7 @@ const EmployerDashboard = () => {
         const jobsWithCounts = (jobsData || []).map(job => ({ ...job, applications_count: appCountMap[job.id] || 0 }));
         setJobs(jobsWithCounts);
         if (jobsWithCounts.length > 0) setSelectedJob(jobsWithCounts[0]);
-        const activeJobs = jobsWithCounts.filter(j => j.is_active && j.status === 'open').length;
+        const activeJobs = jobsWithCounts.filter(j => j.is_active && j.status === 'open' && (!j.expires_at || new Date(j.expires_at) > new Date())).length;
         const totalApplications = jobsWithCounts.reduce((sum, j) => sum + (j.applications_count || 0), 0);
         const [interviewRes, viewRes, notifRes, unreadRes, subRes] = await Promise.all([
           supabase.from('interviews').select('*', { count: 'exact', head: true }).eq('employer_id', employerData.id).in('status', ['scheduled', 'confirmed', 'requested']),
