@@ -10,6 +10,7 @@ interface DashboardAuthGuardProps {
   type: 'candidate' | 'employer';
   authLoading: boolean;
   profileLoading: boolean;
+  profileResolved: boolean;
   user: any;
   profile: any;
   refreshProfile: () => void;
@@ -21,6 +22,7 @@ export const DashboardAuthGuard = ({
   type,
   authLoading,
   profileLoading,
+  profileResolved,
   user,
   profile,
   refreshProfile,
@@ -40,7 +42,7 @@ export const DashboardAuthGuard = ({
     );
   }
 
-  if (user && !profile && profileLoading) {
+  if (user && !profile && !profileResolved) {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center">
         <div className="text-center">
@@ -55,7 +57,7 @@ export const DashboardAuthGuard = ({
     return <DashboardUnauthenticatedView type={type} />;
   }
 
-  if (!profile) {
+  if (user && !profile && profileResolved) {
     const Icon = type === 'employer' ? Building2 : User;
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center p-4">

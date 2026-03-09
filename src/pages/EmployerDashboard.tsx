@@ -37,7 +37,7 @@ import { cn } from '@/lib/utils';
 const EmployerDashboard = () => {
   const navigate = useNavigate();
   const { activeSection, setActiveSection } = useDashboardTab();
-  const { user, profile, loading: authLoading, profileLoading, signOut, refreshProfile } = useAuth();
+  const { user, profile, loading: authLoading, profileLoading, profileResolved, signOut, refreshProfile } = useAuth();
   const [dataLoading, setDataLoading] = useState(true);
   const [employer, setEmployer] = useState<any>(null);
   const [jobs, setJobs] = useState<any[]>([]);
@@ -64,11 +64,11 @@ const EmployerDashboard = () => {
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate('/login', { replace: true }); return; }
-    if (!profile && profileLoading) return;
+    if (user && !profileResolved) return;
     if (!profile) { setDataLoading(false); return; }
     if (profile.user_type !== 'employer') { navigate('/candidate-dashboard'); return; }
     fetchEmployerData();
-  }, [user, profile, authLoading, profileLoading]);
+  }, [user, profile, authLoading, profileResolved]);
 
   const fetchEmployerData = async () => {
     if (!profile || !user) return;
@@ -78,10 +78,17 @@ const EmployerDashboard = () => {
       setEmployer(employerData);
       if (employerData) {
         const { data: jobsData } = await supabase.from('jobs').select('*').eq('employer_id', employerData.id).order('created_at', { ascending: false });
-        const jobsWithCounts = await Promise.all((jobsData || []).map(async (job) => {
-          const { count } = await supabase.from('applications').select('*', { count: 'exact', head: true }).eq('job_id', job.id);
-          return { ...job, applications_count: count || 0 };
-        }));
+        const jobIds = (jobsData || []).map(j => j.id);
+        // Batch query: fetch all applications for employer's jobs in one call
+        let appCountMap: Record<string, number> = {};
+        if (jobIds.length > 0) {
+          const { data: appData } = await supabase.from('applications').select('job_id').in('job_id', jobIds);
+          appCountMap = (appData || []).reduce((acc, app) => {
+            acc[app.job_id] = (acc[app.job_id] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>);
+        }
+        const jobsWithCounts = (jobsData || []).map(job => ({ ...job, applications_count: appCountMap[job.id] || 0 }));
         setJobs(jobsWithCounts);
         if (jobsWithCounts.length > 0) setSelectedJob(jobsWithCounts[0]);
         const activeJobs = jobsWithCounts.filter(j => j.is_active && j.status === 'open').length;
@@ -160,7 +167,7 @@ const EmployerDashboard = () => {
   ];
 
   return (
-    <DashboardAuthGuard type="employer" authLoading={authLoading} profileLoading={profileLoading} user={user} profile={profile} refreshProfile={refreshProfile} signOut={signOut}>
+    <DashboardAuthGuard type="employer" authLoading={authLoading} profileLoading={profileLoading} profileResolved={profileResolved} user={user} profile={profile} refreshProfile={refreshProfile} signOut={signOut}>
       {dataLoading ? <EmployerDashboardLoading /> : !profile ? null : (
         <EmailVerificationGuard fallbackMessage="Please verify your email to access your employer dashboard.">
           <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/80 flex overflow-x-hidden">

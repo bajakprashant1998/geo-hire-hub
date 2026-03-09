@@ -1,69 +1,94 @@
 
-Goal: fix the two confirmed gaps without changing product behavior.
 
-1) Employer Dashboard N+1 in `fetchEmployerData`
-- Current issue:
-  - `jobs` are fetched once, then `applications` count is queried once per job (`Promise.all`), causing N+1 calls.
-- Implementation plan:
-  - In `src/pages/EmployerDashboard.tsx`, replace per-job count loop with one batched applications query:
-    - Fetch all jobs for employer.
-    - Build `jobIds`.
-    - Single query: `applications.select('job_id').in('job_id', jobIds)`.
-    - Reduce results into `Record<job_id, count>`.
-    - Map counts back into `jobsWithCounts`.
-  - Keep existing derived stats logic (`activeJobs`, `totalApplications`) but compute from the mapped counts.
-- Expected result:
-  - Query count drops from `1 + N` to `2` for jobs+applications, improving dashboard load time and reducing backend pressure.
+## Plan: Complete All Pending Tasks and Fixes
 
-2) Profile fetch race condition (auth/profile guard coordination)
-- Current issue:
-  - `useAuth` timeout forces `profileLoading=false` after 5s even while retries may still complete.
-  - Dashboards treat `!profile && !profileLoading` as terminal and show “Profile Not Found” too early.
-- Implementation plan:
+### 7 Tasks to Implement
 
-A. Stabilize auth context state
-- File: `src/hooks/useAuth.tsx`
-- Add a new state flag (e.g. `profileResolved`) to represent “initial profile resolution finished” rather than “currently loading”.
-- Flow changes:
-  - On new authenticated session:
-    - set `profileResolved=false`, start profile fetch/retries.
-    - timeout should no longer mark profile as terminal failure; it can stop spinner only for current attempt, but must not indicate final no-profile state.
-  - In `fetchProfile`:
-    - only set final resolution (`profileResolved=true`) after retry chain ends (success or exhausted retries).
-- Expose `profileResolved` in context alongside existing fields.
+---
 
-B. Update route/dashboard guards to use resolved-state, not transient loading only
-- File: `src/components/auth/AuthRouteGuard.tsx`
-  - Gate on `authLoading || (user && !profileResolved)` for role-protected routes.
-  - If resolved and still no profile, redirect to `/profile-setup` (or existing fallback destination used by app), instead of rendering role pages with null profile.
-- File: `src/components/dashboard/DashboardAuthGuard.tsx`
-  - Replace “Profile Not Found” trigger condition with:
-    - show loading while `user && !profile && !profileResolved`
-    - only show “Profile Not Found” when `user && !profile && profileResolved`
-- Files: `src/pages/EmployerDashboard.tsx`, `src/pages/CandidateDashboard.tsx`
-  - In auth effect, do not set `dataLoading=false` on `!profile` until profile resolution is finalized.
-  - Keep retry effect, but couple terminal fallback to resolved-state to prevent premature empty-state.
+#### 1. Fix Nominatim Geocoding CORS Error (High Priority)
 
-3) Validation and regression checks
-- Auth/profile:
-  - Login with existing user profile → no “Profile Not Found” flash.
-  - Simulate slow profile fetch (network throttling) → dashboard waits correctly and eventually loads.
-  - User with genuinely missing profile → ends in deterministic fallback (`/profile-setup` or profile-not-found UI).
-- Employer dashboard:
-  - Verify stats unchanged functionally.
-  - Confirm only one applications fetch for job counts (no per-job requests).
-- Role routing:
-  - Candidate/employer redirects still correct.
-  - No protected route renders with `profile=null`.
+The `LocationBadge.tsx` and `AIResumeBuilder.tsx` make direct browser calls to `nominatim.openstreetmap.org` which fails with CORS/network errors on every page load.
 
-4) Scope and risk notes
-- No schema migration required for these two fixes.
-- Low-risk UI/state refactor; main risk is unintended loading loops.
-- Mitigation: keep effect dependencies tight and mark initial profile resolution explicitly to avoid oscillation.
+**Fix**: Replace direct Nominatim calls with Google Maps Geocoder (already available via the Google Maps API key). For `LocationBadge`, use the existing Google Maps Geocoding REST API through a simple edge function proxy. As a simpler alternative, silently catch errors and use coordinate-based fallback text.
 
-Implementation files (planned):
-- `src/pages/EmployerDashboard.tsx`
-- `src/pages/CandidateDashboard.tsx`
-- `src/hooks/useAuth.tsx`
-- `src/components/auth/AuthRouteGuard.tsx`
-- `src/components/dashboard/DashboardAuthGuard.tsx`
+**Files**: `src/components/map/LocationBadge.tsx`, `src/pages/AIResumeBuilder.tsx`
+- Wrap fetch in try/catch, on failure show "Near you" instead of logging error
+- Add `AbortController` with 5s timeout to prevent hanging requests
+
+---
+
+#### 2. Add 10s Loading Timeout to Dashboards (Medium Priority)
+
+Both dashboards already have try/catch and `setDataLoading(false)` in finally blocks. Missing: a timeout that forces loading to stop if API hangs.
+
+**Files**: `src/pages/CandidateDashboard.tsx`, `src/pages/EmployerDashboard.tsx`
+- Add a 10s `setTimeout` in the `fetchCandidate`/`fetchEmployerData` that sets `dataLoading = false` and shows a toast if still loading
+- Add `toast.error` in the catch blocks (currently only `console.error`)
+
+---
+
+#### 3. Add PWA Offline Fallback Page (Medium Priority)
+
+`public/sw.js` exists but returns nothing when offline and no cached page matches.
+
+**Files**: `public/offline.html` (new), `public/sw.js`
+- Create a simple offline HTML page with branding
+- Update service worker to cache `offline.html` and serve it as fallback for navigation requests
+
+---
+
+#### 4. Add Email Verification Reminder on Dashboard (Medium Priority)
+
+`EmailVerificationBanner` exists in `App.tsx` but an inline dashboard prompt would be more visible.
+
+**Files**: `src/pages/CandidateDashboard.tsx`, `src/pages/EmployerDashboard.tsx`
+- Add a dismissible card in the dashboard home view when `!isEmailVerified` with resend button
+- Reuse logic from existing `EmailVerificationBanner`
+
+---
+
+#### 5. Add Skeleton Loading to ProfileSetup (Medium Priority)
+
+Currently shows nothing while auth resolves.
+
+**Files**: `src/pages/ProfileSetup.tsx`
+- Show a skeleton card layout while `authLoading || profileLoading` instead of blank screen
+
+---
+
+#### 6. Add Global Unhandled Rejection Handler (Medium Priority)
+
+The Google Maps `AdvancedMarker` crash (`getRootNode` error) triggers ErrorBoundary. A global handler can catch async errors gracefully.
+
+**Files**: `src/App.tsx`
+- Add `useEffect` with `window.addEventListener('unhandledrejection', ...)` that logs and shows toast
+- Prevents white-screen crashes from async Google Maps errors
+
+---
+
+#### 7. Fix Google Maps AdvancedMarker Crash (High Priority)
+
+The console shows `Cannot read properties of undefined (reading 'getRootNode')` from `AdvancedMarker` cleanup. This crashes the entire app via ErrorBoundary.
+
+**Files**: `src/components/map/GoogleMapContainer.tsx`
+- Wrap the map rendering in its own error boundary so map crashes don't take down the whole app
+- Add null checks before rendering `AdvancedMarker` components
+- Ensure markers are only rendered when the map instance is ready
+
+---
+
+### Files Summary
+
+| File | Change |
+|------|--------|
+| `src/components/map/LocationBadge.tsx` | Silent error handling, timeout |
+| `src/pages/AIResumeBuilder.tsx` | Silent error handling for Nominatim |
+| `src/pages/CandidateDashboard.tsx` | 10s timeout + toast error + email verify card |
+| `src/pages/EmployerDashboard.tsx` | 10s timeout + toast error + email verify card |
+| `public/offline.html` | **New** - offline fallback page |
+| `public/sw.js` | Cache offline.html, serve as fallback |
+| `src/pages/ProfileSetup.tsx` | Skeleton loading state |
+| `src/App.tsx` | Global unhandled rejection handler |
+| `src/components/map/GoogleMapContainer.tsx` | Map-specific error boundary, marker null checks |
+

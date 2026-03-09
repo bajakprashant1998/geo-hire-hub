@@ -26,7 +26,7 @@ import { motion } from 'framer-motion';
 const CandidateDashboard = () => {
   const navigate = useNavigate();
   const { activeSection, setActiveSection } = useDashboardTab();
-  const { user, profile, loading: authLoading, profileLoading, signOut, refreshProfile } = useAuth();
+  const { user, profile, loading: authLoading, profileLoading, profileResolved, signOut, refreshProfile } = useAuth();
   const [dataLoading, setDataLoading] = useState(true);
   const [candidate, setCandidate] = useState<any>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -49,11 +49,11 @@ const CandidateDashboard = () => {
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate('/login', { replace: true }); return; }
-    if (!profile && profileLoading) return;
+    if (user && !profileResolved) return;
     if (!profile) { setDataLoading(false); return; }
     if (profile.user_type !== 'candidate') { navigate('/employer-dashboard'); return; }
     fetchCandidate();
-  }, [user, profile, authLoading, profileLoading]);
+  }, [user, profile, authLoading, profileResolved]);
 
   const fetchCandidate = async () => {
     if (!profile || !user) return;
@@ -155,7 +155,7 @@ const CandidateDashboard = () => {
   ];
 
   return (
-    <DashboardAuthGuard type="candidate" authLoading={authLoading} profileLoading={profileLoading} user={user} profile={profile} refreshProfile={refreshProfile} signOut={signOut}>
+    <DashboardAuthGuard type="candidate" authLoading={authLoading} profileLoading={profileLoading} profileResolved={profileResolved} user={user} profile={profile} refreshProfile={refreshProfile} signOut={signOut}>
       {dataLoading ? <CandidateDashboardLoading /> : !profile ? null : (
         <EmailVerificationGuard fallbackMessage="Please verify your email to access your dashboard.">
           <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/80 flex overflow-x-hidden">

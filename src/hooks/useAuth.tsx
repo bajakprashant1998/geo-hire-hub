@@ -20,6 +20,7 @@ interface AuthContextType {
   profile: Profile | null;
   loading: boolean;
   profileLoading: boolean;
+  profileResolved: boolean;
   isEmailVerified: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -35,6 +36,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [profileResolved, setProfileResolved] = useState(false);
 
   const migrateSavedJobs = useCallback(async (profileData: Profile) => {
     if (profileData.user_type !== 'candidate') return;
@@ -73,6 +75,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (data && !error) {
         setProfile(data as Profile);
+        setProfileResolved(true);
         // Migrate localStorage saved jobs on login
         migrateSavedJobs(data as Profile);
         return data as Profile;
@@ -83,9 +86,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return fetchProfile(userId, retryCount + 1);
         }
       }
+      // Only mark as resolved after all retries exhausted
+      setProfileResolved(true);
       return null;
     } catch (err) {
       console.error('Error fetching profile:', err);
+      // Mark resolved on error after retries
+      if (retryCount >= 2) setProfileResolved(true);
       return null;
     } finally {
       setProfileLoading(false);
@@ -117,11 +124,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
 
         if (session?.user) {
+          setProfileResolved(false);
           // Fetch profile in background with timeout protection
           profileFetchTimeout = setTimeout(() => {
             if (isMounted) {
               console.warn('Profile fetch timed out - continuing without profile');
               setProfileLoading(false);
+              // Do NOT set profileResolved here - let retry chain finish
             }
           }, PROFILE_FETCH_TIMEOUT);
 
@@ -130,6 +139,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           });
         } else {
           setProfile(null);
+          setProfileResolved(true);
         }
       }
     );
@@ -150,8 +160,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         
         if (session?.user) {
+          setProfileResolved(false);
           // Fetch profile in background
           fetchProfile(session.user.id);
+        } else {
+          setProfileResolved(true);
         }
       } catch (error) {
         console.error('Error getting session:', error);
@@ -175,6 +188,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     setSession(null);
     setProfile(null);
+    setProfileResolved(false);
   };
 
   // Check if email is verified
@@ -187,6 +201,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       profile, 
       loading, 
       profileLoading,
+      profileResolved,
       isEmailVerified, 
       signOut, 
       refreshProfile 
