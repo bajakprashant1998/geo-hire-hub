@@ -142,6 +142,7 @@ const EmployerDashboard = () => {
     { icon: FlaskConical, label: 'A/B Testing', value: 'ab-testing' },
     { icon: MessageCircle, label: 'Team Notes', value: 'team-notes' },
     { icon: Users, label: 'Team Workflows', value: 'team-workflows' },
+    { icon: Users, label: 'Team Members', value: 'team' },
     { icon: Sparkles, label: 'Accessibility Check', value: 'accessibility-check' },
     { icon: Palette, label: 'Branding Page', value: 'branding' },
     { icon: Upload, label: 'Bulk Import', value: 'bulk-import' },
