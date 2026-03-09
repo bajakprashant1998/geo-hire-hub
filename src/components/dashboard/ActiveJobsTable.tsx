@@ -58,28 +58,33 @@ export const ActiveJobsTable = ({ employerId, onManageJobs }: ActiveJobsTablePro
       .eq('employer_id', employerId)
       .eq('is_active', true)
       .eq('status', 'open')
+      .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
       .order('created_at', { ascending: false })
       .limit(5);
 
-    if (jobsData) {
-      const jobsWithCounts = await Promise.all(
-        jobsData.map(async (job) => {
-          const { count } = await supabase
-            .from('applications')
-            .select('*', { count: 'exact', head: true })
-            .eq('job_id', job.id);
-          
-          // Consider a job "trending" if it has high engagement
-          const isTrending = (count || 0) > 20 || (job.view_count || 0) > 100;
+    if (jobsData && jobsData.length > 0) {
+      const jobIds = jobsData.map(j => j.id);
+      const { data: appData } = await supabase
+        .from('applications')
+        .select('job_id')
+        .in('job_id', jobIds);
 
-          return {
-            ...job,
-            applications_count: count || 0,
-            is_trending: isTrending
-          };
-        })
-      );
+      const countMap = new Map<string, number>();
+      (appData || []).forEach(a => {
+        countMap.set(a.job_id, (countMap.get(a.job_id) || 0) + 1);
+      });
+
+      const jobsWithCounts = jobsData.map(job => {
+        const appCount = countMap.get(job.id) || 0;
+        return {
+          ...job,
+          applications_count: appCount,
+          is_trending: appCount > 20 || (job.view_count || 0) > 100
+        };
+      });
       setJobs(jobsWithCounts);
+    } else {
+      setJobs([]);
     }
     setLoading(false);
   };

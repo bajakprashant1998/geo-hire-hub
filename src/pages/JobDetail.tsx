@@ -252,7 +252,7 @@ const JobDetail = () => {
           is_government: data.employers.is_government,
         },
       });
-      const { data: related } = await supabase.from('jobs').select('id, title, job_type, salary_range, created_at, slug').eq('employer_id', data.employers.id).neq('id', id).eq('status', 'open').limit(3);
+      const { data: related } = await supabase.from('jobs').select('id, title, job_type, salary_range, created_at, slug').eq('employer_id', data.employers.id).neq('id', id).eq('status', 'open').eq('is_active', true).or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`).limit(3);
       setRelatedJobs(related || []);
 
       // Fetch employer response rate
