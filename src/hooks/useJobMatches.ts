@@ -58,13 +58,21 @@ export const useJobMatches = (candidateId: string | null) => {
 
       if (error) throw error;
 
-      // Parse JSONB fields
-      const parsedMatches = (data || []).map(match => ({
-        ...match,
-        match_reasons: Array.isArray(match.match_reasons) 
-          ? match.match_reasons 
-          : JSON.parse(match.match_reasons as string || '[]'),
-      }));
+      // Parse JSONB fields and filter out expired jobs
+      const now = new Date().getTime();
+      const parsedMatches = (data || [])
+        .filter(match => {
+          const job = match.job as any;
+          if (!job) return false;
+          // Keep if no expires_at or not yet expired
+          return !job.expires_at || new Date(job.expires_at).getTime() > now;
+        })
+        .map(match => ({
+          ...match,
+          match_reasons: Array.isArray(match.match_reasons) 
+            ? match.match_reasons 
+            : JSON.parse(match.match_reasons as string || '[]'),
+        }));
 
       setMatches(parsedMatches);
     } catch (error) {

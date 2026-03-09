@@ -315,6 +315,7 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
       .select(`*, employers!inner(company_name, profile_id, profiles!inner(avatar_url))`)
       .eq('status', 'open')
       .eq('is_active', true)
+      .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
       .order('created_at', { ascending: false })
       .limit(20);
 

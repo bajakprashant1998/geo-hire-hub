@@ -9,6 +9,9 @@ export const useMessageNotifications = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const notifiedMessages = useRef<Set<string>>(new Set());
+  const pathnameRef = useRef(location.pathname);
+
+  useEffect(() => { pathnameRef.current = location.pathname; }, [location.pathname]);
 
   useEffect(() => {
     if (!user) return;
@@ -49,7 +52,7 @@ export const useMessageNotifications = () => {
           if (!conversation) return;
 
           // Don't show notification if already viewing this conversation
-          if (location.pathname === `/messages/${message.conversation_id}`) return;
+          if (pathnameRef.current === `/messages/${message.conversation_id}`) return;
 
           // Get sender info
           const { data: senderProfile } = await supabase
@@ -95,5 +98,5 @@ export const useMessageNotifications = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, location.pathname, navigate]);
+  }, [user, navigate]);
 };

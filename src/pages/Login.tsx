@@ -25,16 +25,20 @@ const Login = () => {
 
   useEffect(() => {
     const fetchStats = async () => {
-      const [jobsRes, employersRes, candidatesRes] = await Promise.all([
-        supabase.from('jobs').select('id', { count: 'exact', head: true }).eq('status', 'open').eq('is_active', true),
-        supabase.from('employers').select('id', { count: 'exact', head: true }),
-        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('user_type', 'candidate'),
-      ]);
-      setLiveStats({
-        jobs: jobsRes.count || 0,
-        companies: employersRes.count || 0,
-        seekers: candidatesRes.count || 0,
-      });
+      try {
+        const [jobsRes, employersRes, candidatesRes] = await Promise.all([
+          supabase.from('jobs').select('id', { count: 'exact', head: true }).eq('status', 'open').eq('is_active', true),
+          supabase.from('employers').select('id', { count: 'exact', head: true }),
+          supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('user_type', 'candidate'),
+        ]);
+        setLiveStats({
+          jobs: jobsRes.count || 0,
+          companies: employersRes.count || 0,
+          seekers: candidatesRes.count || 0,
+        });
+      } catch {
+        // Keep default 0 values on error
+      }
     };
     fetchStats();
   }, []);

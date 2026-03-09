@@ -62,22 +62,23 @@ const CandidateDashboard = () => {
       const { data } = await supabase.from('candidates').select('*').eq('profile_id', profile.id).maybeSingle();
       setCandidate(data);
       if (data) {
-        const [appsRes, interviewsRes, unreadRes] = await Promise.all([
+        const [appsRes, interviewsRes, unreadRes, viewRes, notifRes, nextInterviewRes] = await Promise.all([
           supabase.from('applications').select('id, status, job_id').eq('candidate_id', data.id),
           supabase.from('interviews').select('id', { count: 'exact', head: true }).eq('candidate_id', data.id).in('status', ['requested', 'confirmed', 'scheduled']),
           supabase.rpc('get_unread_message_count', { p_user_id: user.id }),
+          supabase.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', profile.id),
+          supabase.from('notifications').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('is_read', false),
+          supabase.from('interviews').select('scheduled_date').eq('candidate_id', data.id).eq('status', 'scheduled').gte('scheduled_date', new Date().toISOString().split('T')[0]).order('scheduled_date', { ascending: true }).limit(1).maybeSingle(),
         ]);
         const unreadMsgCount = (unreadRes.data as number) || 0;
-        const { count: viewCount } = await supabase.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', profile.id);
-        const { count: notifCount } = await supabase.from('notifications').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('is_read', false);
-        const { data: nextInterview } = await supabase.from('interviews').select('scheduled_date').eq('candidate_id', data.id).eq('status', 'scheduled').gte('scheduled_date', new Date().toISOString().split('T')[0]).order('scheduled_date', { ascending: true }).limit(1).maybeSingle();
+        const nextInterview = nextInterviewRes.data;
         if (nextInterview?.scheduled_date) {
           const d = new Date(nextInterview.scheduled_date);
           if (isToday(d)) setNextInterviewLabel('Next: Today');
           else if (isTomorrow(d)) setNextInterviewLabel('Next: Tomorrow');
           else setNextInterviewLabel(`Next: ${format(d, 'MMM d')}`);
         } else { setNextInterviewLabel('None scheduled'); }
-        setStats({ applications: (appsRes.data || []).length, views: viewCount || 0, unreadMessages: unreadMsgCount, interviews: interviewsRes.count || 0, unreadNotifications: notifCount || 0 });
+        setStats({ applications: (appsRes.data || []).length, views: viewRes.count || 0, unreadMessages: unreadMsgCount, interviews: interviewsRes.count || 0, unreadNotifications: notifRes.count || 0 });
       }
     } catch (error) { console.error('Error fetching candidate data:', error); toast.error('Failed to load some dashboard data.'); }
     finally { clearTimeout(loadingTimeout); setDataLoading(false); }

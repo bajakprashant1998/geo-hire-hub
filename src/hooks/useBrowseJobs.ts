@@ -89,6 +89,9 @@ export function useBrowseJobs() {
       query = query.lte('salary_max', salaryMax);
     }
 
+    // Filter out expired jobs
+    query = query.or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
+
     const { data, count, error } = await query;
     if (token !== abortRef.current) return; // stale
 
