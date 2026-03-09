@@ -22,6 +22,7 @@ export const DashboardAuthGuard = ({
   type,
   authLoading,
   profileLoading,
+  profileResolved,
   user,
   profile,
   refreshProfile,
