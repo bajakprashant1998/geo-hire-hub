@@ -33,6 +33,8 @@ import { BreadcrumbNav, buildBreadcrumbJsonLd } from '@/components/BreadcrumbNav
 import type { BreadcrumbItem } from '@/components/BreadcrumbNav';
 import { SalaryBadge } from '@/components/SalaryBadge';
 import { DeadlineCountdown } from '@/components/DeadlineCountdown';
+import { ResponseRateBadge } from '@/components/employer/ResponseRateBadge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface JobDetails {
   id: string;
@@ -118,6 +120,9 @@ const JobDetail = () => {
   const [linkCopied, setLinkCopied] = useState(false);
   const [activeSection, setActiveSection] = useState('about');
   const [viewLang, setViewLang] = useState('en');
+  const [candidateData, setCandidateData] = useState<{ resume_url: string | null; skills: string[] | null } | null>(null);
+  const [employerResponseRate, setEmployerResponseRate] = useState<number | null>(null);
+  const [employerAvgResponseHours, setEmployerAvgResponseHours] = useState<number | null>(null);
 
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -189,8 +194,14 @@ const JobDetail = () => {
   }, [identifier]);
 
   useEffect(() => {
-    if (resolvedId) { fetchJob(); checkIfApplied(); fetchApplicantCount(); checkIfSaved(); }
+    if (resolvedId) { fetchJob(); checkIfApplied(); fetchApplicantCount(); checkIfSaved(); fetchCandidateData(); }
   }, [resolvedId]);
+
+  const fetchCandidateData = async () => {
+    if (!user || !profile || profile.user_type !== 'candidate') return;
+    const { data: cand } = await supabase.from('candidates').select('resume_url, skills').eq('profile_id', profile.id).maybeSingle();
+    if (cand) setCandidateData(cand);
+  };
 
   const baseUrl = 'https://www.hireforjob.com';
   const jobSeoTitle = job ? `${job.title} at ${job.employer.company_name} | HireForJob` : 'Job Details | HireForJob';
@@ -243,6 +254,13 @@ const JobDetail = () => {
       });
       const { data: related } = await supabase.from('jobs').select('id, title, job_type, salary_range, created_at, slug').eq('employer_id', data.employers.id).neq('id', id).eq('status', 'open').limit(3);
       setRelatedJobs(related || []);
+
+      // Fetch employer response rate
+      const { data: empData } = await supabase.from('employers').select('response_rate, avg_response_hours').eq('id', data.employers.id).maybeSingle();
+      if (empData) {
+        setEmployerResponseRate(empData.response_rate);
+        setEmployerAvgResponseHours(empData.avg_response_hours);
+      }
 
       // Record job view
       supabase.from('job_views').insert({
@@ -447,6 +465,20 @@ const JobDetail = () => {
         <DialogDescription>Submit your application to {job.employer.company_name}</DialogDescription>
       </DialogHeader>
       <div className="space-y-4 py-4">
+        {/* Profile completeness warnings */}
+        {candidateData && (!candidateData.resume_url || !candidateData.skills?.length || !profile?.avatar_url) && (
+          <Alert className="border-warning/30 bg-warning/5">
+            <AlertCircle className="h-4 w-4 text-warning" />
+            <AlertDescription className="text-sm">
+              <p className="font-medium text-foreground mb-1">Improve your chances:</p>
+              <ul className="list-disc list-inside text-muted-foreground space-y-0.5 text-xs">
+                {!candidateData.resume_url && <li>Upload your resume for better visibility</li>}
+                {!candidateData.skills?.length && <li>Add skills to match with this job</li>}
+                {!profile?.avatar_url && <li>Add a profile photo to build trust</li>}
+              </ul>
+            </AlertDescription>
+          </Alert>
+        )}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="coverLetter">Cover Letter (Optional)</Label>
@@ -564,6 +596,11 @@ const JobDetail = () => {
                   {job.employer.industry && <span className="text-sm text-muted-foreground">{job.employer.industry}</span>}
                 </div>
               </Link>
+              {employerResponseRate !== null && (
+                <div className="mb-4 -mt-2">
+                  <ResponseRateBadge responseRate={employerResponseRate} avgResponseHours={employerAvgResponseHours} />
+                </div>
+              )}
 
               {/* Key info pills */}
               <div className="flex flex-wrap gap-2">
@@ -818,6 +855,7 @@ const JobDetail = () => {
                         <div className="flex flex-wrap items-center gap-4">
                           {job.organization_size && <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground"><Users className="w-4 h-4" /> {job.organization_size}</span>}
                           {job.employer.website_url && <a href={job.employer.website_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"><Globe className="w-4 h-4" /> Website <ExternalLink className="w-3 h-3" /></a>}
+                          {employerResponseRate !== null && <ResponseRateBadge responseRate={employerResponseRate} avgResponseHours={employerAvgResponseHours} size="md" />}
                         </div>
                         <Link to={`/employers/${job.employer.id}`} className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline font-medium">View Company Profile <ChevronRight className="w-4 h-4" /></Link>
                       </div>
