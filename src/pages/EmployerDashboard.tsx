@@ -83,7 +83,7 @@ const EmployerDashboard = () => {
         const jobsWithCounts = (jobsData || []).map(job => ({ ...job, applications_count: appCountMap[job.id] || 0 }));
         setJobs(jobsWithCounts);
         if (jobsWithCounts.length > 0) setSelectedJob(jobsWithCounts[0]);
-        const activeJobs = jobsWithCounts.filter(j => j.is_active && j.status === 'open').length;
+        const activeJobs = jobsWithCounts.filter(j => j.is_active && j.status === 'open' && (!j.expires_at || new Date(j.expires_at) > new Date())).length;
         const totalApplications = jobsWithCounts.reduce((sum, j) => sum + (j.applications_count || 0), 0);
         const [interviewRes, viewRes, notifRes, unreadRes, subRes] = await Promise.all([
           supabase.from('interviews').select('*', { count: 'exact', head: true }).eq('employer_id', employerData.id).in('status', ['scheduled', 'confirmed', 'requested']),
