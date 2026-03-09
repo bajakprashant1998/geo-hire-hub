@@ -1,3 +1,4 @@
+import React from 'react';
 import { ViewMode } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -114,7 +115,8 @@ export const LeftSidebarPanel = ({
         .from('jobs')
         .select('id, title, salary_range, job_type, latitude, longitude, employers!inner(company_name)')
         .eq('status', 'open')
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
 
       if (directError || !directData) return [];
 
@@ -738,29 +740,33 @@ export const LeftSidebarPanel = ({
   );
 };
 
-const EmptyState = ({ mode }: { mode: 'seeking' | 'hiring' }) => (
-  <motion.div
-    initial={{ opacity: 0, scale: 0.95 }}
-    animate={{ opacity: 1, scale: 1 }}
-    className="text-center py-12 px-4"
-  >
-    <div className={cn(
-      "w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-sm",
-      mode === 'seeking'
-        ? 'bg-gradient-to-br from-destructive/15 to-destructive/5'
-        : 'bg-gradient-to-br from-primary/15 to-primary/5'
-    )}>
-      {mode === 'seeking' ? (
-        <Briefcase className="w-7 h-7 text-destructive/50" />
-      ) : (
-        <Users className="w-7 h-7 text-primary/50" />
-      )}
-    </div>
-    <p className="text-sm font-semibold text-foreground mb-1">
-      No {mode === 'seeking' ? 'jobs' : 'candidates'} found
-    </p>
-    <p className="text-xs text-muted-foreground leading-relaxed">
-      Try increasing the search radius or adjusting your filters
-    </p>
-  </motion.div>
+const EmptyState = React.forwardRef<HTMLDivElement, { mode: 'seeking' | 'hiring' }>(
+  ({ mode }, ref) => (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="text-center py-12 px-4"
+    >
+      <div className={cn(
+        "w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-sm",
+        mode === 'seeking'
+          ? 'bg-gradient-to-br from-destructive/15 to-destructive/5'
+          : 'bg-gradient-to-br from-primary/15 to-primary/5'
+      )}>
+        {mode === 'seeking' ? (
+          <Briefcase className="w-7 h-7 text-destructive/50" />
+        ) : (
+          <Users className="w-7 h-7 text-primary/50" />
+        )}
+      </div>
+      <p className="text-sm font-semibold text-foreground mb-1">
+        No {mode === 'seeking' ? 'jobs' : 'candidates'} found
+      </p>
+      <p className="text-xs text-muted-foreground leading-relaxed">
+        Try increasing the search radius or adjusting your filters
+      </p>
+    </motion.div>
+  )
 );
+EmptyState.displayName = 'EmptyState';
