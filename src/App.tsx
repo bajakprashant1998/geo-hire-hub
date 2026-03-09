@@ -163,6 +163,7 @@ const App = () => (
               <Route path="/companies/:country/:slug" element={<PageTransition><SEOEmployerDetail /></PageTransition>} />
               <Route path="/companies/:country/:state/:slug" element={<PageTransition><SEOEmployerDetail /></PageTransition>} />
               <Route path="/companies/:country/:state/:city/:slug" element={<PageTransition><SEOEmployerDetail /></PageTransition>} />
+              <Route path="/companies/:slug/culture" element={<PageTransition><PublicBrandingPage /></PageTransition>} />
 
               {/* ==================== CANDIDATE ROUTES ==================== */}
               <Route path="/candidate-dashboard" element={<AuthRouteGuard requiredRole="candidate"><CandidateDashboard /></AuthRouteGuard>} />
