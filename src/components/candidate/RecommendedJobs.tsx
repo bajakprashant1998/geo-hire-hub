@@ -271,6 +271,7 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
   }, [candidateId]);
 
   const fetchAIRecommendations = async () => {
+    setError(false);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { setLoading(false); return; }
@@ -300,10 +301,15 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
       setJobs(recs);
       setAiInsight(data.insight || '');
       setProfileSummary(data.profile_summary || null);
-    } catch (error) {
-      console.error('AI recommendations error, falling back to basic:', error);
+    } catch (err) {
+      console.error('AI recommendations error, falling back to basic:', err);
       // Fallback to basic query
-      await fetchBasicRecommendations();
+      try {
+        await fetchBasicRecommendations();
+      } catch (fallbackErr) {
+        console.error('Basic recommendations also failed:', fallbackErr);
+        setError(true);
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
