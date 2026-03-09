@@ -208,7 +208,7 @@ const EmployerDashboard = () => {
               </AlertDialogContent>
             </AlertDialog>
 
-            <DashboardBottomNav type="employer" activeItem={activeSection} onItemClick={handleSectionClick} />
+            <DashboardBottomNav type="employer" activeItem={activeSection} onItemClick={handleSectionClick} messageBadge={stats.unreadMessages} notificationBadge={stats.notificationCount} />
           </div>
         </EmailVerificationGuard>
       )}
