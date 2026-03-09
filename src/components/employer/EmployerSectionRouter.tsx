@@ -21,6 +21,7 @@ import { TalentPoolCRM } from '@/components/employer/TalentPoolCRM';
 import { JobABTesting } from '@/components/employer/JobABTesting';
 import { TeamCollaborationNotes } from '@/components/employer/TeamCollaborationNotes';
 import { TeamWorkflows } from '@/components/employer/TeamWorkflows';
+import { TeamManagement } from '@/components/employer/TeamManagement';
 import { AccessibilityScoreChecker } from '@/components/employer/AccessibilityScoreChecker';
 import { BulkJobImport } from '@/components/employer/BulkJobImport';
 import { BrandingPageBuilder } from '@/components/employer/BrandingPageBuilder';
