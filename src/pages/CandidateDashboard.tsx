@@ -49,11 +49,11 @@ const CandidateDashboard = () => {
   useEffect(() => {
     if (authLoading) return;
     if (!user) { navigate('/login', { replace: true }); return; }
-    if (!profile && profileLoading) return;
+    if (user && !profileResolved) return;
     if (!profile) { setDataLoading(false); return; }
     if (profile.user_type !== 'candidate') { navigate('/employer-dashboard'); return; }
     fetchCandidate();
-  }, [user, profile, authLoading, profileLoading]);
+  }, [user, profile, authLoading, profileResolved]);
 
   const fetchCandidate = async () => {
     if (!profile || !user) return;

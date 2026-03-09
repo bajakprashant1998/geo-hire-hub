@@ -57,7 +57,7 @@ export const DashboardAuthGuard = ({
     return <DashboardUnauthenticatedView type={type} />;
   }
 
-  if (!profile) {
+  if (user && !profile && profileResolved) {
     const Icon = type === 'employer' ? Building2 : User;
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center p-4">

@@ -8,9 +8,9 @@ interface AuthRouteGuardProps {
 }
 
 const AuthRouteGuard = ({ children, requiredRole }: AuthRouteGuardProps) => {
-  const { user, profile, loading: authLoading, profileLoading } = useAuth();
+  const { user, profile, loading: authLoading, profileLoading, profileResolved } = useAuth();
 
-  if (authLoading || profileLoading) {
+  if (authLoading || (user && !profileResolved)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
