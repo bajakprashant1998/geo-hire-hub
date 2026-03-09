@@ -59,35 +59,48 @@ export const JobAnalyticsDashboard = ({ employerId }: JobAnalyticsDashboardProps
 
       if (error) throw error;
 
-      const jobsWithApps = await Promise.all(
-        (jobs || []).map(async (job) => {
-          const [{ count: appCount }, { data: appStatuses }, { count: interviewCount }] = await Promise.all([
-            supabase.from('applications').select('*', { count: 'exact', head: true }).eq('job_id', job.id),
-            supabase.from('applications').select('status').eq('job_id', job.id),
-            supabase.from('interviews').select('*', { count: 'exact', head: true }).eq('job_id', job.id),
-          ]);
+      const jobIds = (jobs || []).map(j => j.id);
 
-          const statusCounts = { pending: 0, reviewed: 0, shortlisted: 0, rejected: 0, hired: 0 };
-          appStatuses?.forEach(a => {
-            const s = (a.status || 'pending').toLowerCase();
-            if (s in statusCounts) statusCounts[s as keyof typeof statusCounts]++;
-          });
+      // Batch all queries instead of N+1
+      const [{ data: allApps }, { data: allInterviews }] = jobIds.length > 0
+        ? await Promise.all([
+            supabase.from('applications').select('job_id, status').in('job_id', jobIds),
+            supabase.from('interviews').select('job_id').in('job_id', jobIds),
+          ])
+        : [{ data: [] }, { data: [] }];
 
-          return {
-            id: job.id,
-            name: job.title.length > 18 ? job.title.slice(0, 18) + '…' : job.title,
-            fullTitle: job.title,
-            views: job.view_count || 0,
-            applications: appCount || 0,
-            interviews: interviewCount || 0,
-            active: job.is_active && job.status === 'open',
-            created_at: job.created_at,
-            category: job.category || 'Uncategorized',
-            expires_at: job.expires_at,
-            ...statusCounts,
-          };
-        })
-      );
+      // Group by job_id client-side
+      const appsByJob = new Map<string, { count: number; statuses: Record<string, number> }>();
+      const interviewsByJob = new Map<string, number>();
+
+      (allApps || []).forEach(a => {
+        const entry = appsByJob.get(a.job_id) || { count: 0, statuses: { pending: 0, reviewed: 0, shortlisted: 0, rejected: 0, hired: 0 } };
+        entry.count++;
+        const s = (a.status || 'pending').toLowerCase();
+        if (s in entry.statuses) entry.statuses[s]++;
+        appsByJob.set(a.job_id, entry);
+      });
+
+      (allInterviews || []).forEach(i => {
+        interviewsByJob.set(i.job_id, (interviewsByJob.get(i.job_id) || 0) + 1);
+      });
+
+      const jobsWithApps = (jobs || []).map(job => {
+        const appData = appsByJob.get(job.id) || { count: 0, statuses: { pending: 0, reviewed: 0, shortlisted: 0, rejected: 0, hired: 0 } };
+        return {
+          id: job.id,
+          name: job.title.length > 18 ? job.title.slice(0, 18) + '…' : job.title,
+          fullTitle: job.title,
+          views: job.view_count || 0,
+          applications: appData.count,
+          interviews: interviewsByJob.get(job.id) || 0,
+          active: job.is_active && job.status === 'open',
+          created_at: job.created_at,
+          category: job.category || 'Uncategorized',
+          expires_at: job.expires_at,
+          ...appData.statuses,
+        };
+      });
 
       return jobsWithApps;
     },
