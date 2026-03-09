@@ -36,6 +36,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
 
+  const migrateSavedJobs = useCallback(async (profileData: Profile) => {
+    if (profileData.user_type !== 'candidate') return;
+    try {
+      const raw = localStorage.getItem('hfj_saved_jobs');
+      if (!raw) return;
+      const localIds: string[] = JSON.parse(raw);
+      if (!localIds.length) return;
+
+      const { data: cand } = await supabase.from('candidates').select('id').eq('profile_id', profileData.id).maybeSingle();
+      if (!cand) return;
+
+      // Get already-saved to avoid duplicates
+      const { data: existing } = await supabase.from('saved_jobs').select('job_id').eq('candidate_id', cand.id);
+      const existingIds = new Set((existing || []).map(e => e.job_id));
+      const toInsert = localIds.filter(id => !existingIds.has(id)).map(job_id => ({ candidate_id: cand.id, job_id }));
+
+      if (toInsert.length > 0) {
+        await supabase.from('saved_jobs').insert(toInsert);
+      }
+      localStorage.removeItem('hfj_saved_jobs');
+    } catch (err) {
+      console.warn('Failed to migrate saved jobs:', err);
+    }
+  }, []);
+
   const fetchProfile = useCallback(async (userId: string, retryCount = 0): Promise<Profile | null> => {
     try {
       setProfileLoading(true);
@@ -48,10 +73,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (data && !error) {
         setProfile(data as Profile);
+        // Migrate localStorage saved jobs on login
+        migrateSavedJobs(data as Profile);
         return data as Profile;
       } else if (error) {
         console.error('Error fetching profile:', error);
-        // Retry up to 2 times with exponential backoff
         if (retryCount < 2) {
           await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
           return fetchProfile(userId, retryCount + 1);
@@ -64,7 +90,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setProfileLoading(false);
     }
-  }, []);
+  }, [migrateSavedJobs]);
 
   const refreshProfile = useCallback(async () => {
     if (user) {

@@ -283,6 +283,11 @@ const JobDetail = () => {
       if (!candidate) { toast.error('Please complete your profile first'); navigate('/profile-setup'); return; }
       const { error: applicationError } = await supabase.from('applications').insert({ job_id: id, candidate_id: candidate.id, cover_letter: coverLetter || null });
       if (applicationError) throw applicationError;
+      // Auto-save the job on apply
+      if (!isSaved) {
+        await supabase.from('saved_jobs').insert({ candidate_id: candidate.id, job_id: resolvedId }).catch(() => {});
+        setIsSaved(true);
+      }
       setHasApplied(true);
       setApplyDialogOpen(false);
       toast.success('Application submitted successfully! 🎉');
