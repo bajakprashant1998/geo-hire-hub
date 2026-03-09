@@ -49,6 +49,7 @@ const Plans = lazy(() => import("./pages/Plans"));
 const CompanyProfileEdit = lazy(() => import("./pages/CompanyProfileEdit"));
 const VideoCall = lazy(() => import("./pages/VideoCall"));
 const CandidatePortfolio = lazy(() => import("./pages/CandidatePortfolio"));
+const PublicBrandingPage = lazy(() => import("./pages/PublicBrandingPage"));
 
 // Admin routes — always lazy
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
