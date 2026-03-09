@@ -14,6 +14,8 @@ interface JobCardProps {
   job: any;
   index: number;
   viewMode: 'list' | 'grid';
+  savedJobIds?: Set<string>;
+  onSaveToggle?: () => void;
 }
 
 const JOB_TYPE_COLORS: Record<string, string> = {
@@ -54,9 +56,11 @@ function isNew(createdAt: string) {
   return (Date.now() - new Date(createdAt).getTime()) < 86400000 * 2;
 }
 
-export const JobCard = ({ job, index, viewMode }: JobCardProps) => {
+export const JobCard = ({ job, index, viewMode, savedJobIds, onSaveToggle }: JobCardProps) => {
   const { user, profile } = useAuth();
-  const [saved, setSaved] = useState(false);
+  // Use batch-fetched set if available, otherwise fall back to individual check
+  const [localSaved, setLocalSaved] = useState(false);
+  const saved = savedJobIds ? savedJobIds.has(job.id) : localSaved;
   const typeColor = JOB_TYPE_COLORS[job.job_type] || 'bg-secondary text-secondary-foreground';
   const companyName = (job.employers as any)?.company_name || 'Company';
   const industry = (job.employers as any)?.industry;
@@ -64,14 +68,16 @@ export const JobCard = ({ job, index, viewMode }: JobCardProps) => {
   const jobIsNew = isNew(job.created_at);
 
   useEffect(() => {
+    // Skip individual fetch if batch set is provided
+    if (savedJobIds) return;
     if (!user || !profile || profile.user_type !== 'candidate') return;
     supabase.from('candidates').select('id').eq('profile_id', profile.id).maybeSingle().then(({ data: cand }) => {
       if (!cand) return;
       supabase.from('saved_jobs').select('id').eq('candidate_id', cand.id).eq('job_id', job.id).maybeSingle().then(({ data }) => {
-        if (data) setSaved(true);
+        if (data) setLocalSaved(true);
       });
     });
-  }, [user, profile, job.id]);
+  }, [user, profile, job.id, savedJobIds]);
 
   const handleSave = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -82,13 +88,14 @@ export const JobCard = ({ job, index, viewMode }: JobCardProps) => {
     if (!cand) return;
     if (saved) {
       await supabase.from('saved_jobs').delete().eq('candidate_id', cand.id).eq('job_id', job.id);
-      setSaved(false);
+      setLocalSaved(false);
       toast.success('Removed from saved');
     } else {
       await supabase.from('saved_jobs').insert({ candidate_id: cand.id, job_id: job.id });
-      setSaved(true);
+      setLocalSaved(true);
       toast.success('Job saved!');
     }
+    onSaveToggle?.();
   };
 
   return (

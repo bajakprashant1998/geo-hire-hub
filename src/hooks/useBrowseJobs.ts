@@ -8,6 +8,7 @@ const QUERY_FIELDS =
   'id, title, job_type, salary_range, salary_min, salary_max, experience_level, is_remote, created_at, job_address, slug, location_country, location_state, location_city, expires_at, description, employers!inner(company_name, industry, slug)';
 
 export function useBrowseJobs() {
+  const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set());
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [search, setSearch] = useState(searchParams.get('q') || '');
@@ -129,6 +130,20 @@ export function useBrowseJobs() {
     (salaryMin !== null ? 1 : 0) +
     (salaryMax !== null ? 1 : 0);
 
+  // Batch-fetch saved job IDs once for the current user
+  const fetchSavedJobIds = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setSavedJobIds(new Set()); return; }
+    const { data: profileData } = await supabase.from('profiles').select('id, user_type').eq('user_id', user.id).maybeSingle();
+    if (!profileData || profileData.user_type !== 'candidate') { setSavedJobIds(new Set()); return; }
+    const { data: cand } = await supabase.from('candidates').select('id').eq('profile_id', profileData.id).maybeSingle();
+    if (!cand) { setSavedJobIds(new Set()); return; }
+    const { data: saved } = await supabase.from('saved_jobs').select('job_id').eq('candidate_id', cand.id);
+    setSavedJobIds(new Set((saved || []).map(s => s.job_id)));
+  }, []);
+
+  useEffect(() => { fetchSavedJobIds(); }, [fetchSavedJobIds]);
+
   return {
     search, setSearch,
     jobType, setJobType,
@@ -141,5 +156,6 @@ export function useBrowseJobs() {
     jobs, loading, loadingMore, hasMore, total,
     debouncedSearch, activeFilterCount,
     loadMore, clearAllFilters,
+    savedJobIds, refreshSavedJobIds: fetchSavedJobIds,
   };
 }

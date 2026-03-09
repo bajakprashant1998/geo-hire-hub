@@ -20,6 +20,7 @@ const BrowseJobs = () => {
     salaryMin, setSalaryMin,
     salaryMax, setSalaryMax,
     activeFilterCount,
+    savedJobIds, refreshSavedJobIds,
   } = useBrowseJobs();
 
   // Back to top
@@ -108,7 +109,7 @@ const BrowseJobs = () => {
             }>
               <AnimatePresence mode="popLayout">
                 {jobs.map((job: any, i: number) => (
-                  <JobCard key={job.id} job={job} index={i} viewMode={viewMode} />
+                  <JobCard key={job.id} job={job} index={i} viewMode={viewMode} savedJobIds={savedJobIds} onSaveToggle={refreshSavedJobIds} />
                 ))}
               </AnimatePresence>
             </div>

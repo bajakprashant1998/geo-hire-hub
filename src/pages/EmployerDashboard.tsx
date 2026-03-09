@@ -46,7 +46,7 @@ const EmployerDashboard = () => {
   const [search, setSearch] = useState('');
   const [profileRetryCount, setProfileRetryCount] = useState(0);
   const [planName, setPlanName] = useState('Free Plan');
-  const [stats, setStats] = useState({ activeJobs: 0, totalApplications: 0, scheduledInterviews: 0, profileViews: 0, notificationCount: 0 });
+  const [stats, setStats] = useState({ activeJobs: 0, totalApplications: 0, scheduledInterviews: 0, profileViews: 0, notificationCount: 0, unreadMessages: 0 });
   const [jobToDelete, setJobToDelete] = useState<any>(null);
   const [deletingJob, setDeletingJob] = useState(false);
 
@@ -89,9 +89,16 @@ const EmployerDashboard = () => {
         const { count: interviewCount } = await supabase.from('interviews').select('*', { count: 'exact', head: true }).eq('employer_id', employerData.id).in('status', ['scheduled', 'confirmed', 'requested']);
         const { count: viewCount } = await supabase.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', profile.id);
         const { count: notifCount } = await supabase.from('notifications').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('is_read', false);
+        // Fetch unread messages scoped to employer's conversations
+        const { data: empConvos } = await supabase.from('conversations').select('id').or(`participant_1.eq.${user.id},participant_2.eq.${user.id}`);
+        let unreadMsgCount = 0;
+        if (empConvos && empConvos.length > 0) {
+          const { count: msgCount } = await supabase.from('messages').select('*', { count: 'exact', head: true }).eq('is_read', false).neq('sender_id', user.id).in('conversation_id', empConvos.map(c => c.id));
+          unreadMsgCount = msgCount || 0;
+        }
         const { data: subData } = await supabase.from('employer_subscriptions').select('employer_plans(name)').eq('employer_id', employerData.id).eq('status', 'active').maybeSingle();
         if (subData && (subData as any).employer_plans?.name) setPlanName((subData as any).employer_plans.name + ' Plan');
-        setStats({ activeJobs, totalApplications, scheduledInterviews: interviewCount || 0, profileViews: viewCount || 0, notificationCount: notifCount || 0 });
+        setStats({ activeJobs, totalApplications, scheduledInterviews: interviewCount || 0, profileViews: viewCount || 0, notificationCount: notifCount || 0, unreadMessages: unreadMsgCount });
 
         // Refresh response rate in background
         supabase.rpc('calculate_employer_response_rate', { p_employer_id: employerData.id }).then(() => {});
@@ -127,7 +134,7 @@ const EmployerDashboard = () => {
     { icon: Filter, label: 'Candidate Finder', value: 'candidates', badge: stats.totalApplications },
     { icon: FileEdit, label: 'Drafts', value: 'drafts' },
     { icon: Users, label: 'Tasks', value: 'tasks' },
-    { icon: MessageSquare, label: 'Messages', value: 'chat' },
+    { icon: MessageSquare, label: 'Messages', value: 'chat', badge: stats.unreadMessages },
     { icon: Calendar, label: 'Interviews', value: 'interviews', badge: stats.scheduledInterviews },
     { icon: BarChart3, label: 'Analytics', value: 'analytics' },
     { icon: Building2, label: 'Company Profile', value: 'company' },
@@ -203,7 +210,7 @@ const EmployerDashboard = () => {
                         <DashboardStatCard icon={Briefcase} label="Active Jobs" value={stats.activeJobs} subtitle="currently open" accentColor="blue" onClick={() => setActiveSection('jobs')} delay={0} />
                         <DashboardStatCard icon={Users} label="Applications" value={stats.totalApplications} subtitle="across all jobs" accentColor="amber" onClick={() => setActiveSection('jobs')} delay={1} />
                         <DashboardStatCard icon={Calendar} label="Interviews" value={stats.scheduledInterviews} subtitle="upcoming" accentColor="green" onClick={() => setActiveSection('interviews')} delay={2} />
-                        <DashboardStatCard icon={Eye} label="Profile Views" value={stats.profileViews} subtitle="all time" accentColor="purple" delay={3} />
+                        <DashboardStatCard icon={MessageSquare} label="Unread Messages" value={stats.unreadMessages} subtitle="awaiting reply" accentColor="purple" onClick={() => setActiveSection('chat')} delay={3} />
                       </div>
                     </div>
 
