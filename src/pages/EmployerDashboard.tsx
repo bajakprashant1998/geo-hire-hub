@@ -37,7 +37,7 @@ import { cn } from '@/lib/utils';
 const EmployerDashboard = () => {
   const navigate = useNavigate();
   const { activeSection, setActiveSection } = useDashboardTab();
-  const { user, profile, loading: authLoading, profileLoading, signOut, refreshProfile } = useAuth();
+  const { user, profile, loading: authLoading, profileLoading, profileResolved, signOut, refreshProfile } = useAuth();
   const [dataLoading, setDataLoading] = useState(true);
   const [employer, setEmployer] = useState<any>(null);
   const [jobs, setJobs] = useState<any[]>([]);
