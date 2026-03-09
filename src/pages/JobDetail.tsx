@@ -1014,21 +1014,19 @@ const JobDetail = () => {
             {job.employer.whatsapp_number && <WhatsAppButton phoneNumber={job.employer.whatsapp_number} variant="icon" className="shrink-0 w-11 h-11 rounded-xl" />}
             {hasApplied ? (
               <Button disabled className="flex-1 h-11 rounded-xl"><CheckCircle className="w-5 h-5 mr-2" /> Applied</Button>
+            ) : job.expires_at && new Date(job.expires_at) < new Date() ? (
+              <Button disabled className="flex-1 h-11 rounded-xl font-semibold gap-2 opacity-60">
+                <AlertCircle className="w-4 h-4" /> Position Expired
+              </Button>
             ) : (
-              {job.expires_at && new Date(job.expires_at) < new Date() ? (
-                <Button disabled className="flex-1 h-11 rounded-xl font-semibold gap-2 opacity-60">
-                  <AlertCircle className="w-4 h-4" /> Position Expired
-                </Button>
-              ) : (
-                <Dialog open={applyDialogOpen} onOpenChange={setApplyDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button className={`flex-1 h-11 rounded-xl font-semibold gap-2 ${isGovernmentJob ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}>
-                      <Send className="w-4 h-4" /> Apply Now
-                    </Button>
-                  </DialogTrigger>
-                  {applyDialogContent}
-                </Dialog>
-              )}
+              <Dialog open={applyDialogOpen} onOpenChange={setApplyDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className={`flex-1 h-11 rounded-xl font-semibold gap-2 ${isGovernmentJob ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}>
+                    <Send className="w-4 h-4" /> Apply Now
+                  </Button>
+                </DialogTrigger>
+                {applyDialogContent}
+              </Dialog>
             )}
           </div>
         </motion.div>
