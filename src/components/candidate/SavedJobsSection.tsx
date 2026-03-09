@@ -252,6 +252,27 @@ export const SavedJobsSection = ({ candidateId }: SavedJobsSectionProps) => {
     }
   };
 
+  const removeAllClosed = async () => {
+    const closedIds = savedJobs
+      ?.filter(s => {
+        const job = s.job as any;
+        return !job?.is_active || job?.status !== 'open' || (job?.expires_at && new Date(job.expires_at) < new Date());
+      })
+      .map(s => s.id) || [];
+    if (closedIds.length === 0) {
+      toast.info('No closed jobs to remove');
+      return;
+    }
+    try {
+      const { error } = await supabase.from('saved_jobs').delete().in('id', closedIds);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ['saved-jobs', candidateId] });
+      toast.success(`Removed ${closedIds.length} closed job${closedIds.length > 1 ? 's' : ''}`);
+    } catch {
+      toast.error('Failed to remove closed jobs');
+    }
+  };
+
   // Stats
   const stats = useMemo(() => {
     if (!savedJobs) return { total: 0, active: 0, expiring: 0, closed: 0 };
