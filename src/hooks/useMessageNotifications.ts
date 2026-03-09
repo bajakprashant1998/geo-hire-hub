@@ -52,7 +52,7 @@ export const useMessageNotifications = () => {
           if (!conversation) return;
 
           // Don't show notification if already viewing this conversation
-          if (location.pathname === `/messages/${message.conversation_id}`) return;
+          if (pathnameRef.current === `/messages/${message.conversation_id}`) return;
 
           // Get sender info
           const { data: senderProfile } = await supabase
