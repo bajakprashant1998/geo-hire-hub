@@ -160,8 +160,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
         
         if (session?.user) {
+          setProfileResolved(false);
           // Fetch profile in background
           fetchProfile(session.user.id);
+        } else {
+          setProfileResolved(true);
         }
       } catch (error) {
         console.error('Error getting session:', error);
