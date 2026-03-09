@@ -855,6 +855,7 @@ const JobDetail = () => {
                         <div className="flex flex-wrap items-center gap-4">
                           {job.organization_size && <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground"><Users className="w-4 h-4" /> {job.organization_size}</span>}
                           {job.employer.website_url && <a href={job.employer.website_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline"><Globe className="w-4 h-4" /> Website <ExternalLink className="w-3 h-3" /></a>}
+                          {employerResponseRate !== null && <ResponseRateBadge responseRate={employerResponseRate} avgResponseHours={employerAvgResponseHours} size="md" />}
                         </div>
                         <Link to={`/employers/${job.employer.id}`} className="inline-flex items-center gap-1.5 text-sm text-primary hover:underline font-medium">View Company Profile <ChevronRight className="w-4 h-4" /></Link>
                       </div>
