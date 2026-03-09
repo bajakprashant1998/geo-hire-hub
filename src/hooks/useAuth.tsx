@@ -124,11 +124,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
 
         if (session?.user) {
+          setProfileResolved(false);
           // Fetch profile in background with timeout protection
           profileFetchTimeout = setTimeout(() => {
             if (isMounted) {
               console.warn('Profile fetch timed out - continuing without profile');
               setProfileLoading(false);
+              // Do NOT set profileResolved here - let retry chain finish
             }
           }, PROFILE_FETCH_TIMEOUT);
 
@@ -137,6 +139,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           });
         } else {
           setProfile(null);
+          setProfileResolved(true);
         }
       }
     );
