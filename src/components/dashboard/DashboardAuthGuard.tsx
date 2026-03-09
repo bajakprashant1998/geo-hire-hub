@@ -10,6 +10,7 @@ interface DashboardAuthGuardProps {
   type: 'candidate' | 'employer';
   authLoading: boolean;
   profileLoading: boolean;
+  profileResolved: boolean;
   user: any;
   profile: any;
   refreshProfile: () => void;
