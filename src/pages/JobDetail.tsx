@@ -189,7 +189,7 @@ const JobDetail = () => {
   }, [identifier]);
 
   useEffect(() => {
-    if (resolvedId) { fetchJob(); checkIfApplied(); fetchApplicantCount(); }
+    if (resolvedId) { fetchJob(); checkIfApplied(); fetchApplicantCount(); checkIfSaved(); }
   }, [resolvedId]);
 
   const baseUrl = 'https://www.hireforjob.com';
