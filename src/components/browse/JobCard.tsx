@@ -1,10 +1,14 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Building2, MapPin, Clock, ChevronRight, Zap } from 'lucide-react';
+import { Building2, MapPin, Clock, ChevronRight, Zap, Heart } from 'lucide-react';
 import { SalaryBadge } from '@/components/SalaryBadge';
 import { DeadlineCountdown } from '@/components/DeadlineCountdown';
 import { motion } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 interface JobCardProps {
   job: any;
@@ -51,11 +55,41 @@ function isNew(createdAt: string) {
 }
 
 export const JobCard = ({ job, index, viewMode }: JobCardProps) => {
+  const { user, profile } = useAuth();
+  const [saved, setSaved] = useState(false);
   const typeColor = JOB_TYPE_COLORS[job.job_type] || 'bg-secondary text-secondary-foreground';
   const companyName = (job.employers as any)?.company_name || 'Company';
   const industry = (job.employers as any)?.industry;
   const desc = getDescription(job);
   const jobIsNew = isNew(job.created_at);
+
+  useEffect(() => {
+    if (!user || !profile || profile.user_type !== 'candidate') return;
+    supabase.from('candidates').select('id').eq('profile_id', profile.id).maybeSingle().then(({ data: cand }) => {
+      if (!cand) return;
+      supabase.from('saved_jobs').select('id').eq('candidate_id', cand.id).eq('job_id', job.id).maybeSingle().then(({ data }) => {
+        if (data) setSaved(true);
+      });
+    });
+  }, [user, profile, job.id]);
+
+  const handleSave = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user || !profile) { toast.error('Please login to save jobs'); return; }
+    if (profile.user_type !== 'candidate') return;
+    const { data: cand } = await supabase.from('candidates').select('id').eq('profile_id', profile.id).maybeSingle();
+    if (!cand) return;
+    if (saved) {
+      await supabase.from('saved_jobs').delete().eq('candidate_id', cand.id).eq('job_id', job.id);
+      setSaved(false);
+      toast.success('Removed from saved');
+    } else {
+      await supabase.from('saved_jobs').insert({ candidate_id: cand.id, job_id: job.id });
+      setSaved(true);
+      toast.success('Job saved!');
+    }
+  };
 
   return (
     <motion.div
@@ -64,7 +98,21 @@ export const JobCard = ({ job, index, viewMode }: JobCardProps) => {
       transition={{ delay: Math.min(index * 0.025, 0.25), duration: 0.3 }}
     >
       <Link to={getJobUrl(job)} className="block group">
-        <Card className="overflow-hidden border-border/50 bg-card hover:shadow-lg hover:border-primary/25 transition-all duration-250 group-hover:-translate-y-0.5">
+        <Card className="overflow-hidden border-border/50 bg-card hover:shadow-lg hover:border-primary/25 transition-all duration-250 group-hover:-translate-y-0.5 relative">
+          {/* Save button */}
+          {user && profile?.user_type === 'candidate' && (
+            <button
+              onClick={handleSave}
+              className={`absolute top-3 right-3 z-10 p-1.5 rounded-full transition-all ${
+                saved
+                  ? 'text-destructive bg-destructive/10 hover:bg-destructive/20'
+                  : 'text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100'
+              }`}
+              aria-label={saved ? 'Unsave job' : 'Save job'}
+            >
+              <Heart className={`w-4 h-4 ${saved ? 'fill-current' : ''}`} />
+            </button>
+          )}
           <CardContent className={viewMode === 'grid' ? 'p-5 flex flex-col h-full min-h-[220px]' : 'p-4 sm:p-5'}>
             {viewMode === 'grid' ? (
               <GridLayout
@@ -91,7 +139,7 @@ function GridLayout({ job, companyName, desc, typeColor, jobIsNew }: any) {
         <div className="w-11 h-11 rounded-xl bg-primary/8 flex items-center justify-center shrink-0 ring-1 ring-primary/10">
           <Building2 className="w-5 h-5 text-primary" />
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 pr-6">
           {jobIsNew && (
             <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px] px-1.5 py-0 h-5 font-medium">
               <Zap className="w-2.5 h-2.5 mr-0.5" />New
