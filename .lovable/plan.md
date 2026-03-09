@@ -1,94 +1,50 @@
 
 
-## Plan: Complete All Pending Tasks and Fixes
+# Plan: Four Gap Fixes
 
-### 7 Tasks to Implement
+## 1. Employer "New Applications" Realtime Filter
 
----
+**Problem**: The employer listener subscribes to ALL application inserts, then queries the DB to check ownership -- wasteful.
 
-#### 1. Fix Nominatim Geocoding CORS Error (High Priority)
+**Approach**: Add an `employer_id` denormalized column to the `applications` table (populated via trigger from `jobs.employer_id` on insert). Then the realtime subscription can use a Postgres filter: `filter: employer_id=eq.${employerId}`, eliminating the extra query.
 
-The `LocationBadge.tsx` and `AIResumeBuilder.tsx` make direct browser calls to `nominatim.openstreetmap.org` which fails with CORS/network errors on every page load.
+- **Migration**: Add `employer_id uuid` column to `applications` with FK to `employers(id)`. Create a trigger `set_application_employer_id` that copies `jobs.employer_id` into the new column on INSERT. Backfill existing rows.
+- **Code change**: In `useRealtimeDashboard.ts`, replace the unfiltered `applications` INSERT listener + async DB check with a filtered subscription: `filter: employer_id=eq.${employerId}`. Remove the `async` callback and DB query.
 
-**Fix**: Replace direct Nominatim calls with Google Maps Geocoder (already available via the Google Maps API key). For `LocationBadge`, use the existing Google Maps Geocoding REST API through a simple edge function proxy. As a simpler alternative, silently catch errors and use coordinate-based fallback text.
+## 2. Job View Count Sync
 
-**Files**: `src/components/map/LocationBadge.tsx`, `src/pages/AIResumeBuilder.tsx`
-- Wrap fetch in try/catch, on failure show "Near you" instead of logging error
-- Add `AbortController` with 5s timeout to prevent hanging requests
+**Problem**: `jobs.view_count` is never updated from `job_views` table entries, causing stale display.
 
----
+**Approach**: Create a trigger on `job_views` INSERT that increments `jobs.view_count`.
 
-#### 2. Add 10s Loading Timeout to Dashboards (Medium Priority)
+- **Migration**: Create function `increment_job_view_count()` that does `UPDATE jobs SET view_count = view_count + 1 WHERE id = NEW.job_id`. Attach as AFTER INSERT trigger on `job_views`. Backfill existing counts with `UPDATE jobs SET view_count = (SELECT COUNT(*) FROM job_views WHERE job_views.job_id = jobs.id)`.
 
-Both dashboards already have try/catch and `setDataLoading(false)` in finally blocks. Missing: a timeout that forces loading to stop if API hangs.
+## 3. Notification Sound
 
-**Files**: `src/pages/CandidateDashboard.tsx`, `src/pages/EmployerDashboard.tsx`
-- Add a 10s `setTimeout` in the `fetchCandidate`/`fetchEmployerData` that sets `dataLoading = false` and shows a toast if still loading
-- Add `toast.error` in the catch blocks (currently only `console.error`)
+**Problem**: `useMessageNotifications.ts` plays `/notification.mp3` which doesn't exist.
 
----
+**Approach**: Generate a simple notification sound using the Web Audio API as a fallback, since we can't add binary files. Replace the `new Audio('/notification.mp3')` call with an inline Web Audio API beep (short sine wave tone). This is self-contained, requires no external file, and works across browsers.
 
-#### 3. Add PWA Offline Fallback Page (Medium Priority)
+- **Code change**: In `useMessageNotifications.ts`, replace the `try { new Audio(...) }` block with a Web Audio API helper that plays a brief 440Hz tone at 0.3 volume.
 
-`public/sw.js` exists but returns nothing when offline and no cached page matches.
+## 4. Employer Profile Views on BrowseJobs
 
-**Files**: `public/offline.html` (new), `public/sw.js`
-- Create a simple offline HTML page with branding
-- Update service worker to cache `offline.html` and serve it as fallback for navigation requests
+**Problem**: Employer "Profile Views" stat undercounts because browsing job cards doesn't record a view.
 
----
+**Approach**: This is intentionally NOT a profile view -- viewing a job card is a job impression, not a profile visit. Recording profile_views here would inflate the metric and mislead employers. Instead, we'll record `job_views` (impressions) when cards enter the viewport on BrowseJobs, and surface a separate "Job Impressions" count on the employer dashboard.
 
-#### 4. Add Email Verification Reminder on Dashboard (Medium Priority)
+Actually, the simpler and more accurate fix: add a "Job Impressions" stat derived from `job_views` count on the employer dashboard, which already partially exists. The profile_views metric should stay scoped to actual profile page visits.
 
-`EmailVerificationBanner` exists in `App.tsx` but an inline dashboard prompt would be more visible.
-
-**Files**: `src/pages/CandidateDashboard.tsx`, `src/pages/EmployerDashboard.tsx`
-- Add a dismissible card in the dashboard home view when `!isEmailVerified` with resend button
-- Reuse logic from existing `EmailVerificationBanner`
+**Revised approach**: Skip this -- the current behavior is correct. Profile views should only count actual profile page visits. The employer dashboard already shows job view data via analytics. No code change needed here.
 
 ---
 
-#### 5. Add Skeleton Loading to ProfileSetup (Medium Priority)
+## Summary of Changes
 
-Currently shows nothing while auth resolves.
-
-**Files**: `src/pages/ProfileSetup.tsx`
-- Show a skeleton card layout while `authLoading || profileLoading` instead of blank screen
-
----
-
-#### 6. Add Global Unhandled Rejection Handler (Medium Priority)
-
-The Google Maps `AdvancedMarker` crash (`getRootNode` error) triggers ErrorBoundary. A global handler can catch async errors gracefully.
-
-**Files**: `src/App.tsx`
-- Add `useEffect` with `window.addEventListener('unhandledrejection', ...)` that logs and shows toast
-- Prevents white-screen crashes from async Google Maps errors
-
----
-
-#### 7. Fix Google Maps AdvancedMarker Crash (High Priority)
-
-The console shows `Cannot read properties of undefined (reading 'getRootNode')` from `AdvancedMarker` cleanup. This crashes the entire app via ErrorBoundary.
-
-**Files**: `src/components/map/GoogleMapContainer.tsx`
-- Wrap the map rendering in its own error boundary so map crashes don't take down the whole app
-- Add null checks before rendering `AdvancedMarker` components
-- Ensure markers are only rendered when the map instance is ready
-
----
-
-### Files Summary
-
-| File | Change |
-|------|--------|
-| `src/components/map/LocationBadge.tsx` | Silent error handling, timeout |
-| `src/pages/AIResumeBuilder.tsx` | Silent error handling for Nominatim |
-| `src/pages/CandidateDashboard.tsx` | 10s timeout + toast error + email verify card |
-| `src/pages/EmployerDashboard.tsx` | 10s timeout + toast error + email verify card |
-| `public/offline.html` | **New** - offline fallback page |
-| `public/sw.js` | Cache offline.html, serve as fallback |
-| `src/pages/ProfileSetup.tsx` | Skeleton loading state |
-| `src/App.tsx` | Global unhandled rejection handler |
-| `src/components/map/GoogleMapContainer.tsx` | Map-specific error boundary, marker null checks |
+| # | File(s) | What |
+|---|---------|------|
+| 1 | Migration + `useRealtimeDashboard.ts` | Add `employer_id` to applications, filter realtime |
+| 2 | Migration | Trigger to sync `job_views` → `jobs.view_count` |
+| 3 | `useMessageNotifications.ts` | Replace missing MP3 with Web Audio API beep |
+| 4 | None | No change -- current behavior is correct |
 
