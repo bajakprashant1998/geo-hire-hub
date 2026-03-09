@@ -57,10 +57,14 @@ export const RecentlyViewedJobs = () => {
       .limit(10);
 
     if (!error && data) {
-      // Deduplicate by job_id (keep most recent view)
+      const now = new Date().toISOString();
+      // Deduplicate by job_id (keep most recent view) and filter expired/inactive
       const seen = new Set<string>();
       const unique = (data as unknown as RecentJob[]).filter((item) => {
         if (seen.has(item.job_id)) return false;
+        const job = item.job as any;
+        if (!job.is_active || job.status !== 'open') return false;
+        if (job.expires_at && job.expires_at < now) return false;
         seen.add(item.job_id);
         return true;
       });
