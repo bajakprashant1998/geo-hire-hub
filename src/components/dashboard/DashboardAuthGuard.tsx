@@ -42,7 +42,7 @@ export const DashboardAuthGuard = ({
     );
   }
 
-  if (user && !profile && profileLoading) {
+  if (user && !profile && !profileResolved) {
     return (
       <div className="min-h-screen bg-secondary flex items-center justify-center">
         <div className="text-center">
