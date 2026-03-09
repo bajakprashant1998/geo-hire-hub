@@ -421,6 +421,35 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
 
   if (loading) return <RecommendedSkeleton />;
 
+  if (error) {
+    return (
+      <Card className="border border-border bg-card">
+        <CardHeader className="bg-secondary/50 border-b border-border">
+          <CardTitle className="flex items-center gap-3 font-heading">
+            <div className="p-2.5 bg-destructive/10 rounded-xl">
+              <Sparkles className="w-5 h-5 text-destructive" />
+            </div>
+            Recommended Jobs
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-16">
+            <div className="w-16 h-16 bg-destructive/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Target className="w-8 h-8 text-destructive/50" />
+            </div>
+            <h3 className="font-semibold font-heading mb-2 text-foreground">Failed to load recommendations</h3>
+            <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-6">
+              We couldn't fetch job recommendations. Please try again.
+            </p>
+            <Button onClick={() => { setError(false); setLoading(true); fetchAIRecommendations(); }} className="rounded-xl gap-2">
+              <RefreshCw className="w-4 h-4" /> Retry
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (jobs.length === 0) {
     return (
       <Card className="border border-border bg-card">

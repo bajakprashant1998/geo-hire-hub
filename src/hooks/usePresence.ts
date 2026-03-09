@@ -135,6 +135,8 @@ export const usePresence = (conversationId?: string): UsePresenceReturn => {
   const setTyping = useCallback(
     (convId: string, isTyping: boolean) => {
       if (!user) return;
+      // Validate that convId matches the active conversationId to prevent broadcasting to wrong channels
+      if (conversationId && convId !== conversationId) return;
 
       // Reuse the subscribed channel ref; do not create a new channel
       typingChannelRef.current?.send({
@@ -147,7 +149,7 @@ export const usePresence = (conversationId?: string): UsePresenceReturn => {
         },
       });
     },
-    [user]
+    [user, conversationId]
   );
 
   const isOnline = useCallback(

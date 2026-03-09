@@ -400,25 +400,38 @@ export const SavedJobsSection = ({ candidateId }: SavedJobsSectionProps) => {
               { label: 'Expiring Soon', value: stats.expiring, color: 'text-warning-foreground', bg: 'bg-warning/10', icon: Clock, onClick: () => setSortBy('expiring'), showClear: false },
               { label: 'Closed', value: stats.closed, color: 'text-destructive', bg: 'bg-destructive/10', icon: AlertTriangle, onClick: () => setShowClosedOnly(showClosedOnly === true ? null : true), showClear: stats.closed > 0 },
             ].map((stat, i) => (
-              <motion.button
+              <motion.div
                 key={stat.label}
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.08 + i * 0.04 }}
-                onClick={stat.onClick}
-                className={cn(
-                  'flex items-center gap-2.5 p-2.5 sm:p-3 rounded-xl bg-card/60 backdrop-blur border border-border/30 text-left hover:border-border/50 transition-all',
-                  (showClosedOnly === false && stat.label === 'Active') || (showClosedOnly === true && stat.label === 'Closed') ? 'ring-1 ring-primary/30 border-primary/20' : ''
-                )}
+                className="relative"
               >
-                <div className={cn('w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center shrink-0', stat.bg)}>
-                  <stat.icon className={cn('w-4 h-4', stat.color)} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-base sm:text-lg font-bold text-foreground leading-none tabular-nums">{stat.value}</p>
-                  <p className="text-[10px] text-muted-foreground truncate">{stat.label}</p>
-                </div>
-              </motion.button>
+                <button
+                  onClick={stat.onClick}
+                  className={cn(
+                    'w-full flex items-center gap-2.5 p-2.5 sm:p-3 rounded-xl bg-card/60 backdrop-blur border border-border/30 text-left hover:border-border/50 transition-all',
+                    (showClosedOnly === false && stat.label === 'Active') || (showClosedOnly === true && stat.label === 'Closed') ? 'ring-1 ring-primary/30 border-primary/20' : ''
+                  )}
+                >
+                  <div className={cn('w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center shrink-0', stat.bg)}>
+                    <stat.icon className={cn('w-4 h-4', stat.color)} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-base sm:text-lg font-bold text-foreground leading-none tabular-nums">{stat.value}</p>
+                    <p className="text-[10px] text-muted-foreground truncate">{stat.label}</p>
+                  </div>
+                </button>
+                {stat.showClear && stat.value > 0 && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); removeAllClosed(); }}
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center hover:bg-destructive/90 transition-colors"
+                    title="Remove all closed"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </motion.div>
             ))}
           </motion.div>
 

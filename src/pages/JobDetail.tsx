@@ -695,7 +695,12 @@ const JobDetail = () => {
                   <div className="flex gap-2">
                     <Dialog open={applyDialogOpen} onOpenChange={setApplyDialogOpen}>
                       <DialogTrigger asChild>
-                        <Button className={`flex-1 rounded-xl gap-2 ${isGovernmentJob ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}><Send className="w-4 h-4" /> Apply Now</Button>
+                        <Button 
+                          className={`flex-1 rounded-xl gap-2 ${isGovernmentJob ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}
+                          disabled={job.expires_at && new Date(job.expires_at) < new Date()}
+                        >
+                          <Send className="w-4 h-4" /> {job.expires_at && new Date(job.expires_at) < new Date() ? 'Expired' : 'Apply Now'}
+                        </Button>
                       </DialogTrigger>
                       {applyDialogContent}
                     </Dialog>
