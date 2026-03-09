@@ -20,6 +20,7 @@ const BrowseJobs = () => {
     salaryMin, setSalaryMin,
     salaryMax, setSalaryMax,
     activeFilterCount,
+    savedJobIds, refreshSavedJobIds,
   } = useBrowseJobs();
 
   // Back to top
