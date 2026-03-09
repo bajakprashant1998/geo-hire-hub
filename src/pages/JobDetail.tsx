@@ -192,8 +192,14 @@ const JobDetail = () => {
   }, [identifier]);
 
   useEffect(() => {
-    if (resolvedId) { fetchJob(); checkIfApplied(); fetchApplicantCount(); checkIfSaved(); }
+    if (resolvedId) { fetchJob(); checkIfApplied(); fetchApplicantCount(); checkIfSaved(); fetchCandidateData(); }
   }, [resolvedId]);
+
+  const fetchCandidateData = async () => {
+    if (!user || !profile || profile.user_type !== 'candidate') return;
+    const { data: cand } = await supabase.from('candidates').select('resume_url, skills').eq('profile_id', profile.id).maybeSingle();
+    if (cand) setCandidateData(cand);
+  };
 
   const baseUrl = 'https://www.hireforjob.com';
   const jobSeoTitle = job ? `${job.title} at ${job.employer.company_name} | HireForJob` : 'Job Details | HireForJob';
