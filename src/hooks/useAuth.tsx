@@ -201,6 +201,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       profile, 
       loading, 
       profileLoading,
+      profileResolved,
       isEmailVerified, 
       signOut, 
       refreshProfile 

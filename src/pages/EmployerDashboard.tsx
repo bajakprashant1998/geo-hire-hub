@@ -78,10 +78,17 @@ const EmployerDashboard = () => {
       setEmployer(employerData);
       if (employerData) {
         const { data: jobsData } = await supabase.from('jobs').select('*').eq('employer_id', employerData.id).order('created_at', { ascending: false });
-        const jobsWithCounts = await Promise.all((jobsData || []).map(async (job) => {
-          const { count } = await supabase.from('applications').select('*', { count: 'exact', head: true }).eq('job_id', job.id);
-          return { ...job, applications_count: count || 0 };
-        }));
+        const jobIds = (jobsData || []).map(j => j.id);
+        // Batch query: fetch all applications for employer's jobs in one call
+        let appCountMap: Record<string, number> = {};
+        if (jobIds.length > 0) {
+          const { data: appData } = await supabase.from('applications').select('job_id').in('job_id', jobIds);
+          appCountMap = (appData || []).reduce((acc, app) => {
+            acc[app.job_id] = (acc[app.job_id] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>);
+        }
+        const jobsWithCounts = (jobsData || []).map(job => ({ ...job, applications_count: appCountMap[job.id] || 0 }));
         setJobs(jobsWithCounts);
         if (jobsWithCounts.length > 0) setSelectedJob(jobsWithCounts[0]);
         const activeJobs = jobsWithCounts.filter(j => j.is_active && j.status === 'open').length;
