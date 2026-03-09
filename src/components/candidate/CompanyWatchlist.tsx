@@ -62,7 +62,8 @@ export const CompanyWatchlist = ({ candidateId }: CompanyWatchlistProps) => {
         .select('employer_id')
         .in('employer_id', ids)
         .eq('is_active', true)
-        .eq('status', 'open');
+        .eq('status', 'open')
+        .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
       const counts: Record<string, number> = {};
       data?.forEach(j => { counts[j.employer_id] = (counts[j.employer_id] || 0) + 1; });
       return counts;

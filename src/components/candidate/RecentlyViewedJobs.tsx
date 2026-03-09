@@ -48,13 +48,13 @@ export const RecentlyViewedJobs = () => {
         job_id,
         viewed_at,
         job:jobs!inner (
-          id, title, salary_range, job_type, location_city, location_state, location_country, slug,
+          id, title, salary_range, job_type, location_city, location_state, location_country, slug, is_active, status, expires_at,
           employer:employers!inner ( company_name )
         )
       `)
       .eq('viewer_id', user.id)
       .order('viewed_at', { ascending: false })
-      .limit(5);
+      .limit(10);
 
     if (!error && data) {
       // Deduplicate by job_id (keep most recent view)

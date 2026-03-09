@@ -149,6 +149,7 @@ export function useJobRadar(
             .select('id, title, description, salary_range, salary_currency, job_type, latitude, longitude, skills, min_experience, max_experience, hiring_urgency, created_at, location_city, location_state, location_country, status, is_active, slug, employer_id, employers(company_name, verification_status, profile_completeness, work_life_balance_rating, slug, industry)')
             .eq('status', 'open')
             .eq('is_active', true)
+            .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
             .order('created_at', { ascending: false }),
           supabase.from('saved_jobs').select('job_id').eq('candidate_id', candidateId),
           supabase.from('applications').select('job_id').eq('candidate_id', candidateId),
