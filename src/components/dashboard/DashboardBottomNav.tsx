@@ -6,31 +6,34 @@ interface NavItem {
   icon: React.ElementType;
   label: string;
   value: string;
+  badge?: number;
 }
 
 interface DashboardBottomNavProps {
   type: 'candidate' | 'employer';
   activeItem: string | null;
   onItemClick: (value: string) => void;
+  messageBadge?: number;
+  notificationBadge?: number;
 }
 
-const candidateItems: NavItem[] = [
-  { icon: Home, label: 'Home', value: 'home' },
-  { icon: Search, label: 'Jobs', value: 'job-radar' },
-  { icon: Briefcase, label: 'Applied', value: 'jobs' },
-  { icon: MessageSquare, label: 'Chat', value: 'messages' },
-  { icon: User, label: 'Profile', value: 'profile' },
-];
+export const DashboardBottomNav = ({ type, activeItem, onItemClick, messageBadge = 0, notificationBadge = 0 }: DashboardBottomNavProps) => {
+  const candidateItems: NavItem[] = [
+    { icon: Home, label: 'Home', value: 'home' },
+    { icon: Search, label: 'Jobs', value: 'job-radar' },
+    { icon: Briefcase, label: 'Applied', value: 'jobs' },
+    { icon: MessageSquare, label: 'Chat', value: 'messages', badge: messageBadge },
+    { icon: User, label: 'Profile', value: 'profile' },
+  ];
 
-const employerItems: NavItem[] = [
-  { icon: Home, label: 'Home', value: 'home' },
-  { icon: Briefcase, label: 'Jobs', value: 'jobs' },
-  { icon: MessageSquare, label: 'Chat', value: 'chat' },
-  { icon: Users, label: 'Applicants', value: 'candidates' },
-  { icon: Bell, label: 'Alerts', value: 'notifications' },
-];
+  const employerItems: NavItem[] = [
+    { icon: Home, label: 'Home', value: 'home' },
+    { icon: Briefcase, label: 'Jobs', value: 'jobs' },
+    { icon: MessageSquare, label: 'Chat', value: 'chat', badge: messageBadge },
+    { icon: Users, label: 'Applicants', value: 'candidates' },
+    { icon: Bell, label: 'Alerts', value: 'notifications', badge: notificationBadge },
+  ];
 
-export const DashboardBottomNav = ({ type, activeItem, onItemClick }: DashboardBottomNavProps) => {
   const items = type === 'candidate' ? candidateItems : employerItems;
   const currentActive = activeItem || 'home';
 
@@ -61,7 +64,7 @@ export const DashboardBottomNav = ({ type, activeItem, onItemClick }: DashboardB
                 animate={isActive ? { scale: 1, y: -1 } : { scale: 1, y: 0 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                 className={cn(
-                  "w-10 h-8 rounded-xl flex items-center justify-center transition-colors duration-150",
+                  "w-10 h-8 rounded-xl flex items-center justify-center transition-colors duration-150 relative",
                   isActive ? "bg-primary/10" : ""
                 )}
               >
@@ -69,6 +72,16 @@ export const DashboardBottomNav = ({ type, activeItem, onItemClick }: DashboardB
                   "w-[18px] h-[18px] transition-colors",
                   isActive ? "text-primary" : "text-muted-foreground"
                 )} />
+                {/* Badge dot */}
+                {item.badge !== undefined && item.badge > 0 && (
+                  <motion.span
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="absolute -top-0.5 -right-0.5 min-w-[16px] h-[16px] rounded-full bg-destructive text-destructive-foreground text-[8px] font-bold flex items-center justify-center px-0.5 shadow-sm shadow-destructive/30"
+                  >
+                    {item.badge > 9 ? '9+' : item.badge}
+                  </motion.span>
+                )}
               </motion.div>
               <span className={cn(
                 "text-[10px] font-medium leading-tight",

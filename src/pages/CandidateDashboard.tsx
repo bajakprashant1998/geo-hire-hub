@@ -165,7 +165,7 @@ const CandidateDashboard = () => {
               </main>
             </div>
             {profile && candidate && <ProfileEditModal open={editModalOpen} onOpenChange={setEditModalOpen} profile={profile} candidate={candidate} onSave={() => { fetchCandidate(); refreshProfile(); }} />}
-            <DashboardBottomNav type="candidate" activeItem={activeSection} onItemClick={handleSectionClick} />
+            <DashboardBottomNav type="candidate" activeItem={activeSection} onItemClick={handleSectionClick} messageBadge={stats.unreadMessages} notificationBadge={stats.unreadNotifications} />
           </div>
         </EmailVerificationGuard>
       )}
