@@ -543,6 +543,16 @@ const JobDetail = () => {
 
           {/* ===== LEFT COLUMN: MAIN CONTENT ===== */}
           <div className="min-w-0">
+          {/* Expired job alert */}
+            {job.expires_at && new Date(job.expires_at) < new Date() && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  This job listing has expired and is no longer accepting applications.
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* HERO */}
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
               {/* Badges */}
