@@ -38,10 +38,10 @@ export const useMapData = ({ userLocation, radius, searchQuery }: UseMapDataProp
 
   // Fetch candidates from database
   const fetchCandidates = useCallback(async () => {
-
     try {
       // Use the database function for geospatial query ONLY if user is authenticated
       if (user) {
+        if (!userLocation) return [];
         const { data, error } = await supabase.rpc('get_nearby_candidates', {
           user_lat: userLocation.lat,
           user_lng: userLocation.lng,
