@@ -130,7 +130,9 @@ function formatSalary(amount: number): string {
   return `₹${amount}`;
 }
 
-export const SalaryHeatmapOverlay = ({ jobs, enabled, roleFilter }: SalaryHeatmapOverlayProps) => {
+import React from 'react';
+
+export const SalaryHeatmapOverlay = React.forwardRef<HTMLDivElement, SalaryHeatmapOverlayProps>(({ jobs, enabled, roleFilter }, _ref) => {
   const map = useMap();
 
   const filteredJobs = useMemo(() => {
