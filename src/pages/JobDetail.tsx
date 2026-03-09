@@ -118,6 +118,9 @@ const JobDetail = () => {
   const [linkCopied, setLinkCopied] = useState(false);
   const [activeSection, setActiveSection] = useState('about');
   const [viewLang, setViewLang] = useState('en');
+  const [candidateData, setCandidateData] = useState<{ resume_url: string | null; skills: string[] | null } | null>(null);
+  const [employerResponseRate, setEmployerResponseRate] = useState<number | null>(null);
+  const [employerAvgResponseHours, setEmployerAvgResponseHours] = useState<number | null>(null);
 
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
