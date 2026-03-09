@@ -11,6 +11,7 @@ import { PlatformNotificationBanner } from '@/components/dashboard/PlatformNotif
 import { ProfileCompletionPrompts } from '@/components/candidate/ProfileCompletionPrompts';
 import { AIJobMatches } from '@/components/candidate/AIJobMatches';
 import { PendingTasksWidget } from '@/components/dashboard/PendingTasksWidget';
+import { ProfileStrengthCard } from '@/components/candidate/ProfileStrengthCard';
 import { RecentlyViewedJobs } from '@/components/candidate/RecentlyViewedJobs';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -74,12 +75,17 @@ export const CandidateHomeView = ({
         </motion.div>
       )}
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-        <DashboardStatCard icon={FileText} label="Applied" value={stats.applications} subtitle="total" accentColor="blue" onClick={() => onSectionClick('jobs')} delay={0} />
-        <DashboardStatCard icon={Eye} label="Views" value={stats.views} subtitle="profile views" accentColor="green" onClick={onEditProfile} delay={1} />
-        <DashboardStatCard icon={MessageSquare} label="Messages" value={stats.unreadMessages} subtitle={stats.unreadMessages > 0 ? 'unread' : 'all read'} accentColor="amber" onClick={() => onSectionClick('messages')} delay={2} />
-        <DashboardStatCard icon={Calendar} label="Interviews" value={stats.interviews} subtitle={nextInterviewLabel} accentColor="purple" onClick={() => onSectionClick('interviews')} delay={3} />
+      {/* Profile Strength + Stats Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
+        <div className="lg:col-span-1">
+          <ProfileStrengthCard score={completeness} onImprove={() => onSectionClick('profile')} />
+        </div>
+        <div className="lg:col-span-4 grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
+          <DashboardStatCard icon={FileText} label="Applied" value={stats.applications} subtitle="total" accentColor="blue" onClick={() => onSectionClick('jobs')} delay={0} />
+          <DashboardStatCard icon={Eye} label="Views" value={stats.views} subtitle="profile views" accentColor="green" onClick={onEditProfile} delay={1} />
+          <DashboardStatCard icon={MessageSquare} label="Messages" value={stats.unreadMessages} subtitle={stats.unreadMessages > 0 ? 'unread' : 'all read'} accentColor="amber" onClick={() => onSectionClick('messages')} delay={2} />
+          <DashboardStatCard icon={Calendar} label="Interviews" value={stats.interviews} subtitle={nextInterviewLabel} accentColor="purple" onClick={() => onSectionClick('interviews')} delay={3} />
+        </div>
       </div>
 
       {/* Welcome + Quick Actions */}
