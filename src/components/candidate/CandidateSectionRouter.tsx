@@ -54,7 +54,7 @@ const REQUIRES_CANDIDATE = [
   'jobs', 'saved', 'interviews', 'resume', 'audio-resume', 'alerts', 'tasks',
   'public-profile', 'recommended', 'auto-apply', 'job-radar', 'app-tracker',
   'assessments', 'interview-prep', 'follow-ups', 'skill-gap', 'availability',
-  'compare-jobs', 'career-path', 'culture-match', 'analytics',
+  'compare-jobs', 'career-path', 'culture-match', 'analytics', 'networking', 'templates',
 ];
 
 export const CandidateSectionRouter = ({

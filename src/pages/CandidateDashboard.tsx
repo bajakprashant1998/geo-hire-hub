@@ -132,6 +132,8 @@ const CandidateDashboard = () => {
     { icon: Building2, label: 'Company Watchlist', value: 'watchlist' },
     { icon: Layout, label: 'Portfolio', value: 'portfolio' },
     { icon: BarChart3, label: 'My Analytics', value: 'analytics' },
+    { icon: Users, label: 'Networking', value: 'networking' },
+    { icon: FileText, label: 'Letter Templates', value: 'templates' },
   ];
 
   return (
