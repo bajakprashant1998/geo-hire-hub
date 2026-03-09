@@ -11,6 +11,7 @@ import {
   ChevronDown, Bookmark, Eye, MapPinned, Flame, LocateFixed, Share2, Heart,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { SEOHead } from '@/components/SEOHead';
 import { BreadcrumbNav, buildBreadcrumbJsonLd } from '@/components/BreadcrumbNav';
 import { SalaryBadge } from '@/components/SalaryBadge';
@@ -47,6 +48,8 @@ const TRENDING_SEARCHES = [
 /* ─── Main Component ─── */
 const JobsNearMe = () => {
   const navigate = useNavigate();
+  const { user, profile } = useAuth();
+  const [candidateId, setCandidateId] = useState<string | null>(null);
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
@@ -98,25 +101,46 @@ const JobsNearMe = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Load saved jobs from localStorage
+  // Load candidate ID + saved jobs from DB
   useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem('hfj_saved_jobs') || '[]');
-      setSavedJobs(new Set(saved));
-    } catch {}
-  }, []);
+    const loadSaved = async () => {
+      if (!user || !profile || profile.user_type !== 'candidate') {
+        // Fallback to localStorage for non-logged-in users
+        try { setSavedJobs(new Set(JSON.parse(localStorage.getItem('hfj_saved_jobs') || '[]'))); } catch {}
+        return;
+      }
+      const { data: cand } = await supabase.from('candidates').select('id').eq('profile_id', profile.id).maybeSingle();
+      if (!cand) return;
+      setCandidateId(cand.id);
+      const { data: saved } = await supabase.from('saved_jobs').select('job_id').eq('candidate_id', cand.id);
+      if (saved) setSavedJobs(new Set(saved.map(s => s.job_id)));
+    };
+    loadSaved();
+  }, [user, profile]);
 
-  const toggleSaveJob = useCallback((e: React.MouseEvent, jobId: string) => {
+  const toggleSaveJob = useCallback(async (e: React.MouseEvent, jobId: string) => {
     e.preventDefault();
     e.stopPropagation();
-    setSavedJobs(prev => {
-      const next = new Set(prev);
-      if (next.has(jobId)) next.delete(jobId);
-      else next.add(jobId);
-      localStorage.setItem('hfj_saved_jobs', JSON.stringify([...next]));
-      return next;
-    });
-  }, []);
+    if (candidateId) {
+      const isSaved = savedJobs.has(jobId);
+      if (isSaved) {
+        await supabase.from('saved_jobs').delete().eq('candidate_id', candidateId).eq('job_id', jobId);
+        setSavedJobs(prev => { const next = new Set(prev); next.delete(jobId); return next; });
+      } else {
+        await supabase.from('saved_jobs').insert({ candidate_id: candidateId, job_id: jobId });
+        setSavedJobs(prev => new Set(prev).add(jobId));
+      }
+    } else {
+      // Fallback localStorage for non-logged-in
+      setSavedJobs(prev => {
+        const next = new Set(prev);
+        if (next.has(jobId)) next.delete(jobId);
+        else next.add(jobId);
+        localStorage.setItem('hfj_saved_jobs', JSON.stringify([...next]));
+        return next;
+      });
+    }
+  }, [candidateId, savedJobs]);
 
   const filteredJobs = useMemo(() => {
     let result = jobs;

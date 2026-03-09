@@ -189,7 +189,7 @@ const JobDetail = () => {
   }, [identifier]);
 
   useEffect(() => {
-    if (resolvedId) { fetchJob(); checkIfApplied(); fetchApplicantCount(); }
+    if (resolvedId) { fetchJob(); checkIfApplied(); fetchApplicantCount(); checkIfSaved(); }
   }, [resolvedId]);
 
   const baseUrl = 'https://www.hireforjob.com';
@@ -293,9 +293,34 @@ const JobDetail = () => {
     }
   };
 
-  const handleSave = () => {
-    setIsSaved(!isSaved);
-    toast.success(isSaved ? 'Job removed from saved' : 'Job saved!');
+  const checkIfSaved = async () => {
+    if (!user || !profile) return;
+    const { data: candidate } = await supabase.from('candidates').select('id').eq('profile_id', profile.id).maybeSingle();
+    if (!candidate) return;
+    const { data } = await supabase.from('saved_jobs').select('id').eq('job_id', resolvedId).eq('candidate_id', candidate.id).maybeSingle();
+    setIsSaved(!!data);
+  };
+
+  const handleSave = async () => {
+    if (!user || !profile) { toast.error('Please login to save jobs'); navigate('/login'); return; }
+    if (profile.user_type !== 'candidate') { toast.error('Only candidates can save jobs'); return; }
+    try {
+      const { data: candidate } = await supabase.from('candidates').select('id').eq('profile_id', profile.id).maybeSingle();
+      if (!candidate) { toast.error('Please complete your profile first'); return; }
+      if (isSaved) {
+        const { error } = await supabase.from('saved_jobs').delete().eq('candidate_id', candidate.id).eq('job_id', resolvedId);
+        if (error) throw error;
+        setIsSaved(false);
+        toast.success('Job removed from saved');
+      } else {
+        const { error } = await supabase.from('saved_jobs').insert({ candidate_id: candidate.id, job_id: resolvedId });
+        if (error) throw error;
+        setIsSaved(true);
+        toast.success('Job saved!');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to save job');
+    }
   };
 
   const handleShare = async () => {
