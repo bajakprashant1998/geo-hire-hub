@@ -36,6 +36,8 @@ import { SmartNotificationDigest } from '@/components/candidate/SmartNotificatio
 import { CompanyWatchlist } from '@/components/candidate/CompanyWatchlist';
 import { PortfolioShowcase } from '@/components/candidate/PortfolioShowcase';
 import { CandidateAnalyticsDashboard } from '@/components/candidate/CandidateAnalyticsDashboard';
+import { CandidateNetworking } from '@/components/candidate/CandidateNetworking';
+import { CoverLetterTemplates } from '@/components/candidate/CoverLetterTemplates';
 import CandidateProfileEdit from '@/pages/CandidateProfileEdit';
 
 const AIResumeBuilder = lazy(() => import('@/pages/AIResumeBuilder'));
@@ -52,7 +54,7 @@ const REQUIRES_CANDIDATE = [
   'jobs', 'saved', 'interviews', 'resume', 'audio-resume', 'alerts', 'tasks',
   'public-profile', 'recommended', 'auto-apply', 'job-radar', 'app-tracker',
   'assessments', 'interview-prep', 'follow-ups', 'skill-gap', 'availability',
-  'compare-jobs', 'career-path', 'culture-match', 'analytics',
+  'compare-jobs', 'career-path', 'culture-match', 'analytics', 'networking', 'templates',
 ];
 
 export const CandidateSectionRouter = ({
@@ -116,6 +118,8 @@ export const CandidateSectionRouter = ({
     case 'negotiation-coach': return <SalaryNegotiationCoach candidateId={candidate.id} />;
     case 'portfolio': return <PortfolioShowcase candidateId={candidate.id} />;
     case 'analytics': return <CandidateAnalyticsDashboard candidateId={candidate.id} />;
+    case 'networking': return <CandidateNetworking candidateId={candidate.id} />;
+    case 'templates': return <CoverLetterTemplates candidateId={candidate.id} />;
     default: return null;
   }
 };
