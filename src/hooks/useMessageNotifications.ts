@@ -11,6 +11,8 @@ export const useMessageNotifications = () => {
   const notifiedMessages = useRef<Set<string>>(new Set());
   const pathnameRef = useRef(location.pathname);
 
+  useEffect(() => { pathnameRef.current = location.pathname; }, [location.pathname]);
+
   useEffect(() => {
     if (!user) return;
 
