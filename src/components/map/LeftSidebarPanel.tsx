@@ -115,7 +115,8 @@ export const LeftSidebarPanel = ({
         .from('jobs')
         .select('id, title, salary_range, job_type, latitude, longitude, employers!inner(company_name)')
         .eq('status', 'open')
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
 
       if (directError || !directData) return [];
 
