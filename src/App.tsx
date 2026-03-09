@@ -128,7 +128,7 @@ const App = () => (
               <Route path="/forgot-password" element={<PageTransition><ForgotPassword /></PageTransition>} />
               <Route path="/update-password" element={<PageTransition><UpdatePassword /></PageTransition>} />
               <Route path="/verify-email" element={<PageTransition><VerifyEmail /></PageTransition>} />
-              <Route path="/profile-setup" element={<PageTransition><ProfileSetup /></PageTransition>} />
+              <Route path="/profile-setup" element={<AuthRouteGuard><PageTransition><ProfileSetup /></PageTransition></AuthRouteGuard>} />
               <Route path="/plans" element={<PageTransition><Plans /></PageTransition>} />
               <Route path="/auth/callback" element={<AuthCallback />} />
               <Route path="/select-role" element={<PageTransition><RoleSelection /></PageTransition>} />

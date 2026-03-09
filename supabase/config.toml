@@ -77,3 +77,63 @@ verify_jwt = false
 
 [functions.employer-analytics-report]
 verify_jwt = false
+
+[functions.ai-career-path]
+verify_jwt = false
+
+[functions.ai-interview-prep]
+verify_jwt = false
+
+[functions.ai-interview-summary]
+verify_jwt = false
+
+[functions.ai-job-recommendations]
+verify_jwt = false
+
+[functions.ai-skill-gap-analyzer]
+verify_jwt = false
+
+[functions.ai-smart-replies]
+verify_jwt = false
+
+[functions.auto-apply-jobs]
+verify_jwt = false
+
+[functions.calculate-market-value]
+verify_jwt = false
+
+[functions.cleanup-old-messages]
+verify_jwt = false
+
+[functions.deadline-reminders]
+verify_jwt = false
+
+[functions.match-saved-searches]
+verify_jwt = false
+
+[functions.og-meta]
+verify_jwt = false
+
+[functions.resend-verification]
+verify_jwt = false
+
+[functions.reset-password]
+verify_jwt = false
+
+[functions.send-password-reset-email]
+verify_jwt = false
+
+[functions.send-push-notification]
+verify_jwt = false
+
+[functions.seo-agent]
+verify_jwt = false
+
+[functions.signup]
+verify_jwt = false
+
+[functions.translate-job]
+verify_jwt = false
+
+[functions.weekly-digest]
+verify_jwt = false
