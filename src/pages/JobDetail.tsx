@@ -253,6 +253,13 @@ const JobDetail = () => {
       const { data: related } = await supabase.from('jobs').select('id, title, job_type, salary_range, created_at, slug').eq('employer_id', data.employers.id).neq('id', id).eq('status', 'open').limit(3);
       setRelatedJobs(related || []);
 
+      // Fetch employer response rate
+      const { data: empData } = await supabase.from('employers').select('response_rate, avg_response_hours').eq('id', data.employers.id).maybeSingle();
+      if (empData) {
+        setEmployerResponseRate(empData.response_rate);
+        setEmployerAvgResponseHours(empData.avg_response_hours);
+      }
+
       // Record job view
       supabase.from('job_views').insert({
         job_id: resolvedId!,
