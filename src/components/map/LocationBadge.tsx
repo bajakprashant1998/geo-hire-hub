@@ -19,36 +19,35 @@ export const LocationBadge = ({ latitude, longitude, className }: LocationBadgeP
       return;
     }
 
-    const fetchCityName = async () => {
-      setLoading(true);
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 5000);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
 
-      try {
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`,
-          { signal: controller.signal }
-        );
-        const data = await response.json();
-        
+    setLoading(true);
+    fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10`,
+      { signal: controller.signal }
+    )
+      .then(res => res.json())
+      .then(data => {
         const city = data.address?.city || 
                      data.address?.town || 
                      data.address?.village ||
                      data.address?.state_district ||
                      data.address?.state ||
                      'Near you';
-        
         setCityName(city);
-      } catch {
-        // Silently fallback — no console error
+      })
+      .catch(() => {
         setCityName('Near you');
-      } finally {
-        clearTimeout(timeout);
+      })
+      .finally(() => {
         setLoading(false);
-      }
-    };
+      });
 
-    fetchCityName();
+    return () => {
+      clearTimeout(timeout);
+      controller.abort();
+    };
   }, [latitude, longitude]);
 
   if (!latitude || !longitude) return null;

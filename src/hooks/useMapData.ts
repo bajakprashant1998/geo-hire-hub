@@ -160,7 +160,8 @@ export const useMapData = ({ userLocation, radius, searchQuery }: UseMapDataProp
           )
         `)
         .eq('status', 'open')
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
 
       if (directError) throw directError;
 

@@ -93,15 +93,16 @@ const EmployerDashboard = () => {
         if (jobsWithCounts.length > 0) setSelectedJob(jobsWithCounts[0]);
         const activeJobs = jobsWithCounts.filter(j => j.is_active && j.status === 'open').length;
         const totalApplications = jobsWithCounts.reduce((sum, j) => sum + (j.applications_count || 0), 0);
-        const { count: interviewCount } = await supabase.from('interviews').select('*', { count: 'exact', head: true }).eq('employer_id', employerData.id).in('status', ['scheduled', 'confirmed', 'requested']);
-        const { count: viewCount } = await supabase.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', profile.id);
-        const { count: notifCount } = await supabase.from('notifications').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('is_read', false);
-        // Single RPC call replaces sequential conversations→messages queries
-        const { data: unreadData } = await supabase.rpc('get_unread_message_count', { p_user_id: user.id });
-        const unreadMsgCount = (unreadData as number) || 0;
-        const { data: subData } = await supabase.from('employer_subscriptions').select('employer_plans(name)').eq('employer_id', employerData.id).eq('status', 'active').maybeSingle();
-        if (subData && (subData as any).employer_plans?.name) setPlanName((subData as any).employer_plans.name + ' Plan');
-        setStats({ activeJobs, totalApplications, scheduledInterviews: interviewCount || 0, profileViews: viewCount || 0, notificationCount: notifCount || 0, unreadMessages: unreadMsgCount });
+        const [interviewRes, viewRes, notifRes, unreadRes, subRes] = await Promise.all([
+          supabase.from('interviews').select('*', { count: 'exact', head: true }).eq('employer_id', employerData.id).in('status', ['scheduled', 'confirmed', 'requested']),
+          supabase.from('profile_views').select('*', { count: 'exact', head: true }).eq('profile_id', profile.id),
+          supabase.from('notifications').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('is_read', false),
+          supabase.rpc('get_unread_message_count', { p_user_id: user.id }),
+          supabase.from('employer_subscriptions').select('employer_plans(name)').eq('employer_id', employerData.id).eq('status', 'active').maybeSingle(),
+        ]);
+        const unreadMsgCount = (unreadRes.data as number) || 0;
+        if (subRes.data && (subRes.data as any).employer_plans?.name) setPlanName((subRes.data as any).employer_plans.name + ' Plan');
+        setStats({ activeJobs, totalApplications, scheduledInterviews: interviewRes.count || 0, profileViews: viewRes.count || 0, notificationCount: notifRes.count || 0, unreadMessages: unreadMsgCount });
 
         // Refresh response rate in background
         supabase.rpc('calculate_employer_response_rate', { p_employer_id: employerData.id }).then(() => {});

@@ -98,5 +98,5 @@ export const useMessageNotifications = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, location.pathname, navigate]);
+  }, [user, navigate]);
 };
