@@ -69,7 +69,7 @@ const EmployerDashboard = () => {
       const { data: employerData } = await supabase.from('employers').select('*').eq('profile_id', profile.id).maybeSingle();
       setEmployer(employerData);
       if (employerData) {
-        const { data: jobsData } = await supabase.from('jobs').select('*').eq('employer_id', employerData.id).order('created_at', { ascending: false });
+        const { data: jobsData } = await supabase.from('jobs').select('id, title, status, is_active, created_at, expires_at, job_type, job_address, view_count, employer_id, job_category, slug').eq('employer_id', employerData.id).order('created_at', { ascending: false });
         const jobIds = (jobsData || []).map(j => j.id);
         // Batch query: fetch all applications for employer's jobs in one call
         let appCountMap: Record<string, number> = {};

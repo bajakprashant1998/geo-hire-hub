@@ -49,7 +49,7 @@ export const PlanUsagePanel = ({ employerId }: PlanUsagePanelProps) => {
 
         const [activeResult, totalResult, appsResult] = await Promise.all([
           supabase.from('jobs').select('*', { count: 'exact', head: true })
-            .eq('employer_id', employerId).eq('is_active', true).eq('status', 'open'),
+            .eq('employer_id', employerId).eq('is_active', true).eq('status', 'open').or('expires_at.is.null,expires_at.gt.' + new Date().toISOString()),
           supabase.from('jobs').select('*', { count: 'exact', head: true })
             .eq('employer_id', employerId),
           supabase.from('applications').select('*, jobs!inner(employer_id)', { count: 'exact', head: true })
