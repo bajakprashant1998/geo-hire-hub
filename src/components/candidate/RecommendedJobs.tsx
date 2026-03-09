@@ -257,6 +257,7 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
   const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('relevance');
   const [matchFilter, setMatchFilter] = useState<MatchFilter>('all');
