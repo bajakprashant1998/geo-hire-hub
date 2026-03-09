@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { GeminiError, generateGeminiChat } from "../_shared/gemini.ts";
+import { checkRateLimit, getRateLimitKey, rateLimitResponse } from "../_shared/rate-limiter.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -18,6 +19,10 @@ serve(async (req) => {
   }
 
   try {
+    const rlKey = getRateLimitKey(req);
+    const rlResult = checkRateLimit(rlKey, { maxRequests: 5, windowMs: 60_000 });
+    const rlResponse = rateLimitResponse(rlResult, corsHeaders);
+    if (rlResponse) return rlResponse;
     // Verify authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {

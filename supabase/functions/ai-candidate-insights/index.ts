@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { generateGeminiChat } from "../_shared/gemini.ts";
+import { checkRateLimit, getRateLimitKey, rateLimitResponse } from "../_shared/rate-limiter.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,6 +11,10 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    const rlKey = getRateLimitKey(req);
+    const rlResult = checkRateLimit(rlKey, { maxRequests: 10, windowMs: 60_000 });
+    const rlResponse = rateLimitResponse(rlResult, corsHeaders);
+    if (rlResponse) return rlResponse;
     const { candidates, jobTitle } = await req.json();
 
     if (!candidates || candidates.length === 0) {
