@@ -8,6 +8,7 @@ const QUERY_FIELDS =
   'id, title, job_type, salary_range, salary_min, salary_max, experience_level, is_remote, created_at, job_address, slug, location_country, location_state, location_city, expires_at, description, employers!inner(company_name, industry, slug)';
 
 export function useBrowseJobs() {
+  const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set());
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [search, setSearch] = useState(searchParams.get('q') || '');
