@@ -1,18 +1,31 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Separator } from '@/components/ui/separator';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, Filter, LayoutDashboard, Sparkles, ArrowUpDown,
-  LayoutGrid, LayoutList, X, Map
+  LayoutGrid, LayoutList, X, Map, SlidersHorizontal, Wifi, GraduationCap, DollarSign,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { BreadcrumbNav } from '@/components/BreadcrumbNav';
 
 const JOB_TYPES = ['Full-time', 'Part-time', 'Contract', 'Internship', 'Freelance'];
+const EXPERIENCE_LEVELS = [
+  { value: 'entry', label: 'Entry Level' },
+  { value: 'mid', label: 'Mid Level' },
+  { value: 'senior', label: 'Senior' },
+  { value: 'lead', label: 'Lead / Principal' },
+  { value: 'executive', label: 'Executive' },
+];
 const SORT_OPTIONS = [
   { value: 'newest', label: 'Newest First' },
   { value: 'oldest', label: 'Oldest First' },
@@ -30,25 +43,48 @@ interface BrowseHeaderProps {
   total: number;
   debouncedSearch: string;
   clearAllFilters: () => void;
+  isRemote: boolean;
+  setIsRemote: (v: boolean) => void;
+  experienceLevel: string;
+  setExperienceLevel: (v: string) => void;
+  salaryMin: number | null;
+  setSalaryMin: (v: number | null) => void;
+  salaryMax: number | null;
+  setSalaryMax: (v: number | null) => void;
+  activeFilterCount: number;
 }
 
 export const BrowseHeader = ({
   search, setSearch, jobType, setJobType,
   sortBy, setSortBy, viewMode, setViewMode,
   total, debouncedSearch, clearAllFilters,
+  isRemote, setIsRemote,
+  experienceLevel, setExperienceLevel,
+  salaryMin, setSalaryMin,
+  salaryMax, setSalaryMax,
+  activeFilterCount,
 }: BrowseHeaderProps) => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const dashboardPath = profile?.user_type === 'employer' ? '/employer-dashboard' : '/candidate-dashboard';
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const activeFilters = [
     ...(jobType !== 'all' ? [{ key: 'type', label: jobType }] : []),
     ...(debouncedSearch ? [{ key: 'search', label: `"${debouncedSearch}"` }] : []),
+    ...(isRemote ? [{ key: 'remote', label: 'Remote' }] : []),
+    ...(experienceLevel !== 'all' ? [{ key: 'exp', label: EXPERIENCE_LEVELS.find(e => e.value === experienceLevel)?.label || experienceLevel }] : []),
+    ...(salaryMin !== null ? [{ key: 'salMin', label: `Min $${salaryMin.toLocaleString()}` }] : []),
+    ...(salaryMax !== null ? [{ key: 'salMax', label: `Max $${salaryMax.toLocaleString()}` }] : []),
   ];
 
   const clearFilter = (key: string) => {
     if (key === 'type') setJobType('all');
     if (key === 'search') setSearch('');
+    if (key === 'remote') setIsRemote(false);
+    if (key === 'exp') setExperienceLevel('all');
+    if (key === 'salMin') setSalaryMin(null);
+    if (key === 'salMax') setSalaryMax(null);
   };
 
   return (
@@ -123,6 +159,112 @@ export const BrowseHeader = ({
                   {JOB_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                 </SelectContent>
               </Select>
+
+              {/* Advanced Filters Popover */}
+              <Popover open={filtersOpen} onOpenChange={setFiltersOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="h-11 rounded-xl border-border/50 bg-card shadow-sm gap-2 relative"
+                  >
+                    <SlidersHorizontal className="w-4 h-4" />
+                    <span className="hidden sm:inline">Filters</span>
+                    {activeFilterCount > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center">
+                        {activeFilterCount}
+                      </span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-0" align="end">
+                  <div className="p-4 space-y-5">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-sm text-foreground">Advanced Filters</h3>
+                      {activeFilterCount > 0 && (
+                        <button
+                          onClick={() => { clearAllFilters(); setFiltersOpen(false); }}
+                          className="text-xs text-destructive hover:underline"
+                        >
+                          Clear all
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Remote toggle */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Wifi className="w-4 h-4 text-muted-foreground" />
+                        <Label className="text-sm font-medium">Remote Only</Label>
+                      </div>
+                      <Switch checked={isRemote} onCheckedChange={setIsRemote} />
+                    </div>
+
+                    <Separator />
+
+                    {/* Experience Level */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <GraduationCap className="w-4 h-4 text-muted-foreground" />
+                        <Label className="text-sm font-medium">Experience Level</Label>
+                      </div>
+                      <Select value={experienceLevel} onValueChange={setExperienceLevel}>
+                        <SelectTrigger className="h-9 rounded-lg text-sm">
+                          <SelectValue placeholder="Any experience" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Any Level</SelectItem>
+                          {EXPERIENCE_LEVELS.map(l => (
+                            <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <Separator />
+
+                    {/* Salary Range */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="w-4 h-4 text-muted-foreground" />
+                        <Label className="text-sm font-medium">Salary Range</Label>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <Label className="text-[10px] text-muted-foreground uppercase tracking-wider">Minimum</Label>
+                          <Input
+                            type="number"
+                            placeholder="e.g. 30000"
+                            value={salaryMin ?? ''}
+                            onChange={e => setSalaryMin(e.target.value ? Number(e.target.value) : null)}
+                            className="h-9 text-sm rounded-lg"
+                          />
+                        </div>
+                        <div>
+                          <Label className="text-[10px] text-muted-foreground uppercase tracking-wider">Maximum</Label>
+                          <Input
+                            type="number"
+                            placeholder="e.g. 100000"
+                            value={salaryMax ?? ''}
+                            onChange={e => setSalaryMax(e.target.value ? Number(e.target.value) : null)}
+                            className="h-9 text-sm rounded-lg"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t p-3">
+                    <Button
+                      size="sm"
+                      className="w-full rounded-lg"
+                      onClick={() => setFiltersOpen(false)}
+                    >
+                      Apply Filters
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="w-full sm:w-40 h-11 bg-card shadow-sm rounded-xl border-border/50">
                   <ArrowUpDown className="w-4 h-4 mr-1.5 text-muted-foreground" />
@@ -150,6 +292,16 @@ export const BrowseHeader = ({
                 {type}
               </button>
             ))}
+            <button
+              onClick={() => setIsRemote(!isRemote)}
+              className={`shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border transition-all flex items-center gap-1.5 ${
+                isRemote
+                  ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                  : 'bg-card text-muted-foreground border-border/50 hover:border-primary/30 hover:text-foreground'
+              }`}
+            >
+              <Wifi className="w-3 h-3" /> Remote
+            </button>
           </div>
 
           {/* Active filters + view toggle */}

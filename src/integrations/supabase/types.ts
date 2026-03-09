@@ -2541,6 +2541,7 @@ export type Database = {
           education: string | null
           employer_id: string
           end_time: string | null
+          experience_level: string | null
           experience_type: string | null
           expires_at: string | null
           gender_preference: string | null
@@ -2551,6 +2552,7 @@ export type Database = {
           interview_days: string[] | null
           interview_time: string | null
           is_active: boolean | null
+          is_remote: boolean | null
           job_address: string | null
           job_category: string | null
           job_type: string | null
@@ -2572,6 +2574,8 @@ export type Database = {
           referral_bounty: number | null
           referral_bounty_currency: string | null
           salary_currency: string | null
+          salary_max: number | null
+          salary_min: number | null
           salary_range: string | null
           shift_type: string | null
           skills: string[] | null
@@ -2599,6 +2603,7 @@ export type Database = {
           education?: string | null
           employer_id: string
           end_time?: string | null
+          experience_level?: string | null
           experience_type?: string | null
           expires_at?: string | null
           gender_preference?: string | null
@@ -2609,6 +2614,7 @@ export type Database = {
           interview_days?: string[] | null
           interview_time?: string | null
           is_active?: boolean | null
+          is_remote?: boolean | null
           job_address?: string | null
           job_category?: string | null
           job_type?: string | null
@@ -2630,6 +2636,8 @@ export type Database = {
           referral_bounty?: number | null
           referral_bounty_currency?: string | null
           salary_currency?: string | null
+          salary_max?: number | null
+          salary_min?: number | null
           salary_range?: string | null
           shift_type?: string | null
           skills?: string[] | null
@@ -2657,6 +2665,7 @@ export type Database = {
           education?: string | null
           employer_id?: string
           end_time?: string | null
+          experience_level?: string | null
           experience_type?: string | null
           expires_at?: string | null
           gender_preference?: string | null
@@ -2667,6 +2676,7 @@ export type Database = {
           interview_days?: string[] | null
           interview_time?: string | null
           is_active?: boolean | null
+          is_remote?: boolean | null
           job_address?: string | null
           job_category?: string | null
           job_type?: string | null
@@ -2688,6 +2698,8 @@ export type Database = {
           referral_bounty?: number | null
           referral_bounty_currency?: string | null
           salary_currency?: string | null
+          salary_max?: number | null
+          salary_min?: number | null
           salary_range?: string | null
           shift_type?: string | null
           skills?: string[] | null
