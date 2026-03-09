@@ -118,6 +118,8 @@ export const CandidateSectionRouter = ({
     case 'negotiation-coach': return <SalaryNegotiationCoach candidateId={candidate.id} />;
     case 'portfolio': return <PortfolioShowcase candidateId={candidate.id} />;
     case 'analytics': return <CandidateAnalyticsDashboard candidateId={candidate.id} />;
+    case 'networking': return <CandidateNetworking candidateId={candidate.id} />;
+    case 'templates': return <CoverLetterTemplates candidateId={candidate.id} />;
     default: return null;
   }
 };
