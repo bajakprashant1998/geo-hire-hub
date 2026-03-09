@@ -21,6 +21,7 @@ import { TalentPoolCRM } from '@/components/employer/TalentPoolCRM';
 import { JobABTesting } from '@/components/employer/JobABTesting';
 import { TeamCollaborationNotes } from '@/components/employer/TeamCollaborationNotes';
 import { TeamWorkflows } from '@/components/employer/TeamWorkflows';
+import { TeamManagement } from '@/components/employer/TeamManagement';
 import { AccessibilityScoreChecker } from '@/components/employer/AccessibilityScoreChecker';
 import { BulkJobImport } from '@/components/employer/BulkJobImport';
 import { BrandingPageBuilder } from '@/components/employer/BrandingPageBuilder';
@@ -124,6 +125,8 @@ export const EmployerSectionRouter = ({
       return employer ? <TeamCollaborationNotes employerId={employer.id} /> : null;
     case 'team-workflows':
       return employer ? <TeamWorkflows employerId={employer.id} /> : null;
+    case 'team':
+      return employer ? <TeamManagement employerId={employer.id} /> : null;
     case 'bulk-import':
       return employer ? <BulkJobImport employerId={employer.id} /> : null;
     case 'accessibility-check':
