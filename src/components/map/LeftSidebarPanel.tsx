@@ -1,3 +1,4 @@
+import React from 'react';
 import { ViewMode } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
