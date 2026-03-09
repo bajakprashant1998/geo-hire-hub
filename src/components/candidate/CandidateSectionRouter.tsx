@@ -36,6 +36,8 @@ import { SmartNotificationDigest } from '@/components/candidate/SmartNotificatio
 import { CompanyWatchlist } from '@/components/candidate/CompanyWatchlist';
 import { PortfolioShowcase } from '@/components/candidate/PortfolioShowcase';
 import { CandidateAnalyticsDashboard } from '@/components/candidate/CandidateAnalyticsDashboard';
+import { CandidateNetworking } from '@/components/candidate/CandidateNetworking';
+import { CoverLetterTemplates } from '@/components/candidate/CoverLetterTemplates';
 import CandidateProfileEdit from '@/pages/CandidateProfileEdit';
 
 const AIResumeBuilder = lazy(() => import('@/pages/AIResumeBuilder'));
