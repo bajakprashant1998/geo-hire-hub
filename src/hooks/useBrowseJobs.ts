@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 const PAGE_SIZE = 20;
 
 const QUERY_FIELDS =
-  'id, title, job_type, salary_range, created_at, job_address, slug, location_country, location_state, location_city, expires_at, description, employers!inner(company_name, industry, slug)';
+  'id, title, job_type, salary_range, salary_min, salary_max, experience_level, is_remote, created_at, job_address, slug, location_country, location_state, location_city, expires_at, description, employers!inner(company_name, industry, slug)';
 
 export function useBrowseJobs() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -15,6 +15,14 @@ export function useBrowseJobs() {
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'newest');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>(
     (searchParams.get('view') as 'list' | 'grid') || 'list'
+  );
+  const [isRemote, setIsRemote] = useState(searchParams.get('remote') === 'true');
+  const [experienceLevel, setExperienceLevel] = useState(searchParams.get('exp') || 'all');
+  const [salaryMin, setSalaryMin] = useState<number | null>(
+    searchParams.get('salMin') ? Number(searchParams.get('salMin')) : null
+  );
+  const [salaryMax, setSalaryMax] = useState<number | null>(
+    searchParams.get('salMax') ? Number(searchParams.get('salMax')) : null
   );
 
   const [jobs, setJobs] = useState<any[]>([]);
@@ -39,8 +47,12 @@ export function useBrowseJobs() {
     if (jobType !== 'all') params.set('type', jobType);
     if (sortBy !== 'newest') params.set('sort', sortBy);
     if (viewMode !== 'list') params.set('view', viewMode);
+    if (isRemote) params.set('remote', 'true');
+    if (experienceLevel !== 'all') params.set('exp', experienceLevel);
+    if (salaryMin) params.set('salMin', String(salaryMin));
+    if (salaryMax) params.set('salMax', String(salaryMax));
     setSearchParams(params, { replace: true });
-  }, [search, jobType, sortBy, viewMode, setSearchParams]);
+  }, [search, jobType, sortBy, viewMode, isRemote, experienceLevel, salaryMin, salaryMax, setSearchParams]);
 
   // Fetch jobs (reset = new search)
   const fetchJobs = useCallback(async (reset = false) => {
@@ -63,6 +75,18 @@ export function useBrowseJobs() {
     if (jobType !== 'all') {
       query = query.eq('job_type', jobType);
     }
+    if (isRemote) {
+      query = query.eq('is_remote', true);
+    }
+    if (experienceLevel !== 'all') {
+      query = query.eq('experience_level', experienceLevel);
+    }
+    if (salaryMin !== null) {
+      query = query.gte('salary_min', salaryMin);
+    }
+    if (salaryMax !== null) {
+      query = query.lte('salary_max', salaryMax);
+    }
 
     const { data, count, error } = await query;
     if (token !== abortRef.current) return; // stale
@@ -74,17 +98,16 @@ export function useBrowseJobs() {
     }
     setLoading(false);
     setLoadingMore(false);
-  }, [page, debouncedSearch, jobType, sortBy]);
+  }, [page, debouncedSearch, jobType, sortBy, isRemote, experienceLevel, salaryMin, salaryMax]);
 
   useEffect(() => {
     fetchJobs(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearch, jobType, sortBy]);
+  }, [debouncedSearch, jobType, sortBy, isRemote, experienceLevel, salaryMin, salaryMax]);
 
   const loadMore = useCallback(() => {
     setPage(p => {
       const next = p + 1;
-      // Trigger fetch after state update
       setTimeout(() => fetchJobs(false), 0);
       return next;
     });
@@ -93,15 +116,30 @@ export function useBrowseJobs() {
   const clearAllFilters = useCallback(() => {
     setSearch('');
     setJobType('all');
+    setIsRemote(false);
+    setExperienceLevel('all');
+    setSalaryMin(null);
+    setSalaryMax(null);
   }, []);
+
+  const activeFilterCount =
+    (jobType !== 'all' ? 1 : 0) +
+    (isRemote ? 1 : 0) +
+    (experienceLevel !== 'all' ? 1 : 0) +
+    (salaryMin !== null ? 1 : 0) +
+    (salaryMax !== null ? 1 : 0);
 
   return {
     search, setSearch,
     jobType, setJobType,
     sortBy, setSortBy,
     viewMode, setViewMode,
+    isRemote, setIsRemote,
+    experienceLevel, setExperienceLevel,
+    salaryMin, setSalaryMin,
+    salaryMax, setSalaryMax,
     jobs, loading, loadingMore, hasMore, total,
-    debouncedSearch,
+    debouncedSearch, activeFilterCount,
     loadMore, clearAllFilters,
   };
 }
