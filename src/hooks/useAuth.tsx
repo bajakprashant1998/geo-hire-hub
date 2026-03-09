@@ -188,6 +188,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     setSession(null);
     setProfile(null);
+    setProfileResolved(false);
   };
 
   // Check if email is verified
