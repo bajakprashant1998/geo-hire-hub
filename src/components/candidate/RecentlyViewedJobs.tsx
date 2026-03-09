@@ -111,7 +111,18 @@ export const RecentlyViewedJobs = () => {
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: i * 0.05 }}
-                onClick={() => navigate(job.slug ? `/jobs/${job.slug}` : `/jobs/${job.id}`)}
+                onClick={() => {
+                  if (job.slug) {
+                    const parts = ['/jobs'];
+                    if (job.location_country) parts.push(encodeURIComponent(job.location_country.toLowerCase().replace(/\s+/g, '-')));
+                    if (job.location_state) parts.push(encodeURIComponent(job.location_state.toLowerCase().replace(/\s+/g, '-')));
+                    if (job.location_city) parts.push(encodeURIComponent(job.location_city.toLowerCase().replace(/\s+/g, '-')));
+                    parts.push(job.slug);
+                    navigate(parts.join('/'));
+                  } else {
+                    navigate(`/jobs/${job.id}`);
+                  }
+                }}
                 className="flex items-center gap-3 p-3 rounded-xl hover:bg-muted/50 cursor-pointer transition-all group border border-transparent hover:border-border/40"
               >
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">

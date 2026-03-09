@@ -262,13 +262,15 @@ const JobDetail = () => {
         setEmployerAvgResponseHours(empData.avg_response_hours);
       }
 
-      // Record job view
-      supabase.from('job_views').insert({
-        job_id: resolvedId!,
-        viewer_id: user?.id || null,
-      }).then(({ error: viewErr }) => {
-        if (viewErr) console.warn('Failed to record job view:', viewErr.message);
-      });
+      // Record job view (only for authenticated users to avoid wasted rows)
+      if (user) {
+        supabase.from('job_views').insert({
+          job_id: resolvedId!,
+          viewer_id: user.id,
+        }).then(({ error: viewErr }) => {
+          if (viewErr) console.warn('Failed to record job view:', viewErr.message);
+        });
+      }
     } catch (error: any) {
       console.error('Error fetching job:', error);
       toast.error('Failed to load job details');
