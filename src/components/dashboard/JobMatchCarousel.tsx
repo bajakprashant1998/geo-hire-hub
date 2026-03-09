@@ -47,6 +47,8 @@ export const JobMatchCarousel = ({ candidateId, skills }: JobMatchCarouselProps)
         employers!inner(company_name)
       `)
       .eq('is_active', true)
+      .eq('status', 'open')
+      .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
       .limit(10);
 
     // Fetch saved jobs for this candidate

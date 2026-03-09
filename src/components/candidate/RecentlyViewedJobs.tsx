@@ -48,19 +48,23 @@ export const RecentlyViewedJobs = () => {
         job_id,
         viewed_at,
         job:jobs!inner (
-          id, title, salary_range, job_type, location_city, location_state, location_country, slug,
+          id, title, salary_range, job_type, location_city, location_state, location_country, slug, is_active, status, expires_at,
           employer:employers!inner ( company_name )
         )
       `)
       .eq('viewer_id', user.id)
       .order('viewed_at', { ascending: false })
-      .limit(5);
+      .limit(10);
 
     if (!error && data) {
-      // Deduplicate by job_id (keep most recent view)
+      const now = new Date().toISOString();
+      // Deduplicate by job_id (keep most recent view) and filter expired/inactive
       const seen = new Set<string>();
       const unique = (data as unknown as RecentJob[]).filter((item) => {
         if (seen.has(item.job_id)) return false;
+        const job = item.job as any;
+        if (!job.is_active || job.status !== 'open') return false;
+        if (job.expires_at && job.expires_at < now) return false;
         seen.add(item.job_id);
         return true;
       });
