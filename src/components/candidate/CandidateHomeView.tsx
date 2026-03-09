@@ -11,6 +11,7 @@ import { PlatformNotificationBanner } from '@/components/dashboard/PlatformNotif
 import { ProfileCompletionPrompts } from '@/components/candidate/ProfileCompletionPrompts';
 import { AIJobMatches } from '@/components/candidate/AIJobMatches';
 import { PendingTasksWidget } from '@/components/dashboard/PendingTasksWidget';
+import { ProfileStrengthCard } from '@/components/candidate/ProfileStrengthCard';
 import { RecentlyViewedJobs } from '@/components/candidate/RecentlyViewedJobs';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
