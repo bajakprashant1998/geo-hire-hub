@@ -543,6 +543,16 @@ const JobDetail = () => {
 
           {/* ===== LEFT COLUMN: MAIN CONTENT ===== */}
           <div className="min-w-0">
+          {/* Expired job alert */}
+            {job.expires_at && new Date(job.expires_at) < new Date() && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  This job listing has expired and is no longer accepting applications.
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* HERO */}
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
               {/* Badges */}
@@ -685,7 +695,12 @@ const JobDetail = () => {
                   <div className="flex gap-2">
                     <Dialog open={applyDialogOpen} onOpenChange={setApplyDialogOpen}>
                       <DialogTrigger asChild>
-                        <Button className={`flex-1 rounded-xl gap-2 ${isGovernmentJob ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}><Send className="w-4 h-4" /> Apply Now</Button>
+                        <Button 
+                          className={`flex-1 rounded-xl gap-2 ${isGovernmentJob ? 'bg-emerald-600 hover:bg-emerald-700' : ''}`}
+                          disabled={job.expires_at && new Date(job.expires_at) < new Date()}
+                        >
+                          <Send className="w-4 h-4" /> {job.expires_at && new Date(job.expires_at) < new Date() ? 'Expired' : 'Apply Now'}
+                        </Button>
                       </DialogTrigger>
                       {applyDialogContent}
                     </Dialog>

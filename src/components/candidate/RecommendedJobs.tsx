@@ -257,6 +257,7 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
   const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('relevance');
   const [matchFilter, setMatchFilter] = useState<MatchFilter>('all');
@@ -270,6 +271,7 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
   }, [candidateId]);
 
   const fetchAIRecommendations = async () => {
+    setError(false);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { setLoading(false); return; }
@@ -299,10 +301,15 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
       setJobs(recs);
       setAiInsight(data.insight || '');
       setProfileSummary(data.profile_summary || null);
-    } catch (error) {
-      console.error('AI recommendations error, falling back to basic:', error);
+    } catch (err) {
+      console.error('AI recommendations error, falling back to basic:', err);
       // Fallback to basic query
-      await fetchBasicRecommendations();
+      try {
+        await fetchBasicRecommendations();
+      } catch (fallbackErr) {
+        console.error('Basic recommendations also failed:', fallbackErr);
+        setError(true);
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -413,6 +420,35 @@ export const RecommendedJobs = ({ candidateId, skills, latitude, longitude }: Re
   ];
 
   if (loading) return <RecommendedSkeleton />;
+
+  if (error) {
+    return (
+      <Card className="border border-border bg-card">
+        <CardHeader className="bg-secondary/50 border-b border-border">
+          <CardTitle className="flex items-center gap-3 font-heading">
+            <div className="p-2.5 bg-destructive/10 rounded-xl">
+              <Sparkles className="w-5 h-5 text-destructive" />
+            </div>
+            Recommended Jobs
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-16">
+            <div className="w-16 h-16 bg-destructive/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Target className="w-8 h-8 text-destructive/50" />
+            </div>
+            <h3 className="font-semibold font-heading mb-2 text-foreground">Failed to load recommendations</h3>
+            <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-6">
+              We couldn't fetch job recommendations. Please try again.
+            </p>
+            <Button onClick={() => { setError(false); setLoading(true); fetchAIRecommendations(); }} className="rounded-xl gap-2">
+              <RefreshCw className="w-4 h-4" /> Retry
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (jobs.length === 0) {
     return (
