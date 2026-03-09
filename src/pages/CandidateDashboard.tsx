@@ -4,7 +4,7 @@ import { useDashboardTab } from '@/hooks/useDashboardTab';
 import { Button } from '@/components/ui/button';
 import {
   Briefcase, Bell, Shield, FileText, Sparkles, Eye, Calendar, Star, ChevronRight, User, MessageSquare, Bookmark, Mic,
-  MapPin, TrendingUp, Zap, Banknote, Bot, Radar, GraduationCap, Brain, BarChart3, Award, Trophy, Building2, Layout
+  MapPin, TrendingUp, Zap, Banknote, Bot, Radar, GraduationCap, Brain, BarChart3, Award, Trophy, Building2, Layout, Users, FileStack
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
