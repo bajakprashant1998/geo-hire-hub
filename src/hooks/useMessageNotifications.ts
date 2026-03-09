@@ -9,6 +9,7 @@ export const useMessageNotifications = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const notifiedMessages = useRef<Set<string>>(new Set());
+  const pathnameRef = useRef(location.pathname);
 
   useEffect(() => {
     if (!user) return;
