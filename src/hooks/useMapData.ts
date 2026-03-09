@@ -111,10 +111,10 @@ export const useMapData = ({ userLocation, radius, searchQuery }: UseMapDataProp
 
   // Fetch jobs from database
   const fetchJobs = useCallback(async () => {
-
     try {
       // Use the database function for geospatial query if user is logged in
       if (user) {
+        if (!userLocation) return [];
         const { data, error } = await supabase.rpc('get_nearby_jobs', {
           user_lat: userLocation.lat,
           user_lng: userLocation.lng,
