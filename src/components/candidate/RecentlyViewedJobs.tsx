@@ -20,6 +20,7 @@ interface RecentJob {
     job_type: string | null;
     location_city: string | null;
     location_state: string | null;
+    location_country: string | null;
     slug: string | null;
     employer: {
       company_name: string;
