@@ -465,6 +465,20 @@ const JobDetail = () => {
         <DialogDescription>Submit your application to {job.employer.company_name}</DialogDescription>
       </DialogHeader>
       <div className="space-y-4 py-4">
+        {/* Profile completeness warnings */}
+        {candidateData && (!candidateData.resume_url || !candidateData.skills?.length || !profile?.avatar_url) && (
+          <Alert className="border-warning/30 bg-warning/5">
+            <AlertCircle className="h-4 w-4 text-warning" />
+            <AlertDescription className="text-sm">
+              <p className="font-medium text-foreground mb-1">Improve your chances:</p>
+              <ul className="list-disc list-inside text-muted-foreground space-y-0.5 text-xs">
+                {!candidateData.resume_url && <li>Upload your resume for better visibility</li>}
+                {!candidateData.skills?.length && <li>Add skills to match with this job</li>}
+                {!profile?.avatar_url && <li>Add a profile photo to build trust</li>}
+              </ul>
+            </AlertDescription>
+          </Alert>
+        )}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="coverLetter">Cover Letter (Optional)</Label>
