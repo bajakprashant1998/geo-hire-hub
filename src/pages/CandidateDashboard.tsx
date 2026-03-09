@@ -94,7 +94,7 @@ const CandidateDashboard = () => {
           else if (isTomorrow(d)) setNextInterviewLabel('Next: Tomorrow');
           else setNextInterviewLabel(`Next: ${format(d, 'MMM d')}`);
         } else { setNextInterviewLabel('None scheduled'); }
-        setStats({ applications: (appsRes.data || []).length, views: viewCount || 0, unreadMessages: messagesRes.data?.length || 0, interviews: interviewsRes.count || 0, unreadNotifications: notifCount || 0 });
+        setStats({ applications: (appsRes.data || []).length, views: viewCount || 0, unreadMessages: unreadMsgCount, interviews: interviewsRes.count || 0, unreadNotifications: notifCount || 0 });
       }
     } catch (error) { console.error('Error fetching candidate data:', error); toast.error('Failed to load some dashboard data.'); }
     finally { clearTimeout(loadingTimeout); setDataLoading(false); }
