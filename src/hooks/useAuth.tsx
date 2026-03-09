@@ -75,6 +75,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (data && !error) {
         setProfile(data as Profile);
+        setProfileResolved(true);
         // Migrate localStorage saved jobs on login
         migrateSavedJobs(data as Profile);
         return data as Profile;
@@ -85,9 +86,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return fetchProfile(userId, retryCount + 1);
         }
       }
+      // Only mark as resolved after all retries exhausted
+      setProfileResolved(true);
       return null;
     } catch (err) {
       console.error('Error fetching profile:', err);
+      // Mark resolved on error after retries
+      if (retryCount >= 2) setProfileResolved(true);
       return null;
     } finally {
       setProfileLoading(false);
