@@ -53,7 +53,7 @@ const EMPLOYER_GROUPS: SidebarGroup[] = [
   { label: 'Communication', items: ['chat', 'interviews', 'tasks', 'team-notes', 'team-workflows'] },
   { label: 'AI & Analytics', items: ['ai-screening', 'analytics', 'jd-optimizer', 'ab-testing'] },
   { label: 'Company', items: ['company', 'branding', 'spotlight', 'offer-letters', 'compare-candidates', 'talent-pool'] },
-  { label: 'Settings', items: ['notifications', 'security', 'upgrade-plan'] },
+  { label: 'Team & Settings', items: ['team', 'notifications', 'security', 'upgrade-plan'] },
 ];
 
 const SidebarButton = ({ item, isActive, onItemClick }: { item: SidebarItem; isActive: boolean; onItemClick: (v: string) => void }) => (
