@@ -1,83 +1,94 @@
 
-## Audit Summary
 
-All three gaps are confirmed. Here is the exact plan:
+## Plan: Complete All Pending Tasks and Fixes
 
----
-
-### Fix 1 — SavedJobs: Use real `expires_at` instead of 30-day estimate
-
-**Files**: `src/components/candidate/SavedJobsSection.tsx`
-
-**Problem locations**:
-- `ExpiryBadge` (line 29): calculates `daysRemaining = 30 - daysSincePosted` — pure estimate
-- `SavedCard` (line 101–103): same `daysRemaining` calculation used for urgency accent
-- Query (line 207–215): does NOT fetch `expires_at` from `jobs`
-- Stats `useMemo` (line 241): same hardcoded 30-day logic
-- Sort `useMemo` (line 272–274): same hardcoded 30-day sort logic
-
-**Changes**:
-1. Add `expires_at` to the Supabase select query on `jobs`
-2. Rewrite `ExpiryBadge` to accept `expiresAt: string | null` and calculate days from `expires_at` directly (fallback: treat as no expiry if null)
-3. Update `SavedCard` to pass `expiresAt={job.expires_at}` and compute `daysRemaining` from `expires_at`
-4. Update stats `useMemo` to use `expires_at`-based days remaining
-5. Update sort `useMemo` for `'expiring'` sort to use `expires_at`
-
-**Logic**: If `expires_at` is null → no expiry warning shown. If `expires_at` is in the past → "Expired". If ≤3 days → urgent. If ≤7 days → warning.
+### 7 Tasks to Implement
 
 ---
 
-### Fix 2 — Dashboard unread message count: eliminate sequential conversation→messages queries
+#### 1. Fix Nominatim Geocoding CORS Error (High Priority)
+
+The `LocationBadge.tsx` and `AIResumeBuilder.tsx` make direct browser calls to `nominatim.openstreetmap.org` which fails with CORS/network errors on every page load.
+
+**Fix**: Replace direct Nominatim calls with Google Maps Geocoder (already available via the Google Maps API key). For `LocationBadge`, use the existing Google Maps Geocoding REST API through a simple edge function proxy. As a simpler alternative, silently catch errors and use coordinate-based fallback text.
+
+**Files**: `src/components/map/LocationBadge.tsx`, `src/pages/AIResumeBuilder.tsx`
+- Wrap fetch in try/catch, on failure show "Near you" instead of logging error
+- Add `AbortController` with 5s timeout to prevent hanging requests
+
+---
+
+#### 2. Add 10s Loading Timeout to Dashboards (Medium Priority)
+
+Both dashboards already have try/catch and `setDataLoading(false)` in finally blocks. Missing: a timeout that forces loading to stop if API hangs.
 
 **Files**: `src/pages/CandidateDashboard.tsx`, `src/pages/EmployerDashboard.tsx`
-
-**Problem**: Both dashboards do:
-1. `SELECT id FROM conversations WHERE participant_1=X OR participant_2=X` (sequential, not parallel)
-2. Then conditionally `SELECT COUNT(*) FROM messages WHERE conversation_id IN (...)` — gated on step 1
-
-**Solution**: Create a DB function `get_unread_message_count(p_user_id uuid)` via migration that does both in a single SQL query:
-```sql
-SELECT COUNT(*) FROM messages m
-JOIN conversations c ON m.conversation_id = c.id
-WHERE (c.participant_1 = p_user_id OR c.participant_2 = p_user_id)
-  AND m.is_read = false
-  AND m.sender_id != p_user_id;
-```
-
-Then replace both sequential blocks in both dashboards with a single `supabase.rpc('get_unread_message_count', { p_user_id: user.id })` call, which can be parallelized with other dashboard queries via `Promise.all`.
-
-**CandidateDashboard**: Currently the conversation fetch + message count happen before the `Promise.all` block (lines 66–87). Move them inside `Promise.all` as an RPC call.
-
-**EmployerDashboard**: Same pattern (lines 100–105). Replace with single RPC in parallel.
+- Add a 10s `setTimeout` in the `fetchCandidate`/`fetchEmployerData` that sets `dataLoading = false` and shows a toast if still loading
+- Add `toast.error` in the catch blocks (currently only `console.error`)
 
 ---
 
-### Fix 3 — `usePresence.ts`: Fix `setTyping` channel leak
+#### 3. Add PWA Offline Fallback Page (Medium Priority)
 
-**File**: `src/hooks/usePresence.ts`
+`public/sw.js` exists but returns nothing when offline and no cached page matches.
 
-**Problem** (line 136):
-```ts
-supabase.channel(`typing-${convId}`).send(...)
-```
-`supabase.channel()` creates a **new channel object** each call. The send goes to an unsubscribed channel. The actual subscribed channel (created in the `useEffect` at line 84) is a different object reference. This causes:
-- Messages never actually reach other clients
-- Supabase may accumulate ghost channel registrations
-
-**Fix**: Store the typing channel ref in a `useRef` instead of creating it ad-hoc:
-1. Change `const [channel, setChannel]` for the typing channel to `const typingChannelRef = useRef<RealtimeChannel | null>(null)`
-2. In the typing `useEffect`, assign `typingChannelRef.current = typingChannel` instead of using state
-3. In `setTyping` callback, use `typingChannelRef.current?.send(...)` — reusing the already-subscribed channel
-4. Keep the `useEffect` cleanup (removeChannel) unchanged
-
-The presence channel (`online-users`) is stored correctly in state already — only the typing channel has this bug.
+**Files**: `public/offline.html` (new), `public/sw.js`
+- Create a simple offline HTML page with branding
+- Update service worker to cache `offline.html` and serve it as fallback for navigation requests
 
 ---
 
-### Summary of files changed
+#### 4. Add Email Verification Reminder on Dashboard (Medium Priority)
 
-| Fix | Files | Migration? |
-|-----|-------|-----------|
-| SavedJobs `expires_at` | `src/components/candidate/SavedJobsSection.tsx` | No |
-| Unread count DB function | `src/pages/CandidateDashboard.tsx`, `src/pages/EmployerDashboard.tsx` | Yes — new `get_unread_message_count` RPC |
-| `setTyping` channel reuse | `src/hooks/usePresence.ts` | No |
+`EmailVerificationBanner` exists in `App.tsx` but an inline dashboard prompt would be more visible.
+
+**Files**: `src/pages/CandidateDashboard.tsx`, `src/pages/EmployerDashboard.tsx`
+- Add a dismissible card in the dashboard home view when `!isEmailVerified` with resend button
+- Reuse logic from existing `EmailVerificationBanner`
+
+---
+
+#### 5. Add Skeleton Loading to ProfileSetup (Medium Priority)
+
+Currently shows nothing while auth resolves.
+
+**Files**: `src/pages/ProfileSetup.tsx`
+- Show a skeleton card layout while `authLoading || profileLoading` instead of blank screen
+
+---
+
+#### 6. Add Global Unhandled Rejection Handler (Medium Priority)
+
+The Google Maps `AdvancedMarker` crash (`getRootNode` error) triggers ErrorBoundary. A global handler can catch async errors gracefully.
+
+**Files**: `src/App.tsx`
+- Add `useEffect` with `window.addEventListener('unhandledrejection', ...)` that logs and shows toast
+- Prevents white-screen crashes from async Google Maps errors
+
+---
+
+#### 7. Fix Google Maps AdvancedMarker Crash (High Priority)
+
+The console shows `Cannot read properties of undefined (reading 'getRootNode')` from `AdvancedMarker` cleanup. This crashes the entire app via ErrorBoundary.
+
+**Files**: `src/components/map/GoogleMapContainer.tsx`
+- Wrap the map rendering in its own error boundary so map crashes don't take down the whole app
+- Add null checks before rendering `AdvancedMarker` components
+- Ensure markers are only rendered when the map instance is ready
+
+---
+
+### Files Summary
+
+| File | Change |
+|------|--------|
+| `src/components/map/LocationBadge.tsx` | Silent error handling, timeout |
+| `src/pages/AIResumeBuilder.tsx` | Silent error handling for Nominatim |
+| `src/pages/CandidateDashboard.tsx` | 10s timeout + toast error + email verify card |
+| `src/pages/EmployerDashboard.tsx` | 10s timeout + toast error + email verify card |
+| `public/offline.html` | **New** - offline fallback page |
+| `public/sw.js` | Cache offline.html, serve as fallback |
+| `src/pages/ProfileSetup.tsx` | Skeleton loading state |
+| `src/App.tsx` | Global unhandled rejection handler |
+| `src/components/map/GoogleMapContainer.tsx` | Map-specific error boundary, marker null checks |
+

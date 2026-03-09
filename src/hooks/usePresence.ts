@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import type { RealtimeChannel } from '@supabase/supabase-js';
@@ -21,7 +21,8 @@ export const usePresence = (conversationId?: string): UsePresenceReturn => {
     onlineUsers: new Set(),
     typingUsers: new Map(),
   });
-  const [channel, setChannel] = useState<RealtimeChannel | null>(null);
+  // Ref holds the already-subscribed typing channel so setTyping reuses it
+  const typingChannelRef = useRef<RealtimeChannel | null>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -70,14 +71,12 @@ export const usePresence = (conversationId?: string): UsePresenceReturn => {
         }
       });
 
-    setChannel(presenceChannel);
-
     return () => {
       supabase.removeChannel(presenceChannel);
     };
   }, [user]);
 
-  // Typing indicator channel
+  // Typing indicator channel — store in ref so setTyping can reuse the same object
   useEffect(() => {
     if (!user || !conversationId) return;
 
@@ -102,7 +101,11 @@ export const usePresence = (conversationId?: string): UsePresenceReturn => {
       })
       .subscribe();
 
+    // Store the subscribed channel so setTyping can send through it
+    typingChannelRef.current = typingChannel;
+
     return () => {
+      typingChannelRef.current = null;
       supabase.removeChannel(typingChannel);
     };
   }, [user, conversationId]);
@@ -133,7 +136,8 @@ export const usePresence = (conversationId?: string): UsePresenceReturn => {
     (convId: string, isTyping: boolean) => {
       if (!user) return;
 
-      supabase.channel(`typing-${convId}`).send({
+      // Reuse the subscribed channel ref; do not create a new channel
+      typingChannelRef.current?.send({
         type: 'broadcast',
         event: 'typing',
         payload: {

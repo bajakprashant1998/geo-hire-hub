@@ -4327,6 +4327,7 @@ export type Database = {
           popularity_score: number
         }[]
       }
+      get_unread_message_count: { Args: { p_user_id: string }; Returns: number }
       has_application_relationship: {
         Args: { _profile_id: string; _viewer_user_id: string }
         Returns: boolean

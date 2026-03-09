@@ -12,7 +12,7 @@ import {
   Filter, SortAsc
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { format, differenceInDays, formatDistanceToNow } from 'date-fns';
+import { differenceInDays, formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SalaryBadge } from '@/components/SalaryBadge';
@@ -25,8 +25,22 @@ interface SavedJobsSectionProps {
 
 type SortBy = 'recent' | 'expiring' | 'title';
 
+/** Returns days remaining until expires_at. Negative = already expired. null = no expiry set. */
+const getDaysRemaining = (expiresAt: string | null): number | null => {
+  if (!expiresAt) return null;
+  return differenceInDays(new Date(expiresAt), new Date());
+};
+
 /* ─── Expiry Badge ─── */
-const ExpiryBadge = ({ createdAt, isActive, status }: { createdAt: string; isActive: boolean; status: string }) => {
+const ExpiryBadge = ({
+  expiresAt,
+  isActive,
+  status,
+}: {
+  expiresAt: string | null;
+  isActive: boolean;
+  status: string;
+}) => {
   if (!isActive || status !== 'open') {
     return (
       <Badge variant="outline" className="text-[9px] h-[18px] px-1.5 border-destructive/25 text-destructive bg-destructive/8 gap-0.5 shrink-0">
@@ -35,13 +49,23 @@ const ExpiryBadge = ({ createdAt, isActive, status }: { createdAt: string; isAct
     );
   }
 
-  const daysSincePosted = differenceInDays(new Date(), new Date(createdAt));
-  const daysRemaining = 30 - daysSincePosted;
+  const daysRemaining = getDaysRemaining(expiresAt);
 
-  if (daysRemaining <= 0) {
+  // No expiry date set — no badge
+  if (daysRemaining === null) return null;
+
+  if (daysRemaining < 0) {
     return (
       <Badge variant="outline" className="text-[9px] h-[18px] px-1.5 border-destructive/25 text-destructive bg-destructive/8 gap-0.5 shrink-0">
-        <AlertTriangle className="w-2.5 h-2.5" /> Likely expired
+        <AlertTriangle className="w-2.5 h-2.5" /> Expired
+      </Badge>
+    );
+  }
+
+  if (daysRemaining === 0) {
+    return (
+      <Badge variant="outline" className="text-[9px] h-[18px] px-1.5 border-destructive/25 text-destructive bg-destructive/8 gap-0.5 shrink-0 animate-pulse">
+        <Clock className="w-2.5 h-2.5" /> Expires today
       </Badge>
     );
   }
@@ -98,9 +122,8 @@ const SavedCard = ({ saved, index, onRemove }: { saved: any; index: number; onRe
   const employer = job.employer as any;
   const isClosed = !job.is_active || job.status !== 'open';
   const timeAgo = formatDistanceToNow(new Date(saved.created_at), { addSuffix: true });
-  const daysSincePosted = differenceInDays(new Date(), new Date(job.created_at));
-  const daysRemaining = 30 - daysSincePosted;
-  const isUrgent = !isClosed && daysRemaining > 0 && daysRemaining <= 3;
+  const daysRemaining = getDaysRemaining(job.expires_at);
+  const isUrgent = !isClosed && daysRemaining !== null && daysRemaining >= 0 && daysRemaining <= 3;
 
   return (
     <motion.div
@@ -128,7 +151,7 @@ const SavedCard = ({ saved, index, onRemove }: { saved: any; index: number; onRe
               >
                 {job.title}
               </Link>
-              <ExpiryBadge createdAt={job.created_at} isActive={job.is_active} status={job.status} />
+              <ExpiryBadge expiresAt={job.expires_at} isActive={job.is_active} status={job.status} />
             </div>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
               <span className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -207,7 +230,7 @@ export const SavedJobsSection = ({ candidateId }: SavedJobsSectionProps) => {
         .from('saved_jobs')
         .select(`
           id, created_at,
-          job:jobs(id, title, salary_range, job_type, job_address, employer_id, is_active, status, created_at, slug,
+          job:jobs(id, title, salary_range, job_type, job_address, employer_id, is_active, status, created_at, expires_at, slug,
             employer:employers(company_name)
           )
         `)
@@ -238,8 +261,8 @@ export const SavedJobsSection = ({ candidateId }: SavedJobsSectionProps) => {
       if (!job) return;
       if (!job.is_active || job.status !== 'open') { closed++; return; }
       active++;
-      const days = 30 - differenceInDays(new Date(), new Date(job.created_at));
-      if (days <= 7 && days > 0) expiring++;
+      const days = getDaysRemaining(job.expires_at);
+      if (days !== null && days >= 0 && days <= 7) expiring++;
     });
     return { total: savedJobs.length, active, expiring, closed };
   }, [savedJobs]);
@@ -269,8 +292,12 @@ export const SavedJobsSection = ({ candidateId }: SavedJobsSectionProps) => {
     result.sort((a, b) => {
       const ja = a.job as any, jb = b.job as any;
       if (sortBy === 'expiring') {
-        const daysA = 30 - differenceInDays(new Date(), new Date(ja?.created_at || 0));
-        const daysB = 30 - differenceInDays(new Date(), new Date(jb?.created_at || 0));
+        // Jobs with expires_at sort ascending (soonest first); null expires_at goes to end
+        const daysA = getDaysRemaining(ja?.expires_at);
+        const daysB = getDaysRemaining(jb?.expires_at);
+        if (daysA === null && daysB === null) return 0;
+        if (daysA === null) return 1;
+        if (daysB === null) return -1;
         return daysA - daysB;
       }
       if (sortBy === 'title') return (ja?.title || '').localeCompare(jb?.title || '');
