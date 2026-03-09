@@ -70,11 +70,21 @@ export const useMessageNotifications = () => {
             duration: 5000,
           });
 
-          // Play notification sound (optional)
+          // Play notification sound via Web Audio API
           try {
-            const audio = new Audio('/notification.mp3');
-            audio.volume = 0.3;
-            audio.play().catch(() => {});
+            const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+            if (AudioCtx) {
+              const ctx = new AudioCtx();
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.frequency.value = 440;
+              gain.gain.value = 0.3;
+              osc.start();
+              gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+              osc.stop(ctx.currentTime + 0.15);
+            }
           } catch {
             // Ignore audio errors
           }
