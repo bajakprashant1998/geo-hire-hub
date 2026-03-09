@@ -285,7 +285,7 @@ const JobDetail = () => {
       if (applicationError) throw applicationError;
       // Auto-save the job on apply
       if (!isSaved) {
-        await supabase.from('saved_jobs').insert({ candidate_id: candidate.id, job_id: resolvedId }).catch(() => {});
+        supabase.from('saved_jobs').insert({ candidate_id: candidate.id, job_id: resolvedId }).then(() => {});
         setIsSaved(true);
       }
       setHasApplied(true);
