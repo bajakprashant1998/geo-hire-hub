@@ -210,7 +210,7 @@ const EmployerDashboard = () => {
                         <DashboardStatCard icon={Briefcase} label="Active Jobs" value={stats.activeJobs} subtitle="currently open" accentColor="blue" onClick={() => setActiveSection('jobs')} delay={0} />
                         <DashboardStatCard icon={Users} label="Applications" value={stats.totalApplications} subtitle="across all jobs" accentColor="amber" onClick={() => setActiveSection('jobs')} delay={1} />
                         <DashboardStatCard icon={Calendar} label="Interviews" value={stats.scheduledInterviews} subtitle="upcoming" accentColor="green" onClick={() => setActiveSection('interviews')} delay={2} />
-                        <DashboardStatCard icon={Eye} label="Profile Views" value={stats.profileViews} subtitle="all time" accentColor="purple" delay={3} />
+                        <DashboardStatCard icon={MessageSquare} label="Unread Messages" value={stats.unreadMessages} subtitle="awaiting reply" accentColor="purple" onClick={() => setActiveSection('chat')} delay={3} />
                       </div>
                     </div>
 
