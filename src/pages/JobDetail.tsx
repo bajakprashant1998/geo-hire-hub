@@ -33,6 +33,8 @@ import { BreadcrumbNav, buildBreadcrumbJsonLd } from '@/components/BreadcrumbNav
 import type { BreadcrumbItem } from '@/components/BreadcrumbNav';
 import { SalaryBadge } from '@/components/SalaryBadge';
 import { DeadlineCountdown } from '@/components/DeadlineCountdown';
+import { ResponseRateBadge } from '@/components/employer/ResponseRateBadge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface JobDetails {
   id: string;
