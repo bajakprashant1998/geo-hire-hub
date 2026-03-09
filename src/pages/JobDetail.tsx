@@ -596,6 +596,11 @@ const JobDetail = () => {
                   {job.employer.industry && <span className="text-sm text-muted-foreground">{job.employer.industry}</span>}
                 </div>
               </Link>
+              {employerResponseRate !== null && (
+                <div className="mb-4 -mt-2">
+                  <ResponseRateBadge responseRate={employerResponseRate} avgResponseHours={employerAvgResponseHours} />
+                </div>
+              )}
 
               {/* Key info pills */}
               <div className="flex flex-wrap gap-2">
