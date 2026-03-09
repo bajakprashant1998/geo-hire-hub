@@ -167,7 +167,7 @@ const EmployerDashboard = () => {
   ];
 
   return (
-    <DashboardAuthGuard type="employer" authLoading={authLoading} profileLoading={profileLoading} user={user} profile={profile} refreshProfile={refreshProfile} signOut={signOut}>
+    <DashboardAuthGuard type="employer" authLoading={authLoading} profileLoading={profileLoading} profileResolved={profileResolved} user={user} profile={profile} refreshProfile={refreshProfile} signOut={signOut}>
       {dataLoading ? <EmployerDashboardLoading /> : !profile ? null : (
         <EmailVerificationGuard fallbackMessage="Please verify your email to access your employer dashboard.">
           <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/80 flex overflow-x-hidden">

@@ -155,7 +155,7 @@ const CandidateDashboard = () => {
   ];
 
   return (
-    <DashboardAuthGuard type="candidate" authLoading={authLoading} profileLoading={profileLoading} user={user} profile={profile} refreshProfile={refreshProfile} signOut={signOut}>
+    <DashboardAuthGuard type="candidate" authLoading={authLoading} profileLoading={profileLoading} profileResolved={profileResolved} user={user} profile={profile} refreshProfile={refreshProfile} signOut={signOut}>
       {dataLoading ? <CandidateDashboardLoading /> : !profile ? null : (
         <EmailVerificationGuard fallbackMessage="Please verify your email to access your dashboard.">
           <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/80 flex overflow-x-hidden">
