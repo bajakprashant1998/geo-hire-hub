@@ -26,7 +26,7 @@ import { motion } from 'framer-motion';
 const CandidateDashboard = () => {
   const navigate = useNavigate();
   const { activeSection, setActiveSection } = useDashboardTab();
-  const { user, profile, loading: authLoading, profileLoading, signOut, refreshProfile } = useAuth();
+  const { user, profile, loading: authLoading, profileLoading, profileResolved, signOut, refreshProfile } = useAuth();
   const [dataLoading, setDataLoading] = useState(true);
   const [candidate, setCandidate] = useState<any>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
