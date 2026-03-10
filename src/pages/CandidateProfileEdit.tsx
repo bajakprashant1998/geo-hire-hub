@@ -436,6 +436,19 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
         } finally { setSaving(false); }
     };
 
+    // Keep ref updated for auto-save
+    handleSaveRef.current = handleSave;
+
+    // Auto-save with 3-second debounce
+    useEffect(() => {
+        if (autoSaveVersion === 0 || !candidate || !profile || saving) return;
+        if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+        autoSaveTimerRef.current = setTimeout(() => {
+            handleSaveRef.current?.();
+        }, 3000);
+        return () => { if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current); };
+    }, [autoSaveVersion, candidate, profile, saving]);
+
     const navigateTab = (direction: 'next' | 'prev') => {
         const currentIdx = TAB_CONFIG.findIndex(t => t.value === activeTab);
         const newIdx = direction === 'next' ? currentIdx + 1 : currentIdx - 1;
