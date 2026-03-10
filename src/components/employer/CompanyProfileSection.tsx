@@ -441,6 +441,25 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
     }
   };
 
+  // Keep ref updated & auto-save with debounce
+  handleSaveRef.current = handleSave;
+
+  useEffect(() => {
+    if (autoSaveVersion === 0 || !employerId || !profile || saving) return;
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => {
+      handleSaveRef.current?.();
+    }, 3000);
+    return () => { if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current); };
+  }, [autoSaveVersion, employerId, profile, saving]);
+
+  // Track changes for auto-save
+  useEffect(() => {
+    if (initialDataLoadedRef.current) {
+      setAutoSaveVersion(v => v + 1);
+    }
+  }, [companyName, description, industry, websiteUrl, countryCode, taxId, teamSize, foundingYear, benefits, socialLinks, cultureDescription, hiringProcess, specializations, workEnvironment, relocationSupport, officeLocations, internshipAvailable, fresherHiring, hiringTimeline, interviewRoundsCount, assessmentTypes, avgSalaryRange, bonusStructure, paidLeavesPolicy, learningBudget, promotionFrequency, careerGrowthPaths, employeeRetentionRate, techStack, keySkillsHiring, preferredCertifications, educationPreference, workCultureType, companyValues, diversityPolicies, workLifeBalanceRating, hrContactEmail, careersPageUrl, awardsRecognition, whatsappNumber]);
+
   const autoSaveDocument = async (field: 'office_photo_url' | 'business_card_url' | 'company_registration_url' | 'gst_license_url' | 'pan_url', url: string) => {
     if (!employerId) return;
     try {
