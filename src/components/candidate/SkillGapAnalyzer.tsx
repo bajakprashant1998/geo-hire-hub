@@ -187,59 +187,65 @@ export const SkillGapAnalyzer = ({ candidateSkills }: { candidateSkills: string[
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 p-5"
+          className="rounded-2xl overflow-hidden bg-card border border-border shadow-sm"
         >
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-            {/* Score Circle */}
-            <div className="relative w-20 h-20 shrink-0 mx-auto sm:mx-0">
-              <svg className="w-full h-full" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
-                <circle cx="50" cy="50" r="42" fill="none" stroke="hsl(var(--muted))" strokeWidth="8" />
-                <motion.circle
-                  cx="50" cy="50" r="42" fill="none"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth="8"
-                  strokeLinecap="round"
-                  strokeDasharray={264}
-                  initial={{ strokeDashoffset: 264 }}
-                  animate={{ strokeDashoffset: 264 - (264 * result.matchScore / 100) }}
-                  transition={{ duration: 1.2, ease: 'easeOut' }}
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className={cn("text-xl font-black", getScoreColor(result.matchScore))}>
-                  {result.matchScore}%
-                </span>
+          <div className="p-5">
+            <div className="flex items-center gap-4">
+              {/* Score Circle - contained */}
+              <div className="relative w-16 h-16 shrink-0">
+                <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="42" fill="none" stroke="hsl(var(--muted))" strokeWidth="8" />
+                  <motion.circle
+                    cx="50" cy="50" r="42" fill="none"
+                    stroke="hsl(var(--primary))"
+                    strokeWidth="8"
+                    strokeLinecap="round"
+                    strokeDasharray={264}
+                    initial={{ strokeDashoffset: 264 }}
+                    animate={{ strokeDashoffset: 264 - (264 * result.matchScore / 100) }}
+                    transition={{ duration: 1.2, ease: 'easeOut' }}
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className={cn("text-base font-black", getScoreColor(result.matchScore))}>
+                    {result.matchScore}%
+                  </span>
+                </div>
               </div>
-            </div>
 
-            {/* Info */}
-            <div className="flex-1 text-center sm:text-left min-w-0">
-              <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
-                <Badge className="bg-primary/15 text-primary border-primary/30 text-xs">
+              {/* Info */}
+              <div className="flex-1 min-w-0">
+                <Badge className="bg-primary/15 text-primary border-primary/30 text-[10px] mb-1">
                   {scoreLabel.emoji} {scoreLabel.text}
                 </Badge>
+                <h3 className="text-base font-bold text-foreground truncate">{dreamJob}</h3>
+                <p className="text-xs text-muted-foreground">
+                  {result.matchedSkills.length} of {stats?.totalSkillsNeeded} skills matched
+                </p>
               </div>
-              <h3 className="text-lg font-bold text-foreground mb-0.5 truncate">{dreamJob}</h3>
-              <p className="text-xs text-muted-foreground">
-                You have {result.matchedSkills.length} of {stats?.totalSkillsNeeded} required skills
-              </p>
             </div>
 
-            {/* Quick Stats */}
-            <div className="flex gap-2 justify-center sm:justify-end shrink-0">
-              <div className="text-center px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{result.matchedSkills.length}</p>
-                <p className="text-[10px] text-muted-foreground">Have</p>
+            {/* Have / Need mini stats */}
+            <div className="flex gap-2 mt-4">
+              <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                <div>
+                  <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{result.matchedSkills.length}</p>
+                  <p className="text-[10px] text-muted-foreground leading-none">Have</p>
+                </div>
               </div>
-              <div className="text-center px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20">
-                <p className="text-lg font-bold text-rose-600 dark:text-rose-400">{result.missingSkills.length}</p>
-                <p className="text-[10px] text-muted-foreground">Need</p>
+              <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20">
+                <XCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                <div>
+                  <p className="text-sm font-bold text-rose-600 dark:text-rose-400">{result.missingSkills.length}</p>
+                  <p className="text-[10px] text-muted-foreground leading-none">Need</p>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Actions */}
-          <div className="flex gap-2 mt-4 pt-4 border-t border-border/30">
+          <div className="flex gap-2 px-5 py-3 border-t border-border bg-muted/30">
             <Button variant="outline" size="sm" onClick={resetAnalysis} className="gap-1.5 text-xs flex-1 sm:flex-none">
               <RotateCcw className="w-3.5 h-3.5" /> New Analysis
             </Button>
