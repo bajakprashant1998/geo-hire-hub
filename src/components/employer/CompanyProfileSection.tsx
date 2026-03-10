@@ -311,6 +311,8 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
         const { data: calcData } = await supabase
           .rpc('calculate_employer_profile_completeness', { p_employer_id: data.id });
         if (typeof calcData === 'number') setCompleteness(calcData);
+        // Mark initial data loaded after a tick
+        setTimeout(() => { initialDataLoadedRef.current = true; }, 100);
       }
     } catch (error) {
       console.error('Error fetching employer:', error);
