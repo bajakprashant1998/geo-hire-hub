@@ -162,7 +162,7 @@ const CollapsibleGroup = ({ label, items, activeItem, onItemClick, defaultOpen =
         >
           <ChevronDown className="w-3 h-3 text-muted-foreground/50" />
         </motion.div>
-        <span className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-[0.1em] flex-1 text-left">{label}</span>
+        <span className={cn("text-[10px] font-semibold uppercase tracking-[0.1em] flex-1 text-left", groupColor || "text-muted-foreground/60")}>{label}</span>
         {!isOpen && totalBadge > 0 && (
           <span className="min-w-[16px] h-4 px-1 rounded-full bg-destructive/80 text-white text-[9px] font-bold flex items-center justify-center">
             {totalBadge > 9 ? '9+' : totalBadge}
