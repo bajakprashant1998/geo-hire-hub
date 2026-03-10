@@ -162,6 +162,7 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
     const [candidate, setCandidate] = useState<any>(null);
     const [activeTab, setActiveTab] = useState('profile');
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const [autoSaveVersion, setAutoSaveVersion] = useState(0);
     const [suggestingSkills, setSuggestingSkills] = useState(false);
     const [suggestedSkills, setSuggestedSkills] = useState<string[]>([]);
     const [suggestedIndustries, setSuggestedIndustries] = useState<string[]>([]);
