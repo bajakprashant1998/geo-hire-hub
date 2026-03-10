@@ -123,6 +123,11 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
   const [employerId, setEmployerId] = useState<string | null>(null);
   const [showTermsDialog, setShowTermsDialog] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
+  const [autoSaveVersion, setAutoSaveVersion] = useState(0);
+
+  const handleSaveRef = useRef<(() => Promise<void>) | null>(null);
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const initialDataLoadedRef = useRef(false);
 
   // Basic
   const [companyName, setCompanyName] = useState('');
@@ -306,6 +311,8 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
         const { data: calcData } = await supabase
           .rpc('calculate_employer_profile_completeness', { p_employer_id: data.id });
         if (typeof calcData === 'number') setCompleteness(calcData);
+        // Mark initial data loaded after a tick
+        setTimeout(() => { initialDataLoadedRef.current = true; }, 100);
       }
     } catch (error) {
       console.error('Error fetching employer:', error);
@@ -427,7 +434,7 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
         await supabase.from('employers').update({ profile_completeness: calcData }).eq('id', employerId);
       }
 
-      toast.success('Profile saved successfully');
+      toast.success('Profile auto-saved ✓', { id: 'auto-save' });
     } catch (error: any) {
       console.error('Error saving:', error);
       toast.error(error.message || 'Failed to save profile');
@@ -435,6 +442,25 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
       setSaving(false);
     }
   };
+
+  // Keep ref updated & auto-save with debounce
+  handleSaveRef.current = handleSave;
+
+  useEffect(() => {
+    if (autoSaveVersion === 0 || !employerId || !profile || saving) return;
+    if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+    autoSaveTimerRef.current = setTimeout(() => {
+      handleSaveRef.current?.();
+    }, 3000);
+    return () => { if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current); };
+  }, [autoSaveVersion, employerId, profile, saving]);
+
+  // Track changes for auto-save
+  useEffect(() => {
+    if (initialDataLoadedRef.current) {
+      setAutoSaveVersion(v => v + 1);
+    }
+  }, [companyName, description, industry, websiteUrl, countryCode, taxId, teamSize, foundingYear, benefits, socialLinks, cultureDescription, hiringProcess, specializations, workEnvironment, relocationSupport, officeLocations, internshipAvailable, fresherHiring, hiringTimeline, interviewRoundsCount, assessmentTypes, avgSalaryRange, bonusStructure, paidLeavesPolicy, learningBudget, promotionFrequency, careerGrowthPaths, employeeRetentionRate, techStack, keySkillsHiring, preferredCertifications, educationPreference, workCultureType, companyValues, diversityPolicies, workLifeBalanceRating, hrContactEmail, careersPageUrl, awardsRecognition, whatsappNumber]);
 
   const autoSaveDocument = async (field: 'office_photo_url' | 'business_card_url' | 'company_registration_url' | 'gst_license_url' | 'pan_url', url: string) => {
     if (!employerId) return;

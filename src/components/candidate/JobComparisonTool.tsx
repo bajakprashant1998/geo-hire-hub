@@ -285,17 +285,14 @@ export const JobComparisonTool = ({ candidateId }: { candidateId: string }) => {
           <CardContent className="p-4">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
               <span className="text-sm font-medium text-foreground whitespace-nowrap">Add a job:</span>
-              <Select onValueChange={addJob} value="">
+              <Select onValueChange={addJob} value="" key={`job-select-${selectedIds.length}`}>
                 <SelectTrigger className="w-full sm:w-80 rounded-xl bg-secondary/50 border-border">
                   <SelectValue placeholder={unselectedJobs.length > 0 ? `${unselectedJobs.length} jobs available` : 'No more jobs to add'} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="z-[100]">
                   {unselectedJobs.map(job => (
                     <SelectItem key={job.id} value={job.id}>
-                      <div className="flex items-center gap-2">
-                        <span>{job.title}</span>
-                        <span className="text-muted-foreground">— {(job.employer as any)?.company_name}</span>
-                      </div>
+                      <span className="truncate">{job.title} — {(job.employer as any)?.company_name}</span>
                     </SelectItem>
                   ))}
                 </SelectContent>

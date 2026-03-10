@@ -162,6 +162,7 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
     const [candidate, setCandidate] = useState<any>(null);
     const [activeTab, setActiveTab] = useState('profile');
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const [autoSaveVersion, setAutoSaveVersion] = useState(0);
     const [suggestingSkills, setSuggestingSkills] = useState(false);
     const [suggestedSkills, setSuggestedSkills] = useState<string[]>([]);
     const [suggestedIndustries, setSuggestedIndustries] = useState<string[]>([]);
@@ -225,11 +226,14 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
 
     const initialFetchDone = useRef(false);
     const initialLoadedRef = useRef(false);
+    const handleSaveRef = useRef<(() => Promise<void>) | null>(null);
+    const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Mark unsaved after initial load
+    // Mark unsaved after initial load + trigger auto-save
     useEffect(() => {
         if (initialLoadedRef.current) {
             setHasUnsavedChanges(true);
+            setAutoSaveVersion(v => v + 1);
         }
     }, [fullName, avatarUrl, jobTitle, bio, experienceYears, expectedSalary, skills, education, portfolioUrls, whatsappNumber, headline, workExperience, certifications, languages, socialLinks, availabilityStatus, preferredJobTypes, noticePeriod, workAuthorization, willingToRelocate, remotePreference, currentCompany, currentSalary, salaryCurrency, industryPreference, careerObjective, dateOfBirth, gender, nationality, maritalStatus, addressLine, city, state, country, pincode, drivingLicense, militaryVeteran, disabilityStatus, referencesAvailable, videoIntroUrl, coverLetterDefault, achievements, strengths, hobbies, projects]);
 
@@ -425,12 +429,25 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
 
             await refreshProfile();
             setHasUnsavedChanges(false);
-            toast.success('Profile saved successfully! ✓');
+            toast.success('Profile auto-saved ✓', { id: 'auto-save' });
         } catch (error: any) {
             console.error('Error saving:', error);
             toast.error(error.message || 'Failed to save profile');
         } finally { setSaving(false); }
     };
+
+    // Keep ref updated for auto-save
+    handleSaveRef.current = handleSave;
+
+    // Auto-save with 3-second debounce
+    useEffect(() => {
+        if (autoSaveVersion === 0 || !candidate || !profile || saving) return;
+        if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
+        autoSaveTimerRef.current = setTimeout(() => {
+            handleSaveRef.current?.();
+        }, 3000);
+        return () => { if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current); };
+    }, [autoSaveVersion, candidate, profile, saving]);
 
     const navigateTab = (direction: 'next' | 'prev') => {
         const currentIdx = TAB_CONFIG.findIndex(t => t.value === activeTab);
