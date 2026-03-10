@@ -131,6 +131,13 @@ const SidebarButton = ({ item, isActive, onItemClick }: { item: SidebarItem; isA
   );
 };
 
+const GROUP_COLORS: Record<string, string> = {
+  'Career Tools': 'text-violet-500/70',
+  'AI & Analytics': 'text-cyan-500/70',
+  'Job Search': 'text-blue-500/70',
+  'Jobs & Hiring': 'text-emerald-500/70',
+};
+
 const CollapsibleGroup = ({ label, items, activeItem, onItemClick, defaultOpen = false }: {
   label: string;
   items: SidebarItem[];
@@ -141,6 +148,7 @@ const CollapsibleGroup = ({ label, items, activeItem, onItemClick, defaultOpen =
   const hasActive = items.some(i => i.value === activeItem);
   const [isOpen, setIsOpen] = useState(defaultOpen || hasActive);
   const totalBadge = items.reduce((sum, i) => sum + (i.badge || 0), 0);
+  const groupColor = GROUP_COLORS[label];
 
   return (
     <div className="mb-0.5">
