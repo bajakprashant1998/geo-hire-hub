@@ -226,6 +226,8 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
 
     const initialFetchDone = useRef(false);
     const initialLoadedRef = useRef(false);
+    const handleSaveRef = useRef<(() => Promise<void>) | null>(null);
+    const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     // Mark unsaved after initial load + trigger auto-save
     useEffect(() => {

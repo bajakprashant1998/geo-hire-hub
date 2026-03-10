@@ -187,14 +187,12 @@ export const SkillGapAnalyzer = ({ candidateSkills }: { candidateSkills: string[
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 p-5"
+          className="rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent border border-primary/20 p-5"
         >
-          <div className="absolute top-0 right-0 w-40 h-40 bg-primary/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-          
-          <div className="relative flex flex-col sm:flex-row sm:items-center gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             {/* Score Circle */}
-            <div className="relative w-24 h-24 shrink-0 mx-auto sm:mx-0">
-              <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+            <div className="relative w-20 h-20 shrink-0 mx-auto sm:mx-0">
+              <svg className="w-full h-full" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
                 <circle cx="50" cy="50" r="42" fill="none" stroke="hsl(var(--muted))" strokeWidth="8" />
                 <motion.circle
                   cx="50" cy="50" r="42" fill="none"
@@ -208,47 +206,35 @@ export const SkillGapAnalyzer = ({ candidateSkills }: { candidateSkills: string[
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className={cn("text-2xl font-black", getScoreColor(result.matchScore))}>
+                <span className={cn("text-xl font-black", getScoreColor(result.matchScore))}>
                   {result.matchScore}%
                 </span>
               </div>
             </div>
 
             {/* Info */}
-            <div className="flex-1 text-center sm:text-left">
+            <div className="flex-1 text-center sm:text-left min-w-0">
               <div className="flex items-center justify-center sm:justify-start gap-2 mb-1">
                 <Badge className="bg-primary/15 text-primary border-primary/30 text-xs">
                   {scoreLabel.emoji} {scoreLabel.text}
                 </Badge>
               </div>
-              <h3 className="text-lg font-bold text-foreground mb-1">{dreamJob}</h3>
+              <h3 className="text-lg font-bold text-foreground mb-0.5 truncate">{dreamJob}</h3>
               <p className="text-xs text-muted-foreground">
                 You have {result.matchedSkills.length} of {stats?.totalSkillsNeeded} required skills
               </p>
             </div>
 
             {/* Quick Stats */}
-            <div className="flex gap-2 justify-center sm:justify-end">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="text-center px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                      <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{result.matchedSkills.length}</p>
-                      <p className="text-[10px] text-muted-foreground">Have</p>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>Skills you already have</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="text-center px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20">
-                      <p className="text-lg font-bold text-rose-600 dark:text-rose-400">{result.missingSkills.length}</p>
-                      <p className="text-[10px] text-muted-foreground">Need</p>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>Skills to develop</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+            <div className="flex gap-2 justify-center sm:justify-end shrink-0">
+              <div className="text-center px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">{result.matchedSkills.length}</p>
+                <p className="text-[10px] text-muted-foreground">Have</p>
+              </div>
+              <div className="text-center px-3 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20">
+                <p className="text-lg font-bold text-rose-600 dark:text-rose-400">{result.missingSkills.length}</p>
+                <p className="text-[10px] text-muted-foreground">Need</p>
+              </div>
             </div>
           </div>
 
