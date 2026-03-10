@@ -429,7 +429,7 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
 
             await refreshProfile();
             setHasUnsavedChanges(false);
-            toast.success('Profile saved successfully! ✓');
+            toast.success('Profile auto-saved ✓', { id: 'auto-save' });
         } catch (error: any) {
             console.error('Error saving:', error);
             toast.error(error.message || 'Failed to save profile');

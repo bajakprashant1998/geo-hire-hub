@@ -434,7 +434,7 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
         await supabase.from('employers').update({ profile_completeness: calcData }).eq('id', employerId);
       }
 
-      toast.success('Profile saved successfully');
+      toast.success('Profile auto-saved ✓', { id: 'auto-save' });
     } catch (error: any) {
       console.error('Error saving:', error);
       toast.error(error.message || 'Failed to save profile');
