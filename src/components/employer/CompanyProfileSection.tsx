@@ -123,6 +123,11 @@ export const CompanyProfileSection = ({ onViewPublicProfile }: CompanyProfileSec
   const [employerId, setEmployerId] = useState<string | null>(null);
   const [showTermsDialog, setShowTermsDialog] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
+  const [autoSaveVersion, setAutoSaveVersion] = useState(0);
+
+  const handleSaveRef = useRef<(() => Promise<void>) | null>(null);
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const initialDataLoadedRef = useRef(false);
 
   // Basic
   const [companyName, setCompanyName] = useState('');
