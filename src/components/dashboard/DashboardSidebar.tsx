@@ -56,44 +56,80 @@ const EMPLOYER_GROUPS: SidebarGroup[] = [
   { label: 'Team & Settings', items: ['team', 'notifications', 'security', 'upgrade-plan'] },
 ];
 
-const SidebarButton = ({ item, isActive, onItemClick }: { item: SidebarItem; isActive: boolean; onItemClick: (v: string) => void }) => (
-  <button
-    onClick={() => onItemClick(item.value)}
-    className={cn(
-      "w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-200 group/item relative",
-      isActive
-        ? "bg-primary/10 text-primary shadow-sm shadow-primary/5"
-        : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-    )}
-  >
-    {isActive && (
-      <motion.div
-        layoutId="sidebar-active"
-        className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary"
-        transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-      />
-    )}
-    <div className={cn(
-      "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200",
-      isActive ? "bg-primary/15" : "bg-transparent group-hover/item:bg-muted/80"
-    )}>
-      <item.icon className={cn("w-4 h-4 transition-colors", isActive ? "text-primary" : "text-muted-foreground group-hover/item:text-foreground")} />
-    </div>
-    <span className="flex-1 text-left truncate">{item.label}</span>
-    {item.badge !== undefined && item.badge > 0 && (
-      <motion.span
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        className={cn(
-          "min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center shrink-0",
-          isActive ? "bg-primary text-primary-foreground" : "bg-destructive/90 text-white"
-        )}
-      >
-        {item.badge > 99 ? '99+' : item.badge}
-      </motion.span>
-    )}
-  </button>
-);
+const HIGHLIGHTED_ITEMS: Record<string, { bg: string; iconColor: string; activeBg: string }> = {
+  'career-buddy': { bg: 'bg-violet-500/8', iconColor: 'text-violet-500', activeBg: 'bg-violet-500/15' },
+  'skill-gap': { bg: 'bg-orange-500/8', iconColor: 'text-orange-500', activeBg: 'bg-orange-500/15' },
+  'interview-prep': { bg: 'bg-emerald-500/8', iconColor: 'text-emerald-500', activeBg: 'bg-emerald-500/15' },
+  'ai-resume': { bg: 'bg-cyan-500/8', iconColor: 'text-cyan-500', activeBg: 'bg-cyan-500/15' },
+  'auto-apply': { bg: 'bg-blue-500/8', iconColor: 'text-blue-500', activeBg: 'bg-blue-500/15' },
+  'market-value': { bg: 'bg-pink-500/8', iconColor: 'text-pink-500', activeBg: 'bg-pink-500/15' },
+  'salary-insights': { bg: 'bg-amber-500/8', iconColor: 'text-amber-500', activeBg: 'bg-amber-500/15' },
+  'ai-screening': { bg: 'bg-violet-500/8', iconColor: 'text-violet-500', activeBg: 'bg-violet-500/15' },
+  'jd-optimizer': { bg: 'bg-cyan-500/8', iconColor: 'text-cyan-500', activeBg: 'bg-cyan-500/15' },
+  'analytics': { bg: 'bg-blue-500/8', iconColor: 'text-blue-500', activeBg: 'bg-blue-500/15' },
+  'ab-testing': { bg: 'bg-orange-500/8', iconColor: 'text-orange-500', activeBg: 'bg-orange-500/15' },
+  'compare-candidates': { bg: 'bg-teal-500/8', iconColor: 'text-teal-500', activeBg: 'bg-teal-500/15' },
+};
+
+const SidebarButton = ({ item, isActive, onItemClick }: { item: SidebarItem; isActive: boolean; onItemClick: (v: string) => void }) => {
+  const highlight = HIGHLIGHTED_ITEMS[item.value];
+  
+  return (
+    <button
+      onClick={() => onItemClick(item.value)}
+      className={cn(
+        "w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-200 group/item relative",
+        isActive
+          ? highlight
+            ? `${highlight.activeBg} ${highlight.iconColor} shadow-sm`
+            : "bg-primary/10 text-primary shadow-sm shadow-primary/5"
+          : highlight
+            ? `text-muted-foreground hover:${highlight.bg} hover:text-foreground`
+            : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+      )}
+    >
+      {isActive && (
+        <motion.div
+          layoutId="sidebar-active"
+          className={cn(
+            "absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full",
+            highlight ? highlight.iconColor.replace('text-', 'bg-') : "bg-primary"
+          )}
+          transition={{ type: 'spring', stiffness: 400, damping: 28 }}
+        />
+      )}
+      <div className={cn(
+        "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200",
+        isActive 
+          ? highlight ? `${highlight.activeBg}` : "bg-primary/15" 
+          : highlight ? `${highlight.bg}` : "bg-transparent group-hover/item:bg-muted/80"
+      )}>
+        <item.icon className={cn(
+          "w-4 h-4 transition-colors",
+          isActive 
+            ? highlight ? highlight.iconColor : "text-primary" 
+            : highlight ? highlight.iconColor : "text-muted-foreground group-hover/item:text-foreground"
+        )} />
+      </div>
+      <span className="flex-1 text-left truncate">{item.label}</span>
+      {highlight && !isActive && (
+        <Sparkles className={cn("w-3 h-3 opacity-40", highlight.iconColor)} />
+      )}
+      {item.badge !== undefined && item.badge > 0 && (
+        <motion.span
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className={cn(
+            "min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center shrink-0",
+            isActive ? "bg-primary text-primary-foreground" : "bg-destructive/90 text-white"
+          )}
+        >
+          {item.badge > 99 ? '99+' : item.badge}
+        </motion.span>
+      )}
+    </button>
+  );
+};
 
 const CollapsibleGroup = ({ label, items, activeItem, onItemClick, defaultOpen = false }: {
   label: string;
