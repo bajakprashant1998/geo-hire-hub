@@ -227,10 +227,11 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
     const initialFetchDone = useRef(false);
     const initialLoadedRef = useRef(false);
 
-    // Mark unsaved after initial load
+    // Mark unsaved after initial load + trigger auto-save
     useEffect(() => {
         if (initialLoadedRef.current) {
             setHasUnsavedChanges(true);
+            setAutoSaveVersion(v => v + 1);
         }
     }, [fullName, avatarUrl, jobTitle, bio, experienceYears, expectedSalary, skills, education, portfolioUrls, whatsappNumber, headline, workExperience, certifications, languages, socialLinks, availabilityStatus, preferredJobTypes, noticePeriod, workAuthorization, willingToRelocate, remotePreference, currentCompany, currentSalary, salaryCurrency, industryPreference, careerObjective, dateOfBirth, gender, nationality, maritalStatus, addressLine, city, state, country, pincode, drivingLicense, militaryVeteran, disabilityStatus, referencesAvailable, videoIntroUrl, coverLetterDefault, achievements, strengths, hobbies, projects]);
 
