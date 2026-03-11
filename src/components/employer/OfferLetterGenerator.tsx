@@ -65,9 +65,10 @@ export const OfferLetterGenerator = ({ employerId, companyName }: OfferLetterGen
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('generate-job-description', {
-        body: {
-          prompt: `Generate a professional offer letter for the following:
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error('Not authenticated');
+
+      const prompt = `Generate a professional offer letter for the following:
 Company: ${companyName}
 Candidate: ${candidateName}
 Position: ${jobTitle}
@@ -85,11 +86,30 @@ Create a complete, professional offer letter with proper formatting. Include sec
 - Acceptance deadline
 - Signature lines
 
-Make it warm yet professional. Use proper business letter format.`,
-        },
-      });
+Make it warm yet professional. Use proper business letter format.`;
 
-      if (error) throw error;
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-job-description`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            jobTitle: `Offer Letter: ${jobTitle}`,
+            jobType: prompt,
+          }),
+        }
+      );
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Failed to generate');
+      }
+
+      const data = await res.json();
       const letter = data?.description || data?.text || 'Failed to generate letter';
       setGeneratedLetter(letter);
       setHistory(prev => [{
@@ -103,7 +123,7 @@ Make it warm yet professional. Use proper business letter format.`,
       toast.success('Offer letter generated successfully!');
     } catch (err: any) {
       console.error('Error generating offer letter:', err);
-      toast.error('Failed to generate offer letter. Please try again.');
+      toast.error(err.message || 'Failed to generate offer letter. Please try again.');
     } finally {
       setLoading(false);
     }

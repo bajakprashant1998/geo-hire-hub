@@ -427,9 +427,8 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
             }).eq('id', candidate.id);
             if (candidateError) throw candidateError;
 
-            await refreshProfile();
             setHasUnsavedChanges(false);
-            toast.success('Profile auto-saved ✓', { id: 'auto-save' });
+            toast.success('Profile auto-saved ✓', { id: 'auto-save', duration: 1500 });
         } catch (error: any) {
             console.error('Error saving:', error);
             toast.error(error.message || 'Failed to save profile');
