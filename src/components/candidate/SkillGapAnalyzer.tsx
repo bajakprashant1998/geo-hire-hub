@@ -187,23 +187,22 @@ export const SkillGapAnalyzer = ({ candidateSkills }: { candidateSkills: string[
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl overflow-hidden bg-card border border-border shadow-sm"
+          className="rounded-2xl bg-card border border-border shadow-sm"
         >
           <div className="p-5">
             <div className="flex items-center gap-4">
-              {/* Score Circle - contained */}
-              <div className="relative w-16 h-16 shrink-0">
-                <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+              {/* Score Circle */}
+              <div className="relative w-16 h-16 shrink-0 overflow-hidden">
+                <svg width="64" height="64" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
                   <circle cx="50" cy="50" r="42" fill="none" stroke="hsl(var(--muted))" strokeWidth="8" />
-                  <motion.circle
+                  <circle
                     cx="50" cy="50" r="42" fill="none"
                     stroke="hsl(var(--primary))"
                     strokeWidth="8"
                     strokeLinecap="round"
                     strokeDasharray={264}
-                    initial={{ strokeDashoffset: 264 }}
-                    animate={{ strokeDashoffset: 264 - (264 * result.matchScore / 100) }}
-                    transition={{ duration: 1.2, ease: 'easeOut' }}
+                    strokeDashoffset={264 - (264 * result.matchScore / 100)}
+                    style={{ transition: 'stroke-dashoffset 1.2s ease-out' }}
                   />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">

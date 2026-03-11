@@ -100,9 +100,7 @@ const JobSlot = ({ job, index, onRemove }: { job: JobForComparison | null; index
       <div className="flex items-start gap-2">
         <div className={cn("w-2 h-2 rounded-full mt-1.5 shrink-0", dotColors[index])} />
         <div className="min-w-0">
-          <Link to={`/jobs/${job.id}`} className="font-semibold text-sm hover:text-primary transition-colors line-clamp-1">
-            {job.title}
-          </Link>
+          <span className="font-semibold text-sm line-clamp-1">{job.title}</span>
           <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
             <Building2 className="w-3 h-3" />
             {(job.employer as any)?.company_name || 'Company'}

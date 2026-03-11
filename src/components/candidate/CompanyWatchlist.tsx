@@ -182,7 +182,8 @@ export const CompanyWatchlist = ({ candidateId }: CompanyWatchlistProps) => {
                             variant="ghost"
                             size="icon"
                             className="h-7 w-7"
-                            onClick={() => emp?.slug && navigate(`/employers/${emp.slug}`)}
+                            onClick={(e) => { e.stopPropagation(); if (emp?.slug) window.open(`/employers/${emp.slug}`, '_blank'); }}
+                            title="View profile in new tab"
                           >
                             <Eye className="h-3.5 w-3.5" />
                           </Button>
