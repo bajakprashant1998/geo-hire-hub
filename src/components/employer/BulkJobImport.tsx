@@ -245,7 +245,7 @@ export function BulkJobImport({ employerId }: BulkJobImportProps) {
                         <SelectValue placeholder="Select column" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">-- None --</SelectItem>
+                        <SelectItem value="__none__">-- None --</SelectItem>
                         {headers.map(h => <SelectItem key={h} value={h}>{h}</SelectItem>)}
                       </SelectContent>
                     </Select>
