@@ -240,7 +240,7 @@ export function BulkJobImport({ employerId }: BulkJobImportProps) {
                       {REQUIRED.includes(field) && <span className="text-destructive ml-1">*</span>}
                     </Label>
                     <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                    <Select value={fieldMap[field] || ''} onValueChange={v => setFieldMap(prev => ({ ...prev, [field]: v }))}>
+                    <Select value={fieldMap[field] || '__none__'} onValueChange={v => setFieldMap(prev => ({ ...prev, [field]: v === '__none__' ? '' : v }))}>
                       <SelectTrigger className="w-56">
                         <SelectValue placeholder="Select column" />
                       </SelectTrigger>
