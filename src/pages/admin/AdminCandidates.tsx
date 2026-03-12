@@ -194,7 +194,7 @@ export default function AdminCandidates() {
       const to = from + PAGE_SIZE - 1;
       let query = supabase
         .from('candidates')
-        .select(`*, profile:profiles!candidates_profile_id_fkey(id, full_name, user_id, avatar_url, is_visible_on_map, phone, custom_email_verified)`, { count: 'exact' })
+        .select(`*, profile:profiles!candidates_profile_id_fkey(id, full_name, user_id, avatar_url, is_visible_on_map, custom_email_verified)`, { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(from, to);
       if (statusFilter === 'blocked') query = query.eq('is_blocked', true);
