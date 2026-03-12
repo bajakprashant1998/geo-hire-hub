@@ -117,26 +117,34 @@ export default function AdminSystemHealth() {
     },
   });
 
-  // Activity timeline (24h)
+  // Activity timeline (24h) - optimized: fetch all recent data in 2 queries instead of 48
   const { data: activityTimeline } = useQuery({
     queryKey: ['admin-activity-timeline'],
     queryFn: async () => {
+      const since = subHours(new Date(), 24).toISOString();
+      const [actionsRes, signupsRes] = await Promise.all([
+        supabase.from('admin_action_logs').select('created_at').gte('created_at', since),
+        supabase.from('profiles').select('created_at').gte('created_at', since),
+      ]);
+
       const hours = Array.from({ length: 24 }, (_, i) => {
         const hour = subHours(new Date(), 23 - i);
         return { hour, label: format(hour, 'HH:00') };
       });
-      const results = await Promise.all(
-        hours.map(async ({ hour, label }) => {
-          const start = new Date(hour); start.setMinutes(0, 0, 0);
-          const end = new Date(hour); end.setMinutes(59, 59, 999);
-          const { count: actions } = await supabase.from('admin_action_logs').select('*', { count: 'exact', head: true })
-            .gte('created_at', start.toISOString()).lte('created_at', end.toISOString());
-          const { count: signups } = await supabase.from('profiles').select('*', { count: 'exact', head: true })
-            .gte('created_at', start.toISOString()).lte('created_at', end.toISOString());
-          return { name: label, actions: actions || 0, signups: signups || 0 };
-        })
-      );
-      return results;
+
+      return hours.map(({ hour, label }) => {
+        const start = new Date(hour); start.setMinutes(0, 0, 0);
+        const end = new Date(hour); end.setMinutes(59, 59, 999);
+        const actions = (actionsRes.data || []).filter(a => {
+          const t = new Date(a.created_at!);
+          return t >= start && t <= end;
+        }).length;
+        const signups = (signupsRes.data || []).filter(s => {
+          const t = new Date(s.created_at!);
+          return t >= start && t <= end;
+        }).length;
+        return { name: label, actions, signups };
+      });
     },
   });
 
