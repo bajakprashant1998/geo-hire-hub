@@ -351,6 +351,15 @@ export default function AdminCandidates() {
           <CardContent className="p-0">
             {isLoading ? (
               <div className="p-6 space-y-4">{[...Array(6)].map((_, i) => <Skeleton key={i} className="h-14 w-full rounded-lg" />)}</div>
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-3">
+                <Users className="h-12 w-12 opacity-30" />
+                <p className="font-medium">Failed to load candidates</p>
+                <p className="text-sm">{(error as Error).message || 'Please try again.'}</p>
+                <Button size="sm" variant="outline" onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-candidates'] })}>
+                  Retry
+                </Button>
+              </div>
             ) : !filteredCandidates?.length ? (
               <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
                 <Users className="h-12 w-12 mb-3 opacity-30" />
