@@ -42,7 +42,7 @@ interface Candidate {
   expected_salary: string | null;
   certifications: string[];
   remote_preference: string | null;
-  profile: { id: string; full_name: string; user_id: string; avatar_url: string | null; is_visible_on_map: boolean; phone: string | null; custom_email_verified: boolean | null };
+  profile: { id: string; full_name: string; user_id: string; avatar_url: string | null; is_visible_on_map: boolean; custom_email_verified: boolean | null };
 }
 
 // --- Sub-components ---
