@@ -42,7 +42,7 @@ interface Candidate {
   expected_salary: string | null;
   certifications: string[];
   remote_preference: string | null;
-  profile: { id: string; full_name: string; user_id: string; avatar_url: string | null; is_visible_on_map: boolean; phone: string | null; custom_email_verified: boolean | null };
+  profile: { id: string; full_name: string; user_id: string; avatar_url: string | null; is_visible_on_map: boolean; custom_email_verified: boolean | null };
 }
 
 // --- Sub-components ---
@@ -187,14 +187,14 @@ export default function AdminCandidates() {
   const [actionDialog, setActionDialog] = useState<{ type: 'block' | 'unblock' | 'delete' | 'bulk-block' | 'bulk-unblock' | 'bulk-delete' | null; candidate: Candidate | null }>({ type: null, candidate: null });
   const [actionReason, setActionReason] = useState('');
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['admin-candidates', statusFilter, page, dateRange],
     queryFn: async () => {
       const from = (page - 1) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
       let query = supabase
         .from('candidates')
-        .select(`*, profile:profiles!candidates_profile_id_fkey(id, full_name, user_id, avatar_url, is_visible_on_map, phone, custom_email_verified)`, { count: 'exact' })
+        .select(`*, profile:profiles!candidates_profile_id_fkey(id, full_name, user_id, avatar_url, is_visible_on_map, custom_email_verified)`, { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(from, to);
       if (statusFilter === 'blocked') query = query.eq('is_blocked', true);
@@ -351,6 +351,15 @@ export default function AdminCandidates() {
           <CardContent className="p-0">
             {isLoading ? (
               <div className="p-6 space-y-4">{[...Array(6)].map((_, i) => <Skeleton key={i} className="h-14 w-full rounded-lg" />)}</div>
+            ) : error ? (
+              <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-3">
+                <Users className="h-12 w-12 opacity-30" />
+                <p className="font-medium">Failed to load candidates</p>
+                <p className="text-sm">{(error as Error).message || 'Please try again.'}</p>
+                <Button size="sm" variant="outline" onClick={() => queryClient.invalidateQueries({ queryKey: ['admin-candidates'] })}>
+                  Retry
+                </Button>
+              </div>
             ) : !filteredCandidates?.length ? (
               <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
                 <Users className="h-12 w-12 mb-3 opacity-30" />
