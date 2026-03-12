@@ -193,6 +193,23 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
     map.setZoom(13);
   }, [centerTrigger, map, userLocation]);
 
+  // Radius circle
+  useEffect(() => {
+    if (!map || !userLocation) return;
+    const circle = new google.maps.Circle({
+      map,
+      center: userLocation,
+      radius: radius * 1000, // km to meters
+      fillColor: '#3B82F6',
+      fillOpacity: 0.06,
+      strokeColor: '#3B82F6',
+      strokeOpacity: 0.3,
+      strokeWeight: 2,
+      clickable: false,
+    });
+    return () => { circle.setMap(null); };
+  }, [map, userLocation, radius]);
+
   // Fit bounds
   useEffect(() => {
     if (!map) return;

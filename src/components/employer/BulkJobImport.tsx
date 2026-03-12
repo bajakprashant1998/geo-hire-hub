@@ -16,7 +16,21 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
+function detectDelimiter(text: string): string {
+  const firstLine = text.split(/\r?\n/)[0] || '';
+  const counts: Record<string, number> = { ',': 0, ';': 0, '\t': 0 };
+  let inQuotes = false;
+  for (const ch of firstLine) {
+    if (ch === '"') inQuotes = !inQuotes;
+    if (!inQuotes && ch in counts) counts[ch]++;
+  }
+  if (counts[';'] > counts[','] && counts[';'] > counts['\t']) return ';';
+  if (counts['\t'] > counts[','] && counts['\t'] > counts[';']) return '\t';
+  return ',';
+}
+
 function parseCSV(text: string): string[][] {
+  const delimiter = detectDelimiter(text);
   const rows: string[][] = [];
   let current = '';
   let inQuotes = false;
@@ -29,7 +43,7 @@ function parseCSV(text: string): string[][] {
       else current += ch;
     } else {
       if (ch === '"') inQuotes = true;
-      else if (ch === ',') { row.push(current.trim()); current = ''; }
+      else if (ch === delimiter) { row.push(current.trim()); current = ''; }
       else if (ch === '\n' || (ch === '\r' && text[i + 1] === '\n')) {
         row.push(current.trim()); current = ''; rows.push(row); row = [];
         if (ch === '\r') i++;
@@ -37,7 +51,8 @@ function parseCSV(text: string): string[][] {
     }
   }
   if (current || row.length) { row.push(current.trim()); rows.push(row); }
-  return rows;
+  // Filter out completely empty rows
+  return rows.filter(r => r.some(cell => cell.length > 0));
 }
 
 interface JobRow {
