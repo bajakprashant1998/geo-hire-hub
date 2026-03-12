@@ -187,7 +187,7 @@ export default function AdminCandidates() {
   const [actionDialog, setActionDialog] = useState<{ type: 'block' | 'unblock' | 'delete' | 'bulk-block' | 'bulk-unblock' | 'bulk-delete' | null; candidate: Candidate | null }>({ type: null, candidate: null });
   const [actionReason, setActionReason] = useState('');
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['admin-candidates', statusFilter, page, dateRange],
     queryFn: async () => {
       const from = (page - 1) * PAGE_SIZE;
