@@ -106,13 +106,21 @@ export const SkillGapAnalyzer = ({ candidateSkills }: { candidateSkills: string[
     return { critical, important, niceToHave, totalSkillsNeeded };
   }, [result]);
 
-  const shareResults = () => {
+  const shareResults = async () => {
     if (!result) return;
     const text = `🎯 Skill Gap Analysis for ${dreamJob}\n\n` +
       `Match Score: ${result.matchScore}%\n` +
       `✅ Skills I have: ${result.matchedSkills.length}\n` +
       `📚 Skills to learn: ${result.missingSkills.length}\n\n` +
       `Analyzed on HireForJob.com`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Skill Gap Analysis', text, url: window.location.href });
+        setCopiedShare(true);
+        setTimeout(() => setCopiedShare(false), 2000);
+        return;
+      } catch (e) { if ((e as Error).name === 'AbortError') return; }
+    }
     navigator.clipboard.writeText(text);
     setCopiedShare(true);
     setTimeout(() => setCopiedShare(false), 2000);
@@ -182,7 +190,7 @@ export const SkillGapAnalyzer = ({ candidateSkills }: { candidateSkills: string[
     const scoreLabel = getScoreLabel(result.matchScore);
     
     return (
-      <div className="space-y-5">
+      <div className="space-y-5 overflow-hidden">
         {/* Header with Score */}
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
@@ -192,7 +200,7 @@ export const SkillGapAnalyzer = ({ candidateSkills }: { candidateSkills: string[
           <div className="p-5">
             <div className="flex items-center gap-4">
               {/* Score Circle */}
-              <div className="relative w-16 h-16 shrink-0 overflow-hidden">
+              <div className="relative w-16 h-16 shrink-0" style={{ overflow: 'hidden' }}>
                 <svg width="64" height="64" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
                   <circle cx="50" cy="50" r="42" fill="none" stroke="hsl(var(--muted))" strokeWidth="8" />
                   <circle

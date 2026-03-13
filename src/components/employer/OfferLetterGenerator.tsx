@@ -88,6 +88,8 @@ Create a complete, professional offer letter with proper formatting. Include sec
 
 Make it warm yet professional. Use proper business letter format.`;
 
+      const offerContext = `Company: ${companyName}\nCandidate: ${candidateName}\nPosition: ${jobTitle}\nSalary/Package: ${salary}\nStart Date: ${startDate || 'To be determined'}\nTemplate Style: ${template}\nAdditional Notes: ${additionalNotes || 'None'}`;
+
       const res = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-job-description`,
         {
@@ -99,7 +101,8 @@ Make it warm yet professional. Use proper business letter format.`;
           },
           body: JSON.stringify({
             jobTitle: `Offer Letter: ${jobTitle}`,
-            jobType: prompt,
+            jobType: template,
+            offerLetterContext: offerContext,
           }),
         }
       );

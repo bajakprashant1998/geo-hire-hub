@@ -303,9 +303,15 @@ export const InterviewPrepCoach = ({ candidateId }: InterviewPrepCoachProps) => 
     toast.success('Copied to clipboard!');
   };
 
-  const shareResults = () => {
+  const shareResults = async () => {
     if (!overallAssessment) return;
     const text = `🎯 Interview Prep Results\n\nJob: ${selectedJob?.title} at ${selectedJob?.companyName}\nScore: ${overallAssessment.overall_score}/100 (Grade: ${overallAssessment.grade})\nHiring Likelihood: ${overallAssessment.hiring_likelihood}\n\nPracticed on HireForJob.com`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Interview Prep Results', text, url: window.location.href });
+        return;
+      } catch (e) { if ((e as Error).name === 'AbortError') return; }
+    }
     navigator.clipboard.writeText(text);
     toast.success('Results copied! Share with your network.');
   };

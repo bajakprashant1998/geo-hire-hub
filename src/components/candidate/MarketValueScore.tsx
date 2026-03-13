@@ -112,12 +112,18 @@ export const MarketValueScore = () => {
     }
   };
 
-  const shareResults = () => {
+  const shareResults = async () => {
     if (!data) return;
     const text = `🏆 My Market Value Score: ${data.overall_score}/100 (Grade ${data.grade})\n\n` +
       `💰 Estimated Salary: ${formatSalary(data.salary_estimate.median, data.salary_estimate.currency)}/yr\n\n` +
       `📈 Market Trend: ${data.demand_trend}\n\n` +
       `Analyze your market value at HireForJob!`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'My Market Value Score', text, url: window.location.href });
+        return;
+      } catch (e) { if ((e as Error).name === 'AbortError') return; }
+    }
     navigator.clipboard.writeText(text);
     toast.success('Copied to clipboard!');
   };

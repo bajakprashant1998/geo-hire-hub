@@ -33,7 +33,7 @@ const ALLOWED_TYPES = [
   'text/plain',
 ];
 
-const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_SIZE = 20 * 1024 * 1024; // 20MB
 
 const formatFileSize = (bytes: number): string => {
   if (bytes < 1024) return `${bytes} B`;
@@ -61,7 +61,7 @@ export const AttachmentUpload = ({
     }
 
     if (file.size > MAX_SIZE) {
-      toast.error('File too large. Maximum size is 10MB');
+      toast.error('File too large. Maximum size is 20MB');
       return;
     }
 

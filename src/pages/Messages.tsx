@@ -157,7 +157,7 @@ const Messages = () => {
     // Subscribe to conversation updates
     const channel = supabase
       .channel('conversations-list')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => {
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
         fetchConversations();
       })
       .subscribe();
@@ -466,7 +466,7 @@ const Messages = () => {
   }
 
   return (
-    <div className="h-screen bg-background flex flex-col md:flex-row">
+    <div className="h-screen bg-background flex flex-col md:flex-row overflow-hidden">
       {/* Conversation List */}
       <div className={`${conversationId ? 'hidden md:flex' : 'flex'} w-full md:w-96 bg-card border-r border-border flex-col`}>
         {/* Header */}
@@ -573,7 +573,7 @@ const Messages = () => {
       </div>
 
       {/* Chat Area */}
-      <div className={`${conversationId ? 'flex' : 'hidden md:flex'} flex-1 flex-col bg-muted/30`}>
+      <div className={`${conversationId ? 'flex' : 'hidden md:flex'} flex-1 flex-col bg-muted/30 min-h-0 overflow-hidden`}>
         {activeConversation ? (
           <>
             {/* Chat Header */}
@@ -624,7 +624,7 @@ const Messages = () => {
             </div>
 
             {/* Messages */}
-            <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+            <ScrollArea className="flex-1 p-4 min-h-0" ref={scrollRef}>
               <div className="max-w-3xl mx-auto space-y-3">
                 <AnimatePresence>
                   {messages.map((message, index) => {
@@ -716,7 +716,7 @@ const Messages = () => {
             </ScrollArea>
 
             {/* Input */}
-            <form onSubmit={sendMessage} className="p-4 border-t border-border bg-card">
+            <form onSubmit={sendMessage} className="p-4 border-t border-border bg-card shrink-0">
               <div className="max-w-3xl mx-auto">
                 {/* Pending attachment preview */}
                 {pendingAttachment && (
