@@ -48,7 +48,7 @@ serve(async (req) => {
       );
     }
 
-    const { jobTitle, jobType } = await req.json();
+    const { jobTitle, jobType, offerLetterContext } = await req.json();
 
     // Validate jobTitle
     if (!jobTitle || typeof jobTitle !== 'string') {
@@ -61,6 +61,7 @@ serve(async (req) => {
     // Sanitize: remove control characters and excessive whitespace
     const sanitizedTitle = jobTitle.trim().replace(/[\x00-\x1F\x7F]/g, '').replace(/\s+/g, ' ');
     const isIconRequest = sanitizedTitle.startsWith('ICON_SUGGEST:');
+    const isOfferLetter = sanitizedTitle.startsWith('Offer Letter:');
 
     // Validate length (allow longer for icon requests)
     const maxTitleLen = isIconRequest ? 200 : MAX_JOB_TITLE_LENGTH;
@@ -90,6 +91,12 @@ serve(async (req) => {
         );
       }
       sanitizedJobType = jobType.trim().replace(/[\x00-\x1F\x7F]/g, '');
+    }
+
+    // Validate offer letter context if provided
+    let sanitizedOfferContext = '';
+    if (offerLetterContext && typeof offerLetterContext === 'string') {
+      sanitizedOfferContext = offerLetterContext.trim().replace(/[\x00-\x1F\x7F]/g, '').slice(0, 2000);
     }
 
     const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
