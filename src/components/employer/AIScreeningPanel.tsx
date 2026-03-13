@@ -85,7 +85,10 @@ export const AIScreeningPanel = ({ jobId, jobTitle }: { jobId: string; jobTitle:
         }
       );
 
-      if (!res.ok) throw new Error('Screening failed');
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Screening failed');
+      }
       const data = await res.json();
       setCandidates(data.results || []);
       setScreened(true);

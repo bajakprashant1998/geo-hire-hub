@@ -200,7 +200,7 @@ export const SkillGapAnalyzer = ({ candidateSkills }: { candidateSkills: string[
           <div className="p-5">
             <div className="flex items-center gap-4">
               {/* Score Circle */}
-              <div className="relative w-16 h-16 shrink-0 overflow-hidden">
+              <div className="relative w-16 h-16 shrink-0" style={{ overflow: 'hidden' }}>
                 <svg width="64" height="64" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
                   <circle cx="50" cy="50" r="42" fill="none" stroke="hsl(var(--muted))" strokeWidth="8" />
                   <circle
