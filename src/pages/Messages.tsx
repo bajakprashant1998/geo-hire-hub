@@ -716,7 +716,7 @@ const Messages = () => {
             </ScrollArea>
 
             {/* Input */}
-            <form onSubmit={sendMessage} className="p-4 border-t border-border bg-card">
+            <form onSubmit={sendMessage} className="p-4 border-t border-border bg-card shrink-0">
               <div className="max-w-3xl mx-auto">
                 {/* Pending attachment preview */}
                 {pendingAttachment && (
