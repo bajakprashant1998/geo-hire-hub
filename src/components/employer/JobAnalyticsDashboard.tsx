@@ -283,7 +283,7 @@ export const JobAnalyticsDashboard = ({ employerId }: JobAnalyticsDashboardProps
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="gap-1.5 rounded-xl h-9 text-xs" onClick={() => refetch()}>
+          <Button variant="outline" size="sm" className="gap-1.5 rounded-xl h-9 text-xs" onClick={async () => { await refetch(); toast.success('Analytics refreshed!'); }}>
             <RefreshCw className="w-3.5 h-3.5" /> Refresh
           </Button>
         </div>

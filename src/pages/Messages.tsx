@@ -157,7 +157,7 @@ const Messages = () => {
     // Subscribe to conversation updates
     const channel = supabase
       .channel('conversations-list')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, () => {
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, () => {
         fetchConversations();
       })
       .subscribe();

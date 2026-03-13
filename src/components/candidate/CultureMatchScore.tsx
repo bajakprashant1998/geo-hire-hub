@@ -242,10 +242,16 @@ export const CultureMatchScore = ({ candidateId }: { candidateId: string }) => {
     return 'Fair';
   };
 
-  const shareResults = () => {
+  const shareResults = async () => {
     if (matches.length === 0) return;
     const topMatches = matches.slice(0, 3).map((m, i) => `${i + 1}. ${m.company_name} (${m.matchScore}%)`).join('\n');
     const text = `🎯 My Top Culture Matches:\n\n${topMatches}\n\nFind your perfect company fit at HireForJob!`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'My Culture Matches', text, url: window.location.href });
+        return;
+      } catch (e) { if ((e as Error).name === 'AbortError') return; }
+    }
     navigator.clipboard.writeText(text);
     toast.success('Copied to clipboard!');
   };

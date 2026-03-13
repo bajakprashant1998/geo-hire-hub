@@ -61,7 +61,7 @@ export const AttachmentUpload = ({
     }
 
     if (file.size > MAX_SIZE) {
-      toast.error('File too large. Maximum size is 10MB');
+      toast.error('File too large. Maximum size is 20MB');
       return;
     }
 

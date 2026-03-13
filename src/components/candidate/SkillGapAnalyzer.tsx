@@ -106,13 +106,21 @@ export const SkillGapAnalyzer = ({ candidateSkills }: { candidateSkills: string[
     return { critical, important, niceToHave, totalSkillsNeeded };
   }, [result]);
 
-  const shareResults = () => {
+  const shareResults = async () => {
     if (!result) return;
     const text = `🎯 Skill Gap Analysis for ${dreamJob}\n\n` +
       `Match Score: ${result.matchScore}%\n` +
       `✅ Skills I have: ${result.matchedSkills.length}\n` +
       `📚 Skills to learn: ${result.missingSkills.length}\n\n` +
       `Analyzed on HireForJob.com`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Skill Gap Analysis', text, url: window.location.href });
+        setCopiedShare(true);
+        setTimeout(() => setCopiedShare(false), 2000);
+        return;
+      } catch (e) { if ((e as Error).name === 'AbortError') return; }
+    }
     navigator.clipboard.writeText(text);
     setCopiedShare(true);
     setTimeout(() => setCopiedShare(false), 2000);

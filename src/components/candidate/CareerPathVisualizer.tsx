@@ -92,12 +92,18 @@ export const CareerPathVisualizer = ({ currentJobTitle, currentSkills }: { curre
     }
   };
 
-  const shareResults = () => {
+  const shareResults = async () => {
     if (!result) return;
     const text = `🚀 My Career Path: ${result.currentRole} → ${result.targetRole}\n\n` +
       `⏱️ Estimated: ${result.estimatedYears} years\n\n` +
       `📍 Milestones:\n${result.steps.map((s, i) => `${i + 1}. ${s.title} (${s.timeframe})`).join('\n')}\n\n` +
       `Generated with HireForJob Career Path Visualizer`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'My Career Path', text, url: window.location.href });
+        return;
+      } catch (e) { if ((e as Error).name === 'AbortError') return; }
+    }
     navigator.clipboard.writeText(text);
     toast.success('Copied to clipboard!');
   };

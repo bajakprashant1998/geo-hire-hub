@@ -99,7 +99,7 @@ Make it warm yet professional. Use proper business letter format.`;
           },
           body: JSON.stringify({
             jobTitle: `Offer Letter: ${jobTitle}`,
-            jobType: prompt,
+            jobType: template,
           }),
         }
       );
