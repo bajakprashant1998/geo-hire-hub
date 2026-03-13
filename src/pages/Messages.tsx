@@ -624,7 +624,7 @@ const Messages = () => {
             </div>
 
             {/* Messages */}
-            <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+            <ScrollArea className="flex-1 p-4 min-h-0" ref={scrollRef}>
               <div className="max-w-3xl mx-auto space-y-3">
                 <AnimatePresence>
                   {messages.map((message, index) => {
