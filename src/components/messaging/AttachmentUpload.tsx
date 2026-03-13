@@ -33,7 +33,7 @@ const ALLOWED_TYPES = [
   'text/plain',
 ];
 
-const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_SIZE = 20 * 1024 * 1024; // 20MB
 
 const formatFileSize = (bytes: number): string => {
   if (bytes < 1024) return `${bytes} B`;
