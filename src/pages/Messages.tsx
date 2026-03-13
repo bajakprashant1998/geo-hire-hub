@@ -573,7 +573,7 @@ const Messages = () => {
       </div>
 
       {/* Chat Area */}
-      <div className={`${conversationId ? 'flex' : 'hidden md:flex'} flex-1 flex-col bg-muted/30`}>
+      <div className={`${conversationId ? 'flex' : 'hidden md:flex'} flex-1 flex-col bg-muted/30 min-h-0 overflow-hidden`}>
         {activeConversation ? (
           <>
             {/* Chat Header */}
