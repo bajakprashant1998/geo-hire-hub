@@ -10,7 +10,7 @@ import { Sidebar } from '@/components/map/Sidebar';
 import { MarkerPreviewSheet } from '@/components/map/MarkerPreviewSheet';
 import BottomNavBar from '@/components/map/BottomNavBar';
 import { WelcomeOverlay } from '@/components/map/WelcomeOverlay';
-import { MobileFAB } from '@/components/map/MobileFAB';
+
 import GoogleSignInPrompt from '@/components/GoogleSignInPrompt';
 import { LeftSidebarPanel } from '@/components/map/LeftSidebarPanel';
 import { QuickFilterChips } from '@/components/map/QuickFilterChips';
@@ -265,7 +265,6 @@ const Index = () => {
           onSalaryRoleFilterChange={setSalaryRoleFilter}
         />
         <NearbyAvatarRow mode={mode} candidates={filteredCandidates} jobs={filteredJobs} onSelect={handleSelectFromSidebar} onViewAll={() => setSidebarOpen(true)} />
-        <MobileFAB mode={mode} />
         <BottomNavBar />
       </div>
 
