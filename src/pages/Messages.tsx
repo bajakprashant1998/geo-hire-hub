@@ -468,7 +468,7 @@ const Messages = () => {
   return (
     <div className="h-dvh bg-background flex flex-col md:flex-row overflow-hidden">
       {/* Conversation List */}
-      <div className={`${conversationId ? 'hidden md:flex' : 'flex'} w-full md:w-96 bg-card border-r border-border flex-col`}>
+      <div className={`${conversationId ? 'hidden md:flex' : 'flex'} w-full md:w-96 bg-card border-r border-border flex-col min-h-0`}>
         {/* Header */}
         <div className="p-4 border-b border-border bg-primary text-primary-foreground">
           <div className="flex items-center gap-3 mb-4">
