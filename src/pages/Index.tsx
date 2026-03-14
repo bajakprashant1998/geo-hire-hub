@@ -10,7 +10,7 @@ import { Sidebar } from '@/components/map/Sidebar';
 import { MarkerPreviewSheet } from '@/components/map/MarkerPreviewSheet';
 import BottomNavBar from '@/components/map/BottomNavBar';
 import { WelcomeOverlay } from '@/components/map/WelcomeOverlay';
-import { MobileFAB } from '@/components/map/MobileFAB';
+
 import GoogleSignInPrompt from '@/components/GoogleSignInPrompt';
 import { LeftSidebarPanel } from '@/components/map/LeftSidebarPanel';
 import { QuickFilterChips } from '@/components/map/QuickFilterChips';
