@@ -4,7 +4,7 @@ import { checkRateLimit, getRateLimitKey, rateLimitResponse } from "../_shared/r
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 serve(async (req) => {
@@ -25,26 +25,30 @@ serve(async (req) => {
 
     // Verify user is an employer
     const anonClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!);
-    const { data: { user } } = await anonClient.auth.getUser(authHeader.replace("Bearer ", ""));
-    if (!user) throw new Error("Not authenticated");
+    const { data: { user }, error: userError } = await anonClient.auth.getUser(authHeader.replace("Bearer ", ""));
+    if (!user || userError) throw new Error("Not authenticated");
 
-    const { data: profile } = await supabase.from("profiles").select("id").eq("user_id", user.id).single();
-    if (!profile) throw new Error("Profile not found");
-    const { data: employer } = await supabase.from("employers").select("id").eq("profile_id", profile.id).single();
-    if (!employer) throw new Error("Not an employer");
+    const { data: profile, error: profileError } = await supabase.from("profiles").select("id").eq("user_id", user.id).single();
+    if (!profile || profileError) throw new Error("Profile not found. Please complete your profile setup.");
+    
+    const { data: employer, error: employerError } = await supabase.from("employers").select("id").eq("profile_id", profile.id).single();
+    if (!employer || employerError) throw new Error("Employer account not found. Only employers can use AI screening.");
 
     const { job_id } = await req.json();
     if (!job_id) throw new Error("job_id required");
 
     // Verify job belongs to employer
-    const { data: job } = await supabase
+    const { data: job, error: jobError } = await supabase
       .from("jobs")
       .select("id, title, description, skills_required, experience_min, experience_max, salary_range, job_type")
       .eq("id", job_id)
       .eq("employer_id", employer.id)
       .single();
 
-    if (!job) throw new Error("Job not found or access denied");
+    if (!job || jobError) {
+      console.error("Job lookup failed:", { job_id, employer_id: employer.id, error: jobError });
+      throw new Error("Job not found or you don't have access to this job. Make sure the job belongs to your account.");
+    }
 
     // Get applicants
     const { data: applications } = await supabase
