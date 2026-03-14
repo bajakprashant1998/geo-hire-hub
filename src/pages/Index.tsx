@@ -265,7 +265,6 @@ const Index = () => {
           onSalaryRoleFilterChange={setSalaryRoleFilter}
         />
         <NearbyAvatarRow mode={mode} candidates={filteredCandidates} jobs={filteredJobs} onSelect={handleSelectFromSidebar} onViewAll={() => setSidebarOpen(true)} />
-        <MobileFAB mode={mode} />
         <BottomNavBar />
       </div>
 

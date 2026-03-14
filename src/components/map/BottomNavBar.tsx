@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Map, Briefcase, MessageSquare, User, Search } from "lucide-react";
+import { Map, Briefcase, MessageSquare, User, Search, Zap, Users } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -14,11 +14,21 @@ const BottomNavBar = () => {
     ? (profile?.user_type === 'employer' ? '/company-profile' : '/candidate-settings')
     : '/login';
 
+  const isEmployer = profile?.user_type === 'employer';
+
+  // Quick action config based on user type
+  const quickAction = !user
+    ? { icon: Zap, label: 'Sign Up', path: '/signup' }
+    : isEmployer
+      ? { icon: Users, label: 'Talent', path: '/employer-dashboard?tab=candidates' }
+      : { icon: Zap, label: 'Apply', path: '/candidate-dashboard?tab=jobs' };
+
   const navItems = [
     { icon: Map, label: 'Explore', path: '/', isActive: location.pathname === '/' },
     { icon: Search, label: 'Browse', path: '/browse-jobs', isActive: location.pathname === '/browse-jobs' },
+    { icon: quickAction.icon, label: quickAction.label, path: quickAction.path, isActive: false, isQuickAction: true },
     { icon: Briefcase, label: 'Dashboard', path: user ? dashboardPath : '/login', isActive: location.pathname.includes('dashboard') },
-    { icon: MessageSquare, label: 'Chat', path: user ? (profile?.user_type === 'employer' ? '/employer-dashboard?tab=chat' : '/candidate-dashboard?tab=messages') : '/login', isActive: location.pathname === '/messages' || location.search.includes('tab=chat') || location.search.includes('tab=messages') },
+    { icon: MessageSquare, label: 'Chat', path: user ? (isEmployer ? '/employer-dashboard?tab=chat' : '/candidate-dashboard?tab=messages') : '/login', isActive: location.pathname === '/messages' || location.search.includes('tab=chat') || location.search.includes('tab=messages') },
     { icon: User, label: 'Profile', path: profilePath, isActive: location.pathname.includes('settings') || location.pathname.includes('profile') },
   ];
 
@@ -33,9 +43,10 @@ const BottomNavBar = () => {
         "md:hidden safe-area-pb"
       )}
     >
-      <div className="flex items-center justify-around h-[60px] px-1">
+      <div className="flex items-center justify-around h-[60px] px-0.5">
         {navItems.map((item) => {
           const Icon = item.icon;
+          const isQuick = (item as any).isQuickAction;
           return (
             <button
               key={item.label}
@@ -49,7 +60,7 @@ const BottomNavBar = () => {
               {item.isActive && (
                 <motion.div
                   layoutId="nav-active-indicator"
-                  className="absolute top-0 w-12 h-[3px] rounded-b-full bg-primary"
+                  className="absolute top-0 w-8 h-[3px] rounded-b-full bg-primary"
                   transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                 />
               )}
@@ -59,18 +70,18 @@ const BottomNavBar = () => {
                 transition={{ type: 'spring', stiffness: 400, damping: 25 }}
                 className={cn(
                   "p-1.5 rounded-xl transition-colors",
-                  item.isActive && "bg-primary/10"
+                  isQuick ? "bg-primary/15" : item.isActive ? "bg-primary/10" : ""
                 )}
               >
                 <Icon className={cn(
-                  "w-5 h-5 transition-colors",
-                  item.isActive ? "text-primary" : "text-muted-foreground"
+                  "w-[18px] h-[18px] transition-colors",
+                  isQuick ? "text-primary" : item.isActive ? "text-primary" : "text-muted-foreground"
                 )} />
               </motion.div>
 
               <span className={cn(
                 "text-[9px] transition-all leading-none",
-                item.isActive ? "font-bold text-primary" : "font-medium text-foreground/50"
+                isQuick ? "font-bold text-primary" : item.isActive ? "font-bold text-primary" : "font-medium text-foreground/50"
               )}>
                 {item.label}
               </span>
