@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext, ReactNode, useCallback } from 'react';
+import { useState, useEffect, createContext, useContext, ReactNode, useCallback, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -28,7 +28,7 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const PROFILE_FETCH_TIMEOUT = 5000; // 5 seconds max wait for profile
+const PROFILE_FETCH_TIMEOUT = 5000;
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -37,6 +37,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileResolved, setProfileResolved] = useState(false);
+
+  // Track current user ID to prevent unnecessary re-renders on token refresh
+  const currentUserIdRef = useRef<string | null>(null);
+  // Prevent double profile fetch from initSession + onAuthStateChange race
+  const profileFetchInFlightRef = useRef(false);
 
   const migrateSavedJobs = useCallback(async (profileData: Profile) => {
     if (profileData.user_type !== 'candidate') return;
@@ -49,7 +54,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { data: cand } = await supabase.from('candidates').select('id').eq('profile_id', profileData.id).maybeSingle();
       if (!cand) return;
 
-      // Get already-saved to avoid duplicates
       const { data: existing } = await supabase.from('saved_jobs').select('job_id').eq('candidate_id', cand.id);
       const existingIds = new Set((existing || []).map(e => e.job_id));
       const toInsert = localIds.filter(id => !existingIds.has(id)).map(job_id => ({ candidate_id: cand.id, job_id }));
@@ -64,6 +68,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const fetchProfile = useCallback(async (userId: string, retryCount = 0): Promise<Profile | null> => {
+    // Prevent concurrent fetches for the same user
+    if (profileFetchInFlightRef.current && retryCount === 0) {
+      return null;
+    }
+    profileFetchInFlightRef.current = true;
+
     try {
       setProfileLoading(true);
       
@@ -76,7 +86,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (data && !error) {
         setProfile(data as Profile);
         setProfileResolved(true);
-        // Migrate localStorage saved jobs on login
         migrateSavedJobs(data as Profile);
         return data as Profile;
       } else if (error) {
@@ -86,21 +95,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           return fetchProfile(userId, retryCount + 1);
         }
       }
-      // Only mark as resolved after all retries exhausted
       setProfileResolved(true);
       return null;
     } catch (err) {
       console.error('Error fetching profile:', err);
-      // Mark resolved on error after retries
       if (retryCount >= 2) setProfileResolved(true);
       return null;
     } finally {
       setProfileLoading(false);
+      profileFetchInFlightRef.current = false;
     }
   }, [migrateSavedJobs]);
 
   const refreshProfile = useCallback(async () => {
     if (user) {
+      profileFetchInFlightRef.current = false; // Allow explicit refresh
       await fetchProfile(user.id);
     }
   }, [user, fetchProfile]);
@@ -108,38 +117,57 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let isMounted = true;
     let profileFetchTimeout: NodeJS.Timeout | null = null;
+    let initDone = false;
 
-    // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (event, newSession) => {
         if (!isMounted) return;
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        // CRITICAL: Set loading to false IMMEDIATELY after we know auth state
-        // Profile fetch happens in background - don't block UI
+
+        const newUserId = newSession?.user?.id ?? null;
+        const isSameUser = newUserId === currentUserIdRef.current;
+
+        // TOKEN_REFRESHED fires when Chrome tab regains focus or token auto-refreshes.
+        // If the user hasn't changed, just silently update the session — no state resets.
+        if (event === 'TOKEN_REFRESHED' && isSameUser) {
+          setSession(newSession);
+          // Don't touch user/profile/loading — nothing changed
+          return;
+        }
+
+        // For INITIAL_SESSION, skip if initSession already handled it
+        if (event === 'INITIAL_SESSION' && initDone && isSameUser) {
+          return;
+        }
+
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+        currentUserIdRef.current = newUserId;
+
         if (isMounted) {
           setLoading(false);
         }
 
-        if (session?.user) {
-          // Only reset profileResolved on actual sign-in, not on token refresh
-          // TOKEN_REFRESHED fires when Chrome tab regains focus — don't flash loading
-          const isNewSignIn = event === 'SIGNED_IN' || event === 'INITIAL_SESSION';
-          if (isNewSignIn) {
+        if (newSession?.user) {
+          // Only fetch profile on actual sign-in or initial load
+          const shouldFetchProfile = event === 'SIGNED_IN' || event === 'INITIAL_SESSION';
+          if (shouldFetchProfile && !profileFetchInFlightRef.current) {
             setProfileResolved(false);
-            // Fetch profile in background with timeout protection
             profileFetchTimeout = setTimeout(() => {
               if (isMounted) {
-                console.warn('Profile fetch timed out - continuing without profile');
+                console.warn('Profile fetch timed out');
                 setProfileLoading(false);
+                setProfileResolved(true);
               }
             }, PROFILE_FETCH_TIMEOUT);
 
-            fetchProfile(session.user.id).finally(() => {
+            fetchProfile(newSession.user.id).finally(() => {
               if (profileFetchTimeout) clearTimeout(profileFetchTimeout);
             });
+          }
+          // USER_UPDATED (e.g. email confirm, password change) — refresh profile silently
+          if (event === 'USER_UPDATED') {
+            profileFetchInFlightRef.current = false;
+            fetchProfile(newSession.user.id);
           }
         } else {
           setProfile(null);
@@ -148,25 +176,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
-    // Then get initial session
     const initSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
         
         if (!isMounted) return;
+
+        const userId = initialSession?.user?.id ?? null;
         
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        // CRITICAL: Set loading to false after we know auth state
+        setSession(initialSession);
+        setUser(initialSession?.user ?? null);
+        currentUserIdRef.current = userId;
+        initDone = true;
+
         if (isMounted) {
           setLoading(false);
         }
         
-        if (session?.user) {
-          setProfileResolved(false);
-          // Fetch profile in background
-          fetchProfile(session.user.id);
+        if (initialSession?.user) {
+          if (!profileFetchInFlightRef.current) {
+            setProfileResolved(false);
+            fetchProfile(initialSession.user.id);
+          }
         } else {
           setProfileResolved(true);
         }
@@ -174,6 +205,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.error('Error getting session:', error);
         if (isMounted) {
           setLoading(false);
+          setProfileResolved(true);
         }
       }
     };
@@ -188,6 +220,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [fetchProfile]);
 
   const signOut = async () => {
+    currentUserIdRef.current = null;
+    profileFetchInFlightRef.current = false;
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
@@ -195,7 +229,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setProfileResolved(false);
   };
 
-  // Check if email is verified
   const isEmailVerified = user?.email_confirmed_at != null;
 
   return (
