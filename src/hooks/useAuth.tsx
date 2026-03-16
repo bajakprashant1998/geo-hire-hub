@@ -124,19 +124,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
 
         if (session?.user) {
-          setProfileResolved(false);
-          // Fetch profile in background with timeout protection
-          profileFetchTimeout = setTimeout(() => {
-            if (isMounted) {
-              console.warn('Profile fetch timed out - continuing without profile');
-              setProfileLoading(false);
-              // Do NOT set profileResolved here - let retry chain finish
-            }
-          }, PROFILE_FETCH_TIMEOUT);
+          // Only reset profileResolved on actual sign-in, not on token refresh
+          // TOKEN_REFRESHED fires when Chrome tab regains focus — don't flash loading
+          const isNewSignIn = event === 'SIGNED_IN' || event === 'INITIAL_SESSION';
+          if (isNewSignIn) {
+            setProfileResolved(false);
+            // Fetch profile in background with timeout protection
+            profileFetchTimeout = setTimeout(() => {
+              if (isMounted) {
+                console.warn('Profile fetch timed out - continuing without profile');
+                setProfileLoading(false);
+              }
+            }, PROFILE_FETCH_TIMEOUT);
 
-          fetchProfile(session.user.id).finally(() => {
-            if (profileFetchTimeout) clearTimeout(profileFetchTimeout);
-          });
+            fetchProfile(session.user.id).finally(() => {
+              if (profileFetchTimeout) clearTimeout(profileFetchTimeout);
+            });
+          }
         } else {
           setProfile(null);
           setProfileResolved(true);
