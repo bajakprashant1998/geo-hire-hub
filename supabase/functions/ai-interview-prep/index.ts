@@ -112,7 +112,7 @@ Candidate's answer: "${answer?.answer || ""}"
 Evaluate this answer.`;
 
       const content = await generateGeminiChat({
-        model: "gemini-2.0-flash",
+        model: "gemini-1.5-flash",
         temperature: 0.4,
         messages: [
           { role: "system", content: systemPrompt },
