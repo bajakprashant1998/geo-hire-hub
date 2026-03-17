@@ -6,6 +6,7 @@ import { Building2, MapPin, Clock, ChevronRight, Zap, Heart } from 'lucide-react
 import { SalaryBadge } from '@/components/SalaryBadge';
 import { DeadlineCountdown } from '@/components/DeadlineCountdown';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
