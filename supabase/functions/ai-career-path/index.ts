@@ -41,7 +41,7 @@ Create a realistic career progression roadmap. Respond with ONLY valid JSON (no 
 Include 3-6 steps showing natural progression. Be realistic about timeframes. Include 3-4 tips.`;
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
