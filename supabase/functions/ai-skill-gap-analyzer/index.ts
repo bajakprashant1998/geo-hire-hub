@@ -34,7 +34,7 @@ Analyze the skill gap and respond with ONLY valid JSON (no markdown):
 Be realistic and specific to the job market. Limit to 8 missing skills max and 4 recommendations.`;
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },

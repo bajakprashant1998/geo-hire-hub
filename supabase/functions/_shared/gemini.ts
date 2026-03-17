@@ -21,8 +21,8 @@ interface GeminiChatRequest {
   model?: string;
 }
 
-const DEFAULT_MODEL = "gemini-2.0-flash";
-const COMPAT_FALLBACK_MODEL = "gemini-2.0-flash";
+const DEFAULT_MODEL = "gemini-2.5-flash";
+const COMPAT_FALLBACK_MODEL = "gemini-2.5-flash";
 
 export async function generateGeminiChat({
   messages,

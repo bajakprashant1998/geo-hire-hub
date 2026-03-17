@@ -119,7 +119,7 @@ Input: "car" → ["Car Mechanic", "Cardiac Surgeon", "Career Counselor", "Cargo 
     let content = "[]";
     try {
       content = await generateGeminiChat({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash",
         temperature: 0.3,
         messages: [
           { role: "system", content: systemPrompt },
