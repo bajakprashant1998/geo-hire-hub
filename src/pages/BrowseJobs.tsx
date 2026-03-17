@@ -1,14 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Briefcase, ArrowUp } from 'lucide-react';
+import { Briefcase, ArrowUp, Scale } from 'lucide-react';
 import { SEOHead } from '@/components/SEOHead';
 import { SEOContentFooter } from '@/components/SEOContentFooter';
 import { buildBreadcrumbJsonLd } from '@/components/BreadcrumbNav';
 import { useBrowseJobs } from '@/hooks/useBrowseJobs';
 import { BrowseHeader } from '@/components/browse/BrowseHeader';
 import { JobCard, getJobUrl } from '@/components/browse/JobCard';
+import { CompareBar } from '@/components/browse/CompareBar';
+import { CompareModal } from '@/components/browse/CompareModal';
+import { toast } from 'sonner';
 
 const BrowseJobs = () => {
   const {
@@ -22,6 +25,33 @@ const BrowseJobs = () => {
     activeFilterCount,
     savedJobIds, refreshSavedJobIds,
   } = useBrowseJobs();
+
+  // Compare state
+  const [compareMode, setCompareMode] = useState(false);
+  const [compareJobs, setCompareJobs] = useState<any[]>([]);
+  const [showCompareModal, setShowCompareModal] = useState(false);
+  const compareIds = new Set(compareJobs.map(j => j.id));
+
+  const handleCompareToggle = useCallback((job: any) => {
+    setCompareJobs(prev => {
+      const exists = prev.find(j => j.id === job.id);
+      if (exists) return prev.filter(j => j.id !== job.id);
+      if (prev.length >= 3) {
+        toast.error('Maximum 3 jobs can be compared');
+        return prev;
+      }
+      return [...prev, job];
+    });
+  }, []);
+
+  const removeFromCompare = useCallback((id: string) => {
+    setCompareJobs(prev => prev.filter(j => j.id !== id));
+  }, []);
+
+  // Auto-enable compare mode when jobs are selected
+  useEffect(() => {
+    if (compareJobs.length > 0) setCompareMode(true);
+  }, [compareJobs.length]);
 
   // Back to top
   const [showTop, setShowTop] = useState(false);
@@ -95,12 +125,27 @@ const BrowseJobs = () => {
           </motion.div>
         ) : (
           <>
-            {/* Results count */}
+            {/* Results count + Compare toggle */}
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-muted-foreground">
                 Showing <strong className="text-foreground tabular-nums">{jobs.length}</strong> of{' '}
                 <strong className="tabular-nums">{total.toLocaleString()}</strong> jobs
               </p>
+              <Button
+                variant={compareMode ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => {
+                  if (compareMode && compareJobs.length === 0) {
+                    setCompareMode(false);
+                  } else {
+                    setCompareMode(!compareMode);
+                  }
+                }}
+                className="rounded-xl gap-1.5 text-xs"
+              >
+                <Scale className="w-3.5 h-3.5" />
+                {compareMode ? 'Exit Compare' : 'Compare Jobs'}
+              </Button>
             </div>
 
             <div className={viewMode === 'grid'
@@ -109,7 +154,17 @@ const BrowseJobs = () => {
             }>
               <AnimatePresence mode="popLayout">
                 {jobs.map((job: any, i: number) => (
-                  <JobCard key={job.id} job={job} index={i} viewMode={viewMode} savedJobIds={savedJobIds} onSaveToggle={refreshSavedJobIds} />
+                  <JobCard
+                    key={job.id}
+                    job={job}
+                    index={i}
+                    viewMode={viewMode}
+                    savedJobIds={savedJobIds}
+                    onSaveToggle={refreshSavedJobIds}
+                    compareMode={compareMode}
+                    isSelectedForCompare={compareIds.has(job.id)}
+                    onCompareToggle={handleCompareToggle}
+                  />
                 ))}
               </AnimatePresence>
             </div>
@@ -146,6 +201,25 @@ const BrowseJobs = () => {
 
       <SEOContentFooter />
 
+      {/* Compare bar */}
+      <AnimatePresence>
+        {compareJobs.length > 0 && (
+          <CompareBar
+            selectedJobs={compareJobs}
+            onRemove={removeFromCompare}
+            onClear={() => { setCompareJobs([]); setCompareMode(false); }}
+            onCompare={() => setShowCompareModal(true)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Compare modal */}
+      <CompareModal
+        open={showCompareModal}
+        onClose={() => setShowCompareModal(false)}
+        jobs={compareJobs}
+      />
+
       {/* Back to top */}
       <AnimatePresence>
         {showTop && (
@@ -155,6 +229,7 @@ const BrowseJobs = () => {
             exit={{ opacity: 0, scale: 0.8 }}
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             className="fixed bottom-6 right-6 z-40 w-11 h-11 rounded-xl bg-primary text-primary-foreground shadow-lg hover:shadow-xl hover:scale-105 transition-all flex items-center justify-center"
+            style={{ bottom: compareJobs.length > 0 ? '5rem' : '1.5rem' }}
           >
             <ArrowUp className="w-5 h-5" />
           </motion.button>
