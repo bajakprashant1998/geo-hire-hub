@@ -59,7 +59,7 @@ function isNew(createdAt: string) {
   return (Date.now() - new Date(createdAt).getTime()) < 86400000 * 2;
 }
 
-export const JobCard = ({ job, index, viewMode, savedJobIds, onSaveToggle }: JobCardProps) => {
+export const JobCard = ({ job, index, viewMode, savedJobIds, onSaveToggle, compareMode, isSelectedForCompare, onCompareToggle }: JobCardProps) => {
   const { user, profile } = useAuth();
   // Use batch-fetched set if available, otherwise fall back to individual check
   const [localSaved, setLocalSaved] = useState(false);
@@ -101,6 +101,12 @@ export const JobCard = ({ job, index, viewMode, savedJobIds, onSaveToggle }: Job
     onSaveToggle?.();
   };
 
+  const handleCompareClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onCompareToggle?.(job);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -108,22 +114,49 @@ export const JobCard = ({ job, index, viewMode, savedJobIds, onSaveToggle }: Job
       transition={{ delay: Math.min(index * 0.025, 0.25), duration: 0.3 }}
     >
       <Link to={getJobUrl(job)} className="block group">
-        <Card className="overflow-hidden border-border/50 bg-card hover:shadow-lg hover:border-primary/25 transition-all duration-250 group-hover:-translate-y-0.5 relative">
+        <Card className={cn(
+          "overflow-hidden border-border/50 bg-card hover:shadow-lg hover:border-primary/25 transition-all duration-250 group-hover:-translate-y-0.5 relative",
+          isSelectedForCompare && "ring-2 ring-primary border-primary/40 shadow-md"
+        )}>
+          {/* Compare checkbox */}
+          {compareMode && (
+            <button
+              onClick={handleCompareClick}
+              className={cn(
+                "absolute top-3 left-3 z-10 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all",
+                isSelectedForCompare
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-muted-foreground/30 bg-card hover:border-primary/50"
+              )}
+              aria-label={isSelectedForCompare ? 'Remove from compare' : 'Add to compare'}
+            >
+              {isSelectedForCompare && (
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <path d="M2 6L5 9L10 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </button>
+          )}
           {/* Save button */}
           {user && profile?.user_type === 'candidate' && (
             <button
               onClick={handleSave}
-              className={`absolute top-3 right-3 z-10 p-1.5 rounded-full transition-all ${
+              className={cn(
+                "absolute top-3 z-10 p-1.5 rounded-full transition-all",
+                compareMode ? "right-3" : "right-3",
                 saved
                   ? 'text-destructive bg-destructive/10 hover:bg-destructive/20'
                   : 'text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100'
-              }`}
+              )}
               aria-label={saved ? 'Unsave job' : 'Save job'}
             >
               <Heart className={`w-4 h-4 ${saved ? 'fill-current' : ''}`} />
             </button>
           )}
-          <CardContent className={viewMode === 'grid' ? 'p-5 flex flex-col h-full min-h-[220px]' : 'p-4 sm:p-5'}>
+          <CardContent className={cn(
+            viewMode === 'grid' ? 'p-5 flex flex-col h-full min-h-[220px]' : 'p-4 sm:p-5',
+            compareMode && 'pl-11'
+          )}>
             {viewMode === 'grid' ? (
               <GridLayout
                 job={job} companyName={companyName} industry={industry}
