@@ -149,7 +149,7 @@ ${JSON.stringify(answer, null, 2)}
 Provide an overall assessment.`;
 
       const content = await generateGeminiChat({
-        model: "gemini-2.0-flash",
+        model: "gemini-1.5-flash",
         temperature: 0.4,
         messages: [
           { role: "system", content: systemPrompt },
