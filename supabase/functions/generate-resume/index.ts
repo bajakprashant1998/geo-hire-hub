@@ -51,7 +51,7 @@ Generate ATS-optimized content that showcases their qualifications professionall
     let content = "";
     try {
       content = await generateGeminiChat({
-        model: "gemini-2.0-flash",
+        model: "gemini-1.5-flash",
         temperature: 0.7,
         messages: [
           { role: "system", content: systemPrompt },

@@ -117,7 +117,7 @@ Be realistic and objective. Consider skill relevance, experience level, location
       let content = "";
       try {
         content = await generateGeminiChat({
-          model: "gemini-2.0-flash",
+          model: "gemini-1.5-flash",
           temperature: 0.3,
           messages: [
             { role: "system", content: "You are a professional job matching AI. Analyze candidate-job compatibility objectively. Return only valid JSON." },
