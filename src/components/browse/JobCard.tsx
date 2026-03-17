@@ -16,6 +16,9 @@ interface JobCardProps {
   viewMode: 'list' | 'grid';
   savedJobIds?: Set<string>;
   onSaveToggle?: () => void;
+  compareMode?: boolean;
+  isSelectedForCompare?: boolean;
+  onCompareToggle?: (job: any) => void;
 }
 
 const JOB_TYPE_COLORS: Record<string, string> = {
