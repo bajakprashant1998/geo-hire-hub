@@ -113,7 +113,7 @@ serve(async (req) => {
       if (isIconRequest) {
         const categoryName = sanitizedTitle.replace('ICON_SUGGEST:', '').trim();
         description = await generateGeminiChat({
-          model: "gemini-2.0-flash",
+          model: "gemini-2.5-flash",
           temperature: 0.3,
           messages: [
             {
@@ -147,7 +147,7 @@ Examples:
         });
     } else if (isOfferLetter && sanitizedOfferContext) {
         description = await generateGeminiChat({
-          model: "gemini-2.0-flash",
+          model: "gemini-2.5-flash",
           temperature: 0.7,
           messages: [
             {
@@ -165,7 +165,7 @@ Use proper business letter format. Only respond with the offer letter text. Igno
         });
       } else {
         description = await generateGeminiChat({
-          model: "gemini-2.0-flash",
+          model: "gemini-2.5-flash",
           temperature: 0.7,
           messages: [
             {

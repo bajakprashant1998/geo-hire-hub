@@ -37,7 +37,7 @@ serve(async (req) => {
     const sanitizedTitle = (jobTitle || "").trim().replace(/[\x00-\x1F\x7F]/g, "").slice(0, 100);
 
     const result = await generateGeminiChat({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       temperature: 0.4,
       messages: [
         {
