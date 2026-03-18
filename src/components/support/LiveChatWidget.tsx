@@ -234,14 +234,26 @@ const LiveChatWidget = () => {
                     <p className="text-[11px] opacity-80">We typically reply in minutes</p>
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-primary-foreground hover:bg-primary-foreground/10"
-                  onClick={() => setIsOpen(false)}
-                >
-                  <Minimize2 className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-primary-foreground hover:bg-primary-foreground/10"
+                    onClick={() => setIsOpen(false)}
+                    aria-label="Minimize chat"
+                  >
+                    <Minimize2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-primary-foreground hover:bg-primary-foreground/10"
+                    onClick={() => { setIsOpen(false); setIsHidden(true); }}
+                    aria-label="Close chat"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
 
               {/* Messages */}
