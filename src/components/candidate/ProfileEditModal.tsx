@@ -273,9 +273,9 @@ export const ProfileEditModal = ({ open, onOpenChange, profile, candidate, onSav
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 pt-4 border-t">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={handleSave} disabled={loading}>
+        <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3 pt-4 border-t">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full sm:w-auto">Cancel</Button>
+          <Button onClick={handleSave} disabled={loading} className="w-full sm:w-auto">
             {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             Save Changes
           </Button>

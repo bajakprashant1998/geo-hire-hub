@@ -1099,7 +1099,7 @@ const AIResumeBuilder = ({ embedded = false }: { embedded?: boolean }) => {
     >
       <div className="grid gap-3">
         {formData.skills.map((skill, i) => (
-          <div key={i} className="flex items-center gap-3">
+          <div key={i} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
             <Input
               value={skill.name}
               onChange={e => updateListItem('skills', i, 'name', e.target.value)}
@@ -1116,7 +1116,7 @@ const AIResumeBuilder = ({ embedded = false }: { embedded?: boolean }) => {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-9 w-9 text-destructive shrink-0" 
+                className="h-9 w-9 text-destructive shrink-0 self-end sm:self-auto" 
                 onClick={() => removeSkill(i)}
               >
                 <Trash2 className="w-4 h-4" />

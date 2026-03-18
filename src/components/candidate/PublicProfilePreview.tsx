@@ -350,7 +350,7 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25 }}
-        className="rounded-2xl border-2 border-dashed border-border/50 overflow-hidden"
+        className="rounded-2xl border-2 border-dashed border-border/50 overflow-hidden overflow-x-hidden"
       >
         <div className="bg-muted/30 px-4 py-2 border-b border-border/40 flex items-center gap-2">
           <div className="flex gap-1.5">
