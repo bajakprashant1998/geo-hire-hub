@@ -178,11 +178,11 @@ export const JobCard = ({ job, index, viewMode, savedJobIds, onSaveToggle, compa
 function GridLayout({ job, companyName, desc, typeColor, jobIsNew }: any) {
   return (
     <>
-      <div className="flex items-start justify-between gap-2 mb-2 sm:mb-3">
+      <div className="flex items-start justify-between gap-2 mb-2 sm:mb-3 pr-7">
         <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-primary/8 flex items-center justify-center shrink-0 ring-1 ring-primary/10">
           <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
         </div>
-        <div className="flex items-center gap-1.5 pr-6 min-w-0">
+        <div className="flex items-center gap-1.5 min-w-0">
           {jobIsNew && (
             <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px] px-1.5 py-0 h-5 font-medium shrink-0">
               <Zap className="w-2.5 h-2.5 mr-0.5" />New
@@ -232,7 +232,7 @@ function ListLayout({ job, companyName, industry, desc, typeColor, jobIsNew }: a
         <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
       </div>
       <div className="flex-1 min-w-0 overflow-hidden">
-        <div className="flex items-start justify-between gap-2 sm:gap-3">
+        <div className="flex items-start justify-between gap-2 sm:gap-3 pr-7">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 min-w-0">
               <h3 className="font-semibold text-foreground truncate group-hover:text-primary transition-colors text-sm sm:text-[15px]">
