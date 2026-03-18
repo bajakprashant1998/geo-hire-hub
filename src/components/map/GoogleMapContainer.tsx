@@ -279,12 +279,9 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
       {/* User location marker */}
       {userLocation && (
         <AdvancedMarker position={userLocation} zIndex={1000}>
-          <div style={{ position: 'relative' }}>
-            <div style={{
-              width: 20, height: 20, borderRadius: '50%',
-              background: '#22C55E', border: '3px solid white',
-              boxShadow: '0 0 0 6px rgba(34,197,94,0.2), 0 2px 8px rgba(0,0,0,0.3)',
-            }} />
+          <div className="user-location-marker">
+            <div className="user-location-pulse" />
+            <div className="user-location-dot" />
           </div>
         </AdvancedMarker>
       )}
