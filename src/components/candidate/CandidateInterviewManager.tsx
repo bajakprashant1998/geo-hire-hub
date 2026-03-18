@@ -153,7 +153,7 @@ const NextInterviewHero = ({ interview }: { interview: InterviewRow }) => {
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-success via-success/80 to-success animate-pulse" />
         )}
         
-        <CardContent className="relative p-4 sm:p-6">
+        <CardContent className="relative p-3 sm:p-6">
           <div className="flex items-center gap-2 mb-3">
             {isNow ? (
               <Badge className="bg-success text-success-foreground gap-1 animate-pulse">
