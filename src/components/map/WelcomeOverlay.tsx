@@ -198,8 +198,8 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
               </div>
 
               {/* Features grid – overlapping header */}
-              <div className="px-4 -mt-14 relative z-10">
-                <motion.div variants={itemVariants} className="grid grid-cols-4 gap-2">
+              <div className="px-3 sm:px-4 -mt-14 relative z-10">
+                <motion.div variants={itemVariants} className="grid grid-cols-4 gap-1.5 sm:gap-2">
                   {features.map((f, i) => (
                     <motion.div
                       key={i}
