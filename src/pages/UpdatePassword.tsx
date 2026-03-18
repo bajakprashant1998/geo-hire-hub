@@ -323,7 +323,7 @@ const UpdatePassword = () => {
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       className="h-12 pl-12 pr-12 text-base border-2 focus:border-primary transition-colors"
-                      minLength={6}
+                      minLength={8}
                       required
                     />
                     <button
