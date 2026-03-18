@@ -255,7 +255,7 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
               )}
 
               {/* Action area */}
-              <div className="px-4 pt-4 pb-5 space-y-2.5">
+              <div className="px-3 sm:px-4 pt-3 sm:pt-4 pb-4 sm:pb-5 space-y-2">
                 {/* Primary: Register */}
                 <motion.div variants={itemVariants}>
                   <Button
