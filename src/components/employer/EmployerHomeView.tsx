@@ -239,7 +239,7 @@ export const EmployerHomeView = ({
                 "w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center ring-1 transition-shadow group-hover:shadow-md",
                 action.bg, action.ring
               )}>
-                <action.icon className={cn("w-4.5 h-4.5 sm:w-5 sm:h-5", action.color)} />
+                <action.icon className={cn("w-4 h-4 sm:w-5 sm:h-5", action.color)} />
               </div>
               {action.badge !== undefined && action.badge > 0 && (
                 <span className="absolute top-1 right-1 sm:top-1.5 sm:right-2 min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center px-1 shadow-sm">
