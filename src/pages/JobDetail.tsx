@@ -212,12 +212,20 @@ const JobDetail = () => {
   const jobSeoDesc = job ? `Apply for ${job.title} at ${job.employer.company_name}. ${job.job_type || 'Full-time'} role${job.salary_range ? `, salary ${job.salary_range}` : ''}${job.job_address ? ` in ${job.job_address}` : ''}. Apply now on HireForJob.`.slice(0, 160) : '';
   const jobCanonical = job ? `${baseUrl}${window.location.pathname}` : undefined;
 
+  // FAQ items for SEO
+  const faqItems = job ? [
+    { q: `What is the salary for ${job.title}?`, a: job.salary_range ? `The salary range for this ${job.title} position is ${job.salary_range} per month.` : `Salary details are discussed during the interview process. Apply now to learn more.` },
+    { q: `What qualifications are needed for this job?`, a: `${job.education ? `Education: ${job.education}. ` : ''}${job.experience_type === 'Fresher Only' ? 'Freshers are welcome to apply.' : job.min_experience ? `${job.min_experience}-${job.max_experience || '10+'} years of experience required.` : 'Experience requirements vary. Check the job details above.'}` },
+    { q: `How do I apply for this ${job.title} position?`, a: `Click the "Apply Now" button on this page to submit your application directly to ${job.employer.company_name}. You can also attach a cover letter to stand out.` },
+    ...(job.job_address ? [{ q: `Where is this job located?`, a: `This position is located at ${job.job_address}. You can find more jobs near this location on HireForJob.` }] : []),
+  ] : [];
+
   const jobJsonLd = job ? (() => {
     const created = job.created_at ? new Date(job.created_at) : new Date();
     const validThrough = new Date(created);
     validThrough.setDate(validThrough.getDate() + 30);
     const addressParts = job.job_address?.split(',').map(s => s.trim()) || [];
-    return {
+    const ld: Record<string, any> = {
       '@context': 'https://schema.org', '@type': 'JobPosting', title: job.title, description: job.description || '',
       identifier: { '@type': 'PropertyValue', name: job.employer.company_name, value: job.id },
       hiringOrganization: { '@type': 'Organization', name: job.employer.company_name, ...(job.employer.avatar_url && { logo: job.employer.avatar_url }), ...(job.employer.website_url && { sameAs: job.employer.website_url }) },
@@ -226,7 +234,18 @@ const JobDetail = () => {
       jobLocation: { '@type': 'Place', address: { '@type': 'PostalAddress', ...(addressParts[0] && { addressLocality: addressParts[0] }), ...(addressParts[1] && { addressRegion: addressParts[1] }), ...(addressParts[2] && { addressCountry: addressParts[2] }), ...(job.job_address && { streetAddress: job.job_address }) } },
       ...(job.salary_range && { baseSalary: { '@type': 'MonetaryAmount', currency: 'INR', value: { '@type': 'QuantitativeValue', value: job.salary_range, unitText: 'MONTH' } } }),
     };
+    return ld;
   })() : undefined;
+
+  // FAQ JSON-LD for SEO
+  const faqJsonLd = job && faqItems.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqItems.map(f => ({
+      '@type': 'Question', name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  } : undefined;
 
   const breadcrumbItems: BreadcrumbItem[] = job ? [
     { label: 'Jobs', href: '/browse-jobs' },
