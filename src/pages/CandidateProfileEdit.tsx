@@ -499,7 +499,7 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.04] via-transparent to-accent/[0.04] pointer-events-none" />
                 <div className="absolute top-0 right-0 w-48 h-48 bg-primary/[0.06] rounded-full -translate-y-1/2 translate-x-1/4 blur-3xl pointer-events-none" />
 
-                <div className="relative p-5 sm:p-6">
+                <div className="relative p-4 sm:p-5 md:p-6">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                         {/* Avatar + Info */}
                         <div className="flex items-center gap-4 flex-1 min-w-0">
