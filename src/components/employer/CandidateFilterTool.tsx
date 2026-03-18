@@ -1341,7 +1341,7 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                                       {skill}
                                     </span>
                                   ))}
-                                  {candidate.skills.length > 4 && (
+                                  {candidate.skills.length > 3 && (
                                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-md border border-dashed border-border/50 text-muted-foreground/60">
                                       +{candidate.skills.length - 4}
                                     </span>
