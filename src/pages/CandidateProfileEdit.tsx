@@ -1032,7 +1032,7 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                             </SectionCard>
 
                             <SectionCard icon={Banknote} title="Salary Details" subtitle="Keep this private — only used for matching" tip="Being transparent helps avoid mismatches">
-                                <div className="grid md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                     <div className="space-y-2"><Label className="text-sm font-medium">Currency</Label>
                                         <Select value={salaryCurrency} onValueChange={setSalaryCurrency}>
                                             <SelectTrigger className="bg-background/50"><SelectValue /></SelectTrigger>
