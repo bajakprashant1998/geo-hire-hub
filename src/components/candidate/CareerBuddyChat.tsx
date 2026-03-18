@@ -520,10 +520,10 @@ export const CareerBuddyChat = () => {
                   </Avatar>
 
                   <div className={cn(
-                    "max-w-[85%] rounded-2xl transition-all",
+                    "max-w-[88%] sm:max-w-[85%] rounded-2xl transition-all overflow-hidden",
                     message.role === 'user'
-                      ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-br-lg px-4 py-2.5 shadow-md shadow-primary/15"
-                      : "bg-secondary border border-border/50 rounded-bl-lg px-4 py-3 shadow-sm"
+                      ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-br-lg px-3 sm:px-4 py-2.5 shadow-md shadow-primary/15"
+                      : "bg-secondary border border-border/50 rounded-bl-lg px-3 sm:px-4 py-2.5 sm:py-3 shadow-sm"
                   )}>
                     {message.role === 'assistant' ? (
                       message.content ? (
