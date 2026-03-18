@@ -609,7 +609,7 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                                         : "bg-card border-border/50 text-muted-foreground hover:bg-secondary"
                                 )}
                             >
-                                <TabIcon className="w-4 h-4" />
+                                <TabIcon className="w-3.5 h-3.5" />
                                 {tab.label}
                                 {!isActive && completeness === 100 && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
                                 {!isActive && completeness < 100 && (
