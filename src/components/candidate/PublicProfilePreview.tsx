@@ -158,7 +158,7 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
           </div>
 
           {/* Stats Row */}
-          <div className="grid grid-cols-3 gap-3 mt-5">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-4 sm:mt-5">
             <div className="text-center p-3 rounded-xl bg-background/60 backdrop-blur-sm border border-border/40">
               <div className="flex items-center justify-center gap-1.5 text-primary mb-1">
                 <Eye className="w-4 h-4" />
