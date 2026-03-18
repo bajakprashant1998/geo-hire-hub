@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Users, Briefcase, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { lovable } from '@/integrations/lovable/index';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useGoogleOAuthSettings } from '@/hooks/useGoogleOAuthSettings';
