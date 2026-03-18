@@ -378,9 +378,9 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
 
         {/* Storage Progress */}
         <Card className="border-border/40">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-foreground flex items-center gap-2">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center justify-between mb-2 gap-2">
+              <span className="text-xs sm:text-sm font-medium text-foreground flex items-center gap-1.5 sm:gap-2 min-w-0">
                 <HardDrive className="w-4 h-4 text-muted-foreground" />
                 Storage Usage
               </span>
