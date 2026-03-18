@@ -274,27 +274,27 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15 }}
-        className="flex items-center justify-between gap-3 p-4 rounded-xl bg-muted/50 border border-border/40"
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 sm:p-4 rounded-xl bg-muted/50 border border-border/40"
       >
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
             {viewMode === 'employer' ? <Briefcase className="w-4 h-4 text-primary" /> : <Globe className="w-4 h-4 text-primary" />}
           </div>
-          <div>
-            <p className="text-sm font-medium text-foreground">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-foreground truncate">
               Viewing as: {viewMode === 'employer' ? 'Employer' : 'Public Visitor'}
             </p>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-[10px] text-muted-foreground truncate">
               {viewMode === 'employer' ? 'Full profile with contact info' : 'Limited info for non-logged users'}
             </p>
           </div>
         </div>
-        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="shrink-0">
-          <TabsList className="h-9 bg-background/80 border border-border/50 p-0.5">
-            <TabsTrigger value="employer" className="text-xs h-8 px-3 gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="shrink-0 w-full sm:w-auto">
+          <TabsList className="h-9 bg-background/80 border border-border/50 p-0.5 w-full sm:w-auto">
+            <TabsTrigger value="employer" className="text-xs h-8 px-2.5 sm:px-3 gap-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex-1 sm:flex-none">
               <Briefcase className="w-3 h-3" /> Employer
             </TabsTrigger>
-            <TabsTrigger value="public" className="text-xs h-8 px-3 gap-1.5 data-[state=active]:bg-muted">
+            <TabsTrigger value="public" className="text-xs h-8 px-2.5 sm:px-3 gap-1 data-[state=active]:bg-muted flex-1 sm:flex-none">
               <Globe className="w-3 h-3" /> Public
             </TabsTrigger>
           </TabsList>
