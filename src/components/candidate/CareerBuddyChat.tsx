@@ -364,7 +364,7 @@ export const CareerBuddyChat = () => {
   const lastAssistantMessage = [...messages].reverse().find(m => m.role === 'assistant' && m.content);
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-180px)] sm:h-[calc(100dvh-200px)] min-h-[400px] max-h-[900px] -mx-3 sm:-mx-4 md:-mx-6 -mb-3 sm:-mb-4 md:-mb-6">
+    <div className="flex flex-col h-[calc(100dvh-180px)] sm:h-[calc(100dvh-200px)] min-h-[400px] max-h-[900px] -mx-3 sm:-mx-4 md:-mx-6 -mb-3 sm:-mb-4 md:-mb-6 overflow-x-hidden">
       {/* ── Header ── */}
       <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent">
         <div className="flex items-center gap-3">
