@@ -126,12 +126,12 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
             </div>
 
             {/* Quick Actions */}
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2 shrink-0 flex-wrap">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="sm" onClick={handleCopyLink} className="gap-2 rounded-xl">
-                    {copied ? <CheckCircle2 className="w-4 h-4 text-success" /> : <Link2 className="w-4 h-4" />}
-                    {copied ? 'Copied!' : 'Copy Link'}
+                  <Button variant="outline" size="sm" onClick={handleCopyLink} className="gap-1.5 rounded-xl text-xs h-8 sm:h-9">
+                    {copied ? <CheckCircle2 className="w-3.5 h-3.5 text-success" /> : <Link2 className="w-3.5 h-3.5" />}
+                    <span className="hidden sm:inline">{copied ? 'Copied!' : 'Copy Link'}</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Copy your profile link</TooltipContent>
@@ -139,8 +139,8 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
               
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" onClick={handleShare} className="rounded-xl w-9 h-9">
-                    <Share2 className="w-4 h-4" />
+                  <Button variant="outline" size="icon" onClick={handleShare} className="rounded-xl w-8 h-8 sm:w-9 sm:h-9">
+                    <Share2 className="w-3.5 h-3.5" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Share profile</TooltipContent>
@@ -148,8 +148,8 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button size="icon" onClick={() => onNavigate('profile')} className="rounded-xl w-9 h-9">
-                    <Edit3 className="w-4 h-4" />
+                  <Button size="icon" onClick={() => onNavigate('profile')} className="rounded-xl w-8 h-8 sm:w-9 sm:h-9">
+                    <Edit3 className="w-3.5 h-3.5" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Edit profile</TooltipContent>
