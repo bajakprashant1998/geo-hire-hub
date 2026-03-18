@@ -159,26 +159,26 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
 
           {/* Stats Row */}
           <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-4 sm:mt-5">
-            <div className="text-center p-3 rounded-xl bg-background/60 backdrop-blur-sm border border-border/40">
-              <div className="flex items-center justify-center gap-1.5 text-primary mb-1">
-                <Eye className="w-4 h-4" />
-                <span className="text-lg font-bold">{visibilityStats.views}</span>
+            <div className="text-center p-2.5 sm:p-3 rounded-xl bg-background/60 backdrop-blur-sm border border-border/40">
+              <div className="flex items-center justify-center gap-1 text-primary mb-0.5 sm:mb-1">
+                <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="text-base sm:text-lg font-bold">{visibilityStats.views}</span>
               </div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Profile Views</p>
+              <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider">Views</p>
             </div>
-            <div className="text-center p-3 rounded-xl bg-background/60 backdrop-blur-sm border border-border/40">
-              <div className="flex items-center justify-center gap-1.5 text-success mb-1">
-                <Users className="w-4 h-4" />
-                <span className="text-lg font-bold">{visibilityStats.searches}</span>
+            <div className="text-center p-2.5 sm:p-3 rounded-xl bg-background/60 backdrop-blur-sm border border-border/40">
+              <div className="flex items-center justify-center gap-1 text-success mb-0.5 sm:mb-1">
+                <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="text-base sm:text-lg font-bold">{visibilityStats.searches}</span>
               </div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Search Hits</p>
+              <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider">Searches</p>
             </div>
-            <div className="text-center p-3 rounded-xl bg-background/60 backdrop-blur-sm border border-border/40">
-              <div className="flex items-center justify-center gap-1.5 text-accent-foreground mb-1">
-                <Star className="w-4 h-4" />
-                <span className="text-lg font-bold">{visibilityStats.savedBy}</span>
+            <div className="text-center p-2.5 sm:p-3 rounded-xl bg-background/60 backdrop-blur-sm border border-border/40">
+              <div className="flex items-center justify-center gap-1 text-accent-foreground mb-0.5 sm:mb-1">
+                <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="text-base sm:text-lg font-bold">{visibilityStats.savedBy}</span>
               </div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Saved By</p>
+              <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider">Saved</p>
             </div>
           </div>
         </div>
