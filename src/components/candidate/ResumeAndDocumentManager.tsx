@@ -494,17 +494,17 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
                       Primary Resume
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-3 rounded-xl bg-primary/10 text-primary">
+                   <CardContent className="p-3 sm:p-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                        <div className="p-2 sm:p-3 rounded-xl bg-primary/10 text-primary shrink-0">
                           {getFileIcon(primaryDocument.name)}
                         </div>
-                        <div>
-                          <p className="font-medium text-foreground truncate max-w-[200px] sm:max-w-[300px]">
+                        <div className="min-w-0">
+                          <p className="font-medium text-foreground text-sm truncate">
                             {candidate.resume_filename || primaryDocument.name.split('_').pop()}
                           </p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                          <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground mt-0.5">
                             <span>{formatFileSize(primaryDocument.size)}</span>
                             <span>•</span>
                             <span className="flex items-center gap-1">
@@ -514,38 +514,28 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button 
-                              variant="outline" 
-                              size="icon" 
-                              className="h-9 w-9"
-                              onClick={() => downloadDocument(primaryDocument.url, candidate.resume_filename || primaryDocument.name)}
-                            >
-                              <Download className="w-4 h-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Download</TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => handleDelete(primaryDocument.url)}
-                              disabled={deleting === primaryDocument.url}
-                              className="h-9 w-9 text-rose-600 hover:text-rose-700 hover:bg-rose-500/10 border-rose-500/30"
-                            >
-                              {deleting === primaryDocument.url ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <Trash2 className="w-4 h-4" />
-                              )}
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Delete</TooltipContent>
-                        </Tooltip>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          className="h-8 w-8 sm:h-9 sm:w-9"
+                          onClick={() => downloadDocument(primaryDocument.url, candidate.resume_filename || primaryDocument.name)}
+                        >
+                          <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleDelete(primaryDocument.url)}
+                          disabled={deleting === primaryDocument.url}
+                          className="h-8 w-8 sm:h-9 sm:w-9 text-rose-600 hover:text-rose-700 hover:bg-rose-500/10 border-rose-500/30"
+                        >
+                          {deleting === primaryDocument.url ? (
+                            <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          )}
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
