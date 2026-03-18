@@ -232,7 +232,7 @@ function ListLayout({ job, companyName, industry, desc, typeColor, jobIsNew }: a
         <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
       </div>
       <div className="flex-1 min-w-0 overflow-hidden">
-        <div className="flex items-start justify-between gap-2 sm:gap-3">
+        <div className="flex items-start justify-between gap-2 sm:gap-3 pr-7">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 min-w-0">
               <h3 className="font-semibold text-foreground truncate group-hover:text-primary transition-colors text-sm sm:text-[15px]">
