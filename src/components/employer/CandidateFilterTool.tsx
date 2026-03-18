@@ -899,7 +899,7 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                     <span className="font-medium">Analyzing your candidates...</span>
                   </div>
                 ) : aiInsights ? (
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 overflow-hidden">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 overflow-hidden">
                     {aiInsights.topPick && (
                       <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="p-3 sm:p-4 rounded-2xl bg-success/[0.07] border border-success/15 hover:bg-success/[0.1] transition-all duration-200 overflow-hidden group">
                         <div className="flex items-center gap-1.5 mb-2">
