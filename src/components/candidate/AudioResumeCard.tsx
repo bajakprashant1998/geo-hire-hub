@@ -254,8 +254,8 @@ const AudioPlayer = ({
         </div>
 
         {/* Volume + Actions */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 w-32">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2 w-full sm:w-32">
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={toggleMute}>
               {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
             </Button>
