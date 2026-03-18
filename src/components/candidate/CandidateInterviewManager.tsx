@@ -532,9 +532,9 @@ export const CandidateInterviewManager = ({ candidateId }: CandidateInterviewMan
   if (loading) return <InterviewSkeleton />;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 overflow-x-hidden">
       {/* Stats row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
         {[
           { label: 'Upcoming', value: upcoming.length, icon: CalendarDays, color: 'text-primary', bg: 'bg-primary/10', pulse: upcoming.length > 0 },
           { label: 'Pending', value: requested.length, icon: AlertCircle, color: 'text-warning-foreground', bg: 'bg-warning/10', pulse: requested.length > 0 },
@@ -543,16 +543,16 @@ export const CandidateInterviewManager = ({ candidateId }: CandidateInterviewMan
         ].map((stat, i) => (
           <motion.div key={stat.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}>
             <Card className="shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="p-3 sm:p-4 flex items-center gap-3">
-                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 relative", stat.bg)}>
-                  <stat.icon className={cn("w-5 h-5", stat.color)} />
+              <CardContent className="p-2.5 sm:p-4 flex items-center gap-2 sm:gap-3">
+                <div className={cn("w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 relative", stat.bg)}>
+                  <stat.icon className={cn("w-4 h-4 sm:w-5 sm:h-5", stat.color)} />
                   {stat.pulse && (
-                    <span className={cn("absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full", stat.label === 'Pending' ? 'bg-warning' : 'bg-primary')} />
+                    <span className={cn("absolute -top-0.5 -right-0.5 w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full", stat.label === 'Pending' ? 'bg-warning' : 'bg-primary')} />
                   )}
                 </div>
-                <div>
-                  <p className="text-xl font-bold leading-none">{stat.value}</p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{stat.label}</p>
+                <div className="min-w-0">
+                  <p className="text-base sm:text-xl font-bold leading-none truncate">{stat.value}</p>
+                  <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 truncate">{stat.label}</p>
                 </div>
               </CardContent>
             </Card>
@@ -566,42 +566,47 @@ export const CandidateInterviewManager = ({ candidateId }: CandidateInterviewMan
       {/* Request button + Tabs */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         {appliedJobs.length > 0 && (
-          <Button onClick={() => setRequestDialogOpen(true)} className="gap-2 rounded-xl shadow-sm">
+          <Button onClick={() => setRequestDialogOpen(true)} className="gap-2 rounded-xl shadow-sm w-full sm:w-auto">
             <CalendarPlus className="w-4 h-4" /> Request Interview
           </Button>
         )}
       </div>
 
       <Card className="shadow-sm">
-        <CardContent className="p-4 sm:p-6">
+        <CardContent className="p-3 sm:p-6">
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-4 w-full sm:w-auto bg-muted/50 rounded-xl p-1">
-              <TabsTrigger value="upcoming" className="gap-1.5 text-xs sm:text-sm rounded-lg data-[state=active]:shadow-sm">
-                <CalendarDays className="w-3.5 h-3.5" />
-                Upcoming
-                {upcoming.length > 0 && (
-                  <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold bg-primary/10 text-primary rounded-full">{upcoming.length}</span>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="requests" className="gap-1.5 text-xs sm:text-sm rounded-lg data-[state=active]:shadow-sm">
-                <Send className="w-3.5 h-3.5" />
-                Requests
-                {requested.length > 0 && (
-                  <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold bg-warning/10 text-warning-foreground rounded-full">{requested.length}</span>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="past" className="gap-1.5 text-xs sm:text-sm rounded-lg data-[state=active]:shadow-sm">
-                <CheckCircle className="w-3.5 h-3.5" />
-                Past
-                {past.length > 0 && (
-                  <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold bg-muted text-muted-foreground rounded-full">{past.length}</span>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="calendar" className="gap-1.5 text-xs sm:text-sm rounded-lg data-[state=active]:shadow-sm">
-                <Calendar className="w-3.5 h-3.5" />
-                Calendar
-              </TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 scrollbar-hide">
+              <TabsList className="mb-4 w-max sm:w-auto bg-muted/50 rounded-xl p-1">
+                <TabsTrigger value="upcoming" className="gap-1 text-[11px] sm:text-sm rounded-lg data-[state=active]:shadow-sm px-2 sm:px-3">
+                  <CalendarDays className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  <span className="hidden sm:inline">Upcoming</span>
+                  <span className="sm:hidden">Up</span>
+                  {upcoming.length > 0 && (
+                    <span className="ml-0.5 sm:ml-1 px-1 sm:px-1.5 py-0.5 text-[9px] sm:text-[10px] font-bold bg-primary/10 text-primary rounded-full">{upcoming.length}</span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="requests" className="gap-1 text-[11px] sm:text-sm rounded-lg data-[state=active]:shadow-sm px-2 sm:px-3">
+                  <Send className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  <span className="hidden sm:inline">Requests</span>
+                  <span className="sm:hidden">Req</span>
+                  {requested.length > 0 && (
+                    <span className="ml-0.5 sm:ml-1 px-1 sm:px-1.5 py-0.5 text-[9px] sm:text-[10px] font-bold bg-warning/10 text-warning-foreground rounded-full">{requested.length}</span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="past" className="gap-1 text-[11px] sm:text-sm rounded-lg data-[state=active]:shadow-sm px-2 sm:px-3">
+                  <CheckCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  Past
+                  {past.length > 0 && (
+                    <span className="ml-0.5 sm:ml-1 px-1 sm:px-1.5 py-0.5 text-[9px] sm:text-[10px] font-bold bg-muted text-muted-foreground rounded-full">{past.length}</span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="calendar" className="gap-1 text-[11px] sm:text-sm rounded-lg data-[state=active]:shadow-sm px-2 sm:px-3">
+                  <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                  <span className="hidden sm:inline">Calendar</span>
+                  <span className="sm:hidden">Cal</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
             <AnimatePresence mode="wait">
               <TabsContent value="upcoming" className="mt-0">
