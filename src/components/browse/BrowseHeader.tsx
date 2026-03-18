@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -14,6 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, Filter, LayoutDashboard, Sparkles, ArrowUpDown,
   LayoutGrid, LayoutList, X, Map, SlidersHorizontal, Wifi, GraduationCap, DollarSign,
+  CheckCircle, Shield, Zap,
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { BreadcrumbNav } from '@/components/BreadcrumbNav';
@@ -74,8 +74,8 @@ export const BrowseHeader = ({
     ...(debouncedSearch ? [{ key: 'search', label: `"${debouncedSearch}"` }] : []),
     ...(isRemote ? [{ key: 'remote', label: 'Remote' }] : []),
     ...(experienceLevel !== 'all' ? [{ key: 'exp', label: EXPERIENCE_LEVELS.find(e => e.value === experienceLevel)?.label || experienceLevel }] : []),
-    ...(salaryMin !== null ? [{ key: 'salMin', label: `Min $${salaryMin.toLocaleString()}` }] : []),
-    ...(salaryMax !== null ? [{ key: 'salMax', label: `Max $${salaryMax.toLocaleString()}` }] : []),
+    ...(salaryMin !== null ? [{ key: 'salMin', label: `Min ₹${salaryMin.toLocaleString()}` }] : []),
+    ...(salaryMax !== null ? [{ key: 'salMax', label: `Max ₹${salaryMax.toLocaleString()}` }] : []),
   ];
 
   const clearFilter = (key: string) => {
@@ -89,55 +89,69 @@ export const BrowseHeader = ({
 
   return (
     <div className="border-b bg-gradient-to-br from-primary/[0.04] via-background to-accent/30 sticky top-0 z-30 backdrop-blur-md">
-      <div className="container mx-auto px-4 py-5 max-w-6xl">
+      <div className="container mx-auto px-4 py-4 sm:py-5 max-w-6xl overflow-hidden">
         {/* Top row */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3 sm:mb-4 gap-2">
           <BreadcrumbNav items={[{ label: 'Browse Jobs' }]} />
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate('/jobs-near-me')}
-              className="gap-1.5 text-muted-foreground hover:text-foreground text-xs"
+              className="gap-1.5 text-muted-foreground hover:text-foreground text-xs h-8 px-2 sm:px-3"
             >
-              <Map className="w-3.5 h-3.5" /> Map View
+              <Map className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Map View</span>
             </Button>
             {user && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => navigate(dashboardPath)}
-                className="gap-1.5 text-muted-foreground hover:text-foreground"
+                className="gap-1.5 text-muted-foreground hover:text-foreground h-8 px-2 sm:px-3"
               >
-                <LayoutDashboard className="w-3.5 h-3.5" /> Dashboard
+                <LayoutDashboard className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Dashboard</span>
               </Button>
             )}
           </div>
         </div>
 
         {/* Title */}
-        <div className="mb-5">
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
+        <div className="mb-4 sm:mb-5">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground tracking-tight">
             Find Your Next Opportunity
           </h1>
-          <p className="text-muted-foreground mt-1.5 flex items-center gap-2 text-sm">
-            <Sparkles className="w-4 h-4 text-primary" />
+          <p className="text-muted-foreground mt-1 sm:mt-1.5 flex items-center gap-2 text-xs sm:text-sm">
+            <Sparkles className="w-4 h-4 text-primary shrink-0" />
             <span>
               <strong className="text-foreground tabular-nums">{total.toLocaleString()}</strong> open positions — updated in real time
             </span>
           </p>
         </div>
 
+        {/* Trust signals - compact horizontal bar */}
+        <div className="flex items-center gap-3 sm:gap-5 mb-4 pb-3 border-b border-border/30">
+          <span className="flex items-center gap-1.5 text-[11px] sm:text-xs text-muted-foreground whitespace-nowrap">
+            <CheckCircle className="w-3.5 h-3.5 text-success shrink-0" /> Verified Employers
+          </span>
+          <span className="flex items-center gap-1.5 text-[11px] sm:text-xs text-muted-foreground whitespace-nowrap">
+            <Zap className="w-3.5 h-3.5 text-warning shrink-0" /> Direct Apply
+          </span>
+          <span className="flex items-center gap-1.5 text-[11px] sm:text-xs text-muted-foreground whitespace-nowrap">
+            <Shield className="w-3.5 h-3.5 text-primary shrink-0" /> Safe & Secure
+          </span>
+        </div>
+
         {/* Search bar + filters */}
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col sm:flex-row gap-2.5">
-            <div className="relative flex-1">
+        <div className="flex flex-col gap-2.5 sm:gap-3">
+          {/* Search row */}
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-2.5">
+            <div className="relative flex-1 min-w-0">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 placeholder="Job title, company, or location…"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="pl-10 pr-9 h-11 bg-card border-border/50 shadow-sm rounded-xl focus-visible:ring-primary/30 text-sm"
+                className="pl-10 pr-9 h-11 bg-card border-border/50 shadow-sm rounded-xl focus-visible:ring-primary/30 text-sm w-full"
               />
               {search && (
                 <button
@@ -148,9 +162,10 @@ export const BrowseHeader = ({
                 </button>
               )}
             </div>
-            <div className="flex gap-2.5">
+            {/* Filter controls row - horizontal scroll on mobile */}
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 sm:overflow-visible sm:flex-shrink-0">
               <Select value={jobType} onValueChange={setJobType}>
-                <SelectTrigger className="w-full sm:w-40 h-11 bg-card shadow-sm rounded-xl border-border/50">
+                <SelectTrigger className="w-[130px] sm:w-40 h-11 bg-card shadow-sm rounded-xl border-border/50 shrink-0">
                   <Filter className="w-4 h-4 mr-1.5 text-muted-foreground" />
                   <SelectValue placeholder="Job Type" />
                 </SelectTrigger>
@@ -165,7 +180,7 @@ export const BrowseHeader = ({
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className="h-11 rounded-xl border-border/50 bg-card shadow-sm gap-2 relative"
+                    className="h-11 rounded-xl border-border/50 bg-card shadow-sm gap-2 relative shrink-0"
                   >
                     <SlidersHorizontal className="w-4 h-4" />
                     <span className="hidden sm:inline">Filters</span>
@@ -176,7 +191,7 @@ export const BrowseHeader = ({
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-80 p-0" align="end">
+                <PopoverContent className="w-72 sm:w-80 p-0" align="end">
                   <div className="p-4 space-y-5">
                     <div className="flex items-center justify-between">
                       <h3 className="font-semibold text-sm text-foreground">Advanced Filters</h3>
@@ -266,7 +281,7 @@ export const BrowseHeader = ({
               </Popover>
 
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-full sm:w-40 h-11 bg-card shadow-sm rounded-xl border-border/50">
+                <SelectTrigger className="w-[130px] sm:w-40 h-11 bg-card shadow-sm rounded-xl border-border/50 shrink-0">
                   <ArrowUpDown className="w-4 h-4 mr-1.5 text-muted-foreground" />
                   <SelectValue />
                 </SelectTrigger>
@@ -277,13 +292,13 @@ export const BrowseHeader = ({
             </div>
           </div>
 
-          {/* Quick type pills */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          {/* Quick type pills - prevent overflow */}
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
             {JOB_TYPES.map(type => (
               <button
                 key={type}
                 onClick={() => setJobType(jobType === type ? 'all' : type)}
-                className={`shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border transition-all ${
+                className={`shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border transition-all whitespace-nowrap ${
                   jobType === type
                     ? 'bg-primary text-primary-foreground border-primary shadow-sm'
                     : 'bg-card text-muted-foreground border-border/50 hover:border-primary/30 hover:text-foreground'
@@ -294,7 +309,7 @@ export const BrowseHeader = ({
             ))}
             <button
               onClick={() => setIsRemote(!isRemote)}
-              className={`shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border transition-all flex items-center gap-1.5 ${
+              className={`shrink-0 text-xs font-medium px-3 py-1.5 rounded-full border transition-all flex items-center gap-1.5 whitespace-nowrap ${
                 isRemote
                   ? 'bg-primary text-primary-foreground border-primary shadow-sm'
                   : 'bg-card text-muted-foreground border-border/50 hover:border-primary/30 hover:text-foreground'
@@ -306,7 +321,7 @@ export const BrowseHeader = ({
 
           {/* Active filters + view toggle */}
           <div className="flex items-center justify-between gap-2 min-h-[28px]">
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap min-w-0 overflow-hidden">
               <AnimatePresence>
                 {activeFilters.map(f => (
                   <motion.div
@@ -318,11 +333,11 @@ export const BrowseHeader = ({
                   >
                     <Badge
                       variant="secondary"
-                      className="gap-1 pl-2.5 pr-1.5 py-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
+                      className="gap-1 pl-2 sm:pl-2.5 pr-1.5 py-0.5 sm:py-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors text-[11px] sm:text-xs max-w-[140px] truncate"
                       onClick={() => clearFilter(f.key)}
                     >
-                      {f.label}
-                      <X className="w-3 h-3 ml-0.5" />
+                      <span className="truncate">{f.label}</span>
+                      <X className="w-3 h-3 ml-0.5 shrink-0" />
                     </Badge>
                   </motion.div>
                 ))}
@@ -330,14 +345,14 @@ export const BrowseHeader = ({
               {activeFilters.length > 0 && (
                 <button
                   onClick={clearAllFilters}
-                  className="text-xs text-muted-foreground hover:text-destructive transition-colors underline-offset-2 hover:underline"
+                  className="text-xs text-muted-foreground hover:text-destructive transition-colors underline-offset-2 hover:underline shrink-0"
                 >
                   Clear all
                 </button>
               )}
             </div>
 
-            <div className="hidden sm:flex items-center gap-0.5 bg-muted/80 rounded-lg p-0.5">
+            <div className="hidden sm:flex items-center gap-0.5 bg-muted/80 rounded-lg p-0.5 shrink-0">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
