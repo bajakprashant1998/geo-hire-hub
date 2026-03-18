@@ -272,7 +272,7 @@ const AudioPlayer = ({
             />
           </div>
           
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5 justify-end">
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={shareAudio}>
               <Share2 className="w-4 h-4" />
             </Button>
