@@ -389,54 +389,6 @@ export const AssessmentHub = ({ candidateId }: { candidateId: string }) => {
         </TabsContent>
       </Tabs>
     </div>
-        {/* Available */}
-        <TabsContent value="available" className="mt-4">
-          {availableAssessments.length === 0 ? (
-            <EmptyState icon={BookOpen} title="No assessments available" description="Check back later — employers add new skill tests regularly." />
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {availableAssessments.map(a => (
-                <AssessmentCard
-                  key={a.id}
-                  assessment={a}
-                  result={bestResults.get(a.id)}
-                  onStart={setTakingId}
-                />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        {/* Passed */}
-        <TabsContent value="passed" className="mt-4">
-          {passedAssessments.length === 0 ? (
-            <EmptyState icon={Trophy} title="No passed assessments yet" description="Take assessments to earn badges and stand out to employers." />
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {passedAssessments.map(a => (
-                <AssessmentCard
-                  key={a.id}
-                  assessment={a}
-                  result={bestResults.get(a.id)}
-                  onStart={setTakingId}
-                />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-
-        {/* History */}
-        <TabsContent value="history" className="mt-4">
-          {results.length === 0 ? (
-            <EmptyState icon={BarChart3} title="No attempts yet" description="Start an assessment to see your history here." />
-          ) : (
-            <div className="space-y-2">
-              {results.map(r => <ResultRow key={r.id} result={r} />)}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
-    </div>
   );
 };
 
