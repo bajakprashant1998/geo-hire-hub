@@ -725,7 +725,7 @@ const AIGenerator = ({
               <span className="text-sm font-mono">{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="h-2" />
-            <div className="flex justify-between">
+            <div className="flex flex-wrap justify-between gap-1">
               {GENERATION_STAGES.map((stage, i) => (
                 <div 
                   key={i} 
