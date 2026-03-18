@@ -100,7 +100,7 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
   const strength = getStrengthLabel(completenessData.percentage);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4 sm:space-y-5 overflow-x-hidden">
       {/* Hero Banner */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
@@ -111,7 +111,7 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
         <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-accent/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4" />
         
-        <div className="relative p-5 sm:p-6">
+        <div className="relative p-4 sm:p-5 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             {/* Icon */}
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
@@ -126,12 +126,12 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
             </div>
 
             {/* Quick Actions */}
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2 shrink-0 flex-wrap">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="sm" onClick={handleCopyLink} className="gap-2 rounded-xl">
-                    {copied ? <CheckCircle2 className="w-4 h-4 text-success" /> : <Link2 className="w-4 h-4" />}
-                    {copied ? 'Copied!' : 'Copy Link'}
+                  <Button variant="outline" size="sm" onClick={handleCopyLink} className="gap-1.5 rounded-xl text-xs h-8 sm:h-9">
+                    {copied ? <CheckCircle2 className="w-3.5 h-3.5 text-success" /> : <Link2 className="w-3.5 h-3.5" />}
+                    <span className="hidden sm:inline">{copied ? 'Copied!' : 'Copy Link'}</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Copy your profile link</TooltipContent>
@@ -139,8 +139,8 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
               
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" onClick={handleShare} className="rounded-xl w-9 h-9">
-                    <Share2 className="w-4 h-4" />
+                  <Button variant="outline" size="icon" onClick={handleShare} className="rounded-xl w-8 h-8 sm:w-9 sm:h-9">
+                    <Share2 className="w-3.5 h-3.5" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Share profile</TooltipContent>
@@ -148,8 +148,8 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button size="icon" onClick={() => onNavigate('profile')} className="rounded-xl w-9 h-9">
-                    <Edit3 className="w-4 h-4" />
+                  <Button size="icon" onClick={() => onNavigate('profile')} className="rounded-xl w-8 h-8 sm:w-9 sm:h-9">
+                    <Edit3 className="w-3.5 h-3.5" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Edit profile</TooltipContent>
@@ -158,27 +158,27 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
           </div>
 
           {/* Stats Row */}
-          <div className="grid grid-cols-3 gap-3 mt-5">
-            <div className="text-center p-3 rounded-xl bg-background/60 backdrop-blur-sm border border-border/40">
-              <div className="flex items-center justify-center gap-1.5 text-primary mb-1">
-                <Eye className="w-4 h-4" />
-                <span className="text-lg font-bold">{visibilityStats.views}</span>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-4 sm:mt-5">
+            <div className="text-center p-2.5 sm:p-3 rounded-xl bg-background/60 backdrop-blur-sm border border-border/40">
+              <div className="flex items-center justify-center gap-1 text-primary mb-0.5 sm:mb-1">
+                <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="text-base sm:text-lg font-bold">{visibilityStats.views}</span>
               </div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Profile Views</p>
+              <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider">Views</p>
             </div>
-            <div className="text-center p-3 rounded-xl bg-background/60 backdrop-blur-sm border border-border/40">
-              <div className="flex items-center justify-center gap-1.5 text-success mb-1">
-                <Users className="w-4 h-4" />
-                <span className="text-lg font-bold">{visibilityStats.searches}</span>
+            <div className="text-center p-2.5 sm:p-3 rounded-xl bg-background/60 backdrop-blur-sm border border-border/40">
+              <div className="flex items-center justify-center gap-1 text-success mb-0.5 sm:mb-1">
+                <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="text-base sm:text-lg font-bold">{visibilityStats.searches}</span>
               </div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Search Hits</p>
+              <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider">Searches</p>
             </div>
-            <div className="text-center p-3 rounded-xl bg-background/60 backdrop-blur-sm border border-border/40">
-              <div className="flex items-center justify-center gap-1.5 text-accent-foreground mb-1">
-                <Star className="w-4 h-4" />
-                <span className="text-lg font-bold">{visibilityStats.savedBy}</span>
+            <div className="text-center p-2.5 sm:p-3 rounded-xl bg-background/60 backdrop-blur-sm border border-border/40">
+              <div className="flex items-center justify-center gap-1 text-accent-foreground mb-0.5 sm:mb-1">
+                <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="text-base sm:text-lg font-bold">{visibilityStats.savedBy}</span>
               </div>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Saved By</p>
+              <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider">Saved</p>
             </div>
           </div>
         </div>
@@ -274,27 +274,27 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15 }}
-        className="flex items-center justify-between gap-3 p-4 rounded-xl bg-muted/50 border border-border/40"
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 sm:p-4 rounded-xl bg-muted/50 border border-border/40"
       >
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
             {viewMode === 'employer' ? <Briefcase className="w-4 h-4 text-primary" /> : <Globe className="w-4 h-4 text-primary" />}
           </div>
-          <div>
-            <p className="text-sm font-medium text-foreground">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-foreground truncate">
               Viewing as: {viewMode === 'employer' ? 'Employer' : 'Public Visitor'}
             </p>
-            <p className="text-[10px] text-muted-foreground">
+            <p className="text-[10px] text-muted-foreground truncate">
               {viewMode === 'employer' ? 'Full profile with contact info' : 'Limited info for non-logged users'}
             </p>
           </div>
         </div>
-        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="shrink-0">
-          <TabsList className="h-9 bg-background/80 border border-border/50 p-0.5">
-            <TabsTrigger value="employer" className="text-xs h-8 px-3 gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="shrink-0 w-full sm:w-auto">
+          <TabsList className="h-9 bg-background/80 border border-border/50 p-0.5 w-full sm:w-auto">
+            <TabsTrigger value="employer" className="text-xs h-8 px-2.5 sm:px-3 gap-1 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex-1 sm:flex-none">
               <Briefcase className="w-3 h-3" /> Employer
             </TabsTrigger>
-            <TabsTrigger value="public" className="text-xs h-8 px-3 gap-1.5 data-[state=active]:bg-muted">
+            <TabsTrigger value="public" className="text-xs h-8 px-2.5 sm:px-3 gap-1 data-[state=active]:bg-muted flex-1 sm:flex-none">
               <Globe className="w-3 h-3" /> Public
             </TabsTrigger>
           </TabsList>
@@ -350,7 +350,7 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25 }}
-        className="rounded-2xl border-2 border-dashed border-border/50 overflow-hidden"
+        className="rounded-2xl border-2 border-dashed border-border/50 overflow-hidden overflow-x-hidden"
       >
         <div className="bg-muted/30 px-4 py-2 border-b border-border/40 flex items-center gap-2">
           <div className="flex gap-1.5">

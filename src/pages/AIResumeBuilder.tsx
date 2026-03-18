@@ -310,41 +310,43 @@ const ResumeTemplate = ({ data, innerRef, compact = false }: { data: ResumeFormD
 // Step indicator component
 const StepIndicator = ({ currentStep, steps, onStepClick }: { currentStep: number; steps: typeof STEPS; onStepClick: (idx: number) => void }) => {
   return (
-    <div className="flex items-center justify-between w-full max-w-2xl mx-auto mb-8">
-      {steps.map((step, idx) => {
-        const isActive = idx === currentStep;
-        const isCompleted = idx < currentStep;
-        const Icon = step.icon;
+    <div className="w-full max-w-2xl mx-auto mb-6 sm:mb-8 overflow-x-auto scrollbar-hide -mx-2 px-2">
+      <div className="flex items-center justify-between min-w-[320px]">
+        {steps.map((step, idx) => {
+          const isActive = idx === currentStep;
+          const isCompleted = idx < currentStep;
+          const Icon = step.icon;
 
-        return (
-          <div key={step.id} className="flex items-center">
-            <button
-              onClick={() => onStepClick(idx)}
-              className={`flex flex-col items-center gap-1.5 transition-all ${
-                isActive ? 'scale-110' : 'hover:scale-105'
-              }`}
-            >
-              <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                  isCompleted
-                    ? 'bg-emerald-500 text-white'
-                    : isActive
-                    ? 'bg-primary text-primary-foreground shadow-lg'
-                    : 'bg-muted text-muted-foreground'
+          return (
+            <div key={step.id} className="flex items-center">
+              <button
+                onClick={() => onStepClick(idx)}
+                className={`flex flex-col items-center gap-1 transition-all ${
+                  isActive ? 'scale-110' : 'hover:scale-105'
                 }`}
               >
-                {isCompleted ? <Check className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
-              </div>
-              <span className={`text-xs font-medium hidden sm:block ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
-                {step.label}
-              </span>
-            </button>
-            {idx < steps.length - 1 && (
-              <div className={`w-8 sm:w-16 h-0.5 mx-1 sm:mx-2 ${isCompleted ? 'bg-emerald-500' : 'bg-muted'}`} />
-            )}
-          </div>
-        );
-      })}
+                <div
+                  className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all ${
+                    isCompleted
+                      ? 'bg-[hsl(var(--success))] text-white'
+                      : isActive
+                      ? 'bg-primary text-primary-foreground shadow-lg'
+                      : 'bg-muted text-muted-foreground'
+                  }`}
+                >
+                  {isCompleted ? <Check className="w-4 h-4 sm:w-5 sm:h-5" /> : <Icon className="w-4 h-4 sm:w-5 sm:h-5" />}
+                </div>
+                <span className={`text-[10px] sm:text-xs font-medium ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                  {step.label}
+                </span>
+              </button>
+              {idx < steps.length - 1 && (
+                <div className={`w-4 sm:w-12 lg:w-16 h-0.5 mx-0.5 sm:mx-2 ${isCompleted ? 'bg-[hsl(var(--success))]' : 'bg-muted'}`} />
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };
@@ -1097,7 +1099,7 @@ const AIResumeBuilder = ({ embedded = false }: { embedded?: boolean }) => {
     >
       <div className="grid gap-3">
         {formData.skills.map((skill, i) => (
-          <div key={i} className="flex items-center gap-3">
+          <div key={i} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
             <Input
               value={skill.name}
               onChange={e => updateListItem('skills', i, 'name', e.target.value)}
@@ -1114,7 +1116,7 @@ const AIResumeBuilder = ({ embedded = false }: { embedded?: boolean }) => {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-9 w-9 text-destructive shrink-0" 
+                className="h-9 w-9 text-destructive shrink-0 self-end sm:self-auto" 
                 onClick={() => removeSkill(i)}
               >
                 <Trash2 className="w-4 h-4" />
@@ -1141,32 +1143,34 @@ const AIResumeBuilder = ({ embedded = false }: { embedded?: boolean }) => {
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
-      className="space-y-6"
+      className="space-y-4 sm:space-y-6"
     >
       {/* Export Actions */}
-      <div className="flex flex-wrap items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
-        <div className="flex-1 min-w-[200px]">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
+        <div className="flex-1 min-w-0">
           <h3 className="font-semibold">Your resume is ready!</h3>
           <p className="text-sm text-muted-foreground">Download or save to your profile</p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={saveToProfile} disabled={saving} variant="outline" className="gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Button onClick={saveToProfile} disabled={saving} variant="outline" className="gap-2 w-full sm:w-auto">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Save to Profile
           </Button>
-          <Button onClick={exportToPDF} disabled={exporting} className="gap-2 bg-red-600 hover:bg-red-700">
-            {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
-            PDF
-          </Button>
-          <Button onClick={exportToJPEG} disabled={exporting} variant="outline" className="gap-2">
-            <ImageIcon className="w-4 h-4" />
-            JPEG
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={exportToPDF} disabled={exporting} className="gap-2 flex-1 sm:flex-none bg-destructive hover:bg-destructive/90">
+              {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+              PDF
+            </Button>
+            <Button onClick={exportToJPEG} disabled={exporting} variant="outline" className="gap-2 flex-1 sm:flex-none">
+              <ImageIcon className="w-4 h-4" />
+              JPEG
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Full Resume Preview */}
-      <div className="overflow-x-auto pb-8 flex justify-center">
+      <div className="overflow-x-auto pb-8 -mx-3 px-3 sm:mx-0 sm:px-0 flex justify-center">
         <div className="shadow-2xl rounded-lg overflow-hidden">
           <ResumeTemplate data={formData} innerRef={resumeRef} />
         </div>
@@ -1187,26 +1191,26 @@ const AIResumeBuilder = ({ embedded = false }: { embedded?: boolean }) => {
   };
 
   const content = (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 overflow-x-hidden">
       {/* Hero Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-6 text-primary-foreground"
+        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-4 sm:p-6 text-primary-foreground"
       >
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+          <div className="absolute top-0 right-0 w-40 sm:w-64 h-40 sm:h-64 bg-white rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-32 sm:w-48 h-32 sm:h-48 bg-white rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
         </div>
 
-        <div className="relative flex flex-col sm:flex-row items-start gap-6">
-          <div className="flex items-start gap-4 flex-1">
-            <div className="p-3 rounded-2xl bg-white/20 backdrop-blur">
-              <FileText className="w-8 h-8" />
+        <div className="relative flex flex-col sm:flex-row items-start gap-3 sm:gap-6">
+          <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
+            <div className="p-2.5 sm:p-3 rounded-2xl bg-white/20 backdrop-blur shrink-0">
+              <FileText className="w-6 h-6 sm:w-8 sm:h-8" />
             </div>
-            <div>
-              <h2 className="text-2xl font-bold">AI Resume Builder</h2>
-              <p className="text-primary-foreground/80 mt-1">
+            <div className="min-w-0">
+              <h2 className="text-xl sm:text-2xl font-bold">AI Resume Builder</h2>
+              <p className="text-primary-foreground/80 mt-1 text-sm sm:text-base">
                 Create a professional resume in minutes with AI assistance
               </p>
             </div>
@@ -1217,7 +1221,7 @@ const AIResumeBuilder = ({ embedded = false }: { embedded?: boolean }) => {
             onClick={autoFillFromProfile} 
             disabled={autoFilling}
             variant="secondary"
-            className="gap-2 shrink-0"
+            className="gap-2 shrink-0 w-full sm:w-auto"
           >
             {autoFilling ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
             Import from Profile
@@ -1225,7 +1229,7 @@ const AIResumeBuilder = ({ embedded = false }: { embedded?: boolean }) => {
         </div>
 
         {/* Progress */}
-        <div className="relative mt-6 space-y-2">
+        <div className="relative mt-4 sm:mt-6 space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-primary-foreground/80">Completion</span>
             <span className="font-semibold">{completion}%</span>
