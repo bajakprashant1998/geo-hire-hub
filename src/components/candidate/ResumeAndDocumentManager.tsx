@@ -321,21 +321,21 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
 
   return (
     <TooltipProvider>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6 overflow-x-hidden">
         {/* Hero Header */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/15 via-primary/5 to-accent/10 border border-primary/20 p-6">
+        <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br from-primary/15 via-primary/5 to-accent/10 border border-primary/20 p-4 sm:p-6">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-accent/10 rounded-full blur-2xl" />
           
           <div className="relative z-10">
-            <div className="flex items-start justify-between flex-wrap gap-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-primary/15 border border-primary/20">
-                  <FolderOpen className="w-6 h-6 text-primary" />
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <div className="p-2 sm:p-2.5 rounded-xl bg-primary/15 border border-primary/20 shrink-0">
+                  <FolderOpen className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 </div>
-                <div>
-                  <h2 className="text-xl font-bold text-foreground">Resume & Documents</h2>
-                  <p className="text-sm text-muted-foreground">Manage your career documents in one place</p>
+                <div className="min-w-0">
+                  <h2 className="text-base sm:text-xl font-bold text-foreground truncate">Resume & Documents</h2>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Manage your career documents</p>
                 </div>
               </div>
 
@@ -343,7 +343,7 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
                 variant="outline" 
                 size="sm" 
                 onClick={() => navigate('/ai-resume-builder')}
-                className="gap-2"
+                className="gap-2 w-full sm:w-auto shrink-0"
               >
                 <Wand2 className="w-4 h-4" />
                 AI Resume Builder
@@ -351,19 +351,19 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
             </div>
 
             {/* Quick Stats */}
-            <div className="mt-4 flex items-center gap-3 flex-wrap">
-              <Badge variant="outline" className="bg-background/50 gap-1.5 py-1">
+            <div className="mt-3 sm:mt-4 flex items-center gap-2 sm:gap-3 flex-wrap">
+              <Badge variant="outline" className="bg-background/50 gap-1 sm:gap-1.5 py-1 text-[10px] sm:text-xs">
                 <FileCheck className="w-3 h-3" />
-                {documents.length} documents
+                {documents.length} docs
               </Badge>
-              <Badge variant="outline" className="bg-background/50 gap-1.5 py-1">
+              <Badge variant="outline" className="bg-background/50 gap-1 sm:gap-1.5 py-1 text-[10px] sm:text-xs">
                 <Sparkles className="w-3 h-3" />
-                {aiResumes.length} AI resumes
+                {aiResumes.length} AI
               </Badge>
               <Badge 
                 variant="outline" 
                 className={cn(
-                  "gap-1.5 py-1",
+                  "gap-1 sm:gap-1.5 py-1 text-[10px] sm:text-xs",
                   storagePercentage > 80 
                     ? "bg-rose-500/10 text-rose-600 border-rose-500/30" 
                     : "bg-background/50"
