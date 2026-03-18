@@ -645,25 +645,38 @@ const JobDetail = () => {
                 </div>
               )}
 
-              {/* Key info pills */}
+               {/* Key info pills */}
               <div className="flex flex-wrap gap-2">
                 {job.job_address && (
-                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 text-sm font-normal rounded-lg">
+                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 text-sm font-normal rounded-lg hover:bg-secondary/80 transition-colors cursor-default">
                     <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
                     <span className="truncate max-w-[200px]">{job.job_address}</span>
                   </Badge>
                 )}
-                <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 text-sm font-normal rounded-lg">
+                <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 text-sm font-normal rounded-lg hover:bg-secondary/80 transition-colors cursor-default">
                   <Briefcase className="w-3.5 h-3.5 text-muted-foreground" /> {job.job_type || 'Full-time'}
                 </Badge>
                 {job.salary_range && (
-                  <Badge className="gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-lg bg-success/10 text-success border-success/20 hover:bg-success/15">
+                  <Badge className="gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-lg bg-success/10 text-success border-success/20 hover:bg-success/15 transition-colors cursor-default">
                     <IndianRupee className="w-3.5 h-3.5" /> {job.salary_range}
                   </Badge>
                 )}
                 {job.salary_range && <SalaryBadge salaryRange={job.salary_range} />}
-                {job.has_bonus && <Badge className="gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-warning/10 text-warning border-warning/20"><Gift className="w-3.5 h-3.5" /> +Bonus</Badge>}
-                {(job.referral_bounty ?? 0) > 0 && <Badge className="gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-primary/10 text-primary border-primary/20"><Trophy className="w-3.5 h-3.5" /> {job.referral_bounty} pts Bounty</Badge>}
+                {job.has_bonus && <Badge className="gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-warning/10 text-warning border-warning/20 cursor-default"><Gift className="w-3.5 h-3.5" /> +Bonus</Badge>}
+                {(job.referral_bounty ?? 0) > 0 && <Badge className="gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-primary/10 text-primary border-primary/20 cursor-default"><Trophy className="w-3.5 h-3.5" /> {job.referral_bounty} pts Bounty</Badge>}
+              </div>
+
+              {/* Trust Signals Bar */}
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-4 pt-4 border-t border-border/40">
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <CheckCircle className="w-3.5 h-3.5 text-success" /> Verified Employer
+                </span>
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Zap className="w-3.5 h-3.5 text-warning" /> Direct Apply
+                </span>
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <BadgeCheck className="w-3.5 h-3.5 text-primary" /> Safe & Secure
+                </span>
               </div>
             </motion.div>
 
