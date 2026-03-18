@@ -63,9 +63,9 @@ export const QuickFilterChips = ({
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2, duration: 0.3 }}
-      className="absolute top-[58px] left-0 right-0 z-[99] safe-area-pt px-3"
+      className="absolute top-[58px] left-0 right-0 z-[99] safe-area-pt px-3 overflow-hidden"
     >
-      <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-hide -mx-0.5 px-0.5">
         {chips.map((chip, i) => (
           <motion.button
             key={chip.label}
