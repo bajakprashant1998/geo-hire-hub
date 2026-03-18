@@ -1268,10 +1268,10 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                         </div>
                       )}
 
-                      <CardContent className={cn("p-0", isTopPick && "pt-2")}>
+                      <CardContent className={cn("p-0 overflow-hidden", isTopPick && "pt-2")}>
                         {/* Main content area */}
-                        <div className="p-3 sm:p-5">
-                          <div className="flex items-start gap-2.5 sm:gap-4">
+                        <div className="p-3 sm:p-5 overflow-hidden">
+                          <div className="flex items-start gap-2 sm:gap-4 min-w-0">
                             {/* Checkbox */}
                             <Checkbox
                               checked={isSelected}
