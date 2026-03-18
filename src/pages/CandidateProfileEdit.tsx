@@ -488,7 +488,7 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
         overallCompleteness >= 50 ? 'Good start' : 'Needs work';
 
     const profileContent = (
-        <div className={embedded ? "space-y-5 pb-24" : "max-w-4xl mx-auto space-y-5 pb-24"}>
+        <div className={cn(embedded ? "space-y-5 pb-28" : "max-w-4xl mx-auto space-y-5 pb-28", "overflow-x-hidden")}>
             {/* ═══════════ HERO HEADER ═══════════ */}
             <motion.div
                 initial={{ opacity: 0, y: -12 }}
