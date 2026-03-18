@@ -138,16 +138,15 @@ export const JobCard = ({ job, index, viewMode, savedJobIds, onSaveToggle, compa
               )}
             </button>
           )}
-          {/* Save button */}
+          {/* Save button - always visible on mobile for touch */}
           {user && profile?.user_type === 'candidate' && (
             <button
               onClick={handleSave}
               className={cn(
-                "absolute top-3 z-10 p-1.5 rounded-full transition-all",
-                compareMode ? "right-3" : "right-3",
+                "absolute top-3 right-3 z-10 p-1.5 rounded-full transition-all",
                 saved
                   ? 'text-destructive bg-destructive/10 hover:bg-destructive/20'
-                  : 'text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100'
+                  : 'text-muted-foreground/60 bg-card/80 hover:text-destructive hover:bg-destructive/10 sm:opacity-0 sm:group-hover:opacity-100'
               )}
               aria-label={saved ? 'Unsave job' : 'Save job'}
             >
