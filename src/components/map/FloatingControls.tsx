@@ -49,7 +49,7 @@ const FAB = ({
         whileHover={{ scale: 1.08 }}
         onClick={onClick}
         className={cn(
-          "w-11 h-11 rounded-2xl flex items-center justify-center",
+          "w-10 h-10 rounded-2xl flex items-center justify-center",
           "bg-card/95 backdrop-blur-xl border border-border/20 shadow-xl",
           "hover:shadow-2xl transition-all duration-200",
           isActive && "ring-2 ring-primary/30 bg-primary/5 border-primary/20",
@@ -121,7 +121,7 @@ export const FloatingControls = ({
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ delay: 0.4, duration: 0.3 }}
-        className="absolute right-3 top-[35%] -translate-y-1/2 z-[90] flex flex-col gap-2.5"
+        className="absolute right-2.5 top-[40%] -translate-y-1/2 z-[90] flex flex-col gap-2"
       >
         <FAB
           icon={searchOpen ? X : Search}

@@ -198,22 +198,22 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
               </div>
 
               {/* Features grid – overlapping header */}
-              <div className="px-4 -mt-14 relative z-10">
-                <motion.div variants={itemVariants} className="grid grid-cols-4 gap-2">
+              <div className="px-3 sm:px-4 -mt-14 relative z-10">
+                <motion.div variants={itemVariants} className="grid grid-cols-4 gap-1.5 sm:gap-2">
                   {features.map((f, i) => (
                     <motion.div
                       key={i}
                       initial={{ opacity: 0, y: 16, scale: 0.9 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       transition={{ delay: 0.25 + i * 0.05, type: 'spring', stiffness: 350 }}
-                      className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-card border border-border/50 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all cursor-default"
+                      className="flex flex-col items-center gap-1.5 p-2 sm:p-3 rounded-2xl bg-card border border-border/50 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all cursor-default"
                     >
-                      <div className={cn('w-11 h-11 rounded-xl flex items-center justify-center', f.bgClass)}>
-                        <f.icon className={cn('w-5 h-5', f.iconClass)} />
+                      <div className={cn('w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center', f.bgClass)}>
+                        <f.icon className={cn('w-4 h-4 sm:w-5 sm:h-5', f.iconClass)} />
                       </div>
                       <div className="text-center">
-                        <span className="text-[10px] font-bold text-foreground leading-tight block">{f.text}</span>
-                        <span className="text-[8px] text-muted-foreground leading-tight">{f.desc}</span>
+                        <span className="text-[9px] sm:text-[10px] font-bold text-foreground leading-tight block">{f.text}</span>
+                        <span className="text-[7px] sm:text-[8px] text-muted-foreground leading-tight">{f.desc}</span>
                       </div>
                     </motion.div>
                   ))}
@@ -221,7 +221,7 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
               </div>
 
               {/* Live Stats */}
-              <motion.div variants={itemVariants} className="px-4 pt-4">
+              <motion.div variants={itemVariants} className="px-3 sm:px-4 pt-3 sm:pt-4">
                 <div className="flex items-center justify-around p-4 rounded-2xl bg-muted/30 border border-border/20">
                   {stats.map((s, i) => (
                     <div key={i} className="flex flex-col items-center gap-1.5">
@@ -237,7 +237,7 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
 
               {/* Testimonial quote */}
               {testimonial && (
-                <motion.div variants={itemVariants} className="px-4 pt-3">
+                <motion.div variants={itemVariants} className="px-3 sm:px-4 pt-2.5 sm:pt-3">
                   <div className="p-3 rounded-xl bg-primary/5 border border-primary/10">
                     <div className="flex gap-2">
                       <Quote className="w-4 h-4 text-primary/40 shrink-0 mt-0.5" />
@@ -255,7 +255,7 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
               )}
 
               {/* Action area */}
-              <div className="px-4 pt-4 pb-5 space-y-2.5">
+              <div className="px-3 sm:px-4 pt-3 sm:pt-4 pb-4 sm:pb-5 space-y-2">
                 {/* Primary: Register */}
                 <motion.div variants={itemVariants}>
                   <Button
