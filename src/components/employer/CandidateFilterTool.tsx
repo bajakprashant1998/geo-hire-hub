@@ -899,7 +899,7 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                     <span className="font-medium">Analyzing your candidates...</span>
                   </div>
                 ) : aiInsights ? (
-                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 overflow-hidden">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 overflow-hidden">
                     {aiInsights.topPick && (
                       <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="p-3 sm:p-4 rounded-2xl bg-success/[0.07] border border-success/15 hover:bg-success/[0.1] transition-all duration-200 overflow-hidden group">
                         <div className="flex items-center gap-1.5 mb-2">
@@ -1012,9 +1012,9 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
       </div>
 
       {/* Pipeline Tabs */}
-      <div className="space-y-2">
+      <div className="space-y-2 overflow-x-hidden">
         <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest px-0.5">Pipeline</p>
-        <div className="flex items-center gap-2 sm:gap-2 flex-wrap">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
           {PIPELINE_STATUSES.map((status, i) => {
             const count = pipelineCounts[status.value] || 0;
             const isActive = filters.pipelineStatus === status.value;
@@ -1027,8 +1027,8 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                     transition={{ delay: i * 0.03 }}
                     onClick={() => setFilters(prev => ({ ...prev, pipelineStatus: status.value }))}
                     className={cn(
-                      "relative flex items-center justify-center transition-all duration-200 border",
-                      "w-11 h-11 rounded-xl sm:w-auto sm:h-auto sm:rounded-full sm:px-4 sm:py-2 sm:gap-2",
+                      "relative flex items-center justify-center transition-all duration-200 border shrink-0",
+                      "w-10 h-10 rounded-xl sm:w-auto sm:h-auto sm:rounded-full sm:px-4 sm:py-2 sm:gap-2",
                       isActive
                         ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25 border-primary scale-105"
                         : "bg-card border-border/40 text-muted-foreground hover:text-foreground hover:border-primary/30 hover:bg-primary/[0.03] hover:shadow-sm"
@@ -1268,10 +1268,10 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                         </div>
                       )}
 
-                      <CardContent className={cn("p-0", isTopPick && "pt-2")}>
+                      <CardContent className={cn("p-0 overflow-hidden", isTopPick && "pt-2")}>
                         {/* Main content area */}
-                        <div className="p-3 sm:p-5">
-                          <div className="flex items-start gap-2.5 sm:gap-4">
+                        <div className="p-3 sm:p-5 overflow-hidden">
+                          <div className="flex items-start gap-2 sm:gap-4 min-w-0">
                             {/* Checkbox */}
                             <Checkbox
                               checked={isSelected}
@@ -1297,8 +1297,8 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                             </div>
 
                             {/* Info section */}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                            <div className="flex-1 min-w-0 overflow-hidden">
+                              <div className="flex items-center gap-1 sm:gap-2 flex-wrap min-w-0">
                                 <h4
                                   className="font-bold text-foreground text-sm sm:text-base leading-tight cursor-pointer hover:text-primary transition-colors truncate"
                                   onClick={() => setSelectedCandidate(candidate)}
@@ -1314,10 +1314,10 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                               </div>
 
                               {/* Meta row */}
-                              <div className="flex items-center gap-1.5 sm:gap-3 mt-1 text-[11px] text-muted-foreground flex-wrap">
-                                <span className="flex items-center gap-1">
+                              <div className="flex items-center gap-1.5 sm:gap-3 mt-1 text-[10px] sm:text-[11px] text-muted-foreground flex-wrap min-w-0">
+                                <span className="flex items-center gap-1 min-w-0">
                                   <Briefcase className="w-3 h-3 shrink-0 text-muted-foreground/60" />
-                                  <span className="truncate max-w-[120px] sm:max-w-none">{candidate.jobTitle}</span>
+                                  <span className="truncate max-w-[80px] sm:max-w-none">{candidate.jobTitle}</span>
                                 </span>
                                 <span className="font-semibold text-foreground/70">{candidate.experienceYears}y exp</span>
                                 {locationStr && (
@@ -1335,22 +1335,22 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
 
                               {/* Skills */}
                               {candidate.skills.length > 0 && (
-                                <div className="flex flex-wrap gap-1 mt-2">
-                                  {candidate.skills.slice(0, 4).map(skill => (
-                                    <span key={skill} className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-muted/50 text-muted-foreground border border-border/30 truncate max-w-[100px] sm:max-w-[140px]">
+                                <div className="flex flex-wrap gap-1 mt-2 overflow-hidden">
+                                  {candidate.skills.slice(0, 3).map(skill => (
+                                    <span key={skill} className="text-[10px] font-medium px-1.5 sm:px-2 py-0.5 rounded-md bg-muted/50 text-muted-foreground border border-border/30 truncate max-w-[80px] sm:max-w-[140px]">
                                       {skill}
                                     </span>
                                   ))}
-                                  {candidate.skills.length > 4 && (
+                                  {candidate.skills.length > 3 && (
                                     <span className="text-[10px] font-medium px-2 py-0.5 rounded-md border border-dashed border-border/50 text-muted-foreground/60">
-                                      +{candidate.skills.length - 4}
+                                      +{candidate.skills.length - 3}
                                     </span>
                                   )}
                                 </div>
                               )}
 
                               {/* Applied for + indicators */}
-                              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                              <div className="flex items-center gap-2 mt-1.5 flex-wrap min-w-0 overflow-hidden">
                                 {candidate.jobTitle_applied && (
                                   <p className="text-[10px] text-muted-foreground/70">
                                     Applied for <span className="font-semibold text-foreground/70">{candidate.jobTitle_applied}</span>
