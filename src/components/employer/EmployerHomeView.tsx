@@ -233,7 +233,7 @@ export const EmployerHomeView = ({
               whileHover={{ y: -3, scale: 1.04 }}
               whileTap={{ scale: 0.95 }}
               onClick={action.onClick}
-              className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl hover:bg-muted/50 transition-all relative group"
+              className="flex flex-col items-center gap-1 sm:gap-1.5 p-1.5 sm:p-2.5 rounded-xl hover:bg-muted/50 transition-all relative group"
             >
               <div className={cn(
                 "w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center ring-1 transition-shadow group-hover:shadow-md",
