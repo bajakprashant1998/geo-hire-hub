@@ -35,6 +35,9 @@ import { SalaryBadge } from '@/components/SalaryBadge';
 import { DeadlineCountdown } from '@/components/DeadlineCountdown';
 import { ResponseRateBadge } from '@/components/employer/ResponseRateBadge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { SEOContentFooter } from '@/components/SEOContentFooter';
+import { TestimonialsSection } from '@/components/TestimonialsSection';
+import { Separator } from '@/components/ui/separator';
 
 interface JobDetails {
   id: string;
@@ -204,16 +207,25 @@ const JobDetail = () => {
   };
 
   const baseUrl = 'https://www.hireforjob.com';
-  const jobSeoTitle = job ? `${job.title} at ${job.employer.company_name} | HireForJob` : 'Job Details | HireForJob';
-  const jobSeoDesc = job ? `Apply for ${job.title} at ${job.employer.company_name}. ${job.job_type || 'Full-time'}${job.salary_range ? ` | ${job.salary_range}` : ''}${job.job_address ? ` | ${job.job_address}` : ''}` : '';
+  // SEO: title ≤60 chars, desc ≤160 chars
+  const jobSeoTitle = job ? `${job.title} – ${job.employer.company_name} | HireForJob`.slice(0, 60) : 'Job Details | HireForJob';
+  const jobSeoDesc = job ? `Apply for ${job.title} at ${job.employer.company_name}. ${job.job_type || 'Full-time'} role${job.salary_range ? `, salary ${job.salary_range}` : ''}${job.job_address ? ` in ${job.job_address}` : ''}. Apply now on HireForJob.`.slice(0, 160) : '';
   const jobCanonical = job ? `${baseUrl}${window.location.pathname}` : undefined;
+
+  // FAQ items for SEO
+  const faqItems = job ? [
+    { q: `What is the salary for ${job.title}?`, a: job.salary_range ? `The salary range for this ${job.title} position is ${job.salary_range} per month.` : `Salary details are discussed during the interview process. Apply now to learn more.` },
+    { q: `What qualifications are needed for this job?`, a: `${job.education ? `Education: ${job.education}. ` : ''}${job.experience_type === 'Fresher Only' ? 'Freshers are welcome to apply.' : job.min_experience ? `${job.min_experience}-${job.max_experience || '10+'} years of experience required.` : 'Experience requirements vary. Check the job details above.'}` },
+    { q: `How do I apply for this ${job.title} position?`, a: `Click the "Apply Now" button on this page to submit your application directly to ${job.employer.company_name}. You can also attach a cover letter to stand out.` },
+    ...(job.job_address ? [{ q: `Where is this job located?`, a: `This position is located at ${job.job_address}. You can find more jobs near this location on HireForJob.` }] : []),
+  ] : [];
 
   const jobJsonLd = job ? (() => {
     const created = job.created_at ? new Date(job.created_at) : new Date();
     const validThrough = new Date(created);
     validThrough.setDate(validThrough.getDate() + 30);
     const addressParts = job.job_address?.split(',').map(s => s.trim()) || [];
-    return {
+    const ld: Record<string, any> = {
       '@context': 'https://schema.org', '@type': 'JobPosting', title: job.title, description: job.description || '',
       identifier: { '@type': 'PropertyValue', name: job.employer.company_name, value: job.id },
       hiringOrganization: { '@type': 'Organization', name: job.employer.company_name, ...(job.employer.avatar_url && { logo: job.employer.avatar_url }), ...(job.employer.website_url && { sameAs: job.employer.website_url }) },
@@ -222,7 +234,18 @@ const JobDetail = () => {
       jobLocation: { '@type': 'Place', address: { '@type': 'PostalAddress', ...(addressParts[0] && { addressLocality: addressParts[0] }), ...(addressParts[1] && { addressRegion: addressParts[1] }), ...(addressParts[2] && { addressCountry: addressParts[2] }), ...(job.job_address && { streetAddress: job.job_address }) } },
       ...(job.salary_range && { baseSalary: { '@type': 'MonetaryAmount', currency: 'INR', value: { '@type': 'QuantitativeValue', value: job.salary_range, unitText: 'MONTH' } } }),
     };
+    return ld;
   })() : undefined;
+
+  // FAQ JSON-LD for SEO
+  const faqJsonLd = job && faqItems.length > 0 ? {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqItems.map(f => ({
+      '@type': 'Question', name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  } : undefined;
 
   const breadcrumbItems: BreadcrumbItem[] = job ? [
     { label: 'Jobs', href: '/browse-jobs' },
@@ -503,6 +526,14 @@ const JobDetail = () => {
   return (
     <div className="min-h-screen bg-background pb-28 lg:pb-8">
       <SEOHead title={jobSeoTitle} description={jobSeoDesc} canonicalUrl={jobCanonical} ogType="article" ogImage={job?.employer.avatar_url || undefined} jsonLd={jobJsonLd} breadcrumbJsonLd={breadcrumbJsonLd} publishedTime={job?.created_at || undefined} />
+      {/* Inject FAQ JSON-LD */}
+      {faqJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+          style={{ display: 'none' }}
+        />
+      )}
 
       {/* ===== TOP NAV BAR ===== */}
       <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/50">
@@ -614,25 +645,38 @@ const JobDetail = () => {
                 </div>
               )}
 
-              {/* Key info pills */}
+               {/* Key info pills */}
               <div className="flex flex-wrap gap-2">
                 {job.job_address && (
-                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 text-sm font-normal rounded-lg">
+                  <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 text-sm font-normal rounded-lg hover:bg-secondary/80 transition-colors cursor-default">
                     <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
                     <span className="truncate max-w-[200px]">{job.job_address}</span>
                   </Badge>
                 )}
-                <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 text-sm font-normal rounded-lg">
+                <Badge variant="secondary" className="gap-1.5 px-3 py-1.5 text-sm font-normal rounded-lg hover:bg-secondary/80 transition-colors cursor-default">
                   <Briefcase className="w-3.5 h-3.5 text-muted-foreground" /> {job.job_type || 'Full-time'}
                 </Badge>
                 {job.salary_range && (
-                  <Badge className="gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-lg bg-success/10 text-success border-success/20 hover:bg-success/15">
+                  <Badge className="gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-lg bg-success/10 text-success border-success/20 hover:bg-success/15 transition-colors cursor-default">
                     <IndianRupee className="w-3.5 h-3.5" /> {job.salary_range}
                   </Badge>
                 )}
                 {job.salary_range && <SalaryBadge salaryRange={job.salary_range} />}
-                {job.has_bonus && <Badge className="gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-warning/10 text-warning border-warning/20"><Gift className="w-3.5 h-3.5" /> +Bonus</Badge>}
-                {(job.referral_bounty ?? 0) > 0 && <Badge className="gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-primary/10 text-primary border-primary/20"><Trophy className="w-3.5 h-3.5" /> {job.referral_bounty} pts Bounty</Badge>}
+                {job.has_bonus && <Badge className="gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-warning/10 text-warning border-warning/20 cursor-default"><Gift className="w-3.5 h-3.5" /> +Bonus</Badge>}
+                {(job.referral_bounty ?? 0) > 0 && <Badge className="gap-1 px-3 py-1.5 text-sm font-semibold rounded-lg bg-primary/10 text-primary border-primary/20 cursor-default"><Trophy className="w-3.5 h-3.5" /> {job.referral_bounty} pts Bounty</Badge>}
+              </div>
+
+              {/* Trust Signals Bar */}
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mt-4 pt-4 border-t border-border/40">
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <CheckCircle className="w-3.5 h-3.5 text-success" /> Verified Employer
+                </span>
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Zap className="w-3.5 h-3.5 text-warning" /> Direct Apply
+                </span>
+                <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <BadgeCheck className="w-3.5 h-3.5 text-primary" /> Safe & Secure
+                </span>
               </div>
             </motion.div>
 
@@ -732,16 +776,33 @@ const JobDetail = () => {
                 </motion.div>
               )}
 
-              {/* Skills */}
+               {/* Skills with match indicator */}
               {job.skills && job.skills.length > 0 && (
                 <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} id="skills" ref={(el) => { sectionRefs.current['skills'] = el; }}>
                   <Card className="border-border/50 shadow-sm">
                     <CardContent className="p-5 md:p-6">
-                      <h2 className="flex items-center gap-2.5 text-lg font-bold mb-4"><Zap className="w-5 h-5 text-warning" /> Skills Required</h2>
+                      <div className="flex items-center justify-between mb-4">
+                        <h2 className="flex items-center gap-2.5 text-lg font-bold"><Zap className="w-5 h-5 text-warning" /> Skills Required</h2>
+                        {candidateData?.skills && candidateData.skills.length > 0 && (() => {
+                          const matched = job.skills!.filter(s => candidateData.skills!.some(cs => cs.toLowerCase() === s.toLowerCase())).length;
+                          const total = job.skills!.length;
+                          const pct = Math.round((matched / total) * 100);
+                          return (
+                            <Badge className={`text-xs ${pct >= 70 ? 'bg-success/10 text-success border-success/20' : pct >= 40 ? 'bg-warning/10 text-warning border-warning/20' : 'bg-muted text-muted-foreground border-border/50'}`}>
+                              {matched}/{total} skills match ({pct}%)
+                            </Badge>
+                          );
+                        })()}
+                      </div>
                       <div className="flex flex-wrap gap-2">
-                        {job.skills.map((skill, i) => (
-                          <Badge key={i} variant="secondary" className="px-3.5 py-1.5 text-sm rounded-lg font-medium hover:bg-secondary/80 transition-colors">{skill}</Badge>
-                        ))}
+                        {job.skills.map((skill, i) => {
+                          const isMatch = candidateData?.skills?.some(cs => cs.toLowerCase() === skill.toLowerCase());
+                          return (
+                            <Badge key={i} variant="secondary" className={`px-3.5 py-1.5 text-sm rounded-lg font-medium transition-all hover:scale-105 ${isMatch ? 'bg-success/10 text-success border-success/20 ring-1 ring-success/20' : 'hover:bg-secondary/80'}`}>
+                              {isMatch && <CheckCircle className="w-3 h-3 mr-1" />}{skill}
+                            </Badge>
+                          );
+                        })}
                       </div>
                     </CardContent>
                   </Card>
@@ -889,9 +950,9 @@ const JobDetail = () => {
                       <h2 className="flex items-center gap-2.5 text-lg font-bold mb-4"><TrendingUp className="w-5 h-5 text-primary" /> More from {job.employer.company_name}</h2>
                       <div className="space-y-2">
                         {relatedJobs.map((relJob) => (
-                          <Link key={relJob.id} to={relJob.slug ? `/jobs/${relJob.slug}` : `/jobs/${relJob.id}`} className="group flex items-center justify-between p-4 rounded-xl border border-border/50 hover:border-primary/30 hover:bg-primary/5 transition-all">
+                          <Link key={relJob.id} to={relJob.slug ? `/jobs/${relJob.slug}` : `/jobs/${relJob.id}`} className="group flex items-center justify-between p-4 rounded-xl border border-border/50 hover:border-primary/30 hover:bg-primary/5 transition-all duration-200">
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center"><Briefcase className="w-5 h-5 text-primary" /></div>
+                              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-105 transition-transform"><Briefcase className="w-5 h-5 text-primary" /></div>
                               <div>
                                 <h4 className="font-semibold group-hover:text-primary transition-colors">{relJob.title}</h4>
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -900,7 +961,7 @@ const JobDetail = () => {
                                 </div>
                               </div>
                             </div>
-                            <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                            <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
                           </Link>
                         ))}
                       </div>
@@ -908,6 +969,65 @@ const JobDetail = () => {
                   </Card>
                 </motion.div>
               )}
+
+              {/* Mid-page CTA */}
+              {!hasApplied && !(job.expires_at && new Date(job.expires_at) < new Date()) && (
+                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}>
+                  <Card className="border-primary/20 bg-gradient-to-r from-primary/5 via-primary/3 to-transparent shadow-sm overflow-hidden">
+                    <CardContent className="p-6 md:p-8 flex flex-col sm:flex-row items-center gap-4">
+                      <div className="flex-1 text-center sm:text-left">
+                        <h3 className="text-lg font-bold text-foreground mb-1">Ready to take the next step?</h3>
+                        <p className="text-sm text-muted-foreground">Don't miss out — apply now and connect directly with {job.employer.company_name}.</p>
+                      </div>
+                      <Dialog open={applyDialogOpen} onOpenChange={setApplyDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button size="lg" className="rounded-xl gap-2 px-8 shrink-0 shadow-md hover:shadow-lg transition-shadow">
+                            <Send className="w-4 h-4" /> Apply Now
+                          </Button>
+                        </DialogTrigger>
+                        {applyDialogContent}
+                      </Dialog>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
+              {/* FAQ Section for SEO */}
+              {faqItems.length > 0 && (
+                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+                  <Card className="border-border/50 shadow-sm">
+                    <CardContent className="p-5 md:p-6">
+                      <h2 className="flex items-center gap-2.5 text-lg font-bold mb-4">
+                        <MessageSquare className="w-5 h-5 text-primary" /> Frequently Asked Questions
+                      </h2>
+                      <div className="space-y-4">
+                        {faqItems.map((faq, i) => (
+                          <div key={i} className="p-4 rounded-xl bg-muted/50 border border-border/50 hover:border-primary/20 transition-colors">
+                            <h3 className="font-semibold text-sm text-foreground mb-1.5">{faq.q}</h3>
+                            <p className="text-sm text-muted-foreground leading-relaxed">{faq.a}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
+              {/* Browse more CTA */}
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65 }}>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 py-4">
+                  <Link to="/browse-jobs">
+                    <Button variant="outline" className="rounded-xl gap-2">
+                      <Briefcase className="w-4 h-4" /> Browse More Jobs
+                    </Button>
+                  </Link>
+                  <Link to="/jobs-near-me">
+                    <Button variant="outline" className="rounded-xl gap-2">
+                      <MapPin className="w-4 h-4" /> Find Jobs Near Me
+                    </Button>
+                  </Link>
+                </div>
+              </motion.div>
             </div>
           </div>
 
@@ -1000,6 +1120,14 @@ const JobDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Testimonials */}
+      <div className="container mx-auto px-4 max-w-5xl">
+        <TestimonialsSection compact className="mt-8 mb-4" />
+      </div>
+
+      {/* SEO Footer */}
+      <SEOContentFooter />
 
       {/* ===== MOBILE BOTTOM BAR ===== */}
       <AnimatePresence>
