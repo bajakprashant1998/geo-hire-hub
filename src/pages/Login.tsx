@@ -113,7 +113,12 @@ const Login = () => {
       const redirect = await getSmartRedirect(data.user.id, profileData?.user_type || userType, profileData?.profile_completed ?? false);
       navigate(redirect);
     } catch (error: any) {
-      toast.error(error.message || 'Login failed');
+      const msg = error?.message || '';
+      if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('Load failed')) {
+        toast.error('Service temporarily unavailable. Please check your connection and try again.');
+      } else {
+        toast.error(msg || 'Login failed');
+      }
     } finally {
       setLoading(false);
     }
