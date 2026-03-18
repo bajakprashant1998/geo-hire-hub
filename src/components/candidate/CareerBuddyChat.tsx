@@ -466,7 +466,7 @@ export const CareerBuddyChat = () => {
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
                 <Zap className="w-3 h-3 text-amber-500" /> Quick actions
               </p>
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-2 gap-2">
                 {quickActions.map((action, i) => (
                   <motion.button
                     key={action.label}
