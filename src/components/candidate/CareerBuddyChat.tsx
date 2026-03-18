@@ -629,10 +629,10 @@ export const CareerBuddyChat = () => {
       )}
 
       {/* ── Input ── */}
-      <div className="shrink-0 px-3 pb-3 pt-2 border-t border-border/50 bg-card/50">
+      <div className="shrink-0 px-2.5 sm:px-3 pb-2.5 sm:pb-3 pt-2 border-t border-border/50 bg-card/50">
         <form onSubmit={handleSubmit}>
           <div className={cn(
-            "flex items-end gap-2 p-1.5 rounded-2xl border-2 transition-all duration-200",
+            "flex items-end gap-1.5 sm:gap-2 p-1 sm:p-1.5 rounded-2xl border-2 transition-all duration-200",
             "border-border/60 bg-muted/30 focus-within:border-primary/50 focus-within:bg-background focus-within:shadow-lg focus-within:shadow-primary/10"
           )}>
             <Textarea
@@ -642,8 +642,8 @@ export const CareerBuddyChat = () => {
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input); }
               }}
-              placeholder="Ask me anything about your career..."
-              className="flex-1 border-0 bg-transparent shadow-none focus-visible:ring-0 min-h-[40px] max-h-[100px] text-sm resize-none px-3 py-2 placeholder:text-muted-foreground/50"
+              placeholder="Ask about your career..."
+              className="flex-1 border-0 bg-transparent shadow-none focus-visible:ring-0 min-h-[36px] sm:min-h-[40px] max-h-[100px] text-sm resize-none px-2 sm:px-3 py-2 placeholder:text-muted-foreground/50"
               disabled={isLoading}
               rows={1}
             />
