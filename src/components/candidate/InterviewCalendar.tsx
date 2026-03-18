@@ -181,7 +181,7 @@ export const InterviewCalendar = ({ candidateId }: InterviewCalendarProps) => {
   return (
     <div className="space-y-4 sm:space-y-5 overflow-x-hidden">
       {/* Stats Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
         {[
           { label: 'Total Scheduled', value: stats.total, icon: CalendarDays, color: 'text-primary bg-primary/10' },
           { label: 'Today', value: stats.today, icon: CalendarCheck, color: 'text-green-600 bg-green-500/10' },
