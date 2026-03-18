@@ -170,7 +170,7 @@ const LiveChatWidget = () => {
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
-            className="fixed bottom-20 right-4 z-[60] md:bottom-6 md:right-6"
+            className="fixed bottom-[5.5rem] right-3 z-[60] md:bottom-6 md:right-6"
           >
             <Button
               onClick={handleOpen}
