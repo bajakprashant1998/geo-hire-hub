@@ -685,17 +685,17 @@ const AIGenerator = ({
           {toneOptions.map((option) => (
             <div key={option.value}>
               <RadioGroupItem value={option.value} id={option.value} className="peer sr-only" />
-              <Label
-                htmlFor={option.value}
-                className={`flex flex-col items-center p-3 rounded-xl border-2 cursor-pointer transition-all 
-                  hover:border-primary/50 
-                  peer-data-[state=checked]:border-primary 
-                  peer-data-[state=checked]:bg-gradient-to-br ${option.color}
-                  peer-disabled:opacity-50 peer-disabled:cursor-not-allowed`}
-              >
-                <span className="text-2xl mb-1">{option.icon}</span>
-                <span className="font-medium text-sm">{option.label}</span>
-                <span className="text-[10px] text-muted-foreground text-center leading-tight mt-0.5">{option.description}</span>
+                <Label
+                  htmlFor={option.value}
+                  className={`flex flex-col items-center p-2.5 sm:p-3 rounded-xl border-2 cursor-pointer transition-all 
+                    hover:border-primary/50 
+                    peer-data-[state=checked]:border-primary 
+                    peer-data-[state=checked]:bg-gradient-to-br ${option.color}
+                    peer-disabled:opacity-50 peer-disabled:cursor-not-allowed`}
+                >
+                  <span className="text-xl sm:text-2xl mb-1">{option.icon}</span>
+                  <span className="font-medium text-xs sm:text-sm">{option.label}</span>
+                  <span className="text-[9px] sm:text-[10px] text-muted-foreground text-center leading-tight mt-0.5">{option.description}</span>
               </Label>
             </div>
           ))}
