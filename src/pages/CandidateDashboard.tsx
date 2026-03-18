@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDashboardTab } from '@/hooks/useDashboardTab';
+import { SEOHead } from '@/components/SEOHead';
 import { Button } from '@/components/ui/button';
 import {
   Briefcase, Bell, Shield, FileText, Sparkles, Eye, Calendar, Star, ChevronRight, User, MessageSquare, Bookmark, Mic,
@@ -142,6 +143,12 @@ const CandidateDashboard = () => {
     <DashboardAuthGuard type="candidate" authLoading={authLoading} profileLoading={profileLoading} profileResolved={profileResolved} user={user} profile={profile} refreshProfile={refreshProfile} signOut={signOut}>
       {dataLoading ? <CandidateDashboardLoading /> : !profile ? null : (
         <EmailVerificationGuard fallbackMessage="Please verify your email to access your dashboard.">
+          <SEOHead
+            title="Candidate Dashboard — Hire for Job"
+            description="Manage your job applications, track interviews, build AI resumes, and discover career opportunities on Hire for Job."
+            canonicalUrl="https://www.hireforjob.com/candidate-dashboard"
+            noindex
+          />
           <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/80 flex overflow-x-hidden">
             {user && <OnboardingTour userId={user.id} type="candidate" />}
             <DashboardSidebar type="candidate" items={sidebarItems} activeItem={activeSection} onItemClick={handleSectionClick} userName={profile.full_name} userTitle={candidate?.job_title || 'Job Seeker'} avatarUrl={profile.avatar_url} onSignOut={signOut} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} profileCompleteness={calculateCompleteness()} />
