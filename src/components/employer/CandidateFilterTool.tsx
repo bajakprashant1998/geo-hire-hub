@@ -1027,8 +1027,8 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                     transition={{ delay: i * 0.03 }}
                     onClick={() => setFilters(prev => ({ ...prev, pipelineStatus: status.value }))}
                     className={cn(
-                      "relative flex items-center justify-center transition-all duration-200 border",
-                      "w-11 h-11 rounded-xl sm:w-auto sm:h-auto sm:rounded-full sm:px-4 sm:py-2 sm:gap-2",
+                      "relative flex items-center justify-center transition-all duration-200 border shrink-0",
+                      "w-10 h-10 rounded-xl sm:w-auto sm:h-auto sm:rounded-full sm:px-4 sm:py-2 sm:gap-2",
                       isActive
                         ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25 border-primary scale-105"
                         : "bg-card border-border/40 text-muted-foreground hover:text-foreground hover:border-primary/30 hover:bg-primary/[0.03] hover:shadow-sm"
