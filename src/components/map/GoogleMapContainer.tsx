@@ -291,10 +291,16 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
         const isCandidate = mode === 'hiring';
         const job = item as Job;
         const isGovJob = !isCandidate && job.job_category === 'government';
-        const bgColor = isCandidate ? '#3B82F6' : (isGovJob ? '#16A34A' : '#EF4444');
-        const gradientEnd = isCandidate ? '#2563EB' : (isGovJob ? '#059669' : '#DC2626');
         const isSelected = selectedItem?.id === item.id;
         const isNew = !isCandidate && job.created_at && isNewJob(job.created_at);
+        const label = isCandidate
+          ? (item as Candidate).full_name?.split(' ')[0] || ''
+          : (item as Job).title?.split(' ').slice(0, 2).join(' ') || '';
+        const markerClass = isCandidate
+          ? 'map-pin-candidate'
+          : isGovJob
+            ? 'map-pin-govt'
+            : 'map-pin-job';
 
         return (
           <AdvancedMarker
@@ -307,35 +313,26 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
             <div
               onMouseEnter={() => handleMouseEnter(item)}
               onMouseLeave={handleMouseLeave}
-              style={{
-                width: isSelected ? 48 : 40,
-                height: isSelected ? 48 : 40,
-                borderRadius: '50%',
-                background: `linear-gradient(135deg, ${bgColor}, ${gradientEnd})`,
-                border: `3px solid white`,
-                boxShadow: isSelected
-                  ? `0 0 0 4px ${bgColor}44, 0 4px 16px rgba(0,0,0,0.3)`
-                  : isNew
-                    ? `0 0 0 3px ${bgColor}30, 0 2px 10px rgba(0,0,0,0.25)`
-                    : '0 2px 10px rgba(0,0,0,0.2)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                transition: 'all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                transform: isSelected ? 'scale(1.2)' : 'scale(1)',
-                animation: isNew ? 'marker-pulse 2s ease-in-out infinite' : 'none',
-              }}
+              className={`map-pin ${markerClass} ${isSelected ? 'map-pin-selected' : ''} ${isNew ? 'map-pin-new' : ''}`}
             >
-              {isCandidate ? (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
-                </svg>
-              ) : (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
-                  <rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-                </svg>
-              )}
+              <div className="map-pin-head">
+                {isCandidate ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+                  </svg>
+                ) : isGovJob ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" strokeLinecap="round">
+                    <path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/>
+                  </svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+                    <rect x="2" y="7" width="20" height="14" rx="2" /><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                  </svg>
+                )}
+              </div>
+              <div className="map-pin-tail" />
+              {isNew && <span className="map-pin-badge">NEW</span>}
+              <span className="map-pin-label">{label}</span>
             </div>
           </AdvancedMarker>
         );
