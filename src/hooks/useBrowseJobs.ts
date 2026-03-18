@@ -109,13 +109,15 @@ export function useBrowseJobs() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch, jobType, sortBy, isRemote, experienceLevel, salaryMin, salaryMax]);
 
+  // Trigger fetch when page increments (loadMore)
+  useEffect(() => {
+    if (page > 0) fetchJobs(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
+
   const loadMore = useCallback(() => {
-    setPage(p => {
-      const next = p + 1;
-      setTimeout(() => fetchJobs(false), 0);
-      return next;
-    });
-  }, [fetchJobs]);
+    setPage(prev => prev + 1);
+  }, []);
 
   const clearAllFilters = useCallback(() => {
     setSearch('');
