@@ -319,6 +319,7 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
               onMouseEnter={() => handleMouseEnter(item)}
               onMouseLeave={handleMouseLeave}
               className={`map-pin ${markerClass} ${isSelected ? 'map-pin-selected' : ''} ${isNew ? 'map-pin-new' : ''}`}
+              style={{ padding: '8px', margin: '-8px' }}
             >
               <div className="map-pin-head">
                 {isCandidate ? (
