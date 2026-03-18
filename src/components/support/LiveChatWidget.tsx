@@ -166,7 +166,7 @@ const LiveChatWidget = () => {
     <>
       {/* FAB */}
       <AnimatePresence>
-        {!isOpen && (
+        {!isOpen && !isHidden && (
           <motion.div
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -181,7 +181,31 @@ const LiveChatWidget = () => {
               <MessageCircle className="h-6 w-6" />
             </Button>
             <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-green-500 border-2 border-background animate-pulse" />
+            {/* Hide/dismiss button */}
+            <button
+              onClick={(e) => { e.stopPropagation(); setIsHidden(true); }}
+              className="absolute -top-1.5 -left-1.5 h-5 w-5 rounded-full bg-muted border border-border shadow-sm flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors"
+              aria-label="Hide support chat"
+            >
+              <X className="h-3 w-3" />
+            </button>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Show again pill — only when hidden */}
+      <AnimatePresence>
+        {isHidden && !isOpen && (
+          <motion.button
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            onClick={() => { setIsHidden(false); handleOpen(); }}
+            className="fixed bottom-[5.5rem] right-3 z-[60] md:bottom-6 md:right-6 h-10 px-3 rounded-full bg-muted/90 border border-border shadow-md flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+          >
+            <MessageCircle className="h-3.5 w-3.5" />
+            Chat
+          </motion.button>
         )}
       </AnimatePresence>
 
