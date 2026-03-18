@@ -178,42 +178,42 @@ export const JobCard = ({ job, index, viewMode, savedJobIds, onSaveToggle, compa
 function GridLayout({ job, companyName, desc, typeColor, jobIsNew }: any) {
   return (
     <>
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <div className="w-11 h-11 rounded-xl bg-primary/8 flex items-center justify-center shrink-0 ring-1 ring-primary/10">
-          <Building2 className="w-5 h-5 text-primary" />
+      <div className="flex items-start justify-between gap-2 mb-2 sm:mb-3">
+        <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-primary/8 flex items-center justify-center shrink-0 ring-1 ring-primary/10">
+          <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
         </div>
-        <div className="flex items-center gap-1.5 pr-6">
+        <div className="flex items-center gap-1.5 pr-6 min-w-0">
           {jobIsNew && (
-            <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px] px-1.5 py-0 h-5 font-medium">
+            <Badge className="bg-emerald-500 hover:bg-emerald-500 text-white text-[10px] px-1.5 py-0 h-5 font-medium shrink-0">
               <Zap className="w-2.5 h-2.5 mr-0.5" />New
             </Badge>
           )}
-          <span className="text-xs text-muted-foreground flex items-center gap-1">
+          <span className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 shrink-0">
             <Clock className="w-3 h-3" />{formatDate(job.created_at)}
           </span>
         </div>
       </div>
 
-      <h3 className="font-semibold text-foreground line-clamp-2 mb-1.5 leading-snug group-hover:text-primary transition-colors">
+      <h3 className="font-semibold text-foreground line-clamp-2 mb-1 sm:mb-1.5 leading-snug group-hover:text-primary transition-colors text-sm sm:text-base">
         {job.title}
       </h3>
-      <p className="text-sm text-muted-foreground mb-1.5 truncate">{companyName}</p>
+      <p className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-1.5 truncate">{companyName}</p>
 
-      {desc && <p className="text-xs text-muted-foreground/70 line-clamp-2 mb-3 leading-relaxed">{desc}</p>}
+      {desc && <p className="text-[11px] sm:text-xs text-muted-foreground/70 line-clamp-2 mb-2 sm:mb-3 leading-relaxed break-words">{desc}</p>}
 
-      <div className="mt-auto space-y-2">
-        <div className="flex flex-wrap items-center gap-1.5">
+      <div className="mt-auto space-y-1.5 sm:space-y-2 min-w-0">
+        <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
           {job.job_type && (
-            <Badge variant="outline" className={`text-[11px] border ${typeColor}`}>{job.job_type}</Badge>
+            <Badge variant="outline" className={`text-[10px] sm:text-[11px] border ${typeColor}`}>{job.job_type}</Badge>
           )}
           {job.salary_range && (
-            <Badge variant="outline" className="text-[11px] font-medium">{job.salary_range}</Badge>
+            <Badge variant="outline" className="text-[10px] sm:text-[11px] font-medium truncate max-w-[120px]">{job.salary_range}</Badge>
           )}
           {job.salary_range && <SalaryBadge salaryRange={job.salary_range} compact />}
         </div>
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center justify-between gap-1.5 min-w-0">
           {job.job_address && (
-            <p className="text-xs text-muted-foreground flex items-center gap-1 truncate">
+            <p className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 truncate min-w-0 flex-1">
               <MapPin className="w-3 h-3 shrink-0 text-muted-foreground/60" />
               <span className="truncate">{job.job_address}</span>
             </p>

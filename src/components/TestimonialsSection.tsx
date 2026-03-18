@@ -49,28 +49,31 @@ const TestimonialCard = ({ t, index }: { t: Testimonial; index: number }) => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.1, duration: 0.4 }}
+      className="min-w-0"
     >
-      <Card className="h-full border-border/60 hover:border-primary/30 hover:shadow-lg transition-all duration-300 group">
-        <CardContent className="p-6 flex flex-col h-full">
-          <Quote className="w-8 h-8 text-primary/15 mb-3 shrink-0" />
+      <Card className="h-full border-border/60 hover:border-primary/30 hover:shadow-lg transition-all duration-300 group overflow-hidden">
+        <CardContent className="p-4 sm:p-6 flex flex-col h-full">
+          <Quote className="w-6 h-6 sm:w-8 sm:h-8 text-primary/15 mb-2 sm:mb-3 shrink-0" />
 
-          <p className="text-sm text-muted-foreground leading-relaxed flex-1 mb-5">
+          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed flex-1 mb-4 sm:mb-5 break-words">
             "{t.quote}"
           </p>
 
-          <div className="flex items-center gap-3 pt-4 border-t border-border/50">
-            <Avatar className="w-10 h-10 border-2 border-primary/10">
-              <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
+          <div className="flex items-center gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-border/50 min-w-0">
+            <Avatar className="w-8 h-8 sm:w-10 sm:h-10 border-2 border-primary/10 shrink-0">
+              <AvatarFallback className="bg-primary/10 text-primary text-[10px] sm:text-xs font-bold">
                 {initials}
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-foreground truncate">{t.author_name}</p>
-              <p className="text-xs text-muted-foreground truncate">
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <p className="text-xs sm:text-sm font-semibold text-foreground truncate">{t.author_name}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
                 {t.author_role}, {t.company_name}
               </p>
             </div>
-            <StarRating rating={t.rating} />
+            <div className="shrink-0">
+              <StarRating rating={t.rating} />
+            </div>
           </div>
         </CardContent>
       </Card>
