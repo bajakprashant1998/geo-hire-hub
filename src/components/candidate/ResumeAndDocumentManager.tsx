@@ -638,18 +638,18 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
           <TabsContent value="ai-resumes" className="mt-4 space-y-4">
             {/* Create New CTA */}
             <Card className="border-dashed border-2 border-violet-500/30 bg-gradient-to-br from-violet-500/5 to-transparent">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-violet-500/10">
-                    <Wand2 className="w-6 h-6 text-violet-500" />
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                  <div className="p-2.5 sm:p-3 rounded-xl bg-violet-500/10 shrink-0">
+                    <Wand2 className="w-5 h-5 sm:w-6 sm:h-6 text-violet-500" />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-foreground">Create with AI</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Build a professional resume in minutes with our AI-powered builder
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-foreground text-sm sm:text-base">Create with AI</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      Build a professional resume in minutes
                     </p>
                   </div>
-                  <Button onClick={() => navigate('/ai-resume-builder')} className="gap-2">
+                  <Button onClick={() => navigate('/ai-resume-builder')} className="gap-2 w-full sm:w-auto shrink-0" size="sm">
                     <Plus className="w-4 h-4" />
                     Create New
                   </Button>
