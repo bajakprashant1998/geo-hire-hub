@@ -776,16 +776,33 @@ const JobDetail = () => {
                 </motion.div>
               )}
 
-              {/* Skills */}
+               {/* Skills with match indicator */}
               {job.skills && job.skills.length > 0 && (
                 <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} id="skills" ref={(el) => { sectionRefs.current['skills'] = el; }}>
                   <Card className="border-border/50 shadow-sm">
                     <CardContent className="p-5 md:p-6">
-                      <h2 className="flex items-center gap-2.5 text-lg font-bold mb-4"><Zap className="w-5 h-5 text-warning" /> Skills Required</h2>
+                      <div className="flex items-center justify-between mb-4">
+                        <h2 className="flex items-center gap-2.5 text-lg font-bold"><Zap className="w-5 h-5 text-warning" /> Skills Required</h2>
+                        {candidateData?.skills && candidateData.skills.length > 0 && (() => {
+                          const matched = job.skills!.filter(s => candidateData.skills!.some(cs => cs.toLowerCase() === s.toLowerCase())).length;
+                          const total = job.skills!.length;
+                          const pct = Math.round((matched / total) * 100);
+                          return (
+                            <Badge className={`text-xs ${pct >= 70 ? 'bg-success/10 text-success border-success/20' : pct >= 40 ? 'bg-warning/10 text-warning border-warning/20' : 'bg-muted text-muted-foreground border-border/50'}`}>
+                              {matched}/{total} skills match ({pct}%)
+                            </Badge>
+                          );
+                        })()}
+                      </div>
                       <div className="flex flex-wrap gap-2">
-                        {job.skills.map((skill, i) => (
-                          <Badge key={i} variant="secondary" className="px-3.5 py-1.5 text-sm rounded-lg font-medium hover:bg-secondary/80 transition-colors">{skill}</Badge>
-                        ))}
+                        {job.skills.map((skill, i) => {
+                          const isMatch = candidateData?.skills?.some(cs => cs.toLowerCase() === skill.toLowerCase());
+                          return (
+                            <Badge key={i} variant="secondary" className={`px-3.5 py-1.5 text-sm rounded-lg font-medium transition-all hover:scale-105 ${isMatch ? 'bg-success/10 text-success border-success/20 ring-1 ring-success/20' : 'hover:bg-secondary/80'}`}>
+                              {isMatch && <CheckCircle className="w-3 h-3 mr-1" />}{skill}
+                            </Badge>
+                          );
+                        })}
                       </div>
                     </CardContent>
                   </Card>
