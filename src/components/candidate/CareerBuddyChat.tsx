@@ -366,34 +366,34 @@ export const CareerBuddyChat = () => {
   return (
     <div className="flex flex-col h-[calc(100dvh-180px)] sm:h-[calc(100dvh-200px)] min-h-[400px] max-h-[900px] -mx-3 sm:-mx-4 md:-mx-6 -mb-3 sm:-mb-4 md:-mb-6 overflow-x-hidden">
       {/* ── Header ── */}
-      <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent">
-        <div className="flex items-center gap-3">
-          <div className="relative">
+      <div className="shrink-0 flex items-center justify-between gap-2 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="relative shrink-0">
             <motion.div
-              className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary via-primary/80 to-violet-500 flex items-center justify-center shadow-lg shadow-primary/20"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-primary via-primary/80 to-violet-500 flex items-center justify-center shadow-lg shadow-primary/20"
               animate={{ scale: isLoading ? [1, 1.05, 1] : 1 }}
               transition={{ duration: 1.5, repeat: isLoading ? Infinity : 0 }}
             >
-              <Bot className="w-5 h-5 text-primary-foreground" />
+              <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
             </motion.div>
             <div className={cn(
-              "absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-card",
+              "absolute -bottom-0.5 -right-0.5 w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full border-2 border-card",
               isLoading ? "bg-amber-500 animate-pulse" : "bg-emerald-500"
             )} />
           </div>
-          <div>
-            <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+          <div className="min-w-0">
+            <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5 truncate">
               Career Buddy
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
             </h3>
-            <p className="text-[11px] text-muted-foreground">
-              {isLoading ? 'Thinking...' : messages.length > 0 ? `${messages.length} messages` : 'AI-powered career mentor'}
+            <p className="text-[10px] sm:text-[11px] text-muted-foreground truncate">
+              {isLoading ? 'Thinking...' : messages.length > 0 ? `${messages.length} messages` : 'AI career mentor'}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 shrink-0">
           {messages.length > 0 && (
-            <Button variant="outline" size="sm" onClick={handleReset} className="text-muted-foreground hover:text-foreground gap-1.5 rounded-xl text-xs h-8 px-3">
+            <Button variant="outline" size="sm" onClick={handleReset} className="text-muted-foreground hover:text-foreground gap-1 rounded-xl text-[10px] sm:text-xs h-7 sm:h-8 px-2 sm:px-3">
               <RefreshCw className="w-3 h-3" />
               {!isMobile && 'New Chat'}
             </Button>
