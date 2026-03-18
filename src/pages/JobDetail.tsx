@@ -526,6 +526,14 @@ const JobDetail = () => {
   return (
     <div className="min-h-screen bg-background pb-28 lg:pb-8">
       <SEOHead title={jobSeoTitle} description={jobSeoDesc} canonicalUrl={jobCanonical} ogType="article" ogImage={job?.employer.avatar_url || undefined} jsonLd={jobJsonLd} breadcrumbJsonLd={breadcrumbJsonLd} publishedTime={job?.created_at || undefined} />
+      {/* Inject FAQ JSON-LD */}
+      {faqJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+          style={{ display: 'none' }}
+        />
+      )}
 
       {/* ===== TOP NAV BAR ===== */}
       <div className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/50">
