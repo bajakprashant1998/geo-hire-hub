@@ -310,41 +310,43 @@ const ResumeTemplate = ({ data, innerRef, compact = false }: { data: ResumeFormD
 // Step indicator component
 const StepIndicator = ({ currentStep, steps, onStepClick }: { currentStep: number; steps: typeof STEPS; onStepClick: (idx: number) => void }) => {
   return (
-    <div className="flex items-center justify-between w-full max-w-2xl mx-auto mb-8">
-      {steps.map((step, idx) => {
-        const isActive = idx === currentStep;
-        const isCompleted = idx < currentStep;
-        const Icon = step.icon;
+    <div className="w-full max-w-2xl mx-auto mb-6 sm:mb-8 overflow-x-auto scrollbar-hide -mx-2 px-2">
+      <div className="flex items-center justify-between min-w-[320px]">
+        {steps.map((step, idx) => {
+          const isActive = idx === currentStep;
+          const isCompleted = idx < currentStep;
+          const Icon = step.icon;
 
-        return (
-          <div key={step.id} className="flex items-center">
-            <button
-              onClick={() => onStepClick(idx)}
-              className={`flex flex-col items-center gap-1.5 transition-all ${
-                isActive ? 'scale-110' : 'hover:scale-105'
-              }`}
-            >
-              <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
-                  isCompleted
-                    ? 'bg-emerald-500 text-white'
-                    : isActive
-                    ? 'bg-primary text-primary-foreground shadow-lg'
-                    : 'bg-muted text-muted-foreground'
+          return (
+            <div key={step.id} className="flex items-center">
+              <button
+                onClick={() => onStepClick(idx)}
+                className={`flex flex-col items-center gap-1 transition-all ${
+                  isActive ? 'scale-110' : 'hover:scale-105'
                 }`}
               >
-                {isCompleted ? <Check className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
-              </div>
-              <span className={`text-xs font-medium hidden sm:block ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
-                {step.label}
-              </span>
-            </button>
-            {idx < steps.length - 1 && (
-              <div className={`w-8 sm:w-16 h-0.5 mx-1 sm:mx-2 ${isCompleted ? 'bg-emerald-500' : 'bg-muted'}`} />
-            )}
-          </div>
-        );
-      })}
+                <div
+                  className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all ${
+                    isCompleted
+                      ? 'bg-[hsl(var(--success))] text-white'
+                      : isActive
+                      ? 'bg-primary text-primary-foreground shadow-lg'
+                      : 'bg-muted text-muted-foreground'
+                  }`}
+                >
+                  {isCompleted ? <Check className="w-4 h-4 sm:w-5 sm:h-5" /> : <Icon className="w-4 h-4 sm:w-5 sm:h-5" />}
+                </div>
+                <span className={`text-[10px] sm:text-xs font-medium ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
+                  {step.label}
+                </span>
+              </button>
+              {idx < steps.length - 1 && (
+                <div className={`w-4 sm:w-12 lg:w-16 h-0.5 mx-0.5 sm:mx-2 ${isCompleted ? 'bg-[hsl(var(--success))]' : 'bg-muted'}`} />
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };
