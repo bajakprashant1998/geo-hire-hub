@@ -1335,9 +1335,9 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
 
                               {/* Skills */}
                               {candidate.skills.length > 0 && (
-                                <div className="flex flex-wrap gap-1 mt-2">
-                                  {candidate.skills.slice(0, 4).map(skill => (
-                                    <span key={skill} className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-muted/50 text-muted-foreground border border-border/30 truncate max-w-[100px] sm:max-w-[140px]">
+                                <div className="flex flex-wrap gap-1 mt-2 overflow-hidden">
+                                  {candidate.skills.slice(0, 3).map(skill => (
+                                    <span key={skill} className="text-[10px] font-medium px-1.5 sm:px-2 py-0.5 rounded-md bg-muted/50 text-muted-foreground border border-border/30 truncate max-w-[80px] sm:max-w-[140px]">
                                       {skill}
                                     </span>
                                   ))}
