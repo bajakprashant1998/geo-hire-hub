@@ -21,6 +21,7 @@ interface Message {
 const LiveChatWidget = () => {
   const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
+  const [isHidden, setIsHidden] = useState(false);
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [ticketId, setTicketId] = useState<string | null>(null);
