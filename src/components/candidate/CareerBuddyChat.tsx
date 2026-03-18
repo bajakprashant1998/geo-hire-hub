@@ -364,36 +364,36 @@ export const CareerBuddyChat = () => {
   const lastAssistantMessage = [...messages].reverse().find(m => m.role === 'assistant' && m.content);
 
   return (
-    <div className="flex flex-col h-[calc(100dvh-180px)] sm:h-[calc(100dvh-200px)] min-h-[400px] max-h-[900px] -mx-3 sm:-mx-4 md:-mx-6 -mb-3 sm:-mb-4 md:-mb-6">
+    <div className="flex flex-col h-[calc(100dvh-180px)] sm:h-[calc(100dvh-200px)] min-h-[400px] max-h-[900px] -mx-3 sm:-mx-4 md:-mx-6 -mb-3 sm:-mb-4 md:-mb-6 overflow-x-hidden">
       {/* ── Header ── */}
-      <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent">
-        <div className="flex items-center gap-3">
-          <div className="relative">
+      <div className="shrink-0 flex items-center justify-between gap-2 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-border/50 bg-gradient-to-r from-primary/5 to-transparent">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="relative shrink-0">
             <motion.div
-              className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary via-primary/80 to-violet-500 flex items-center justify-center shadow-lg shadow-primary/20"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-primary via-primary/80 to-violet-500 flex items-center justify-center shadow-lg shadow-primary/20"
               animate={{ scale: isLoading ? [1, 1.05, 1] : 1 }}
               transition={{ duration: 1.5, repeat: isLoading ? Infinity : 0 }}
             >
-              <Bot className="w-5 h-5 text-primary-foreground" />
+              <Bot className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
             </motion.div>
             <div className={cn(
-              "absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-card",
+              "absolute -bottom-0.5 -right-0.5 w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-full border-2 border-card",
               isLoading ? "bg-amber-500 animate-pulse" : "bg-emerald-500"
             )} />
           </div>
-          <div>
-            <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5">
+          <div className="min-w-0">
+            <h3 className="font-bold text-foreground text-sm flex items-center gap-1.5 truncate">
               Career Buddy
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
             </h3>
-            <p className="text-[11px] text-muted-foreground">
-              {isLoading ? 'Thinking...' : messages.length > 0 ? `${messages.length} messages` : 'AI-powered career mentor'}
+            <p className="text-[10px] sm:text-[11px] text-muted-foreground truncate">
+              {isLoading ? 'Thinking...' : messages.length > 0 ? `${messages.length} messages` : 'AI career mentor'}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 shrink-0">
           {messages.length > 0 && (
-            <Button variant="outline" size="sm" onClick={handleReset} className="text-muted-foreground hover:text-foreground gap-1.5 rounded-xl text-xs h-8 px-3">
+            <Button variant="outline" size="sm" onClick={handleReset} className="text-muted-foreground hover:text-foreground gap-1 rounded-xl text-[10px] sm:text-xs h-7 sm:h-8 px-2 sm:px-3">
               <RefreshCw className="w-3 h-3" />
               {!isMobile && 'New Chat'}
             </Button>
@@ -466,7 +466,7 @@ export const CareerBuddyChat = () => {
               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5">
                 <Zap className="w-3 h-3 text-amber-500" /> Quick actions
               </p>
-              <div className="grid grid-cols-2 gap-2.5">
+              <div className="grid grid-cols-2 gap-2">
                 {quickActions.map((action, i) => (
                   <motion.button
                     key={action.label}
@@ -475,18 +475,18 @@ export const CareerBuddyChat = () => {
                     transition={{ delay: 0.45 + i * 0.05 }}
                     onClick={() => handleQuickAction(action.prompt)}
                     className={cn(
-                      "group flex flex-col items-start gap-2 p-3 rounded-xl border text-left transition-all duration-200",
+                      "group flex flex-col items-start gap-1.5 p-2.5 sm:p-3 rounded-xl border text-left transition-all duration-200",
                       "active:scale-[0.97] bg-gradient-to-br",
                       action.gradient
                     )}
                   >
-                    <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", action.iconBg)}>
-                      <action.icon className="w-4 h-4" />
+                    <div className={cn("w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center", action.iconBg)}>
+                      <action.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </div>
-                    <div>
-                      <span className="text-xs font-semibold text-foreground block leading-tight">{action.label}</span>
+                    <div className="min-w-0 w-full">
+                      <span className="text-[11px] sm:text-xs font-semibold text-foreground block leading-tight truncate">{action.label}</span>
                       {action.description && (
-                        <span className="text-[10px] text-muted-foreground mt-0.5 block leading-tight">{action.description}</span>
+                        <span className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 block leading-tight truncate">{action.description}</span>
                       )}
                     </div>
                   </motion.button>
@@ -520,10 +520,10 @@ export const CareerBuddyChat = () => {
                   </Avatar>
 
                   <div className={cn(
-                    "max-w-[85%] rounded-2xl transition-all",
+                    "max-w-[88%] sm:max-w-[85%] rounded-2xl transition-all overflow-hidden",
                     message.role === 'user'
-                      ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-br-lg px-4 py-2.5 shadow-md shadow-primary/15"
-                      : "bg-secondary border border-border/50 rounded-bl-lg px-4 py-3 shadow-sm"
+                      ? "bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-br-lg px-3 sm:px-4 py-2.5 shadow-md shadow-primary/15"
+                      : "bg-secondary border border-border/50 rounded-bl-lg px-3 sm:px-4 py-2.5 sm:py-3 shadow-sm"
                   )}>
                     {message.role === 'assistant' ? (
                       message.content ? (
@@ -629,10 +629,10 @@ export const CareerBuddyChat = () => {
       )}
 
       {/* ── Input ── */}
-      <div className="shrink-0 px-3 pb-3 pt-2 border-t border-border/50 bg-card/50">
+      <div className="shrink-0 px-2.5 sm:px-3 pb-2.5 sm:pb-3 pt-2 border-t border-border/50 bg-card/50">
         <form onSubmit={handleSubmit}>
           <div className={cn(
-            "flex items-end gap-2 p-1.5 rounded-2xl border-2 transition-all duration-200",
+            "flex items-end gap-1.5 sm:gap-2 p-1 sm:p-1.5 rounded-2xl border-2 transition-all duration-200",
             "border-border/60 bg-muted/30 focus-within:border-primary/50 focus-within:bg-background focus-within:shadow-lg focus-within:shadow-primary/10"
           )}>
             <Textarea
@@ -642,8 +642,8 @@ export const CareerBuddyChat = () => {
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(input); }
               }}
-              placeholder="Ask me anything about your career..."
-              className="flex-1 border-0 bg-transparent shadow-none focus-visible:ring-0 min-h-[40px] max-h-[100px] text-sm resize-none px-3 py-2 placeholder:text-muted-foreground/50"
+              placeholder="Ask about your career..."
+              className="flex-1 border-0 bg-transparent shadow-none focus-visible:ring-0 min-h-[36px] sm:min-h-[40px] max-h-[100px] text-sm resize-none px-2 sm:px-3 py-2 placeholder:text-muted-foreground/50"
               disabled={isLoading}
               rows={1}
             />

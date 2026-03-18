@@ -677,7 +677,7 @@ export const CandidateInterviewManager = ({ candidateId }: CandidateInterviewMan
 
       {/* Request Interview Dialog */}
       <Dialog open={requestDialogOpen} onOpenChange={setRequestDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CalendarPlus className="w-5 h-5 text-primary" />
@@ -762,14 +762,14 @@ export const CandidateInterviewManager = ({ candidateId }: CandidateInterviewMan
                       type="button"
                       onClick={() => setRequestForm(prev => ({ ...prev, type }))}
                       className={cn(
-                        "flex items-center gap-2 p-3 rounded-xl border-2 text-sm font-medium transition-all text-left",
+                        "flex items-center gap-1.5 p-2.5 sm:p-3 rounded-xl border-2 text-xs sm:text-sm font-medium transition-all text-left",
                         isSelected
                           ? "border-primary bg-primary/5 text-primary"
                           : "border-border bg-card text-muted-foreground hover:border-primary/30"
                       )}
                     >
-                      <TypeIcon className="w-4 h-4 shrink-0" />
-                      {tc.label}
+                      <TypeIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                      <span className="truncate">{tc.label}</span>
                     </button>
                   );
                 })}
