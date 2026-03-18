@@ -55,32 +55,32 @@ const StatsHero = ({ totalTaken, passed, avgScore }: { totalTaken: number; passe
   <motion.div
     initial={{ opacity: 0, y: -8 }}
     animate={{ opacity: 1, y: 0 }}
-    className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-card to-success/5 border border-border/50 p-5"
+    className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-card to-success/5 border border-border/50 p-4 sm:p-5"
   >
     <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
     <div className="relative z-10">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="p-2.5 bg-primary/10 rounded-xl">
+      <div className="flex items-center gap-3 mb-3 sm:mb-4">
+        <div className="p-2 sm:p-2.5 bg-primary/10 rounded-xl shrink-0">
           <GraduationCap className="w-5 h-5 text-primary" />
         </div>
-        <div>
-          <h2 className="text-lg font-extrabold text-foreground">Skill Assessments</h2>
-          <p className="text-xs text-muted-foreground">Prove your skills and stand out to employers</p>
+        <div className="min-w-0">
+          <h2 className="text-base sm:text-lg font-extrabold text-foreground">Skill Assessments</h2>
+          <p className="text-[11px] sm:text-xs text-muted-foreground truncate">Prove your skills and stand out to employers</p>
         </div>
       </div>
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
         {[
           { icon: Target, label: 'Taken', value: totalTaken, color: 'text-primary', bg: 'bg-primary/10' },
           { icon: Trophy, label: 'Passed', value: passed, color: 'text-success', bg: 'bg-success/10' },
           { icon: BarChart3, label: 'Avg Score', value: `${avgScore}%`, color: 'text-warning-foreground', bg: 'bg-warning/10' },
         ].map(s => (
-          <div key={s.label} className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-card/80 border border-border/30">
-            <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center shrink-0', s.bg)}>
-              <s.icon className={cn('w-4 h-4', s.color)} />
+          <div key={s.label} className="flex flex-col sm:flex-row items-center sm:items-center gap-1 sm:gap-2.5 px-2 sm:px-3 py-2 sm:py-2.5 rounded-xl bg-card/80 border border-border/30">
+            <div className={cn('w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shrink-0', s.bg)}>
+              <s.icon className={cn('w-3.5 h-3.5 sm:w-4 sm:h-4', s.color)} />
             </div>
-            <div>
-              <p className="text-lg font-extrabold text-foreground leading-tight">{s.value}</p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">{s.label}</p>
+            <div className="text-center sm:text-left">
+              <p className="text-base sm:text-lg font-extrabold text-foreground leading-tight">{s.value}</p>
+              <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">{s.label}</p>
             </div>
           </div>
         ))}
@@ -88,7 +88,6 @@ const StatsHero = ({ totalTaken, passed, avgScore }: { totalTaken: number; passe
     </div>
   </motion.div>
 );
-
 /* ── Assessment Card ── */
 const AssessmentCard = ({
   assessment,
@@ -319,31 +318,31 @@ export const AssessmentHub = ({ candidateId }: { candidateId: string }) => {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4 sm:space-y-5 overflow-x-hidden">
       <StatsHero totalTaken={totalTaken} passed={passedCount} avgScore={avgScore} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="flex items-center justify-between">
-          <TabsList className="h-10 bg-muted/30 rounded-xl p-0.5">
-            <TabsTrigger value="available" className="rounded-lg text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1">
-              <BookOpen className="w-3.5 h-3.5" /> Available
+        <div className="flex items-center justify-between gap-2">
+          <TabsList className="h-9 sm:h-10 bg-muted/30 rounded-xl p-0.5 flex-1 min-w-0">
+            <TabsTrigger value="available" className="rounded-lg text-[11px] sm:text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1 px-2 sm:px-3 flex-1">
+              <BookOpen className="w-3.5 h-3.5 hidden sm:block" /> Available
               <Badge variant="secondary" className="text-[9px] h-4 px-1 ml-0.5">{availableAssessments.length}</Badge>
             </TabsTrigger>
-            <TabsTrigger value="passed" className="rounded-lg text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1">
-              <Trophy className="w-3.5 h-3.5" /> Passed
+            <TabsTrigger value="passed" className="rounded-lg text-[11px] sm:text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1 px-2 sm:px-3 flex-1">
+              <Trophy className="w-3.5 h-3.5 hidden sm:block" /> Passed
               <Badge variant="secondary" className="text-[9px] h-4 px-1 ml-0.5">{passedAssessments.length}</Badge>
             </TabsTrigger>
-            <TabsTrigger value="history" className="rounded-lg text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1">
-              <BarChart3 className="w-3.5 h-3.5" /> History
+            <TabsTrigger value="history" className="rounded-lg text-[11px] sm:text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1 px-2 sm:px-3 flex-1">
+              <BarChart3 className="w-3.5 h-3.5 hidden sm:block" /> History
             </TabsTrigger>
           </TabsList>
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl" onClick={() => fetchData(true)} disabled={refreshing}>
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl shrink-0" onClick={() => fetchData(true)} disabled={refreshing}>
             <RefreshCw className={cn('w-4 h-4', refreshing && 'animate-spin')} />
           </Button>
         </div>
 
         {/* Available */}
-        <TabsContent value="available" className="mt-4">
+        <TabsContent value="available" className="mt-3 sm:mt-4">
           {availableAssessments.length === 0 ? (
             <EmptyState icon={BookOpen} title="No assessments available" description="Check back later — employers add new skill tests regularly." />
           ) : (
@@ -361,7 +360,7 @@ export const AssessmentHub = ({ candidateId }: { candidateId: string }) => {
         </TabsContent>
 
         {/* Passed */}
-        <TabsContent value="passed" className="mt-4">
+        <TabsContent value="passed" className="mt-3 sm:mt-4">
           {passedAssessments.length === 0 ? (
             <EmptyState icon={Trophy} title="No passed assessments yet" description="Take assessments to earn badges and stand out to employers." />
           ) : (
@@ -379,7 +378,7 @@ export const AssessmentHub = ({ candidateId }: { candidateId: string }) => {
         </TabsContent>
 
         {/* History */}
-        <TabsContent value="history" className="mt-4">
+        <TabsContent value="history" className="mt-3 sm:mt-4">
           {results.length === 0 ? (
             <EmptyState icon={BarChart3} title="No attempts yet" description="Start an assessment to see your history here." />
           ) : (
