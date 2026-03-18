@@ -188,18 +188,18 @@ export const ActiveJobsTable = ({ employerId, onManageJobs }: ActiveJobsTablePro
                 </div>
                 
                 {/* Stats Row */}
-                <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground mb-3">
                   <div className="flex items-center gap-1">
-                    <Users className="w-3.5 h-3.5" />
+                    <Users className="w-3.5 h-3.5 shrink-0" />
                     <span className="font-medium text-foreground">{job.applications_count}</span> applicants
                   </div>
                   <div className="flex items-center gap-1">
-                    <Eye className="w-3.5 h-3.5" />
+                    <Eye className="w-3.5 h-3.5 shrink-0" />
                     <span>{job.view_count || 0}</span> views
                   </div>
                   <div className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>{formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}</span>
+                    <Clock className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">{formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}</span>
                   </div>
                 </div>
                 
