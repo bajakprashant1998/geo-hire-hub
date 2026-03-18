@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useDashboardTab } from '@/hooks/useDashboardTab';
+import { SEOHead } from '@/components/SEOHead';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -159,6 +160,12 @@ const EmployerDashboard = () => {
     <DashboardAuthGuard type="employer" authLoading={authLoading} profileLoading={profileLoading} profileResolved={profileResolved} user={user} profile={profile} refreshProfile={refreshProfile} signOut={signOut}>
       {dataLoading ? <EmployerDashboardLoading /> : !profile ? null : (
         <EmailVerificationGuard fallbackMessage="Please verify your email to access your employer dashboard.">
+          <SEOHead
+            title="Employer Dashboard — Hire for Job"
+            description="Manage job postings, review candidates, schedule interviews, and grow your team with Hire for Job."
+            canonicalUrl="https://www.hireforjob.com/employer-dashboard"
+            noindex
+          />
           <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/80 flex overflow-x-hidden">
             {user && <OnboardingTour userId={user.id} type="employer" />}
             <DashboardSidebar type="employer" items={sidebarItems} activeItem={activeSection} onItemClick={handleSectionClick} userName={employer?.company_name || 'Your Company'} userTitle={employer?.industry || 'Employer'} avatarUrl={profile.avatar_url} onSignOut={signOut} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} profileCompleteness={employer?.profile_completeness || 0} />

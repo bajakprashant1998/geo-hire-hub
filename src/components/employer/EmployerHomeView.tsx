@@ -92,19 +92,19 @@ export const EmployerHomeView = ({
       variants={stagger}
       initial="hidden"
       animate="show"
-      className="max-w-6xl mx-auto space-y-4 sm:space-y-5"
+      className="max-w-6xl mx-auto space-y-4 sm:space-y-5 overflow-x-hidden"
     >
       <PlatformNotificationBanner userType="employer" />
 
       {/* ─── Hero Welcome + Hiring Health ─── */}
       <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {/* Welcome Card */}
-        <div className="lg:col-span-2 relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary via-primary/85 to-primary/65 p-5 sm:p-6 flex flex-col justify-between min-h-[170px]">
+        <div className="lg:col-span-2 relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary via-primary/85 to-primary/65 p-4 sm:p-5 md:p-6 flex flex-col justify-between min-h-[160px] sm:min-h-[170px]">
           <div className="absolute -top-16 -right-16 w-48 h-48 bg-white/8 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full blur-2xl translate-y-10 -translate-x-8" />
           <div className="relative z-10">
             <p className="text-primary-foreground/60 text-[11px] font-semibold uppercase tracking-[0.15em] mb-1.5">{getGreeting()}</p>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-primary-foreground tracking-tight leading-tight">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-primary-foreground tracking-tight leading-tight break-words">
               {employer?.company_name || 'Your Company'} 🏢
             </h2>
             <p className="text-primary-foreground/55 text-sm mt-1.5 leading-relaxed max-w-md">
@@ -223,7 +223,7 @@ export const EmployerHomeView = ({
             View Analytics <ChevronRight className="w-3 h-3" />
           </button>
         </div>
-        <div className="grid grid-cols-4 sm:grid-cols-8 gap-2 sm:gap-3">
+        <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-8 sm:gap-3">
           {quickActions.map((action, i) => (
             <motion.button
               key={action.label}
@@ -233,13 +233,13 @@ export const EmployerHomeView = ({
               whileHover={{ y: -3, scale: 1.04 }}
               whileTap={{ scale: 0.95 }}
               onClick={action.onClick}
-              className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl hover:bg-muted/50 transition-all relative group"
+              className="flex flex-col items-center gap-1 sm:gap-1.5 p-1.5 sm:p-2.5 rounded-xl hover:bg-muted/50 transition-all relative group"
             >
               <div className={cn(
-                "w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center ring-1 transition-shadow group-hover:shadow-md",
+                "w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center ring-1 transition-shadow group-hover:shadow-md",
                 action.bg, action.ring
               )}>
-                <action.icon className={cn("w-4.5 h-4.5 sm:w-5 sm:h-5", action.color)} />
+                <action.icon className={cn("w-4 h-4 sm:w-5 sm:h-5", action.color)} />
               </div>
               {action.badge !== undefined && action.badge > 0 && (
                 <span className="absolute top-1 right-1 sm:top-1.5 sm:right-2 min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center px-1 shadow-sm">
