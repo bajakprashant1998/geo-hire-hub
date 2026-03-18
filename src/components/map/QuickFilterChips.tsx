@@ -75,7 +75,7 @@ export const QuickFilterChips = ({
             whileTap={{ scale: 0.88 }}
             onClick={chip.onClick}
             className={cn(
-              "flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-[11px] font-bold whitespace-nowrap",
+              "flex items-center gap-1 px-2.5 py-1.5 rounded-2xl text-[10px] font-bold whitespace-nowrap",
               "backdrop-blur-xl transition-all duration-200",
               "border",
               chip.active

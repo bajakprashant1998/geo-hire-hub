@@ -246,7 +246,7 @@ const Index = () => {
       </div>
 
       {/* Mobile Layout */}
-      <div className="md:hidden h-full">
+      <div className="md:hidden h-full overflow-x-hidden">
         <div className="absolute inset-0 z-0">{mapElement}</div>
         <Header mode={mode} onModeChange={handleModeChange} onSearch={setSearchQuery} onMenuClick={() => setSidebarOpen(true)} userLocation={userLocation} />
         <QuickFilterChips mode={mode} onModeChange={handleModeChange} jobCount={filteredJobs.length} candidateCount={filteredCandidates.length} governmentJobCount={jobCounts.government} privateJobCount={jobCounts.private} />

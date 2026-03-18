@@ -237,7 +237,7 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
 
               {/* Testimonial quote */}
               {testimonial && (
-                <motion.div variants={itemVariants} className="px-4 pt-3">
+                <motion.div variants={itemVariants} className="px-3 sm:px-4 pt-2.5 sm:pt-3">
                   <div className="p-3 rounded-xl bg-primary/5 border border-primary/10">
                     <div className="flex gap-2">
                       <Quote className="w-4 h-4 text-primary/40 shrink-0 mt-0.5" />

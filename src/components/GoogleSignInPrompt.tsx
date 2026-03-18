@@ -49,8 +49,8 @@ const GoogleSignInPrompt = () => {
   if (!visible || !isGoogleEnabledFor(userType)) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-[9999] animate-in slide-in-from-top-4 fade-in duration-300 max-w-[calc(100vw-2rem)]">
-      <div className="bg-card rounded-2xl shadow-2xl border border-border w-[340px] max-w-full overflow-hidden">
+    <div className="fixed top-16 right-3 left-3 sm:left-auto sm:right-4 sm:top-4 z-[9999] animate-in slide-in-from-top-4 fade-in duration-300">
+      <div className="bg-card rounded-2xl shadow-2xl border border-border w-full sm:w-[340px] max-w-full overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
           <div className="flex items-center gap-2.5">

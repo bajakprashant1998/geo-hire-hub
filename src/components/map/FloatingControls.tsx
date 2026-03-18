@@ -49,7 +49,7 @@ const FAB = ({
         whileHover={{ scale: 1.08 }}
         onClick={onClick}
         className={cn(
-          "w-11 h-11 rounded-2xl flex items-center justify-center",
+          "w-10 h-10 rounded-2xl flex items-center justify-center",
           "bg-card/95 backdrop-blur-xl border border-border/20 shadow-xl",
           "hover:shadow-2xl transition-all duration-200",
           isActive && "ring-2 ring-primary/30 bg-primary/5 border-primary/20",
