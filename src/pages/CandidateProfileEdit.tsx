@@ -1348,7 +1348,7 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: 80, opacity: 0 }}
                         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                        className="fixed bottom-0 left-0 right-0 z-50 p-3 sm:p-4"
+                        className="fixed bottom-16 sm:bottom-0 left-0 right-0 z-50 p-3 sm:p-4"
                     >
                         <div className="max-w-4xl mx-auto flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-card/95 backdrop-blur-xl border border-border/60 shadow-2xl shadow-black/10">
                             <div className="flex items-center gap-2.5 min-w-0">
