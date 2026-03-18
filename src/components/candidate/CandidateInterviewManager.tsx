@@ -173,60 +173,60 @@ const NextInterviewHero = ({ interview }: { interview: InterviewRow }) => {
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-start gap-4 min-w-0 flex-1">
+          <div className="flex flex-col gap-3 sm:gap-4">
+            <div className="flex items-start gap-3 sm:gap-4 min-w-0">
               {/* Date block */}
               <div className={cn(
-                "text-center p-3 rounded-2xl min-w-16 shrink-0",
+                "text-center p-2 sm:p-3 rounded-xl sm:rounded-2xl min-w-12 sm:min-w-16 shrink-0",
                 isToday(new Date(interview.scheduled_date)) 
                   ? "bg-primary text-primary-foreground" 
                   : "bg-primary/10 text-primary"
               )}>
-                <p className="text-2xl font-black leading-none">{format(new Date(interview.scheduled_date), 'd')}</p>
-                <p className="text-[10px] font-medium mt-0.5 uppercase tracking-wider opacity-80">{format(new Date(interview.scheduled_date), 'MMM')}</p>
-                <p className="text-[10px] font-medium opacity-60">{format(new Date(interview.scheduled_date), 'EEE')}</p>
+                <p className="text-lg sm:text-2xl font-black leading-none">{format(new Date(interview.scheduled_date), 'd')}</p>
+                <p className="text-[9px] sm:text-[10px] font-medium mt-0.5 uppercase tracking-wider opacity-80">{format(new Date(interview.scheduled_date), 'MMM')}</p>
+                <p className="text-[9px] sm:text-[10px] font-medium opacity-60">{format(new Date(interview.scheduled_date), 'EEE')}</p>
               </div>
 
               <div className="min-w-0 flex-1">
-                <h3 className="font-bold text-lg leading-snug truncate">{interview.jobs.title}</h3>
-                <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-0.5">
-                  <Building2 className="w-3.5 h-3.5 shrink-0" />
+                <h3 className="font-bold text-sm sm:text-lg leading-snug line-clamp-2">{interview.jobs.title}</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                  <Building2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
                   <span className="truncate">{interview.employers.company_name}</span>
                 </p>
-                <div className="flex flex-wrap items-center gap-2 mt-3">
-                  <Badge variant="outline" className={cn("gap-1 text-xs", tc.accent)}>
-                    <TypeIcon className="w-3.5 h-3.5" />
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-2 sm:mt-3">
+                  <Badge variant="outline" className={cn("gap-1 text-[10px] sm:text-xs", tc.accent)}>
+                    <TypeIcon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                     {tc.label}
                   </Badge>
-                  <Badge variant="outline" className="gap-1 text-xs text-muted-foreground">
-                    <Clock className="w-3.5 h-3.5" />
+                  <Badge variant="outline" className="gap-1 text-[10px] sm:text-xs text-muted-foreground">
+                    <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                     {interview.scheduled_time}
                   </Badge>
                   {(isToday(new Date(interview.scheduled_date))) && (
-                    <Badge className="bg-primary/10 text-primary text-xs border-0">Today</Badge>
+                    <Badge className="bg-primary/10 text-primary text-[10px] sm:text-xs border-0">Today</Badge>
                   )}
                   {isTomorrow(new Date(interview.scheduled_date)) && (
-                    <Badge className="bg-accent text-accent-foreground text-xs border-0">Tomorrow</Badge>
+                    <Badge className="bg-accent text-accent-foreground text-[10px] sm:text-xs border-0">Tomorrow</Badge>
                   )}
                 </div>
               </div>
             </div>
 
             {/* CTA */}
-            <div className="flex gap-2 shrink-0">
+            <div className="flex gap-2">
               {interview.interview_type === 'video' && interview.meeting_link && interview.status === 'confirmed' && (
                 <Button
-                  size="lg"
-                  className="gap-2 shadow-md"
+                  size="sm"
+                  className="gap-2 shadow-md flex-1 sm:flex-none sm:size-default"
                   onClick={() => window.open(interview.meeting_link!, '_blank')}
                 >
                   <Video className="w-4 h-4" />
                   Join Meeting
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-4 h-4 hidden sm:block" />
                 </Button>
               )}
               {interview.status === 'scheduled' && !interview.confirmed_by_candidate && interview.requested_by === 'employer' && (
-                <Button size="lg" className="gap-2 shadow-md">
+                <Button size="sm" className="gap-2 shadow-md flex-1 sm:flex-none sm:size-default">
                   <CheckCircle className="w-4 h-4" />
                   Confirm Now
                 </Button>
