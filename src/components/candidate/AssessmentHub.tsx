@@ -318,29 +318,77 @@ export const AssessmentHub = ({ candidateId }: { candidateId: string }) => {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4 sm:space-y-5 overflow-x-hidden">
       <StatsHero totalTaken={totalTaken} passed={passedCount} avgScore={avgScore} />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="flex items-center justify-between">
-          <TabsList className="h-10 bg-muted/30 rounded-xl p-0.5">
-            <TabsTrigger value="available" className="rounded-lg text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1">
-              <BookOpen className="w-3.5 h-3.5" /> Available
+        <div className="flex items-center justify-between gap-2">
+          <TabsList className="h-9 sm:h-10 bg-muted/30 rounded-xl p-0.5 flex-1 min-w-0">
+            <TabsTrigger value="available" className="rounded-lg text-[11px] sm:text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1 px-2 sm:px-3 flex-1">
+              <BookOpen className="w-3.5 h-3.5 hidden sm:block" /> Available
               <Badge variant="secondary" className="text-[9px] h-4 px-1 ml-0.5">{availableAssessments.length}</Badge>
             </TabsTrigger>
-            <TabsTrigger value="passed" className="rounded-lg text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1">
-              <Trophy className="w-3.5 h-3.5" /> Passed
+            <TabsTrigger value="passed" className="rounded-lg text-[11px] sm:text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1 px-2 sm:px-3 flex-1">
+              <Trophy className="w-3.5 h-3.5 hidden sm:block" /> Passed
               <Badge variant="secondary" className="text-[9px] h-4 px-1 ml-0.5">{passedAssessments.length}</Badge>
             </TabsTrigger>
-            <TabsTrigger value="history" className="rounded-lg text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1">
-              <BarChart3 className="w-3.5 h-3.5" /> History
+            <TabsTrigger value="history" className="rounded-lg text-[11px] sm:text-xs data-[state=active]:bg-card data-[state=active]:shadow-sm gap-1 px-2 sm:px-3 flex-1">
+              <BarChart3 className="w-3.5 h-3.5 hidden sm:block" /> History
             </TabsTrigger>
           </TabsList>
-          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl" onClick={() => fetchData(true)} disabled={refreshing}>
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-xl shrink-0" onClick={() => fetchData(true)} disabled={refreshing}>
             <RefreshCw className={cn('w-4 h-4', refreshing && 'animate-spin')} />
           </Button>
         </div>
 
+        {/* Available */}
+        <TabsContent value="available" className="mt-3 sm:mt-4">
+          {availableAssessments.length === 0 ? (
+            <EmptyState icon={BookOpen} title="No assessments available" description="Check back later — employers add new skill tests regularly." />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {availableAssessments.map(a => (
+                <AssessmentCard
+                  key={a.id}
+                  assessment={a}
+                  result={bestResults.get(a.id)}
+                  onStart={setTakingId}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Passed */}
+        <TabsContent value="passed" className="mt-3 sm:mt-4">
+          {passedAssessments.length === 0 ? (
+            <EmptyState icon={Trophy} title="No passed assessments yet" description="Take assessments to earn badges and stand out to employers." />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {passedAssessments.map(a => (
+                <AssessmentCard
+                  key={a.id}
+                  assessment={a}
+                  result={bestResults.get(a.id)}
+                  onStart={setTakingId}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* History */}
+        <TabsContent value="history" className="mt-3 sm:mt-4">
+          {results.length === 0 ? (
+            <EmptyState icon={BarChart3} title="No attempts yet" description="Start an assessment to see your history here." />
+          ) : (
+            <div className="space-y-2">
+              {results.map(r => <ResultRow key={r.id} result={r} />)}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
         {/* Available */}
         <TabsContent value="available" className="mt-4">
           {availableAssessments.length === 0 ? (
