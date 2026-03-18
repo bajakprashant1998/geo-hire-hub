@@ -111,7 +111,7 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
         <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-accent/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4" />
         
-        <div className="relative p-5 sm:p-6">
+        <div className="relative p-4 sm:p-5 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             {/* Icon */}
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
