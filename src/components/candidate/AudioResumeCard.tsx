@@ -679,7 +679,7 @@ const AIGenerator = ({
         <RadioGroup 
           value={tone} 
           onValueChange={setTone} 
-          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2"
+          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5 sm:gap-2"
           disabled={generating}
         >
           {toneOptions.map((option) => (
