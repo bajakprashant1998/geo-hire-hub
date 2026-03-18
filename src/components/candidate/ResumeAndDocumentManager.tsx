@@ -439,7 +439,7 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                 >
-                  <div className="p-8 text-center">
+                  <div className="p-5 sm:p-8 text-center">
                     {uploading ? (
                       <div className="flex flex-col items-center">
                         <motion.div
