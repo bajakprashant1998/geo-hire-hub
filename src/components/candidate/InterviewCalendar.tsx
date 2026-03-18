@@ -195,13 +195,13 @@ export const InterviewCalendar = ({ candidateId }: InterviewCalendarProps) => {
             transition={{ delay: i * 0.05 }}
           >
             <Card className="shadow-sm hover:shadow-md transition-shadow">
-              <CardContent className="p-3 sm:p-4 flex items-center gap-3">
-                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0", stat.color)}>
-                  <stat.icon className="w-5 h-5" />
+              <CardContent className="p-2.5 sm:p-4 flex items-center gap-2 sm:gap-3">
+                <div className={cn("w-8 h-8 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0", stat.color)}>
+                  <stat.icon className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xl sm:text-2xl font-bold text-foreground leading-none">{stat.value}</p>
-                  <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight mt-0.5">{stat.label}</p>
+                  <p className="text-base sm:text-2xl font-bold text-foreground leading-none">{stat.value}</p>
+                  <p className="text-[9px] sm:text-xs text-muted-foreground leading-tight mt-0.5 truncate">{stat.label}</p>
                 </div>
               </CardContent>
             </Card>
