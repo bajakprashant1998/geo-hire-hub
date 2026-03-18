@@ -99,7 +99,7 @@ export const EmployerHomeView = ({
       {/* ─── Hero Welcome + Hiring Health ─── */}
       <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {/* Welcome Card */}
-        <div className="lg:col-span-2 relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary via-primary/85 to-primary/65 p-5 sm:p-6 flex flex-col justify-between min-h-[170px]">
+        <div className="lg:col-span-2 relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary via-primary/85 to-primary/65 p-4 sm:p-5 md:p-6 flex flex-col justify-between min-h-[160px] sm:min-h-[170px]">
           <div className="absolute -top-16 -right-16 w-48 h-48 bg-white/8 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full blur-2xl translate-y-10 -translate-x-8" />
           <div className="relative z-10">
