@@ -663,7 +663,7 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
                 <Loader2 className="w-6 h-6 animate-spin text-primary" />
               </div>
             ) : aiResumes.length > 0 ? (
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
                 {aiResumes.map((resume, i) => (
                   <motion.div
                     key={resume.id}
