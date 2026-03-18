@@ -503,12 +503,12 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                         {/* Avatar + Info */}
                         <div className="flex items-center gap-4 flex-1 min-w-0">
-                            <div className="relative shrink-0 group">
+                            <div className="relative shrink-0">
                                 {avatarUrl ? (
-                                    <img src={avatarUrl} alt="" className="w-[72px] h-[72px] rounded-2xl object-cover border-2 border-border/60 shadow-md group-hover:border-primary/30 transition-colors" />
+                                    <img src={avatarUrl} alt="" className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-2xl object-cover border-2 border-border/60 shadow-md" />
                                 ) : (
-                                    <div className="w-[72px] h-[72px] rounded-2xl bg-secondary flex items-center justify-center border-2 border-dashed border-border/60">
-                                        <Camera className="w-6 h-6 text-muted-foreground/40" />
+                                    <div className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-2xl bg-secondary flex items-center justify-center border-2 border-dashed border-border/60">
+                                        <Camera className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground/40" />
                                     </div>
                                 )}
                                 {/* Completeness ring indicator */}
