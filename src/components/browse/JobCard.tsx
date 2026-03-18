@@ -228,15 +228,15 @@ function GridLayout({ job, companyName, desc, typeColor, jobIsNew }: any) {
 
 function ListLayout({ job, companyName, industry, desc, typeColor, jobIsNew }: any) {
   return (
-    <div className="flex items-start gap-4">
-      <div className="w-12 h-12 rounded-xl bg-primary/8 flex items-center justify-center shrink-0 ring-1 ring-primary/10">
-        <Building2 className="w-6 h-6 text-primary" />
+    <div className="flex items-start gap-3 sm:gap-4">
+      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/8 flex items-center justify-center shrink-0 ring-1 ring-primary/10">
+        <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-3">
+      <div className="flex-1 min-w-0 overflow-hidden">
+        <div className="flex items-start justify-between gap-2 sm:gap-3">
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-foreground truncate group-hover:text-primary transition-colors text-[15px]">
+            <div className="flex items-center gap-2 min-w-0">
+              <h3 className="font-semibold text-foreground truncate group-hover:text-primary transition-colors text-sm sm:text-[15px]">
                 {job.title}
               </h3>
               {jobIsNew && (
@@ -245,40 +245,40 @@ function ListLayout({ job, companyName, industry, desc, typeColor, jobIsNew }: a
                 </Badge>
               )}
             </div>
-            <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-0.5">
+            <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1.5 mt-0.5 truncate">
               <span className="truncate font-medium">{companyName}</span>
               {industry && (
                 <>
-                  <span className="text-border">·</span>
+                  <span className="text-border shrink-0">·</span>
                   <span className="text-xs truncate">{industry}</span>
                 </>
               )}
             </p>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="text-xs text-muted-foreground flex items-center gap-1 bg-muted/60 px-2 py-1 rounded-md">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <span className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 bg-muted/60 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md whitespace-nowrap">
               <Clock className="w-3 h-3" />{formatDate(job.created_at)}
             </span>
-            <ChevronRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+            <ChevronRight className="w-4 h-4 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-0.5 transition-all hidden sm:block" />
           </div>
         </div>
 
         {desc && (
-          <p className="text-[13px] text-muted-foreground/70 mt-1.5 line-clamp-1 leading-relaxed">{desc}</p>
+          <p className="text-xs sm:text-[13px] text-muted-foreground/70 mt-1 sm:mt-1.5 line-clamp-1 leading-relaxed">{desc}</p>
         )}
 
-        <div className="flex flex-wrap items-center gap-2 mt-2.5">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-2 sm:mt-2.5">
           {job.job_type && (
-            <Badge variant="outline" className={`text-[11px] border ${typeColor}`}>{job.job_type}</Badge>
+            <Badge variant="outline" className={`text-[10px] sm:text-[11px] border ${typeColor}`}>{job.job_type}</Badge>
           )}
           {job.salary_range && (
-            <Badge variant="outline" className="text-[11px] font-medium">{job.salary_range}</Badge>
+            <Badge variant="outline" className="text-[10px] sm:text-[11px] font-medium">{job.salary_range}</Badge>
           )}
           {job.salary_range && <SalaryBadge salaryRange={job.salary_range} compact />}
           {job.job_address && (
-            <span className="text-xs text-muted-foreground flex items-center gap-1">
-              <MapPin className="w-3 h-3 text-muted-foreground/60" />
-              <span className="truncate max-w-[220px]">{job.job_address}</span>
+            <span className="text-[10px] sm:text-xs text-muted-foreground flex items-center gap-1 max-w-[150px] sm:max-w-[220px]">
+              <MapPin className="w-3 h-3 text-muted-foreground/60 shrink-0" />
+              <span className="truncate">{job.job_address}</span>
             </span>
           )}
           {job.expires_at && <DeadlineCountdown expiresAt={job.expires_at} variant="inline" />}
