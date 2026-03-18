@@ -170,7 +170,7 @@ const LiveChatWidget = () => {
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
-            className="fixed bottom-20 right-4 z-[60] md:bottom-6 md:right-6"
+            className="fixed bottom-[5.5rem] right-3 z-[60] md:bottom-6 md:right-6"
           >
             <Button
               onClick={handleOpen}
@@ -192,7 +192,7 @@ const LiveChatWidget = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed bottom-20 right-2 z-[60] w-[calc(100vw-1rem)] max-w-sm md:bottom-6 md:right-6 md:w-96"
+            className="fixed bottom-[5.5rem] right-2 z-[60] w-[calc(100vw-1rem)] max-w-sm md:bottom-6 md:right-6 md:w-96"
           >
             <div className="flex flex-col h-[28rem] rounded-2xl border border-border bg-card shadow-2xl overflow-hidden">
               {/* Header */}
