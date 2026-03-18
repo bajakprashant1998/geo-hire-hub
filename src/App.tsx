@@ -80,7 +80,23 @@ const AdminSEOAgent = lazy(() => import("./pages/admin/AdminSEOAgent"));
 const AdminBanners = lazy(() => import("./pages/admin/AdminBanners"));
 const AdminBulkImport = lazy(() => import("./pages/admin/AdminBulkImport"));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: (failureCount, error) => {
+        // Never retry transport / network errors — they won't self-heal
+        const msg = (error as any)?.message || '';
+        if (
+          msg.includes('Failed to fetch') ||
+          msg.includes('NetworkError') ||
+          msg.includes('Load failed')
+        ) return false;
+        return failureCount < 2;
+      },
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const JobRedirect = () => {
   const { id } = useParams();

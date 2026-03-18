@@ -113,7 +113,12 @@ const Login = () => {
       const redirect = await getSmartRedirect(data.user.id, profileData?.user_type || userType, profileData?.profile_completed ?? false);
       navigate(redirect);
     } catch (error: any) {
-      toast.error(error.message || 'Login failed');
+      const msg = error?.message || '';
+      if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('Load failed')) {
+        toast.error('Service temporarily unavailable. Please check your connection and try again.');
+      } else {
+        toast.error(msg || 'Login failed');
+      }
     } finally {
       setLoading(false);
     }
@@ -123,16 +128,18 @@ const Login = () => {
     setGoogleLoading(true);
     try {
       sessionStorage.setItem('preferred_role', userType);
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
-          queryParams: { prompt: 'select_account' },
-        }
+      const result = await lovable.auth.signInWithOAuth('google', {
+        redirect_uri: window.location.origin,
+        extraParams: { prompt: 'select_account' },
       });
-      if (error) throw error;
+      if (result?.error) throw result.error;
     } catch (error: any) {
-      toast.error(error.message || 'Google login failed');
+      const msg = error?.message || '';
+      if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('Load failed')) {
+        toast.error('Service temporarily unavailable. Please check your connection and try again.');
+      } else {
+        toast.error(msg || 'Google login failed');
+      }
       setGoogleLoading(false);
     }
   };
