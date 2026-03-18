@@ -878,27 +878,27 @@ export const AudioResumeCard = ({ candidate, onUpdate }: AudioResumeCardProps) =
       )}
 
       {/* Creation Options */}
-      <Card className="border-0 shadow-lg">
+      <Card className="border-0 shadow-lg overflow-hidden">
         <CardContent className="p-0">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full grid grid-cols-2 h-14 rounded-t-xl rounded-b-none bg-muted/50 p-1">
+            <TabsList className="w-full grid grid-cols-2 h-12 sm:h-14 rounded-t-xl rounded-b-none bg-muted/50 p-1">
               <TabsTrigger 
                 value="record" 
-                className="gap-2 h-12 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow"
+                className="gap-1.5 sm:gap-2 h-10 sm:h-12 rounded-lg text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow"
               >
                 <Mic className="w-4 h-4" />
-                <span className="font-medium">Record Voice</span>
+                <span className="font-medium">Record</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="ai-generate" 
-                className="gap-2 h-12 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow"
+                className="gap-1.5 sm:gap-2 h-10 sm:h-12 rounded-lg text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow"
               >
                 <Wand2 className="w-4 h-4" />
                 <span className="font-medium">AI Generate</span>
               </TabsTrigger>
             </TabsList>
 
-            <div className="p-6">
+            <div className="p-3 sm:p-6">
               <TabsContent value="record" className="mt-0">
                 <VoiceRecorder candidate={candidate} user={user} onUpdate={onUpdate} />
               </TabsContent>
