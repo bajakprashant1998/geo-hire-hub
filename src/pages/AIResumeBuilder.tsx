@@ -1189,26 +1189,26 @@ const AIResumeBuilder = ({ embedded = false }: { embedded?: boolean }) => {
   };
 
   const content = (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 overflow-x-hidden">
       {/* Hero Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-6 text-primary-foreground"
+        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-4 sm:p-6 text-primary-foreground"
       >
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+          <div className="absolute top-0 right-0 w-40 sm:w-64 h-40 sm:h-64 bg-white rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-32 sm:w-48 h-32 sm:h-48 bg-white rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
         </div>
 
-        <div className="relative flex flex-col sm:flex-row items-start gap-6">
-          <div className="flex items-start gap-4 flex-1">
-            <div className="p-3 rounded-2xl bg-white/20 backdrop-blur">
-              <FileText className="w-8 h-8" />
+        <div className="relative flex flex-col sm:flex-row items-start gap-3 sm:gap-6">
+          <div className="flex items-start gap-3 sm:gap-4 flex-1 min-w-0">
+            <div className="p-2.5 sm:p-3 rounded-2xl bg-white/20 backdrop-blur shrink-0">
+              <FileText className="w-6 h-6 sm:w-8 sm:h-8" />
             </div>
-            <div>
-              <h2 className="text-2xl font-bold">AI Resume Builder</h2>
-              <p className="text-primary-foreground/80 mt-1">
+            <div className="min-w-0">
+              <h2 className="text-xl sm:text-2xl font-bold">AI Resume Builder</h2>
+              <p className="text-primary-foreground/80 mt-1 text-sm sm:text-base">
                 Create a professional resume in minutes with AI assistance
               </p>
             </div>
@@ -1219,7 +1219,7 @@ const AIResumeBuilder = ({ embedded = false }: { embedded?: boolean }) => {
             onClick={autoFillFromProfile} 
             disabled={autoFilling}
             variant="secondary"
-            className="gap-2 shrink-0"
+            className="gap-2 shrink-0 w-full sm:w-auto"
           >
             {autoFilling ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
             Import from Profile
@@ -1227,7 +1227,7 @@ const AIResumeBuilder = ({ embedded = false }: { embedded?: boolean }) => {
         </div>
 
         {/* Progress */}
-        <div className="relative mt-6 space-y-2">
+        <div className="relative mt-4 sm:mt-6 space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-primary-foreground/80">Completion</span>
             <span className="font-semibold">{completion}%</span>
