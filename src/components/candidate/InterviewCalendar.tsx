@@ -248,7 +248,7 @@ export const InterviewCalendar = ({ candidateId }: InterviewCalendarProps) => {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-3 sm:gap-6">
         {/* Calendar */}
         <Card className="lg:col-span-3 shadow-sm">
           <CardHeader className="pb-3">
