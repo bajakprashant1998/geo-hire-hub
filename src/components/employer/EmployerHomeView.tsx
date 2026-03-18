@@ -236,7 +236,7 @@ export const EmployerHomeView = ({
               className="flex flex-col items-center gap-1 sm:gap-1.5 p-1.5 sm:p-2.5 rounded-xl hover:bg-muted/50 transition-all relative group"
             >
               <div className={cn(
-                "w-10 h-10 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center ring-1 transition-shadow group-hover:shadow-md",
+                "w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center ring-1 transition-shadow group-hover:shadow-md",
                 action.bg, action.ring
               )}>
                 <action.icon className={cn("w-4.5 h-4.5 sm:w-5 sm:h-5", action.color)} />
