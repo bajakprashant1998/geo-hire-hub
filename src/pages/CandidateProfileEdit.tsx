@@ -513,13 +513,13 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                                 )}
                                 {/* Completeness ring indicator */}
                                 <div className={cn(
-                                    "absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-xl border-[2.5px] border-card flex items-center justify-center shadow-sm",
+                                    "absolute -bottom-1 -right-1 w-6 h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl border-2 border-card flex items-center justify-center shadow-sm",
                                     overallCompleteness >= 80 ? "bg-emerald-500" : overallCompleteness >= 50 ? "bg-amber-500" : "bg-destructive"
                                 )}>
                                     {overallCompleteness >= 80 ? (
-                                        <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                                        <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" />
                                     ) : (
-                                        <span className="text-[9px] font-bold text-white">{overallCompleteness}%</span>
+                                        <span className="text-[8px] sm:text-[9px] font-bold text-white">{overallCompleteness}%</span>
                                     )}
                                 </div>
                             </div>
