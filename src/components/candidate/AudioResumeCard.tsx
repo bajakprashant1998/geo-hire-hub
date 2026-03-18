@@ -510,16 +510,16 @@ const VoiceRecorder = ({ candidate, user, onUpdate }: { candidate: any; user: an
                 <audio src={recordedUrl} controls className="w-full rounded-lg" />
               </div>
               
-              <div className="grid grid-cols-3 gap-2">
-                <Button variant="outline" onClick={discardRecording} className="gap-2">
+              <div className="flex flex-col sm:grid sm:grid-cols-3 gap-2">
+                <Button variant="outline" onClick={discardRecording} className="gap-2 h-10">
                   <Trash2 className="w-4 h-4" />
                   Discard
                 </Button>
-                <Button variant="outline" onClick={startRecording} className="gap-2">
+                <Button variant="outline" onClick={startRecording} className="gap-2 h-10">
                   <RefreshCw className="w-4 h-4" />
                   Re-record
                 </Button>
-                <Button onClick={saveRecording} disabled={saving} className="gap-2">
+                <Button onClick={saveRecording} disabled={saving} className="gap-2 h-10">
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   Save
                 </Button>
