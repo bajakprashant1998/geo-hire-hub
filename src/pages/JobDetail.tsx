@@ -35,6 +35,9 @@ import { SalaryBadge } from '@/components/SalaryBadge';
 import { DeadlineCountdown } from '@/components/DeadlineCountdown';
 import { ResponseRateBadge } from '@/components/employer/ResponseRateBadge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { SEOContentFooter } from '@/components/SEOContentFooter';
+import { TestimonialsSection } from '@/components/TestimonialsSection';
+import { Separator } from '@/components/ui/separator';
 
 interface JobDetails {
   id: string;
