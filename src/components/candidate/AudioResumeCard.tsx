@@ -818,47 +818,49 @@ export const AudioResumeCard = ({ candidate, onUpdate }: AudioResumeCardProps) =
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 overflow-x-hidden">
       {/* Hero Header */}
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-6 text-primary-foreground"
+        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-4 sm:p-6 text-primary-foreground"
       >
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+          <div className="absolute top-0 right-0 w-40 sm:w-64 h-40 sm:h-64 bg-white rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-32 sm:w-48 h-32 sm:h-48 bg-white rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
         </div>
         
-        <div className="relative flex items-start gap-4">
-          <div className="p-3 rounded-2xl bg-white/20 backdrop-blur">
-            <Mic className="w-8 h-8" />
+        <div className="relative flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
+          <div className="flex items-start gap-3 flex-1 min-w-0">
+            <div className="p-2.5 sm:p-3 rounded-2xl bg-white/20 backdrop-blur shrink-0">
+              <Mic className="w-6 h-6 sm:w-8 sm:h-8" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl sm:text-2xl font-bold">Audio Resume</h2>
+              <p className="text-primary-foreground/80 mt-1 text-sm sm:text-base">
+                Stand out with your voice. Create a personal introduction that employers can listen to.
+              </p>
+            </div>
           </div>
-          <div className="flex-1">
-            <h2 className="text-2xl font-bold">Audio Resume</h2>
-            <p className="text-primary-foreground/80 mt-1">
-              Stand out with your voice. Create a personal introduction that employers can listen to.
-            </p>
-          </div>
-          <Badge variant="secondary" className="gap-1.5 bg-white/20 text-white border-0">
+          <Badge variant="secondary" className="gap-1.5 bg-white/20 text-white border-0 shrink-0 self-start">
             <Sparkles className="w-3.5 h-3.5" />
             AI-Powered
           </Badge>
         </div>
 
         {/* Stats */}
-        <div className="relative mt-6 grid grid-cols-3 gap-4">
-          <div className="p-3 rounded-xl bg-white/10 backdrop-blur text-center">
-            <div className="text-2xl font-bold">{audioUrl ? '1' : '0'}</div>
-            <div className="text-xs text-primary-foreground/70">Audio Created</div>
+        <div className="relative mt-4 sm:mt-6 grid grid-cols-3 gap-2 sm:gap-4">
+          <div className="p-2.5 sm:p-3 rounded-xl bg-white/10 backdrop-blur text-center">
+            <div className="text-xl sm:text-2xl font-bold">{audioUrl ? '1' : '0'}</div>
+            <div className="text-[10px] sm:text-xs text-primary-foreground/70">Audio Created</div>
           </div>
-          <div className="p-3 rounded-xl bg-white/10 backdrop-blur text-center">
-            <div className="text-2xl font-bold">3x</div>
-            <div className="text-xs text-primary-foreground/70">More Engagement</div>
+          <div className="p-2.5 sm:p-3 rounded-xl bg-white/10 backdrop-blur text-center">
+            <div className="text-xl sm:text-2xl font-bold">3x</div>
+            <div className="text-[10px] sm:text-xs text-primary-foreground/70">More Engagement</div>
           </div>
-          <div className="p-3 rounded-xl bg-white/10 backdrop-blur text-center">
-            <div className="text-2xl font-bold">90s</div>
-            <div className="text-xs text-primary-foreground/70">Ideal Length</div>
+          <div className="p-2.5 sm:p-3 rounded-xl bg-white/10 backdrop-blur text-center">
+            <div className="text-xl sm:text-2xl font-bold">90s</div>
+            <div className="text-[10px] sm:text-xs text-primary-foreground/70">Ideal Length</div>
           </div>
         </div>
       </motion.div>
