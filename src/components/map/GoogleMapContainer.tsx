@@ -116,14 +116,19 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
       },
       renderer: {
         render: ({ count, position }: Cluster, _stats: any, _map: google.maps.Map) => {
-          const size = count > 50 ? 66 : 54;
-          const color = mode === 'hiring' ? '#3B82F6' : '#EF4444';
-          const innerColor = mode === 'hiring' ? '#2563EB' : '#DC2626';
+          const size = count > 50 ? 58 : count > 20 ? 52 : 46;
+          const color = mode === 'hiring' ? 'hsl(217, 89%, 61%)' : 'hsl(5, 81%, 56%)';
+          const innerColor = mode === 'hiring' ? 'hsl(217, 89%, 51%)' : 'hsl(5, 81%, 46%)';
           
           const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-            <circle cx="${size/2}" cy="${size/2}" r="${size/2}" fill="${color}" opacity="0.85"/>
-            <circle cx="${size/2}" cy="${size/2}" r="${Math.round(size * 0.38)}" fill="${innerColor}" stroke="white" stroke-width="2.5"/>
-            <text x="${size/2}" y="${size/2}" text-anchor="middle" dominant-baseline="central" fill="white" font-size="${count > 99 ? 13 : 14}" font-weight="600" font-family="system-ui, sans-serif">${count}</text>
+            <defs>
+              <filter id="cs${count}" x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.25"/>
+              </filter>
+            </defs>
+            <circle cx="${size/2}" cy="${size/2}" r="${size/2 - 2}" fill="${color}" opacity="0.2" filter="url(#cs${count})"/>
+            <circle cx="${size/2}" cy="${size/2}" r="${Math.round(size * 0.36)}" fill="${innerColor}" stroke="white" stroke-width="2.5"/>
+            <text x="${size/2}" y="${size/2}" text-anchor="middle" dominant-baseline="central" fill="white" font-size="${count > 99 ? 12 : 13}" font-weight="700" font-family="Inter, system-ui, sans-serif">${count}</text>
           </svg>`;
 
           const marker = new google.maps.marker.AdvancedMarkerElement({
@@ -132,7 +137,7 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
               const div = document.createElement('div');
               div.innerHTML = svg;
               div.style.cursor = 'pointer';
-              div.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))';
+              div.style.transition = 'transform 0.2s ease';
               return div;
             })(),
             zIndex: 1000 + count,
