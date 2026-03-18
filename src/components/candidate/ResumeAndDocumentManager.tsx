@@ -563,65 +563,56 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.05 }}
                     >
-                      <Card className="hover:shadow-md transition-all">
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-3">
-                              <div className="p-2.5 rounded-lg bg-muted text-muted-foreground">
+                       <Card className="hover:shadow-md transition-all">
+                        <CardContent className="p-3 sm:p-4">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
+                            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                              <div className="p-2 sm:p-2.5 rounded-lg bg-muted text-muted-foreground shrink-0">
                                 {getFileIcon(doc.name)}
                               </div>
-                              <div>
-                                <p className="font-medium text-foreground truncate max-w-[180px] sm:max-w-[280px]">
+                              <div className="min-w-0">
+                                <p className="font-medium text-foreground text-sm truncate">
                                   {displayName}
                                 </p>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                                <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground mt-0.5">
                                   <span>{formatFileSize(doc.size)}</span>
                                   <span>•</span>
                                   <span>{new Date(doc.created_at).toLocaleDateString()}</span>
                                 </div>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="h-8 text-xs gap-1.5"
+                                className="h-7 sm:h-8 text-[10px] sm:text-xs gap-1"
                                 onClick={() => setPrimaryResume(doc.url, displayName)}
                               >
-                                <Star className="w-3.5 h-3.5" />
-                                Set Primary
+                                <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                                <span className="hidden sm:inline">Set Primary</span>
+                                <span className="sm:hidden">Primary</span>
                               </Button>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    className="h-8 w-8"
-                                    onClick={() => downloadDocument(doc.url, displayName)}
-                                  >
-                                    <Download className="w-4 h-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Download</TooltipContent>
-                              </Tooltip>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleDelete(doc.url)}
-                                    disabled={deleting === doc.url}
-                                    className="h-8 w-8 text-rose-600 hover:text-rose-700 hover:bg-rose-500/10"
-                                  >
-                                    {deleting === doc.url ? (
-                                      <Loader2 className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                      <Trash2 className="w-4 h-4" />
-                                    )}
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Delete</TooltipContent>
-                              </Tooltip>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-7 w-7 sm:h-8 sm:w-8"
+                                onClick={() => downloadDocument(doc.url, displayName)}
+                              >
+                                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDelete(doc.url)}
+                                disabled={deleting === doc.url}
+                                className="h-7 w-7 sm:h-8 sm:w-8 text-rose-600 hover:text-rose-700 hover:bg-rose-500/10"
+                              >
+                                {deleting === doc.url ? (
+                                  <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
+                                ) : (
+                                  <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                )}
+                              </Button>
                             </div>
                           </div>
                         </CardContent>
