@@ -104,7 +104,7 @@ export const EmployerHomeView = ({
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full blur-2xl translate-y-10 -translate-x-8" />
           <div className="relative z-10">
             <p className="text-primary-foreground/60 text-[11px] font-semibold uppercase tracking-[0.15em] mb-1.5">{getGreeting()}</p>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-primary-foreground tracking-tight leading-tight">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-primary-foreground tracking-tight leading-tight break-words">
               {employer?.company_name || 'Your Company'} 🏢
             </h2>
             <p className="text-primary-foreground/55 text-sm mt-1.5 leading-relaxed max-w-md">
