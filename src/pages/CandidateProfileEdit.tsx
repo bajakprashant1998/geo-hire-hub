@@ -488,7 +488,7 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
         overallCompleteness >= 50 ? 'Good start' : 'Needs work';
 
     const profileContent = (
-        <div className={embedded ? "space-y-5 pb-24" : "max-w-4xl mx-auto space-y-5 pb-24"}>
+        <div className={cn(embedded ? "space-y-5 pb-28" : "max-w-4xl mx-auto space-y-5 pb-28", "overflow-x-hidden")}>
             {/* ═══════════ HERO HEADER ═══════════ */}
             <motion.div
                 initial={{ opacity: 0, y: -12 }}
@@ -499,27 +499,27 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.04] via-transparent to-accent/[0.04] pointer-events-none" />
                 <div className="absolute top-0 right-0 w-48 h-48 bg-primary/[0.06] rounded-full -translate-y-1/2 translate-x-1/4 blur-3xl pointer-events-none" />
 
-                <div className="relative p-5 sm:p-6">
+                <div className="relative p-4 sm:p-5 md:p-6">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                         {/* Avatar + Info */}
                         <div className="flex items-center gap-4 flex-1 min-w-0">
-                            <div className="relative shrink-0 group">
+                            <div className="relative shrink-0">
                                 {avatarUrl ? (
-                                    <img src={avatarUrl} alt="" className="w-[72px] h-[72px] rounded-2xl object-cover border-2 border-border/60 shadow-md group-hover:border-primary/30 transition-colors" />
+                                    <img src={avatarUrl} alt="" className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-2xl object-cover border-2 border-border/60 shadow-md" />
                                 ) : (
-                                    <div className="w-[72px] h-[72px] rounded-2xl bg-secondary flex items-center justify-center border-2 border-dashed border-border/60">
-                                        <Camera className="w-6 h-6 text-muted-foreground/40" />
+                                    <div className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-2xl bg-secondary flex items-center justify-center border-2 border-dashed border-border/60">
+                                        <Camera className="w-5 h-5 sm:w-6 sm:h-6 text-muted-foreground/40" />
                                     </div>
                                 )}
                                 {/* Completeness ring indicator */}
                                 <div className={cn(
-                                    "absolute -bottom-1.5 -right-1.5 w-7 h-7 rounded-xl border-[2.5px] border-card flex items-center justify-center shadow-sm",
+                                    "absolute -bottom-1 -right-1 w-6 h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl border-2 border-card flex items-center justify-center shadow-sm",
                                     overallCompleteness >= 80 ? "bg-emerald-500" : overallCompleteness >= 50 ? "bg-amber-500" : "bg-destructive"
                                 )}>
                                     {overallCompleteness >= 80 ? (
-                                        <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                                        <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-white" />
                                     ) : (
-                                        <span className="text-[9px] font-bold text-white">{overallCompleteness}%</span>
+                                        <span className="text-[8px] sm:text-[9px] font-bold text-white">{overallCompleteness}%</span>
                                     )}
                                 </div>
                             </div>
@@ -532,7 +532,7 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                                             </Button>
                                         </TooltipTrigger><TooltipContent>Back to dashboard</TooltipContent></Tooltip>
                                     )}
-                                    <h1 className="text-lg sm:text-xl font-bold truncate text-foreground">
+                                    <h1 className="text-base sm:text-lg md:text-xl font-bold truncate text-foreground">
                                         {fullName || 'Your Profile'}
                                     </h1>
                                 </div>
@@ -593,7 +593,7 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                 />
 
                 {/* Mobile: horizontal scroll chips */}
-                <div className="sm:hidden flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
+                <div className="sm:hidden flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                     {TAB_CONFIG.map((tab) => {
                         const completeness = tabCompleteness[tab.value as keyof typeof tabCompleteness];
                         const isActive = activeTab === tab.value;
@@ -603,13 +603,13 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                                 key={tab.value}
                                 onClick={() => setActiveTab(tab.value)}
                                 className={cn(
-                                    "flex items-center gap-2 px-3.5 py-2.5 rounded-xl border text-sm font-medium transition-all whitespace-nowrap shrink-0",
+                                    "flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-medium transition-all whitespace-nowrap shrink-0",
                                     isActive
                                         ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
                                         : "bg-card border-border/50 text-muted-foreground hover:bg-secondary"
                                 )}
                             >
-                                <TabIcon className="w-4 h-4" />
+                                <TabIcon className="w-3.5 h-3.5" />
                                 {tab.label}
                                 {!isActive && completeness === 100 && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
                                 {!isActive && completeness < 100 && (
@@ -1032,7 +1032,7 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                             </SectionCard>
 
                             <SectionCard icon={Banknote} title="Salary Details" subtitle="Keep this private — only used for matching" tip="Being transparent helps avoid mismatches">
-                                <div className="grid md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                     <div className="space-y-2"><Label className="text-sm font-medium">Currency</Label>
                                         <Select value={salaryCurrency} onValueChange={setSalaryCurrency}>
                                             <SelectTrigger className="bg-background/50"><SelectValue /></SelectTrigger>
@@ -1104,7 +1104,7 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                     {activeTab === 'personal' && (
                         <>
                             <SectionCard icon={User} title="Personal Details" subtitle="Optional — helps with compliance and diversity">
-                                <div className="grid md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                     <div className="space-y-2"><Label className="text-sm font-medium">Date of Birth</Label>
                                         <DatePicker
                                             date={dateOfBirth ? new Date(dateOfBirth) : null}
@@ -1348,7 +1348,7 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: 80, opacity: 0 }}
                         transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                        className="fixed bottom-0 left-0 right-0 z-50 p-3 sm:p-4"
+                        className="fixed bottom-16 sm:bottom-0 left-0 right-0 z-50 p-3 sm:p-4"
                     >
                         <div className="max-w-4xl mx-auto flex items-center justify-between gap-3 px-4 py-3 rounded-2xl bg-card/95 backdrop-blur-xl border border-border/60 shadow-2xl shadow-black/10">
                             <div className="flex items-center gap-2.5 min-w-0">
