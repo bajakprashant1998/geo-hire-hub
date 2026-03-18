@@ -440,30 +440,35 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
               const initials = c.full_name?.split(' ').map(n => n[0]).join('').slice(0, 2) || 'C';
               return (
                 <div>
-                  {/* Blue accent bar */}
-                  <div className="iw-accent-bar" style={{ background: 'linear-gradient(90deg, #4285F4, #60a5fa)' }} />
+                  {/* Gradient accent bar */}
+                  <div className="iw-accent-bar" style={{ background: 'linear-gradient(90deg, hsl(217,89%,61%), hsl(217,89%,70%))' }} />
                   
                   {/* Header */}
-                  <div className="flex items-center gap-3 p-3.5 pb-2.5">
-                    {c.avatar_url ? (
-                      <img src={c.avatar_url} alt={c.full_name}
-                        className="w-12 h-12 rounded-2xl object-cover ring-2 ring-blue-100 shrink-0" />
-                    ) : (
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm">
-                        {initials}
+                  <div className="flex items-center gap-3.5 p-4 pb-3">
+                    <div className="relative shrink-0">
+                      {c.avatar_url ? (
+                        <img src={c.avatar_url} alt={c.full_name}
+                          className="w-13 h-13 rounded-2xl object-cover ring-2 ring-primary/15 shadow-md" style={{ width: 52, height: 52 }} />
+                      ) : (
+                        <div className="rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white font-bold text-sm shadow-md" style={{ width: 52, height: 52 }}>
+                          {initials}
+                        </div>
+                      )}
+                      <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 border-card flex items-center justify-center" style={{ background: 'hsl(var(--success))' }}>
+                        <svg width="8" height="8" viewBox="0 0 24 24" fill="white" stroke="none"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
                       </div>
-                    )}
+                    </div>
                     <div className="min-w-0 flex-1">
-                      <h4 className="text-[13px] font-bold text-foreground leading-tight truncate m-0">
+                      <h4 className="text-sm font-bold text-foreground leading-tight truncate m-0">
                         {c.full_name}
                       </h4>
-                      <p className="text-xs text-primary font-medium mt-0.5 m-0 truncate">
+                      <p className="text-xs text-primary font-semibold mt-0.5 m-0 truncate">
                         {c.job_title || 'Job Seeker'}
                       </p>
                       {(c as any).availability_status && (
-                        <div className="flex items-center gap-1 mt-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                          <span className="text-[10px] text-muted-foreground capitalize">{(c as any).availability_status}</span>
+                        <div className="flex items-center gap-1.5 mt-1.5">
+                          <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: 'hsl(var(--success))' }} />
+                          <span className="text-[10px] text-muted-foreground capitalize font-medium">{(c as any).availability_status}</span>
                         </div>
                       )}
                     </div>
@@ -471,29 +476,29 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
 
                   {/* Stats badges */}
                   {isEmployer ? (
-                    <div className="flex flex-wrap gap-1.5 px-3.5 pb-2.5">
+                    <div className="flex flex-wrap gap-2 px-4 pb-3">
                       {c.experience_years != null && c.experience_years > 0 && (
-                        <span className="iw-badge bg-blue-50 text-blue-700">
+                        <span className="iw-badge bg-primary/8 text-primary border border-primary/10">
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
                           {c.experience_years}+ yrs
                         </span>
                       )}
                       {c.skills && c.skills.length > 0 && (
-                        <span className="iw-badge bg-emerald-50 text-emerald-700">
+                        <span className="iw-badge bg-success/8 text-success border border-success/10">
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
                           {c.skills.length} skills
                         </span>
                       )}
                       {c.distance_km !== undefined && (
-                        <span className="iw-badge bg-violet-50 text-violet-700">
+                        <span className="iw-badge bg-destructive/8 text-destructive border border-destructive/10">
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                           {c.distance_km?.toFixed(1)} km
                         </span>
                       )}
                     </div>
                   ) : (
-                    <div className="px-3.5 pb-2.5">
-                      <p className="text-[11px] text-muted-foreground m-0 flex items-center gap-1">
+                    <div className="px-4 pb-3">
+                      <p className="text-[11px] text-muted-foreground m-0 flex items-center gap-1.5 bg-muted/40 rounded-lg px-3 py-2">
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                         Sign in as employer to view details
                       </p>
@@ -501,22 +506,22 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
                   )}
 
                   {/* Actions */}
-                  <div className="flex gap-2 px-3.5 py-2.5 border-t border-border/60 bg-muted/30">
+                  <div className="flex gap-2.5 px-4 py-3 border-t border-border/40 bg-muted/20">
                     {isEmployer ? (
                       <>
                         <button onClick={() => navigate(`/candidates/${hoveredItem.id}?action=contact`)}
-                          className="iw-action-btn flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm">
+                          className="iw-action-btn flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-md">
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                           Contact
                         </button>
                         <button onClick={() => navigate(`/candidates/${hoveredItem.id}`)}
-                          className="iw-action-btn bg-secondary hover:bg-accent text-secondary-foreground">
+                          className="iw-action-btn bg-secondary hover:bg-accent text-secondary-foreground border border-border/40">
                           View Profile
                         </button>
                       </>
                     ) : (
                       <button onClick={() => navigate(`/candidates/${hoveredItem.id}`)}
-                        className="iw-action-btn flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm">
+                        className="iw-action-btn flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-md">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                         Sign In to View
                       </button>
@@ -527,45 +532,47 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
             })() : (() => {
               const j = hoveredItem as Job;
               const govt = j.job_category === 'government';
-              const accentColor = govt ? '#059669' : '#ef4444';
               const accentGrad = govt
-                ? 'linear-gradient(90deg, #059669, #34d399)'
-                : 'linear-gradient(90deg, #ef4444, #f87171)';
+                ? 'linear-gradient(90deg, hsl(142,53%,43%), hsl(142,53%,60%))'
+                : 'linear-gradient(90deg, hsl(5,81%,56%), hsl(5,81%,68%))';
               return (
                 <div>
                   {/* Accent bar */}
                   <div className="iw-accent-bar" style={{ background: accentGrad }} />
 
                   {/* Header */}
-                  <div className="flex items-start gap-3 p-3.5 pb-2">
-                    <div className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-sm"
-                      style={{ background: govt ? '#ecfdf5' : '#fef2f2' }}>
+                  <div className="flex items-start gap-3.5 p-4 pb-2.5">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm border"
+                      style={{ 
+                        background: govt ? 'hsl(142,53%,43%,0.08)' : 'hsl(5,81%,56%,0.08)',
+                        borderColor: govt ? 'hsl(142,53%,43%,0.15)' : 'hsl(5,81%,56%,0.15)'
+                      }}>
                       {govt ? (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="1.8"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="hsl(142,53%,43%)" strokeWidth="1.8"><path d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/></svg>
                       ) : (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="hsl(5,81%,56%)" strokeWidth="1.8"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5">
-                        <h4 className="text-[13px] font-bold text-foreground leading-tight truncate m-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-sm font-bold text-foreground leading-tight truncate m-0 flex-1">
                           {j.title}
                         </h4>
                         {j.created_at && isNewJob(j.created_at) && (
-                          <span className="px-1.5 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider shrink-0 text-white shadow-sm"
-                            style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}>
+                          <span className="px-2 py-0.5 rounded-lg text-[9px] font-extrabold uppercase tracking-wider shrink-0 text-white shadow-sm border-0"
+                            style={{ background: 'linear-gradient(135deg, hsl(var(--warning)), hsl(5,81%,56%))' }}>
                             NEW
                           </span>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5 m-0 truncate flex items-center gap-1">
+                      <p className="text-xs text-muted-foreground mt-1 m-0 truncate flex items-center gap-1.5 font-medium">
                         {j.company_name || 'Company'}
                         {govt && (
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="#059669" stroke="white" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="hsl(142,53%,43%)" stroke="white" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                         )}
                       </p>
                       {j.created_at && (
-                        <p className="text-[10px] text-muted-foreground/60 mt-0.5 m-0">
+                        <p className="text-[10px] text-muted-foreground/50 mt-1 m-0 font-medium">
                           {formatTimeAgo(j.created_at)}
                         </p>
                       )}
@@ -573,20 +580,20 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
                   </div>
 
                   {/* Meta badges */}
-                  <div className="flex flex-wrap items-center gap-1.5 px-3.5 pb-2.5">
+                  <div className="flex flex-wrap items-center gap-2 px-4 pb-3">
                     {j.job_type && (
-                      <span className="iw-badge bg-secondary text-secondary-foreground">
+                      <span className="iw-badge bg-secondary text-secondary-foreground border border-border/30">
                         {j.job_type}
                       </span>
                     )}
                     {j.salary_range && (
-                      <span className="iw-badge bg-emerald-50 text-emerald-700">
+                      <span className="iw-badge bg-success/8 text-success border border-success/10">
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                         ₹{j.salary_range}
                       </span>
                     )}
                     {j.distance_km !== undefined && (
-                      <span className="iw-badge bg-violet-50 text-violet-700">
+                      <span className="iw-badge bg-destructive/8 text-destructive border border-destructive/10">
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                         {j.distance_km?.toFixed(1)} km
                       </span>
@@ -594,15 +601,15 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex gap-2 px-3.5 py-2.5 border-t border-border/60 bg-muted/30">
+                  <div className="flex gap-2.5 px-4 py-3 border-t border-border/40 bg-muted/20">
                     <button onClick={() => navigate(`/jobs/${hoveredItem.id}?action=apply`)}
-                      className="iw-action-btn flex-1 text-white shadow-sm"
-                      style={{ background: accentColor }}>
+                      className="iw-action-btn flex-1 text-white shadow-md"
+                      style={{ background: govt ? 'hsl(142,53%,43%)' : 'hsl(5,81%,56%)' }}>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                       Quick Apply
                     </button>
                     <button onClick={() => navigate(`/jobs/${hoveredItem.id}`)}
-                      className="iw-action-btn bg-secondary hover:bg-accent text-secondary-foreground">
+                      className="iw-action-btn bg-secondary hover:bg-accent text-secondary-foreground border border-border/40">
                       Details
                     </button>
                   </div>
