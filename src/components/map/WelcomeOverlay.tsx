@@ -221,7 +221,7 @@ export const WelcomeOverlay = ({ onDismiss, onFindJobs, onFindTalent }: WelcomeO
               </div>
 
               {/* Live Stats */}
-              <motion.div variants={itemVariants} className="px-4 pt-4">
+              <motion.div variants={itemVariants} className="px-3 sm:px-4 pt-3 sm:pt-4">
                 <div className="flex items-center justify-around p-4 rounded-2xl bg-muted/30 border border-border/20">
                   {stats.map((s, i) => (
                     <div key={i} className="flex flex-col items-center gap-1.5">
