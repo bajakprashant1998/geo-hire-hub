@@ -1143,32 +1143,34 @@ const AIResumeBuilder = ({ embedded = false }: { embedded?: boolean }) => {
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
-      className="space-y-6"
+      className="space-y-4 sm:space-y-6"
     >
       {/* Export Actions */}
-      <div className="flex flex-wrap items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
-        <div className="flex-1 min-w-[200px]">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
+        <div className="flex-1 min-w-0">
           <h3 className="font-semibold">Your resume is ready!</h3>
           <p className="text-sm text-muted-foreground">Download or save to your profile</p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={saveToProfile} disabled={saving} variant="outline" className="gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Button onClick={saveToProfile} disabled={saving} variant="outline" className="gap-2 w-full sm:w-auto">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Save to Profile
           </Button>
-          <Button onClick={exportToPDF} disabled={exporting} className="gap-2 bg-red-600 hover:bg-red-700">
-            {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
-            PDF
-          </Button>
-          <Button onClick={exportToJPEG} disabled={exporting} variant="outline" className="gap-2">
-            <ImageIcon className="w-4 h-4" />
-            JPEG
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={exportToPDF} disabled={exporting} className="gap-2 flex-1 sm:flex-none bg-destructive hover:bg-destructive/90">
+              {exporting ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+              PDF
+            </Button>
+            <Button onClick={exportToJPEG} disabled={exporting} variant="outline" className="gap-2 flex-1 sm:flex-none">
+              <ImageIcon className="w-4 h-4" />
+              JPEG
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Full Resume Preview */}
-      <div className="overflow-x-auto pb-8 flex justify-center">
+      <div className="overflow-x-auto pb-8 -mx-3 px-3 sm:mx-0 sm:px-0 flex justify-center">
         <div className="shadow-2xl rounded-lg overflow-hidden">
           <ResumeTemplate data={formData} innerRef={resumeRef} />
         </div>
