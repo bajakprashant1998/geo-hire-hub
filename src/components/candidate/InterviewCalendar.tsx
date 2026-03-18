@@ -179,7 +179,7 @@ export const InterviewCalendar = ({ candidateId }: InterviewCalendarProps) => {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4 sm:space-y-5 overflow-x-hidden">
       {/* Stats Row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
