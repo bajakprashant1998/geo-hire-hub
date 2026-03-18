@@ -435,6 +435,7 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
             }}
             onMouseLeave={handleMouseLeave}
             className="map-infowindow-card"
+            style={{ pointerEvents: 'auto' }}
           >
             {mode === 'hiring' ? (() => {
               const c = hoveredItem as Candidate;
