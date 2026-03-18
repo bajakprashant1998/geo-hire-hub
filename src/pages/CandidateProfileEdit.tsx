@@ -593,7 +593,7 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                 />
 
                 {/* Mobile: horizontal scroll chips */}
-                <div className="sm:hidden flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
+                <div className="sm:hidden flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                     {TAB_CONFIG.map((tab) => {
                         const completeness = tabCompleteness[tab.value as keyof typeof tabCompleteness];
                         const isActive = activeTab === tab.value;
