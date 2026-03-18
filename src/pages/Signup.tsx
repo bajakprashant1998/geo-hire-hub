@@ -210,7 +210,12 @@ const Signup = () => {
       navigate('/verify-email');
     } catch (error: any) {
       console.error('Signup error:', error);
-      toast.error(error.message || 'Signup failed');
+      const msg = error?.message || '';
+      if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('Load failed')) {
+        toast.error('Service temporarily unavailable. Please check your connection and try again.');
+      } else {
+        toast.error(msg || 'Signup failed');
+      }
     } finally {
       setLoading(false);
     }
