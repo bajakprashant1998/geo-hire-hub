@@ -532,7 +532,7 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                                             </Button>
                                         </TooltipTrigger><TooltipContent>Back to dashboard</TooltipContent></Tooltip>
                                     )}
-                                    <h1 className="text-lg sm:text-xl font-bold truncate text-foreground">
+                                    <h1 className="text-base sm:text-lg md:text-xl font-bold truncate text-foreground">
                                         {fullName || 'Your Profile'}
                                     </h1>
                                 </div>
