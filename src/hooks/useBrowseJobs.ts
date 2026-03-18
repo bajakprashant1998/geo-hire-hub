@@ -110,12 +110,8 @@ export function useBrowseJobs() {
   }, [debouncedSearch, jobType, sortBy, isRemote, experienceLevel, salaryMin, salaryMax]);
 
   const loadMore = useCallback(() => {
-    setPage(p => {
-      const next = p + 1;
-      setTimeout(() => fetchJobs(false), 0);
-      return next;
-    });
-  }, [fetchJobs]);
+    setPage(prev => prev + 1);
+  }, []);
 
   const clearAllFilters = useCallback(() => {
     setSearch('');

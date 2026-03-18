@@ -303,15 +303,16 @@ const JobDetail = () => {
   };
 
   const fetchApplicantCount = async () => {
-    const { count } = await supabase.from('applications').select('*', { count: 'exact', head: true }).eq('job_id', id);
+    if (!resolvedId) return;
+    const { count } = await supabase.from('applications').select('*', { count: 'exact', head: true }).eq('job_id', resolvedId);
     setApplicantCount(count || 0);
   };
 
   const checkIfApplied = async () => {
-    if (!user) return;
+    if (!user || !resolvedId) return;
     const { data: candidate } = await supabase.from('candidates').select('id').eq('profile_id', profile?.id).maybeSingle();
     if (!candidate) return;
-    const { data: application } = await supabase.from('applications').select('id').eq('job_id', id).eq('candidate_id', candidate.id).maybeSingle();
+    const { data: application } = await supabase.from('applications').select('id').eq('job_id', resolvedId).eq('candidate_id', candidate.id).maybeSingle();
     setHasApplied(!!application);
   };
 

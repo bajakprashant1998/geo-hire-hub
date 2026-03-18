@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 const getSmartRedirect = async (userId: string, userType: string, profileCompleted: boolean) => {
   if (!profileCompleted) return '/profile-setup';
-  return '/';
+  return userType === 'employer' ? '/employer-dashboard' : '/candidate-dashboard';
 };
 
 const AuthCallback = () => {
