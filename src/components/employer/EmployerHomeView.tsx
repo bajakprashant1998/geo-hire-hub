@@ -223,7 +223,7 @@ export const EmployerHomeView = ({
             View Analytics <ChevronRight className="w-3 h-3" />
           </button>
         </div>
-        <div className="grid grid-cols-4 sm:grid-cols-8 gap-2 sm:gap-3">
+        <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-8 sm:gap-3">
           {quickActions.map((action, i) => (
             <motion.button
               key={action.label}
