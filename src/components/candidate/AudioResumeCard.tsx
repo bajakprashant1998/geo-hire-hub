@@ -254,8 +254,8 @@ const AudioPlayer = ({
         </div>
 
         {/* Volume + Actions */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 w-32">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2 w-full sm:w-32">
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={toggleMute}>
               {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
             </Button>
@@ -272,7 +272,7 @@ const AudioPlayer = ({
             />
           </div>
           
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5 justify-end">
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={shareAudio}>
               <Share2 className="w-4 h-4" />
             </Button>
@@ -510,16 +510,16 @@ const VoiceRecorder = ({ candidate, user, onUpdate }: { candidate: any; user: an
                 <audio src={recordedUrl} controls className="w-full rounded-lg" />
               </div>
               
-              <div className="grid grid-cols-3 gap-2">
-                <Button variant="outline" onClick={discardRecording} className="gap-2">
+              <div className="flex flex-col sm:grid sm:grid-cols-3 gap-2">
+                <Button variant="outline" onClick={discardRecording} className="gap-2 h-10">
                   <Trash2 className="w-4 h-4" />
                   Discard
                 </Button>
-                <Button variant="outline" onClick={startRecording} className="gap-2">
+                <Button variant="outline" onClick={startRecording} className="gap-2 h-10">
                   <RefreshCw className="w-4 h-4" />
                   Re-record
                 </Button>
-                <Button onClick={saveRecording} disabled={saving} className="gap-2">
+                <Button onClick={saveRecording} disabled={saving} className="gap-2 h-10">
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   Save
                 </Button>
@@ -679,23 +679,23 @@ const AIGenerator = ({
         <RadioGroup 
           value={tone} 
           onValueChange={setTone} 
-          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2"
+          className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5 sm:gap-2"
           disabled={generating}
         >
           {toneOptions.map((option) => (
             <div key={option.value}>
               <RadioGroupItem value={option.value} id={option.value} className="peer sr-only" />
-              <Label
-                htmlFor={option.value}
-                className={`flex flex-col items-center p-3 rounded-xl border-2 cursor-pointer transition-all 
-                  hover:border-primary/50 
-                  peer-data-[state=checked]:border-primary 
-                  peer-data-[state=checked]:bg-gradient-to-br ${option.color}
-                  peer-disabled:opacity-50 peer-disabled:cursor-not-allowed`}
-              >
-                <span className="text-2xl mb-1">{option.icon}</span>
-                <span className="font-medium text-sm">{option.label}</span>
-                <span className="text-[10px] text-muted-foreground text-center leading-tight mt-0.5">{option.description}</span>
+                <Label
+                  htmlFor={option.value}
+                  className={`flex flex-col items-center p-2.5 sm:p-3 rounded-xl border-2 cursor-pointer transition-all 
+                    hover:border-primary/50 
+                    peer-data-[state=checked]:border-primary 
+                    peer-data-[state=checked]:bg-gradient-to-br ${option.color}
+                    peer-disabled:opacity-50 peer-disabled:cursor-not-allowed`}
+                >
+                  <span className="text-xl sm:text-2xl mb-1">{option.icon}</span>
+                  <span className="font-medium text-xs sm:text-sm">{option.label}</span>
+                  <span className="text-[9px] sm:text-[10px] text-muted-foreground text-center leading-tight mt-0.5">{option.description}</span>
               </Label>
             </div>
           ))}
@@ -725,7 +725,7 @@ const AIGenerator = ({
               <span className="text-sm font-mono">{Math.round(progress)}%</span>
             </div>
             <Progress value={progress} className="h-2" />
-            <div className="flex justify-between">
+            <div className="flex flex-wrap justify-between gap-1">
               {GENERATION_STAGES.map((stage, i) => (
                 <div 
                   key={i} 
@@ -818,47 +818,49 @@ export const AudioResumeCard = ({ candidate, onUpdate }: AudioResumeCardProps) =
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 overflow-x-hidden">
       {/* Hero Header */}
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-6 text-primary-foreground"
+        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-primary/90 to-primary/80 p-4 sm:p-6 text-primary-foreground"
       >
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+          <div className="absolute top-0 right-0 w-40 sm:w-64 h-40 sm:h-64 bg-white rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+          <div className="absolute bottom-0 left-0 w-32 sm:w-48 h-32 sm:h-48 bg-white rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
         </div>
         
-        <div className="relative flex items-start gap-4">
-          <div className="p-3 rounded-2xl bg-white/20 backdrop-blur">
-            <Mic className="w-8 h-8" />
+        <div className="relative flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
+          <div className="flex items-start gap-3 flex-1 min-w-0">
+            <div className="p-2.5 sm:p-3 rounded-2xl bg-white/20 backdrop-blur shrink-0">
+              <Mic className="w-6 h-6 sm:w-8 sm:h-8" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl sm:text-2xl font-bold">Audio Resume</h2>
+              <p className="text-primary-foreground/80 mt-1 text-sm sm:text-base">
+                Stand out with your voice. Create a personal introduction that employers can listen to.
+              </p>
+            </div>
           </div>
-          <div className="flex-1">
-            <h2 className="text-2xl font-bold">Audio Resume</h2>
-            <p className="text-primary-foreground/80 mt-1">
-              Stand out with your voice. Create a personal introduction that employers can listen to.
-            </p>
-          </div>
-          <Badge variant="secondary" className="gap-1.5 bg-white/20 text-white border-0">
+          <Badge variant="secondary" className="gap-1.5 bg-white/20 text-white border-0 shrink-0 self-start">
             <Sparkles className="w-3.5 h-3.5" />
             AI-Powered
           </Badge>
         </div>
 
         {/* Stats */}
-        <div className="relative mt-6 grid grid-cols-3 gap-4">
-          <div className="p-3 rounded-xl bg-white/10 backdrop-blur text-center">
-            <div className="text-2xl font-bold">{audioUrl ? '1' : '0'}</div>
-            <div className="text-xs text-primary-foreground/70">Audio Created</div>
+        <div className="relative mt-4 sm:mt-6 grid grid-cols-3 gap-2 sm:gap-4">
+          <div className="p-2.5 sm:p-3 rounded-xl bg-white/10 backdrop-blur text-center">
+            <div className="text-xl sm:text-2xl font-bold">{audioUrl ? '1' : '0'}</div>
+            <div className="text-[10px] sm:text-xs text-primary-foreground/70">Audio Created</div>
           </div>
-          <div className="p-3 rounded-xl bg-white/10 backdrop-blur text-center">
-            <div className="text-2xl font-bold">3x</div>
-            <div className="text-xs text-primary-foreground/70">More Engagement</div>
+          <div className="p-2.5 sm:p-3 rounded-xl bg-white/10 backdrop-blur text-center">
+            <div className="text-xl sm:text-2xl font-bold">3x</div>
+            <div className="text-[10px] sm:text-xs text-primary-foreground/70">More Engagement</div>
           </div>
-          <div className="p-3 rounded-xl bg-white/10 backdrop-blur text-center">
-            <div className="text-2xl font-bold">90s</div>
-            <div className="text-xs text-primary-foreground/70">Ideal Length</div>
+          <div className="p-2.5 sm:p-3 rounded-xl bg-white/10 backdrop-blur text-center">
+            <div className="text-xl sm:text-2xl font-bold">90s</div>
+            <div className="text-[10px] sm:text-xs text-primary-foreground/70">Ideal Length</div>
           </div>
         </div>
       </motion.div>
@@ -876,27 +878,27 @@ export const AudioResumeCard = ({ candidate, onUpdate }: AudioResumeCardProps) =
       )}
 
       {/* Creation Options */}
-      <Card className="border-0 shadow-lg">
+      <Card className="border-0 shadow-lg overflow-hidden">
         <CardContent className="p-0">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full grid grid-cols-2 h-14 rounded-t-xl rounded-b-none bg-muted/50 p-1">
+            <TabsList className="w-full grid grid-cols-2 h-12 sm:h-14 rounded-t-xl rounded-b-none bg-muted/50 p-1">
               <TabsTrigger 
                 value="record" 
-                className="gap-2 h-12 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow"
+                className="gap-1.5 sm:gap-2 h-10 sm:h-12 rounded-lg text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow"
               >
                 <Mic className="w-4 h-4" />
-                <span className="font-medium">Record Voice</span>
+                <span className="font-medium">Record</span>
               </TabsTrigger>
               <TabsTrigger 
                 value="ai-generate" 
-                className="gap-2 h-12 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow"
+                className="gap-1.5 sm:gap-2 h-10 sm:h-12 rounded-lg text-xs sm:text-sm data-[state=active]:bg-background data-[state=active]:shadow"
               >
                 <Wand2 className="w-4 h-4" />
                 <span className="font-medium">AI Generate</span>
               </TabsTrigger>
             </TabsList>
 
-            <div className="p-6">
+            <div className="p-3 sm:p-6">
               <TabsContent value="record" className="mt-0">
                 <VoiceRecorder candidate={candidate} user={user} onUpdate={onUpdate} />
               </TabsContent>
