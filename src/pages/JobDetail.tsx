@@ -207,8 +207,9 @@ const JobDetail = () => {
   };
 
   const baseUrl = 'https://www.hireforjob.com';
-  const jobSeoTitle = job ? `${job.title} at ${job.employer.company_name} | HireForJob` : 'Job Details | HireForJob';
-  const jobSeoDesc = job ? `Apply for ${job.title} at ${job.employer.company_name}. ${job.job_type || 'Full-time'}${job.salary_range ? ` | ${job.salary_range}` : ''}${job.job_address ? ` | ${job.job_address}` : ''}` : '';
+  // SEO: title ≤60 chars, desc ≤160 chars
+  const jobSeoTitle = job ? `${job.title} – ${job.employer.company_name} | HireForJob`.slice(0, 60) : 'Job Details | HireForJob';
+  const jobSeoDesc = job ? `Apply for ${job.title} at ${job.employer.company_name}. ${job.job_type || 'Full-time'} role${job.salary_range ? `, salary ${job.salary_range}` : ''}${job.job_address ? ` in ${job.job_address}` : ''}. Apply now on HireForJob.`.slice(0, 160) : '';
   const jobCanonical = job ? `${baseUrl}${window.location.pathname}` : undefined;
 
   const jobJsonLd = job ? (() => {
