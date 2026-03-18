@@ -106,24 +106,24 @@ export const TestimonialsSection = ({ className, compact = false }: Testimonials
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
-      className={cn("mt-20", className)}
+      className={cn("mt-12 sm:mt-20 overflow-hidden", className)}
     >
-      <div className="text-center mb-10">
-        <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-          <MessageSquareQuote className="w-6 h-6 text-primary" />
+      <div className="text-center mb-6 sm:mb-10 px-4">
+        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-3 sm:mb-4">
+          <MessageSquareQuote className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
         </div>
-        <Badge variant="secondary" className="mb-3 px-3 py-1 text-xs">Social Proof</Badge>
-        <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
+        <Badge variant="secondary" className="mb-2 sm:mb-3 px-3 py-1 text-xs">Social Proof</Badge>
+        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
           Trusted by Employers Everywhere
         </h2>
-        <p className="text-muted-foreground mt-2 max-w-lg mx-auto">
+        <p className="text-muted-foreground mt-1.5 sm:mt-2 max-w-lg mx-auto text-xs sm:text-sm">
           See what hiring teams say about finding talent on our platform
         </p>
       </div>
 
       <div className={cn(
-        "grid gap-5",
-        compact ? "md:grid-cols-3" : "md:grid-cols-2 lg:grid-cols-3"
+        "grid gap-3 sm:gap-5",
+        compact ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-3" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
       )}>
         {testimonials.map((t, i) => (
           <TestimonialCard key={t.id} t={t} index={i} />
