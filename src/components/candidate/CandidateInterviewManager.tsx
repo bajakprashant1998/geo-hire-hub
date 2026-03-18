@@ -677,7 +677,7 @@ export const CandidateInterviewManager = ({ candidateId }: CandidateInterviewMan
 
       {/* Request Interview Dialog */}
       <Dialog open={requestDialogOpen} onOpenChange={setRequestDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90dvh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <CalendarPlus className="w-5 h-5 text-primary" />
