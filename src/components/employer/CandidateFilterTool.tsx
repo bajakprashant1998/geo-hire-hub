@@ -1350,7 +1350,7 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                               )}
 
                               {/* Applied for + indicators */}
-                              <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                              <div className="flex items-center gap-2 mt-1.5 flex-wrap min-w-0 overflow-hidden">
                                 {candidate.jobTitle_applied && (
                                   <p className="text-[10px] text-muted-foreground/70">
                                     Applied for <span className="font-semibold text-foreground/70">{candidate.jobTitle_applied}</span>
