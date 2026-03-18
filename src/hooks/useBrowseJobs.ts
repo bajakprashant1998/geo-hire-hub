@@ -109,6 +109,12 @@ export function useBrowseJobs() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch, jobType, sortBy, isRemote, experienceLevel, salaryMin, salaryMax]);
 
+  // Trigger fetch when page increments (loadMore)
+  useEffect(() => {
+    if (page > 0) fetchJobs(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
+
   const loadMore = useCallback(() => {
     setPage(prev => prev + 1);
   }, []);
