@@ -672,8 +672,8 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
                     transition={{ delay: i * 0.05 }}
                   >
                     <Card className="hover:shadow-lg transition-all h-full">
-                      <CardContent className="p-5 flex flex-col h-full">
-                        <div className="flex items-start gap-3 mb-4">
+                      <CardContent className="p-4 sm:p-5 flex flex-col h-full">
+                        <div className="flex items-start gap-2.5 sm:gap-3 mb-3 sm:mb-4">
                           <div className="p-2.5 rounded-xl bg-violet-500/10 text-violet-500">
                             <Sparkles className="w-5 h-5" />
                           </div>
