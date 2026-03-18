@@ -59,7 +59,7 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
   };
 
   const handleMouseLeave = () => {
-    hoverTimeoutRef.current = setTimeout(() => setHoveredItem(null), 300);
+    hoverTimeoutRef.current = setTimeout(() => setHoveredItem(null), 800);
   };
 
   const formatTimeAgo = (dateString: string): string => {
