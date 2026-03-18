@@ -475,18 +475,18 @@ export const CareerBuddyChat = () => {
                     transition={{ delay: 0.45 + i * 0.05 }}
                     onClick={() => handleQuickAction(action.prompt)}
                     className={cn(
-                      "group flex flex-col items-start gap-2 p-3 rounded-xl border text-left transition-all duration-200",
+                      "group flex flex-col items-start gap-1.5 p-2.5 sm:p-3 rounded-xl border text-left transition-all duration-200",
                       "active:scale-[0.97] bg-gradient-to-br",
                       action.gradient
                     )}
                   >
-                    <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center", action.iconBg)}>
-                      <action.icon className="w-4 h-4" />
+                    <div className={cn("w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center", action.iconBg)}>
+                      <action.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </div>
-                    <div>
-                      <span className="text-xs font-semibold text-foreground block leading-tight">{action.label}</span>
+                    <div className="min-w-0 w-full">
+                      <span className="text-[11px] sm:text-xs font-semibold text-foreground block leading-tight truncate">{action.label}</span>
                       {action.description && (
-                        <span className="text-[10px] text-muted-foreground mt-0.5 block leading-tight">{action.description}</span>
+                        <span className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 block leading-tight truncate">{action.description}</span>
                       )}
                     </div>
                   </motion.button>
