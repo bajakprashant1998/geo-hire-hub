@@ -155,8 +155,8 @@ export const JobCard = ({ job, index, viewMode, savedJobIds, onSaveToggle, compa
             </button>
           )}
           <CardContent className={cn(
-            viewMode === 'grid' ? 'p-5 flex flex-col h-full min-h-[220px]' : 'p-4 sm:p-5',
-            compareMode && 'pl-11'
+            viewMode === 'grid' ? 'p-4 sm:p-5 flex flex-col h-full min-h-[200px] sm:min-h-[220px]' : 'p-3.5 sm:p-5',
+            compareMode && 'pl-10 sm:pl-11'
           )}>
             {viewMode === 'grid' ? (
               <GridLayout
