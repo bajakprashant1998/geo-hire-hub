@@ -603,7 +603,7 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                                 key={tab.value}
                                 onClick={() => setActiveTab(tab.value)}
                                 className={cn(
-                                    "flex items-center gap-2 px-3.5 py-2.5 rounded-xl border text-sm font-medium transition-all whitespace-nowrap shrink-0",
+                                    "flex items-center gap-1.5 px-3 py-2 rounded-xl border text-xs font-medium transition-all whitespace-nowrap shrink-0",
                                     isActive
                                         ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20"
                                         : "bg-card border-border/50 text-muted-foreground hover:bg-secondary"
