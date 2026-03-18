@@ -321,21 +321,21 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
 
   return (
     <TooltipProvider>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6 overflow-x-hidden">
         {/* Hero Header */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/15 via-primary/5 to-accent/10 border border-primary/20 p-6">
+        <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br from-primary/15 via-primary/5 to-accent/10 border border-primary/20 p-4 sm:p-6">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-accent/10 rounded-full blur-2xl" />
           
           <div className="relative z-10">
-            <div className="flex items-start justify-between flex-wrap gap-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 rounded-xl bg-primary/15 border border-primary/20">
-                  <FolderOpen className="w-6 h-6 text-primary" />
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <div className="p-2 sm:p-2.5 rounded-xl bg-primary/15 border border-primary/20 shrink-0">
+                  <FolderOpen className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 </div>
-                <div>
-                  <h2 className="text-xl font-bold text-foreground">Resume & Documents</h2>
-                  <p className="text-sm text-muted-foreground">Manage your career documents in one place</p>
+                <div className="min-w-0">
+                  <h2 className="text-base sm:text-xl font-bold text-foreground truncate">Resume & Documents</h2>
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">Manage your career documents</p>
                 </div>
               </div>
 
@@ -343,7 +343,7 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
                 variant="outline" 
                 size="sm" 
                 onClick={() => navigate('/ai-resume-builder')}
-                className="gap-2"
+                className="gap-2 w-full sm:w-auto shrink-0"
               >
                 <Wand2 className="w-4 h-4" />
                 AI Resume Builder
@@ -351,19 +351,19 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
             </div>
 
             {/* Quick Stats */}
-            <div className="mt-4 flex items-center gap-3 flex-wrap">
-              <Badge variant="outline" className="bg-background/50 gap-1.5 py-1">
+            <div className="mt-3 sm:mt-4 flex items-center gap-2 sm:gap-3 flex-wrap">
+              <Badge variant="outline" className="bg-background/50 gap-1 sm:gap-1.5 py-1 text-[10px] sm:text-xs">
                 <FileCheck className="w-3 h-3" />
-                {documents.length} documents
+                {documents.length} docs
               </Badge>
-              <Badge variant="outline" className="bg-background/50 gap-1.5 py-1">
+              <Badge variant="outline" className="bg-background/50 gap-1 sm:gap-1.5 py-1 text-[10px] sm:text-xs">
                 <Sparkles className="w-3 h-3" />
-                {aiResumes.length} AI resumes
+                {aiResumes.length} AI
               </Badge>
               <Badge 
                 variant="outline" 
                 className={cn(
-                  "gap-1.5 py-1",
+                  "gap-1 sm:gap-1.5 py-1 text-[10px] sm:text-xs",
                   storagePercentage > 80 
                     ? "bg-rose-500/10 text-rose-600 border-rose-500/30" 
                     : "bg-background/50"
@@ -378,9 +378,9 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
 
         {/* Storage Progress */}
         <Card className="border-border/40">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-foreground flex items-center gap-2">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center justify-between mb-2 gap-2">
+              <span className="text-xs sm:text-sm font-medium text-foreground flex items-center gap-1.5 sm:gap-2 min-w-0">
                 <HardDrive className="w-4 h-4 text-muted-foreground" />
                 Storage Usage
               </span>
@@ -405,20 +405,24 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
 
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full grid grid-cols-3 h-11">
-            <TabsTrigger value="documents" className="gap-1.5">
-              <FileText className="w-4 h-4" />
-              Documents
-            </TabsTrigger>
-            <TabsTrigger value="ai-resumes" className="gap-1.5">
-              <Sparkles className="w-4 h-4" />
-              AI Resumes
-            </TabsTrigger>
-            <TabsTrigger value="privacy" className="gap-1.5">
-              <Lock className="w-4 h-4" />
-              Privacy
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 scrollbar-hide">
+            <TabsList className="w-full sm:w-full grid grid-cols-3 h-10 sm:h-11 min-w-[280px]">
+              <TabsTrigger value="documents" className="gap-1 text-[11px] sm:text-sm px-2 sm:px-3">
+                <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Documents</span>
+                <span className="sm:hidden">Docs</span>
+              </TabsTrigger>
+              <TabsTrigger value="ai-resumes" className="gap-1 text-[11px] sm:text-sm px-2 sm:px-3">
+                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">AI Resumes</span>
+                <span className="sm:hidden">AI</span>
+              </TabsTrigger>
+              <TabsTrigger value="privacy" className="gap-1 text-[11px] sm:text-sm px-2 sm:px-3">
+                <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                Privacy
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Documents Tab */}
           <TabsContent value="documents" className="mt-4 space-y-4">
@@ -435,7 +439,7 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                 >
-                  <div className="p-8 text-center">
+                  <div className="p-5 sm:p-8 text-center">
                     {uploading ? (
                       <div className="flex flex-col items-center">
                         <motion.div
@@ -490,17 +494,17 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
                       Primary Resume
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="p-3 rounded-xl bg-primary/10 text-primary">
+                   <CardContent className="p-3 sm:p-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                        <div className="p-2 sm:p-3 rounded-xl bg-primary/10 text-primary shrink-0">
                           {getFileIcon(primaryDocument.name)}
                         </div>
-                        <div>
-                          <p className="font-medium text-foreground truncate max-w-[200px] sm:max-w-[300px]">
+                        <div className="min-w-0">
+                          <p className="font-medium text-foreground text-sm truncate">
                             {candidate.resume_filename || primaryDocument.name.split('_').pop()}
                           </p>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                          <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground mt-0.5">
                             <span>{formatFileSize(primaryDocument.size)}</span>
                             <span>•</span>
                             <span className="flex items-center gap-1">
@@ -510,38 +514,28 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
                           </div>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button 
-                              variant="outline" 
-                              size="icon" 
-                              className="h-9 w-9"
-                              onClick={() => downloadDocument(primaryDocument.url, candidate.resume_filename || primaryDocument.name)}
-                            >
-                              <Download className="w-4 h-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Download</TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => handleDelete(primaryDocument.url)}
-                              disabled={deleting === primaryDocument.url}
-                              className="h-9 w-9 text-rose-600 hover:text-rose-700 hover:bg-rose-500/10 border-rose-500/30"
-                            >
-                              {deleting === primaryDocument.url ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <Trash2 className="w-4 h-4" />
-                              )}
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>Delete</TooltipContent>
-                        </Tooltip>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Button 
+                          variant="outline" 
+                          size="icon" 
+                          className="h-8 w-8 sm:h-9 sm:w-9"
+                          onClick={() => downloadDocument(primaryDocument.url, candidate.resume_filename || primaryDocument.name)}
+                        >
+                          <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={() => handleDelete(primaryDocument.url)}
+                          disabled={deleting === primaryDocument.url}
+                          className="h-8 w-8 sm:h-9 sm:w-9 text-rose-600 hover:text-rose-700 hover:bg-rose-500/10 border-rose-500/30"
+                        >
+                          {deleting === primaryDocument.url ? (
+                            <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                          )}
+                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -569,65 +563,56 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.05 }}
                     >
-                      <Card className="hover:shadow-md transition-all">
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-3">
-                              <div className="p-2.5 rounded-lg bg-muted text-muted-foreground">
+                       <Card className="hover:shadow-md transition-all">
+                        <CardContent className="p-3 sm:p-4">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
+                            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                              <div className="p-2 sm:p-2.5 rounded-lg bg-muted text-muted-foreground shrink-0">
                                 {getFileIcon(doc.name)}
                               </div>
-                              <div>
-                                <p className="font-medium text-foreground truncate max-w-[180px] sm:max-w-[280px]">
+                              <div className="min-w-0">
+                                <p className="font-medium text-foreground text-sm truncate">
                                   {displayName}
                                 </p>
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                                <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground mt-0.5">
                                   <span>{formatFileSize(doc.size)}</span>
                                   <span>•</span>
                                   <span>{new Date(doc.created_at).toLocaleDateString()}</span>
                                 </div>
                               </div>
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="h-8 text-xs gap-1.5"
+                                className="h-7 sm:h-8 text-[10px] sm:text-xs gap-1"
                                 onClick={() => setPrimaryResume(doc.url, displayName)}
                               >
-                                <Star className="w-3.5 h-3.5" />
-                                Set Primary
+                                <Star className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                                <span className="hidden sm:inline">Set Primary</span>
+                                <span className="sm:hidden">Primary</span>
                               </Button>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    className="h-8 w-8"
-                                    onClick={() => downloadDocument(doc.url, displayName)}
-                                  >
-                                    <Download className="w-4 h-4" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Download</TooltipContent>
-                              </Tooltip>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleDelete(doc.url)}
-                                    disabled={deleting === doc.url}
-                                    className="h-8 w-8 text-rose-600 hover:text-rose-700 hover:bg-rose-500/10"
-                                  >
-                                    {deleting === doc.url ? (
-                                      <Loader2 className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                      <Trash2 className="w-4 h-4" />
-                                    )}
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Delete</TooltipContent>
-                              </Tooltip>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-7 w-7 sm:h-8 sm:w-8"
+                                onClick={() => downloadDocument(doc.url, displayName)}
+                              >
+                                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDelete(doc.url)}
+                                disabled={deleting === doc.url}
+                                className="h-7 w-7 sm:h-8 sm:w-8 text-rose-600 hover:text-rose-700 hover:bg-rose-500/10"
+                              >
+                                {deleting === doc.url ? (
+                                  <Loader2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" />
+                                ) : (
+                                  <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                )}
+                              </Button>
                             </div>
                           </div>
                         </CardContent>
@@ -653,18 +638,18 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
           <TabsContent value="ai-resumes" className="mt-4 space-y-4">
             {/* Create New CTA */}
             <Card className="border-dashed border-2 border-violet-500/30 bg-gradient-to-br from-violet-500/5 to-transparent">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 rounded-xl bg-violet-500/10">
-                    <Wand2 className="w-6 h-6 text-violet-500" />
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                  <div className="p-2.5 sm:p-3 rounded-xl bg-violet-500/10 shrink-0">
+                    <Wand2 className="w-5 h-5 sm:w-6 sm:h-6 text-violet-500" />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-foreground">Create with AI</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Build a professional resume in minutes with our AI-powered builder
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-foreground text-sm sm:text-base">Create with AI</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      Build a professional resume in minutes
                     </p>
                   </div>
-                  <Button onClick={() => navigate('/ai-resume-builder')} className="gap-2">
+                  <Button onClick={() => navigate('/ai-resume-builder')} className="gap-2 w-full sm:w-auto shrink-0" size="sm">
                     <Plus className="w-4 h-4" />
                     Create New
                   </Button>
@@ -678,7 +663,7 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
                 <Loader2 className="w-6 h-6 animate-spin text-primary" />
               </div>
             ) : aiResumes.length > 0 ? (
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
                 {aiResumes.map((resume, i) => (
                   <motion.div
                     key={resume.id}
@@ -687,8 +672,8 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
                     transition={{ delay: i * 0.05 }}
                   >
                     <Card className="hover:shadow-lg transition-all h-full">
-                      <CardContent className="p-5 flex flex-col h-full">
-                        <div className="flex items-start gap-3 mb-4">
+                      <CardContent className="p-4 sm:p-5 flex flex-col h-full">
+                        <div className="flex items-start gap-2.5 sm:gap-3 mb-3 sm:mb-4">
                           <div className="p-2.5 rounded-xl bg-violet-500/10 text-violet-500">
                             <Sparkles className="w-5 h-5" />
                           </div>
