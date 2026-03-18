@@ -17,15 +17,20 @@ export function useGoogleOAuthSettings() {
   const { data, isLoading } = useQuery({
     queryKey: ['google-oauth-settings'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('admin_settings')
-        .select('value')
-        .eq('key', 'google_oauth')
-        .maybeSingle();
-      if (error || !data) return DEFAULT_SETTINGS;
-      return data.value as unknown as GoogleOAuthSettings;
+      try {
+        const { data, error } = await supabase
+          .from('admin_settings')
+          .select('value')
+          .eq('key', 'google_oauth')
+          .maybeSingle();
+        if (error || !data) return DEFAULT_SETTINGS;
+        return data.value as unknown as GoogleOAuthSettings;
+      } catch {
+        return DEFAULT_SETTINGS;
+      }
     },
     staleTime: 5 * 60 * 1000,
+    retry: false,
   });
 
   return {

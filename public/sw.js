@@ -1,7 +1,7 @@
-const CACHE_NAME = 'hireforjob-v3';
-const STATIC_CACHE = 'hireforjob-static-v3';
-const DYNAMIC_CACHE = 'hireforjob-dynamic-v3';
-const IMAGE_CACHE = 'hireforjob-images-v3';
+const CACHE_NAME = 'hireforjob-v4';
+const STATIC_CACHE = 'hireforjob-static-v4';
+const DYNAMIC_CACHE = 'hireforjob-dynamic-v4';
+const IMAGE_CACHE = 'hireforjob-images-v4';
 
 const PRECACHE_ASSETS = [
   '/',
@@ -10,6 +10,9 @@ const PRECACHE_ASSETS = [
   '/offline.html',
   '/manifest.json',
 ];
+
+// Auth-sensitive paths that must NEVER be cached
+const NO_CACHE_PATHS = ['/login', '/signup', '/verify-email', '/auth/callback', '/update-password', '/forgot-password', '/select-role', '/profile-setup'];
 
 // Max items in dynamic/image caches to prevent unbounded growth
 const DYNAMIC_CACHE_LIMIT = 50;
@@ -25,6 +28,10 @@ function trimCache(cacheName, maxItems) {
   });
 }
 
+function isNoCachePath(url) {
+  return NO_CACHE_PATHS.some((p) => url.pathname === p || url.pathname.startsWith(p + '/'));
+}
+
 // Install — precache shell assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -33,7 +40,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Activate — purge old caches
+// Activate — purge old caches (including v3)
 self.addEventListener('activate', (event) => {
   const keep = [STATIC_CACHE, DYNAMIC_CACHE, IMAGE_CACHE];
   event.waitUntil(
@@ -57,13 +64,23 @@ self.addEventListener('fetch', (event) => {
   // Never cache Supabase API or edge function calls
   if (url.hostname.includes('supabase')) return;
 
+  // Never cache auth-sensitive app routes
+  if (isNoCachePath(url)) {
+    event.respondWith(
+      fetch(request).catch(() => caches.match('/offline.html'))
+    );
+    return;
+  }
+
   // Strategy 1: Navigation → Network-first, fallback to offline page
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const clone = response.clone();
-          caches.open(DYNAMIC_CACHE).then((cache) => cache.put(request, clone));
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(DYNAMIC_CACHE).then((cache) => cache.put(request, clone));
+          }
           return response;
         })
         .catch(() =>
@@ -80,8 +97,10 @@ self.addEventListener('fetch', (event) => {
         (cached) =>
           cached ||
           fetch(request).then((response) => {
-            const clone = response.clone();
-            caches.open(STATIC_CACHE).then((cache) => cache.put(request, clone));
+            if (response.ok) {
+              const clone = response.clone();
+              caches.open(STATIC_CACHE).then((cache) => cache.put(request, clone));
+            }
             return response;
           })
       )
@@ -96,11 +115,13 @@ self.addEventListener('fetch', (event) => {
         (cached) =>
           cached ||
           fetch(request).then((response) => {
-            const clone = response.clone();
-            caches.open(IMAGE_CACHE).then((cache) => {
-              cache.put(request, clone);
-              trimCache(IMAGE_CACHE, IMAGE_CACHE_LIMIT);
-            });
+            if (response.ok) {
+              const clone = response.clone();
+              caches.open(IMAGE_CACHE).then((cache) => {
+                cache.put(request, clone);
+                trimCache(IMAGE_CACHE, IMAGE_CACHE_LIMIT);
+              });
+            }
             return response;
           }).catch(() => new Response('', { status: 404 }))
       )
@@ -112,11 +133,13 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     fetch(request)
       .then((response) => {
-        const clone = response.clone();
-        caches.open(DYNAMIC_CACHE).then((cache) => {
-          cache.put(request, clone);
-          trimCache(DYNAMIC_CACHE, DYNAMIC_CACHE_LIMIT);
-        });
+        if (response.ok) {
+          const clone = response.clone();
+          caches.open(DYNAMIC_CACHE).then((cache) => {
+            cache.put(request, clone);
+            trimCache(DYNAMIC_CACHE, DYNAMIC_CACHE_LIMIT);
+          });
+        }
         return response;
       })
       .catch(() => caches.match(request))
