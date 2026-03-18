@@ -412,25 +412,25 @@ export const InterviewCalendar = ({ candidateId }: InterviewCalendarProps) => {
                           )}
                         </div>
                       </div>
-                      <div className="mt-3 flex gap-2">
-                        <Button size="sm" variant="outline" className="flex-1 text-xs h-8 rounded-lg">
-                          <CalendarPlus className="w-3.5 h-3.5 mr-1" />
-                          Add to Cal
+                      <div className="mt-2 sm:mt-3 flex gap-1.5 sm:gap-2">
+                        <Button size="sm" variant="outline" className="flex-1 min-w-0 text-[10px] sm:text-xs h-7 sm:h-8 rounded-lg gap-1">
+                          <CalendarPlus className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+                          <span className="truncate">Add to Cal</span>
                         </Button>
                         {interview.type === 'video' && interview.meetingLink ? (
                           <Button
                             size="sm"
-                            className="flex-1 text-xs h-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
+                            className="flex-1 min-w-0 text-[10px] sm:text-xs h-7 sm:h-8 rounded-lg bg-primary hover:bg-primary/90 gap-1"
                             onClick={() => window.open(interview.meetingLink!, '_blank')}
                           >
-                            <Video className="w-3.5 h-3.5 mr-1" />
-                            Join Meet
-                            <ExternalLink className="w-3 h-3 ml-1" />
+                            <Video className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+                            <span className="truncate">Join</span>
+                            <ExternalLink className="w-2.5 h-2.5 shrink-0 hidden sm:block" />
                           </Button>
                         ) : interview.type === 'video' ? (
-                          <Button size="sm" variant="secondary" disabled className="flex-1 text-xs h-8 rounded-lg">
-                            <Video className="w-3.5 h-3.5 mr-1" />
-                            Link Pending
+                          <Button size="sm" variant="secondary" disabled className="flex-1 min-w-0 text-[10px] sm:text-xs h-7 sm:h-8 rounded-lg gap-1">
+                            <Video className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+                            <span className="truncate">Pending</span>
                           </Button>
                         ) : null}
                       </div>

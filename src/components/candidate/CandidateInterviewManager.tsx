@@ -358,20 +358,20 @@ const InterviewCard = ({
 
       {/* Actions */}
       {(needsConfirmation || showActions) && (
-        <div className="flex items-center gap-2 mt-3 pt-3 border-t border-border/50">
+        <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-border/50">
           {needsConfirmation && (
             <>
-              <Button size="sm" className="flex-1 text-xs gap-1.5 rounded-lg" onClick={() => onConfirm(interview.id)}>
-                <CheckCircle className="w-3.5 h-3.5" /> Confirm
+              <Button size="sm" className="flex-1 min-w-0 text-xs gap-1 rounded-lg" onClick={() => onConfirm(interview.id)}>
+                <CheckCircle className="w-3.5 h-3.5 shrink-0" /> Confirm
               </Button>
-              <Button size="sm" variant="outline" className="flex-1 text-xs gap-1.5 rounded-lg text-destructive hover:bg-destructive/10" onClick={() => onCancel(interview.id)}>
-                <XCircle className="w-3.5 h-3.5" /> Decline
+              <Button size="sm" variant="outline" className="flex-1 min-w-0 text-xs gap-1 rounded-lg text-destructive hover:bg-destructive/10" onClick={() => onCancel(interview.id)}>
+                <XCircle className="w-3.5 h-3.5 shrink-0" /> Decline
               </Button>
             </>
           )}
           {interview.interview_type === 'video' && interview.meeting_link && interview.status === 'confirmed' && (
-            <Button size="sm" className="text-xs gap-1.5 rounded-lg" onClick={() => window.open(interview.meeting_link!, '_blank')}>
-              <Video className="w-3.5 h-3.5" /> Join Call
+            <Button size="sm" className="text-xs gap-1 rounded-lg" onClick={() => window.open(interview.meeting_link!, '_blank')}>
+              <Video className="w-3.5 h-3.5 shrink-0" /> Join
               <ExternalLink className="w-3 h-3" />
             </Button>
           )}
