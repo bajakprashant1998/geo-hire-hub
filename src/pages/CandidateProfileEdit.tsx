@@ -1104,7 +1104,7 @@ const CandidateProfileEdit = ({ embedded = false }: CandidateProfileEditProps) =
                     {activeTab === 'personal' && (
                         <>
                             <SectionCard icon={User} title="Personal Details" subtitle="Optional — helps with compliance and diversity">
-                                <div className="grid md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                     <div className="space-y-2"><Label className="text-sm font-medium">Date of Birth</Label>
                                         <DatePicker
                                             date={dateOfBirth ? new Date(dateOfBirth) : null}
