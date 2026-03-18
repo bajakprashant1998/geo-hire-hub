@@ -59,7 +59,7 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
   };
 
   const handleMouseLeave = () => {
-    hoverTimeoutRef.current = setTimeout(() => setHoveredItem(null), 300);
+    hoverTimeoutRef.current = setTimeout(() => setHoveredItem(null), 800);
   };
 
   const formatTimeAgo = (dateString: string): string => {
@@ -319,6 +319,7 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
               onMouseEnter={() => handleMouseEnter(item)}
               onMouseLeave={handleMouseLeave}
               className={`map-pin ${markerClass} ${isSelected ? 'map-pin-selected' : ''} ${isNew ? 'map-pin-new' : ''}`}
+              style={{ padding: '8px', margin: '-8px' }}
             >
               <div className="map-pin-head">
                 {isCandidate ? (
@@ -434,6 +435,7 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
             }}
             onMouseLeave={handleMouseLeave}
             className="map-infowindow-card"
+            style={{ pointerEvents: 'auto' }}
           >
             {mode === 'hiring' ? (() => {
               const c = hoveredItem as Candidate;
