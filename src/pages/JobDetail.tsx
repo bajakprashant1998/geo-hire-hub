@@ -950,9 +950,9 @@ const JobDetail = () => {
                       <h2 className="flex items-center gap-2.5 text-lg font-bold mb-4"><TrendingUp className="w-5 h-5 text-primary" /> More from {job.employer.company_name}</h2>
                       <div className="space-y-2">
                         {relatedJobs.map((relJob) => (
-                          <Link key={relJob.id} to={relJob.slug ? `/jobs/${relJob.slug}` : `/jobs/${relJob.id}`} className="group flex items-center justify-between p-4 rounded-xl border border-border/50 hover:border-primary/30 hover:bg-primary/5 transition-all">
+                          <Link key={relJob.id} to={relJob.slug ? `/jobs/${relJob.slug}` : `/jobs/${relJob.id}`} className="group flex items-center justify-between p-4 rounded-xl border border-border/50 hover:border-primary/30 hover:bg-primary/5 transition-all duration-200">
                             <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center"><Briefcase className="w-5 h-5 text-primary" /></div>
+                              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:scale-105 transition-transform"><Briefcase className="w-5 h-5 text-primary" /></div>
                               <div>
                                 <h4 className="font-semibold group-hover:text-primary transition-colors">{relJob.title}</h4>
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -961,7 +961,7 @@ const JobDetail = () => {
                                 </div>
                               </div>
                             </div>
-                            <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                            <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
                           </Link>
                         ))}
                       </div>
@@ -969,6 +969,65 @@ const JobDetail = () => {
                   </Card>
                 </motion.div>
               )}
+
+              {/* Mid-page CTA */}
+              {!hasApplied && !(job.expires_at && new Date(job.expires_at) < new Date()) && (
+                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}>
+                  <Card className="border-primary/20 bg-gradient-to-r from-primary/5 via-primary/3 to-transparent shadow-sm overflow-hidden">
+                    <CardContent className="p-6 md:p-8 flex flex-col sm:flex-row items-center gap-4">
+                      <div className="flex-1 text-center sm:text-left">
+                        <h3 className="text-lg font-bold text-foreground mb-1">Ready to take the next step?</h3>
+                        <p className="text-sm text-muted-foreground">Don't miss out — apply now and connect directly with {job.employer.company_name}.</p>
+                      </div>
+                      <Dialog open={applyDialogOpen} onOpenChange={setApplyDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button size="lg" className="rounded-xl gap-2 px-8 shrink-0 shadow-md hover:shadow-lg transition-shadow">
+                            <Send className="w-4 h-4" /> Apply Now
+                          </Button>
+                        </DialogTrigger>
+                        {applyDialogContent}
+                      </Dialog>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
+              {/* FAQ Section for SEO */}
+              {faqItems.length > 0 && (
+                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+                  <Card className="border-border/50 shadow-sm">
+                    <CardContent className="p-5 md:p-6">
+                      <h2 className="flex items-center gap-2.5 text-lg font-bold mb-4">
+                        <MessageSquare className="w-5 h-5 text-primary" /> Frequently Asked Questions
+                      </h2>
+                      <div className="space-y-4">
+                        {faqItems.map((faq, i) => (
+                          <div key={i} className="p-4 rounded-xl bg-muted/50 border border-border/50 hover:border-primary/20 transition-colors">
+                            <h3 className="font-semibold text-sm text-foreground mb-1.5">{faq.q}</h3>
+                            <p className="text-sm text-muted-foreground leading-relaxed">{faq.a}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              )}
+
+              {/* Browse more CTA */}
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65 }}>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 py-4">
+                  <Link to="/browse-jobs">
+                    <Button variant="outline" className="rounded-xl gap-2">
+                      <Briefcase className="w-4 h-4" /> Browse More Jobs
+                    </Button>
+                  </Link>
+                  <Link to="/jobs-near-me">
+                    <Button variant="outline" className="rounded-xl gap-2">
+                      <MapPin className="w-4 h-4" /> Find Jobs Near Me
+                    </Button>
+                  </Link>
+                </div>
+              </motion.div>
             </div>
           </div>
 
