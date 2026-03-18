@@ -1314,10 +1314,10 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                               </div>
 
                               {/* Meta row */}
-                              <div className="flex items-center gap-1.5 sm:gap-3 mt-1 text-[11px] text-muted-foreground flex-wrap">
-                                <span className="flex items-center gap-1">
+                              <div className="flex items-center gap-1.5 sm:gap-3 mt-1 text-[10px] sm:text-[11px] text-muted-foreground flex-wrap min-w-0">
+                                <span className="flex items-center gap-1 min-w-0">
                                   <Briefcase className="w-3 h-3 shrink-0 text-muted-foreground/60" />
-                                  <span className="truncate max-w-[120px] sm:max-w-none">{candidate.jobTitle}</span>
+                                  <span className="truncate max-w-[80px] sm:max-w-none">{candidate.jobTitle}</span>
                                 </span>
                                 <span className="font-semibold text-foreground/70">{candidate.experienceYears}y exp</span>
                                 {locationStr && (
