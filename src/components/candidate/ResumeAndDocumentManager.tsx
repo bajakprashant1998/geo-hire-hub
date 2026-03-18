@@ -405,20 +405,24 @@ export const ResumeAndDocumentManager = ({ candidate, onUpdate }: ResumeAndDocum
 
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="w-full grid grid-cols-3 h-11">
-            <TabsTrigger value="documents" className="gap-1.5">
-              <FileText className="w-4 h-4" />
-              Documents
-            </TabsTrigger>
-            <TabsTrigger value="ai-resumes" className="gap-1.5">
-              <Sparkles className="w-4 h-4" />
-              AI Resumes
-            </TabsTrigger>
-            <TabsTrigger value="privacy" className="gap-1.5">
-              <Lock className="w-4 h-4" />
-              Privacy
-            </TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 scrollbar-hide">
+            <TabsList className="w-full sm:w-full grid grid-cols-3 h-10 sm:h-11 min-w-[280px]">
+              <TabsTrigger value="documents" className="gap-1 text-[11px] sm:text-sm px-2 sm:px-3">
+                <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Documents</span>
+                <span className="sm:hidden">Docs</span>
+              </TabsTrigger>
+              <TabsTrigger value="ai-resumes" className="gap-1 text-[11px] sm:text-sm px-2 sm:px-3">
+                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">AI Resumes</span>
+                <span className="sm:hidden">AI</span>
+              </TabsTrigger>
+              <TabsTrigger value="privacy" className="gap-1 text-[11px] sm:text-sm px-2 sm:px-3">
+                <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                Privacy
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           {/* Documents Tab */}
           <TabsContent value="documents" className="mt-4 space-y-4">
