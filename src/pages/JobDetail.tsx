@@ -1121,6 +1121,14 @@ const JobDetail = () => {
         </div>
       </div>
 
+      {/* Testimonials */}
+      <div className="container mx-auto px-4 max-w-5xl">
+        <TestimonialsSection compact className="mt-8 mb-4" />
+      </div>
+
+      {/* SEO Footer */}
+      <SEOContentFooter />
+
       {/* ===== MOBILE BOTTOM BAR ===== */}
       <AnimatePresence>
         <motion.div initial={{ y: 100 }} animate={{ y: 0 }} className="fixed bottom-0 left-0 right-0 lg:hidden bg-background/95 backdrop-blur-xl border-t border-border/50 p-3 z-50 safe-area-pb">
