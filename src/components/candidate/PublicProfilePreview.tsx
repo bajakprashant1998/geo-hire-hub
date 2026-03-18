@@ -100,7 +100,7 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
   const strength = getStrengthLabel(completenessData.percentage);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4 sm:space-y-5 overflow-x-hidden">
       {/* Hero Banner */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
