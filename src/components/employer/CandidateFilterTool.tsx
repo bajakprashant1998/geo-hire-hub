@@ -1012,9 +1012,9 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
       </div>
 
       {/* Pipeline Tabs */}
-      <div className="space-y-2">
+      <div className="space-y-2 overflow-x-hidden">
         <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest px-0.5">Pipeline</p>
-        <div className="flex items-center gap-2 sm:gap-2 flex-wrap">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
           {PIPELINE_STATUSES.map((status, i) => {
             const count = pipelineCounts[status.value] || 0;
             const isActive = filters.pipelineStatus === status.value;
