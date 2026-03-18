@@ -1297,8 +1297,8 @@ export const CandidateFilterTool = ({ employerId }: { employerId: string }) => {
                             </div>
 
                             {/* Info section */}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                            <div className="flex-1 min-w-0 overflow-hidden">
+                              <div className="flex items-center gap-1 sm:gap-2 flex-wrap min-w-0">
                                 <h4
                                   className="font-bold text-foreground text-sm sm:text-base leading-tight cursor-pointer hover:text-primary transition-colors truncate"
                                   onClick={() => setSelectedCandidate(candidate)}
