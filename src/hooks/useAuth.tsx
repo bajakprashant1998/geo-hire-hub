@@ -109,6 +109,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (data && !error) {
         setProfile(data as Profile);
+        setCachedAuth(data as Profile);
         setProfileResolved(true);
         migrateSavedJobs(data as Profile);
         return data as Profile;
