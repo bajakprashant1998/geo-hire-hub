@@ -450,7 +450,7 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
                   {candidate.headline && <p className="text-muted-foreground text-sm mt-2 italic max-w-xl">"{candidate.headline}"</p>}
 
                   {/* Info chips */}
-                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-3">
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 sm:gap-2 mt-3">
                     {candidate.experience_years != null && (
                       <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-background border border-border/60 px-3 py-1.5 rounded-full shadow-sm">
                         <Briefcase className="w-3 h-3 text-primary" />{candidate.experience_years} yrs experience
