@@ -100,7 +100,7 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
   const strength = getStrengthLabel(completenessData.percentage);
 
   return (
-    <div className="space-y-4 sm:space-y-5 overflow-x-hidden">
+    <div className="space-y-4 sm:space-y-5 w-full max-w-full overflow-x-hidden">
       {/* Hero Banner */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
@@ -111,22 +111,22 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
         <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-accent/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4" />
         
-        <div className="relative p-4 sm:p-5 sm:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="relative p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
             {/* Icon */}
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
-              <Eye className="w-7 h-7 text-primary-foreground" />
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
+              <Eye className="w-6 h-6 sm:w-7 sm:h-7 text-primary-foreground" />
             </div>
             
             <div className="flex-1 min-w-0">
-              <h2 className="text-lg sm:text-xl font-bold text-foreground">Public Profile Preview</h2>
-              <p className="text-sm text-muted-foreground mt-0.5">
+              <h2 className="text-base sm:text-xl font-bold text-foreground">Public Profile Preview</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
                 This is exactly how employers see your profile. Make it stand out!
               </p>
             </div>
 
             {/* Quick Actions */}
-            <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            <div className="flex items-center gap-2 shrink-0">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="outline" size="sm" onClick={handleCopyLink} className="gap-1.5 rounded-xl text-xs h-8 sm:h-9">
