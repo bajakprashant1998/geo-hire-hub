@@ -689,67 +689,68 @@ const Plans = () => {
   const [currency, setCurrency] = useState('USD');
   const [confirmPlan, setConfirmPlan] = useState<Plan | null>(null);
 
-  useEffect(() => {
-    const fetchPlans = async () => {
-      try {
-        const { data: plansData, error } = await supabase
-          .from('employer_plans')
-          .select('*')
-          .eq('is_active', true)
-          .order('sort_order');
+  const fetchPlans = async () => {
+    setLoading(true);
+    try {
+      const { data: plansData, error } = await supabase
+        .from('employer_plans')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order');
 
-        if (error) throw error;
-        setPlans((plansData || []).map(p => ({
-          ...p,
-          features: (p.features as string[]) || [],
-        })));
+      if (error) throw error;
+      setPlans((plansData || []).map(p => ({
+        ...p,
+        features: (p.features as string[]) || [],
+      })));
 
-        if (profile?.user_type === 'employer') {
-          const { data: empData } = await supabase
-            .from('employers')
-            .select('id')
-            .eq('profile_id', profile.id)
-            .maybeSingle();
+      if (profile?.user_type === 'employer') {
+        const { data: empData } = await supabase
+          .from('employers')
+          .select('id')
+          .eq('profile_id', profile.id)
+          .maybeSingle();
 
-          if (empData) {
-            const [subResult, activeResult] = await Promise.all([
-              supabase
-                .from('employer_subscriptions')
-                .select('plan_id, current_period_end, employer_plans(name, max_active_jobs)')
-                .eq('employer_id', empData.id)
-                .eq('status', 'active')
-                .maybeSingle(),
-              supabase
-                .from('jobs')
-                .select('*', { count: 'exact', head: true })
-                .eq('employer_id', empData.id)
-                .eq('is_active', true)
-                .eq('status', 'open'),
-            ]);
+        if (empData) {
+          const [subResult, activeResult] = await Promise.all([
+            supabase
+              .from('employer_subscriptions')
+              .select('plan_id, current_period_end, employer_plans(name, max_active_jobs)')
+              .eq('employer_id', empData.id)
+              .eq('status', 'active')
+              .maybeSingle(),
+            supabase
+              .from('jobs')
+              .select('*', { count: 'exact', head: true })
+              .eq('employer_id', empData.id)
+              .eq('is_active', true)
+              .eq('status', 'open'),
+          ]);
 
-            setActiveJobCount(activeResult.count || 0);
+          setActiveJobCount(activeResult.count || 0);
 
-            if (subResult.data) {
-              setCurrentPlanId(subResult.data.plan_id);
-              const ep = subResult.data.employer_plans as any;
-              if (ep) {
-                setCurrentPlanName(ep.name);
-                setMaxActiveJobs(ep.max_active_jobs);
-              }
-              setPeriodEnd(subResult.data.current_period_end);
-            } else {
-              // Default free plan
-              setCurrentPlanName('Free');
-              setMaxActiveJobs(1);
+          if (subResult.data) {
+            setCurrentPlanId(subResult.data.plan_id);
+            const ep = subResult.data.employer_plans as any;
+            if (ep) {
+              setCurrentPlanName(ep.name);
+              setMaxActiveJobs(ep.max_active_jobs);
             }
+            setPeriodEnd(subResult.data.current_period_end);
+          } else {
+            setCurrentPlanName('Free');
+            setMaxActiveJobs(1);
           }
         }
-      } catch (error) {
-        console.error('Error fetching plans:', error);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching plans:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchPlans();
   }, [profile]);
 
@@ -962,7 +963,7 @@ const Plans = () => {
             <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
               We're having trouble loading our plans right now. Please try again in a moment.
             </p>
-            <Button variant="outline" onClick={() => window.location.reload()} className="gap-2 rounded-xl">
+            <Button variant="outline" onClick={fetchPlans} className="gap-2 rounded-xl">
               <ArrowRight className="w-4 h-4 rotate-180" />
               Retry
             </Button>

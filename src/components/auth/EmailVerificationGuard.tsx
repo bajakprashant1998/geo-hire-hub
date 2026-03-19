@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,28 +12,40 @@ interface EmailVerificationGuardProps {
   fallbackMessage?: string;
 }
 
-export const EmailVerificationGuard = ({ 
-  children, 
-  fallbackMessage = "Please verify your email to continue." 
+export const EmailVerificationGuard = ({
+  children,
+  fallbackMessage = 'Please verify your email to continue.'
 }: EmailVerificationGuardProps) => {
   const { user, loading, isEmailVerified } = useAuth();
   const navigate = useNavigate();
   const [resending, setResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  const cooldownIntervalRef = useRef<number | null>(null);
 
-  // Start cooldown timer
   const startCooldown = () => {
     setCooldown(60);
-    const interval = setInterval(() => {
-      setCooldown((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
   };
+
+  useEffect(() => {
+    if (cooldown <= 0) {
+      if (cooldownIntervalRef.current) {
+        window.clearInterval(cooldownIntervalRef.current);
+        cooldownIntervalRef.current = null;
+      }
+      return;
+    }
+
+    cooldownIntervalRef.current = window.setInterval(() => {
+      setCooldown((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+
+    return () => {
+      if (cooldownIntervalRef.current) {
+        window.clearInterval(cooldownIntervalRef.current);
+        cooldownIntervalRef.current = null;
+      }
+    };
+  }, [cooldown]);
 
   const handleResendVerification = async () => {
     if (!user?.email || cooldown > 0) return;
@@ -65,6 +77,21 @@ export const EmailVerificationGuard = ({
     navigate('/login');
   };
 
+  const handleContinue = async () => {
+    const { data, error } = await supabase.auth.refreshSession();
+    if (error) {
+      toast.error('Unable to refresh your session right now.');
+      return;
+    }
+
+    if (data.user?.email_confirmed_at) {
+      toast.success('Email verified successfully.');
+      return;
+    }
+
+    toast.info('Your email is still not verified. Please check the latest link in your inbox.');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary flex items-center justify-center">
@@ -73,13 +100,11 @@ export const EmailVerificationGuard = ({
     );
   }
 
-  // If not logged in, redirect to login
   if (!user) {
     navigate('/login');
     return null;
   }
 
-  // If email is not verified, show verification required screen
   if (!isEmailVerified) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary flex items-center justify-center p-4">
@@ -109,8 +134,8 @@ export const EmailVerificationGuard = ({
             </div>
 
             <div className="space-y-3">
-              <Button 
-                onClick={handleResendVerification} 
+              <Button
+                onClick={handleResendVerification}
                 disabled={resending || cooldown > 0}
                 className="w-full"
                 size="lg"
@@ -133,8 +158,12 @@ export const EmailVerificationGuard = ({
                 )}
               </Button>
 
-              <Button 
-                variant="outline" 
+              <Button onClick={handleContinue} variant="secondary" className="w-full">
+                Continue without reloading
+              </Button>
+
+              <Button
+                variant="outline"
                 onClick={handleSignOut}
                 className="w-full"
               >
@@ -144,13 +173,7 @@ export const EmailVerificationGuard = ({
             </div>
 
             <p className="text-xs text-center text-muted-foreground">
-              After verifying your email, refresh this page or{' '}
-              <button 
-                onClick={() => window.location.reload()} 
-                className="text-primary hover:underline"
-              >
-                click here to continue
-              </button>
+              After verifying your email, use the continue button above to refresh your session without a full page reload.
             </p>
           </CardContent>
         </Card>
@@ -158,6 +181,5 @@ export const EmailVerificationGuard = ({
     );
   }
 
-  // Email is verified, render children
   return <>{children}</>;
 };

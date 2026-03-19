@@ -84,7 +84,6 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: (failureCount, error) => {
-        // Never retry transport / network errors — they won't self-heal
         const msg = (error as any)?.message || '';
         if (
           msg.includes('Failed to fetch') ||
@@ -94,6 +93,9 @@ const queryClient = new QueryClient({
         return failureCount < 2;
       },
       refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
     },
   },
 });

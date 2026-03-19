@@ -23,20 +23,48 @@ import { CandidateSectionRouter } from '@/components/candidate/CandidateSectionR
 import { CandidateHomeView } from '@/components/candidate/CandidateHomeView';
 import { format, isToday, isTomorrow } from 'date-fns';
 import { motion } from 'framer-motion';
+import { readSessionState, writeSessionState, removeSessionState } from '@/lib/sessionState';
+
+const DASHBOARD_CACHE_KEY = 'candidate_dashboard_state';
+
+type CandidateDashboardCache = {
+  profileId: string;
+  candidate: any;
+  nextInterviewLabel: string;
+  stats: { applications: number; views: number; unreadMessages: number; interviews: number; unreadNotifications: number };
+};
 
 const CandidateDashboard = () => {
   const navigate = useNavigate();
   const { activeSection, setActiveSection } = useDashboardTab();
   const { user, profile, loading: authLoading, profileLoading, profileResolved, signOut, refreshProfile } = useAuth();
-  const [dataLoading, setDataLoading] = useState(true);
-  const [candidate, setCandidate] = useState<any>(null);
+  const cachedDashboard = profile ? readSessionState<CandidateDashboardCache>(DASHBOARD_CACHE_KEY) : null;
+  const hasCachedDashboard = !!cachedDashboard && cachedDashboard.profileId === profile?.id;
+  const [dataLoading, setDataLoading] = useState(!hasCachedDashboard);
+  const [candidate, setCandidate] = useState<any>(hasCachedDashboard ? cachedDashboard?.candidate ?? null : null);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileRetryCount, setProfileRetryCount] = useState(0);
-  const [nextInterviewLabel, setNextInterviewLabel] = useState('None scheduled');
-  const [stats, setStats] = useState({ applications: 0, views: 0, unreadMessages: 0, interviews: 0, unreadNotifications: 0 });
+  const [nextInterviewLabel, setNextInterviewLabel] = useState(hasCachedDashboard ? cachedDashboard?.nextInterviewLabel ?? 'None scheduled' : 'None scheduled');
+  const [stats, setStats] = useState(hasCachedDashboard ? cachedDashboard?.stats ?? { applications: 0, views: 0, unreadMessages: 0, interviews: 0, unreadNotifications: 0 } : { applications: 0, views: 0, unreadMessages: 0, interviews: 0, unreadNotifications: 0 });
 
   const { refreshTrigger } = useRealtimeDashboard({ userId: user?.id, candidateId: candidate?.id });
+
+  useEffect(() => {
+    if (!profile?.id) {
+      removeSessionState(DASHBOARD_CACHE_KEY);
+      return;
+    }
+
+    if (!candidate) return;
+
+    writeSessionState(DASHBOARD_CACHE_KEY, {
+      profileId: profile.id,
+      candidate,
+      nextInterviewLabel,
+      stats,
+    });
+  }, [profile?.id, candidate, nextInterviewLabel, stats]);
 
   useEffect(() => { if (refreshTrigger > 0 && candidate) fetchCandidate(); }, [refreshTrigger]);
 
@@ -53,12 +81,18 @@ const CandidateDashboard = () => {
     if (user && !profileResolved) return;
     if (!profile) { setDataLoading(false); return; }
     if (profile.user_type !== 'candidate') { navigate('/employer-dashboard'); return; }
-    fetchCandidate();
+    if (hasCachedDashboard) {
+      setDataLoading(false);
+    }
+    fetchCandidate({ background: hasCachedDashboard });
   }, [user, profile, authLoading, profileResolved]);
 
-  const fetchCandidate = async () => {
+  const fetchCandidate = async ({ background = false }: { background?: boolean } = {}) => {
     if (!profile || !user) return;
-    const loadingTimeout = setTimeout(() => { setDataLoading(false); toast.error('Dashboard data is taking too long.'); }, 10000);
+    if (!background) setDataLoading(true);
+    const loadingTimeout = !background
+      ? setTimeout(() => { setDataLoading(false); toast.error('Dashboard data is taking too long.'); }, 10000)
+      : null;
     try {
       const { data } = await supabase.from('candidates').select('*').eq('profile_id', profile.id).maybeSingle();
       setCandidate(data);
@@ -82,7 +116,10 @@ const CandidateDashboard = () => {
         setStats({ applications: (appsRes.data || []).length, views: viewRes.count || 0, unreadMessages: unreadMsgCount, interviews: interviewsRes.count || 0, unreadNotifications: notifRes.count || 0 });
       }
     } catch (error) { console.error('Error fetching candidate data:', error); toast.error('Failed to load some dashboard data.'); }
-    finally { clearTimeout(loadingTimeout); setDataLoading(false); }
+    finally {
+      if (loadingTimeout) clearTimeout(loadingTimeout);
+      setDataLoading(false);
+    }
   };
 
   const handleSectionClick = (value: string) => {
