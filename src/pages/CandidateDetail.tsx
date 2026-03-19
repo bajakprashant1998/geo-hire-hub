@@ -421,10 +421,10 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
         <motion.div {...fadeUp}>
           <Card className="border-border/50 shadow-xl bg-background/95 backdrop-blur-sm overflow-hidden">
             <CardContent className="p-3 sm:p-5 lg:p-7">
-              <div className="flex flex-col sm:flex-row gap-5 items-center sm:items-start">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-5 items-center sm:items-start">
                 {/* Avatar */}
                 <div className="relative shrink-0">
-                  <Avatar className="w-24 h-24 sm:w-28 sm:h-28 ring-4 ring-background shadow-xl">
+                  <Avatar className={`${isOwnProfile ? 'w-20 h-20 sm:w-24 sm:h-24' : 'w-24 h-24 sm:w-28 sm:h-28'} ring-4 ring-background shadow-xl`}>
                     <AvatarImage src={candidate.avatar_url || ''} alt={candidate.full_name} className="object-cover" />
                     <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-primary/20 to-primary/5 text-primary">{initials}</AvatarFallback>
                   </Avatar>
