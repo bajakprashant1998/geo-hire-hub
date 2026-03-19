@@ -9,15 +9,16 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
+  retryKey: number;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, retryKey: 0 };
   }
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): Partial<State> {
     return { hasError: true, error };
   }
 
@@ -25,12 +26,12 @@ export class ErrorBoundary extends Component<Props, State> {
     console.error('ErrorBoundary caught:', error, errorInfo);
   }
 
-  handleReload = () => {
-    window.location.reload();
+  handleRetry = () => {
+    this.setState((prev) => ({ hasError: false, error: null, retryKey: prev.retryKey + 1 }));
   };
 
   handleGoHome = () => {
-    window.location.href = '/';
+    window.location.assign('/');
   };
 
   render() {
@@ -44,13 +45,13 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="space-y-2">
               <h1 className="text-2xl font-bold text-foreground">Something went wrong</h1>
               <p className="text-muted-foreground text-sm">
-                An unexpected error occurred. Please try reloading the page.
+                An unexpected error occurred. Try again without reloading the whole page.
               </p>
             </div>
             <div className="flex gap-3 justify-center">
-              <Button onClick={this.handleReload} className="gap-2">
+              <Button onClick={this.handleRetry} className="gap-2">
                 <RefreshCw className="w-4 h-4" />
-                Reload Page
+                Try Again
               </Button>
               <Button variant="outline" onClick={this.handleGoHome} className="gap-2">
                 <Home className="w-4 h-4" />
@@ -62,6 +63,6 @@ export class ErrorBoundary extends Component<Props, State> {
       );
     }
 
-    return this.props.children;
+    return <div key={this.state.retryKey}>{this.props.children}</div>;
   }
 }

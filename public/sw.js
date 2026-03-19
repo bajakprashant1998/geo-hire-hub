@@ -1,7 +1,7 @@
-const CACHE_NAME = 'hireforjob-v6';
-const STATIC_CACHE = 'hireforjob-static-v6';
-const DYNAMIC_CACHE = 'hireforjob-dynamic-v6';
-const IMAGE_CACHE = 'hireforjob-images-v6';
+const CACHE_NAME = 'hireforjob-v7';
+const STATIC_CACHE = 'hireforjob-static-v7';
+const DYNAMIC_CACHE = 'hireforjob-dynamic-v7';
+const IMAGE_CACHE = 'hireforjob-images-v7';
 
 const PRECACHE_ASSETS = [
   '/',
@@ -11,10 +11,7 @@ const PRECACHE_ASSETS = [
   '/manifest.json',
 ];
 
-// Auth-sensitive paths that must NEVER be cached
 const NO_CACHE_PATHS = ['/login', '/signup', '/verify-email', '/auth/callback', '/update-password', '/forgot-password', '/select-role', '/profile-setup'];
-
-// Max items in dynamic/image caches to prevent unbounded growth
 const DYNAMIC_CACHE_LIMIT = 50;
 const IMAGE_CACHE_LIMIT = 80;
 
@@ -32,15 +29,12 @@ function isNoCachePath(url) {
   return NO_CACHE_PATHS.some((p) => url.pathname === p || url.pathname.startsWith(p + '/'));
 }
 
-// Install — precache shell assets
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => cache.addAll(PRECACHE_ASSETS))
   );
-  self.skipWaiting();
 });
 
-// Activate — purge old caches (including v3, v4)
 self.addEventListener('activate', (event) => {
   const keep = [STATIC_CACHE, DYNAMIC_CACHE, IMAGE_CACHE];
   event.waitUntil(
@@ -48,23 +42,17 @@ self.addEventListener('activate', (event) => {
       Promise.all(keys.filter((k) => !keep.includes(k)).map((k) => caches.delete(k)))
     )
   );
-  self.clients.claim();
 });
 
-// Fetch — multi-strategy routing
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
 
-  // Never cache auth/OAuth paths
   if (url.pathname.startsWith('/~oauth')) return;
-
-  // Never cache Supabase API or edge function calls
   if (url.hostname.includes('supabase')) return;
 
-  // Never cache auth-sensitive app routes
   if (isNoCachePath(url)) {
     event.respondWith(
       fetch(request).catch(() => caches.match('/offline.html'))
@@ -72,9 +60,6 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Strategy 1: Navigation → Stale-While-Revalidate (app shell pattern)
-  // Serve cached HTML instantly (prevents blank screen on Chrome tab restore)
-  // then update cache in background for next visit
   if (request.mode === 'navigate') {
     event.respondWith(
       caches.match('/').then((cached) => {
@@ -86,20 +71,14 @@ self.addEventListener('fetch', (event) => {
             }
             return response;
           })
-          .catch(() => {
-            // Offline — serve cached root or offline page
-            return cached || caches.match('/offline.html');
-          });
+          .catch(() => cached || caches.match('/offline.html'));
 
-        // If we have a cached app shell, serve it immediately
-        // The SPA router will handle the correct route client-side
         return cached || networkFetch;
       })
     );
     return;
   }
 
-  // Strategy 2: Static assets (JS/CSS) → Cache-first, network fallback
   if (url.pathname.match(/\.(js|css|woff2?|ttf|eot)$/) || url.pathname.startsWith('/assets/')) {
     event.respondWith(
       caches.match(request).then(
@@ -117,28 +96,28 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Strategy 3: Images → Cache-first with limit
   if (request.destination === 'image' || url.pathname.match(/\.(png|jpg|jpeg|gif|svg|webp|ico)$/)) {
     event.respondWith(
       caches.match(request).then(
         (cached) =>
           cached ||
-          fetch(request).then((response) => {
-            if (response.ok) {
-              const clone = response.clone();
-              caches.open(IMAGE_CACHE).then((cache) => {
-                cache.put(request, clone);
-                trimCache(IMAGE_CACHE, IMAGE_CACHE_LIMIT);
-              });
-            }
-            return response;
-          }).catch(() => new Response('', { status: 404 }))
+          fetch(request)
+            .then((response) => {
+              if (response.ok) {
+                const clone = response.clone();
+                caches.open(IMAGE_CACHE).then((cache) => {
+                  cache.put(request, clone);
+                  trimCache(IMAGE_CACHE, IMAGE_CACHE_LIMIT);
+                });
+              }
+              return response;
+            })
+            .catch(() => new Response('', { status: 404 }))
       )
     );
     return;
   }
 
-  // Strategy 4: Everything else → Network-first, cache fallback
   event.respondWith(
     fetch(request)
       .then((response) => {
@@ -155,7 +134,6 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Push notification handler
 self.addEventListener('push', (event) => {
   let data = { title: 'Hire for Job', body: 'You have a new notification', url: '/' };
 
@@ -181,7 +159,6 @@ self.addEventListener('push', (event) => {
   event.waitUntil(self.registration.showNotification(data.title, options));
 });
 
-// Click handler for push notifications
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
