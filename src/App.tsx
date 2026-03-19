@@ -19,6 +19,8 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import NotFound from "./pages/NotFound";
+import CandidateDashboard from "./pages/CandidateDashboard";
+import EmployerDashboard from "./pages/EmployerDashboard";
 
 // Lazy-loaded routes
 const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
@@ -31,10 +33,8 @@ const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const BrowseJobs = lazy(() => import("./pages/BrowseJobs"));
 const JobsNearMe = lazy(() => import("./pages/JobsNearMe"));
-const CandidateDashboard = lazy(() => import("./pages/CandidateDashboard"));
 const CandidateSettings = lazy(() => import("./pages/CandidateSettings"));
 const CandidateProfileEdit = lazy(() => import("./pages/CandidateProfileEdit"));
-const EmployerDashboard = lazy(() => import("./pages/EmployerDashboard"));
 const AIResumeBuilder = lazy(() => import("./pages/AIResumeBuilder"));
 const PostJob = lazy(() => import("./pages/PostJob"));
 const Messages = lazy(() => import("./pages/Messages"));
@@ -105,13 +105,21 @@ const JobRedirect = () => {
   return <Navigate to={`/jobs/${id}`} replace />;
 };
 
-// Global handler for unhandled promise rejections (e.g. Google Maps AdvancedMarker cleanup)
+// Global handler for unhandled promise rejections (e.g. Google Maps cleanup / stale lazy-route fetches)
 if (typeof window !== 'undefined') {
   window.addEventListener('unhandledrejection', (event) => {
     const msg = event.reason?.message || '';
     if (msg.includes('getRootNode') || msg.includes('AdvancedMarker')) {
       event.preventDefault();
       return;
+    }
+    if (msg.includes('Failed to fetch dynamically imported module')) {
+      console.error('[tab-restore] Dynamic route module fetch failed. This is usually caused by Chrome restoring a discarded tab with a stale HTML shell that points at an outdated lazy route URL.', {
+        reason: msg,
+        wasDiscarded: document.wasDiscarded,
+        path: `${window.location.pathname}${window.location.search}`,
+        navigationType: (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined)?.type,
+      });
     }
     console.error('Unhandled rejection:', event.reason);
   });

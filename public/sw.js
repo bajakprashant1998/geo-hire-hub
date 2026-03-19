@@ -54,6 +54,13 @@ self.addEventListener('fetch', (event) => {
   if (url.pathname.startsWith('/~oauth')) return;
   if (url.hostname.includes('supabase')) return;
 
+  if (IS_PREVIEW_HOST) {
+    if (request.mode === 'navigate') {
+      event.respondWith(fetch(request).catch(() => caches.match('/offline.html')));
+    }
+    return;
+  }
+
   if (isNoCachePath(url)) {
     event.respondWith(
       fetch(request).catch(() => caches.match('/offline.html'))
@@ -63,19 +70,15 @@ self.addEventListener('fetch', (event) => {
 
   if (request.mode === 'navigate') {
     event.respondWith(
-      caches.match('/').then((cached) => {
-        const networkFetch = fetch(request)
-          .then((response) => {
-            if (response.ok) {
-              const clone = response.clone();
-              caches.open(STATIC_CACHE).then((cache) => cache.put('/', clone));
-            }
-            return response;
-          })
-          .catch(() => cached || caches.match('/offline.html'));
-
-        return cached || networkFetch;
-      })
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(STATIC_CACHE).then((cache) => cache.put('/', clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request).then((cached) => cached || caches.match('/') || caches.match('/offline.html')))
     );
     return;
   }
