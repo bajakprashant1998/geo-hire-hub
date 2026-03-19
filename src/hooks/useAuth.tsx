@@ -39,21 +39,24 @@ const PROFILE_FETCH_TIMEOUT = 5000;
 const SESSION_CACHE_KEY = 'hfj_auth_cache';
 
 /** Restore cached auth state so Chrome tab-discard reloads are instant */
-function getCachedAuth(): { profile: Profile | null } {
+function getCachedAuth(): { profile: Profile | null; user: CachedUser | null } {
   try {
     const raw = sessionStorage.getItem(SESSION_CACHE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (parsed?.profile) return { profile: parsed.profile };
+      return { 
+        profile: parsed?.profile || null, 
+        user: parsed?.user || null 
+      };
     }
   } catch { /* ignore */ }
-  return { profile: null };
+  return { profile: null, user: null };
 }
 
-function setCachedAuth(profile: Profile | null) {
+function setCachedAuth(profile: Profile | null, user: CachedUser | null) {
   try {
-    if (profile) {
-      sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify({ profile }));
+    if (profile && user) {
+      sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify({ profile, user }));
     } else {
       sessionStorage.removeItem(SESSION_CACHE_KEY);
     }
