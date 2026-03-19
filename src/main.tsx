@@ -29,8 +29,12 @@ if (wasDiscarded()) {
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    if (isPreviewHost) {
-      console.warn("[tab-restore] Preview host detected: disabling service worker and clearing cached app shells to prevent stale module restores on tab return.");
+    // Never register SW on local dev — it intercepts navigation and causes tab-switch reloads.
+    // SW only helps on production (caching, offline support).
+    const isLocalDev = hostname === "localhost" || hostname.startsWith("127.") || hostname.startsWith("192.168.") || hostname.startsWith("10.");
+
+    if (isPreviewHost || isLocalDev) {
+      // Unregister any existing SW so stale ones don't interfere
       navigator.serviceWorker.getRegistrations().then((registrations) => {
         void Promise.all(registrations.map((registration) => registration.unregister()));
       }).catch((err) => {

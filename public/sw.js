@@ -1,7 +1,7 @@
-const CACHE_NAME = 'hireforjob-v8';
-const STATIC_CACHE = 'hireforjob-static-v8';
-const DYNAMIC_CACHE = 'hireforjob-dynamic-v8';
-const IMAGE_CACHE = 'hireforjob-images-v8';
+const CACHE_NAME = 'hireforjob-v9';
+const STATIC_CACHE = 'hireforjob-static-v9';
+const DYNAMIC_CACHE = 'hireforjob-dynamic-v9';
+const IMAGE_CACHE = 'hireforjob-images-v9';
 
 const PRECACHE_ASSETS = [
   '/',
@@ -31,6 +31,7 @@ function isNoCachePath(url) {
 }
 
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => cache.addAll(PRECACHE_ASSETS))
   );
@@ -39,9 +40,12 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   const keep = [STATIC_CACHE, DYNAMIC_CACHE, IMAGE_CACHE];
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => !keep.includes(k)).map((k) => caches.delete(k)))
-    )
+    Promise.all([
+      clients.claim(),
+      caches.keys().then((keys) =>
+        Promise.all(keys.filter((k) => !keep.includes(k)).map((k) => caches.delete(k)))
+      ),
+    ])
   );
 });
 
@@ -69,16 +73,22 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (request.mode === 'navigate') {
+    // Cache-first (stale-while-revalidate): serve cached shell instantly,
+    // then refresh in background. This prevents full reloads on tab restore.
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response.ok) {
-            const clone = response.clone();
-            caches.open(STATIC_CACHE).then((cache) => cache.put('/', clone));
-          }
-          return response;
-        })
-        .catch(() => caches.match(request).then((cached) => cached || caches.match('/') || caches.match('/offline.html')))
+      caches.match('/').then((cached) => {
+        const networkFetch = fetch(request)
+          .then((response) => {
+            if (response.ok) {
+              const clone = response.clone();
+              caches.open(STATIC_CACHE).then((cache) => cache.put('/', clone));
+            }
+            return response;
+          })
+          .catch(() => cached || caches.match('/offline.html'));
+        // Serve cache instantly if available, otherwise wait for network
+        return cached || networkFetch;
+      })
     );
     return;
   }

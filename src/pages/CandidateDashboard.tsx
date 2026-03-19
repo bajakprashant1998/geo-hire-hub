@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDashboardTab } from '@/hooks/useDashboardTab';
 import { SEOHead } from '@/components/SEOHead';
@@ -45,6 +45,8 @@ const CandidateDashboard = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [profileRetryCount, setProfileRetryCount] = useState(0);
+  // Prevent loading flash on tab focus / TOKEN_REFRESHED re-renders
+  const hasLoadedOnce = useRef(false);
   const [nextInterviewLabel, setNextInterviewLabel] = useState(hasCachedDashboard ? cachedDashboard?.nextInterviewLabel ?? 'None scheduled' : 'None scheduled');
   const [stats, setStats] = useState(hasCachedDashboard ? cachedDashboard?.stats ?? { applications: 0, views: 0, unreadMessages: 0, interviews: 0, unreadNotifications: 0 } : { applications: 0, views: 0, unreadMessages: 0, interviews: 0, unreadNotifications: 0 });
 
@@ -89,8 +91,10 @@ const CandidateDashboard = () => {
 
   const fetchCandidate = async ({ background = false }: { background?: boolean } = {}) => {
     if (!profile || !user) return;
-    if (!background) setDataLoading(true);
-    const loadingTimeout = !background
+    // If already loaded once, always run in background to avoid loading flash on tab switch
+    const runBackground = background || hasLoadedOnce.current;
+    if (!runBackground) setDataLoading(true);
+    const loadingTimeout = !runBackground
       ? setTimeout(() => { setDataLoading(false); toast.error('Dashboard data is taking too long.'); }, 10000)
       : null;
     try {
@@ -114,6 +118,7 @@ const CandidateDashboard = () => {
           else setNextInterviewLabel(`Next: ${format(d, 'MMM d')}`);
         } else { setNextInterviewLabel('None scheduled'); }
         setStats({ applications: (appsRes.data || []).length, views: viewRes.count || 0, unreadMessages: unreadMsgCount, interviews: interviewsRes.count || 0, unreadNotifications: notifRes.count || 0 });
+        hasLoadedOnce.current = true;
       }
     } catch (error) { console.error('Error fetching candidate data:', error); toast.error('Failed to load some dashboard data.'); }
     finally {

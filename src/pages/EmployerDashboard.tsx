@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useDashboardTab } from '@/hooks/useDashboardTab';
 import { SEOHead } from '@/components/SEOHead';
@@ -55,6 +55,8 @@ const EmployerDashboard = () => {
   const [stats, setStats] = useState(hasCachedDashboard ? cachedDashboard?.stats ?? { activeJobs: 0, totalApplications: 0, scheduledInterviews: 0, profileViews: 0, notificationCount: 0, unreadMessages: 0 } : { activeJobs: 0, totalApplications: 0, scheduledInterviews: 0, profileViews: 0, notificationCount: 0, unreadMessages: 0 });
   const [jobToDelete, setJobToDelete] = useState<any>(null);
   const [deletingJob, setDeletingJob] = useState(false);
+  // Prevent loading flash on tab focus / TOKEN_REFRESHED re-renders
+  const hasLoadedOnce = useRef(false);
 
   const { refreshTrigger } = useRealtimeDashboard({ userId: user?.id, employerId: employer?.id });
 
@@ -98,8 +100,10 @@ const EmployerDashboard = () => {
 
   const fetchEmployerData = async ({ background = false }: { background?: boolean } = {}) => {
     if (!profile || !user) return;
-    if (!background) setDataLoading(true);
-    const loadingTimeout = !background
+    // If already loaded once, always run in background to avoid loading flash on tab switch
+    const runBackground = background || hasLoadedOnce.current;
+    if (!runBackground) setDataLoading(true);
+    const loadingTimeout = !runBackground
       ? setTimeout(() => { setDataLoading(false); toast.error('Dashboard data is taking too long.'); }, 10000)
       : null;
     try {
@@ -132,6 +136,7 @@ const EmployerDashboard = () => {
         if (subRes.data && (subRes.data as any).employer_plans?.name) setPlanName((subRes.data as any).employer_plans.name + ' Plan');
         setStats({ activeJobs, totalApplications, scheduledInterviews: interviewRes.count || 0, profileViews: viewRes.count || 0, notificationCount: notifRes.count || 0, unreadMessages: unreadMsgCount });
         supabase.rpc('calculate_employer_response_rate', { p_employer_id: employerData.id }).then(() => {});
+        hasLoadedOnce.current = true;
       }
     } catch (error) { console.error('Error fetching employer data:', error); toast.error('Failed to load some dashboard data.'); }
     finally {
