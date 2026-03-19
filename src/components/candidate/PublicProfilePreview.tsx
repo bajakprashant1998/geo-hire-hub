@@ -191,26 +191,26 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
         transition={{ delay: 0.1 }}
       >
         <Card className="border-border/50 shadow-sm overflow-hidden">
-          <CardContent className="p-5">
-            <div className="flex items-start justify-between gap-4 mb-4">
-              <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-xl ${strength.bg} flex items-center justify-center`}>
-                  <TrendingUp className={`w-6 h-6 ${strength.color}`} />
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl ${strength.bg} flex items-center justify-center shrink-0`}>
+                  <TrendingUp className={`w-5 h-5 sm:w-6 sm:h-6 ${strength.color}`} />
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-foreground">Profile Strength</h3>
-                    <Badge variant="secondary" className={`text-xs font-semibold ${strength.color} ${strength.bg}`}>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-bold text-foreground text-sm sm:text-base">Profile Strength</h3>
+                    <Badge variant="secondary" className={`text-[10px] font-semibold ${strength.color} ${strength.bg}`}>
                       {strength.label}
                     </Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-0.5">
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
                     {completenessData.percentage}% complete • {completenessData.passed.length}/{COMPLETENESS_CHECKS.length} items
                   </p>
                 </div>
               </div>
               {completenessData.percentage < 100 && (
-                <Button size="sm" className="rounded-xl gap-2 shrink-0" onClick={() => onNavigate('profile')}>
+                <Button size="sm" className="rounded-xl gap-2 shrink-0 w-full sm:w-auto" onClick={() => onNavigate('profile')}>
                   <Sparkles className="w-3.5 h-3.5" />
                   Boost Profile
                 </Button>
