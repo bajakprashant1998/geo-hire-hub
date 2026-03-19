@@ -514,12 +514,12 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
               {/* Quick Stats Bar */}
               {quickStats.length > 0 && (
                 <motion.div {...stagger(0.1)} className="mt-5 pt-5 border-t border-border/50">
-                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
                     {quickStats.slice(0, 6).map((stat, i) => (
-                      <div key={i} className="text-center p-2.5 rounded-xl bg-muted/40 hover:bg-muted/70 transition-colors">
-                        <stat.icon className="w-4 h-4 text-primary mx-auto mb-1" />
-                        <p className="text-lg font-bold text-foreground leading-none">{stat.value}</p>
-                        <p className="text-[10px] text-muted-foreground mt-0.5 uppercase tracking-wider">{stat.label}</p>
+                      <div key={i} className="text-center p-2 sm:p-2.5 rounded-xl bg-muted/40 hover:bg-muted/70 transition-colors">
+                        <stat.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary mx-auto mb-1" />
+                        <p className="text-sm sm:text-lg font-bold text-foreground leading-none">{stat.value}</p>
+                        <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 uppercase tracking-wider">{stat.label}</p>
                       </div>
                     ))}
                   </div>
