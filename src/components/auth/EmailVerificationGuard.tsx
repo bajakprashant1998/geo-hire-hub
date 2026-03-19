@@ -86,7 +86,6 @@ export const EmailVerificationGuard = ({
 
     if (data.user?.email_confirmed_at) {
       toast.success('Email verified successfully.');
-      navigate(0);
       return;
     }
 

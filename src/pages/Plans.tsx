@@ -963,7 +963,7 @@ const Plans = () => {
             <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
               We're having trouble loading our plans right now. Please try again in a moment.
             </p>
-            <Button variant="outline" onClick={() => window.location.reload()} className="gap-2 rounded-xl">
+            <Button variant="outline" onClick={fetchPlans} className="gap-2 rounded-xl">
               <ArrowRight className="w-4 h-4 rotate-180" />
               Retry
             </Button>
