@@ -7,18 +7,19 @@ import "./i18n";
 const hostname = window.location.hostname;
 const isPreviewHost = hostname.includes("lovableproject.com") || hostname.includes("id-preview--");
 const navigationEntry = performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+const wasDiscarded = () => ('wasDiscarded' in document ? Boolean((document as Document & { wasDiscarded?: boolean }).wasDiscarded) : false);
 
 window.addEventListener("pageshow", (event) => {
   console.info("[tab-restore] pageshow", {
     persisted: event.persisted,
-    wasDiscarded: document.wasDiscarded,
+    wasDiscarded: wasDiscarded(),
     navigationType: navigationEntry?.type,
     path: `${window.location.pathname}${window.location.search}`,
     previewHost: isPreviewHost,
   });
 });
 
-if (document.wasDiscarded) {
+if (wasDiscarded()) {
   console.warn("[tab-restore] Chrome discarded this tab and restored the page. The previous issue came from stale route/module loading during restore, not from a focus or visibility listener.", {
     navigationType: navigationEntry?.type,
     path: `${window.location.pathname}${window.location.search}`,

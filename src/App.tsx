@@ -107,6 +107,8 @@ const JobRedirect = () => {
 
 // Global handler for unhandled promise rejections (e.g. Google Maps cleanup / stale lazy-route fetches)
 if (typeof window !== 'undefined') {
+  const wasDiscarded = () => ('wasDiscarded' in document ? Boolean((document as Document & { wasDiscarded?: boolean }).wasDiscarded) : false);
+
   window.addEventListener('unhandledrejection', (event) => {
     const msg = event.reason?.message || '';
     if (msg.includes('getRootNode') || msg.includes('AdvancedMarker')) {
@@ -116,7 +118,7 @@ if (typeof window !== 'undefined') {
     if (msg.includes('Failed to fetch dynamically imported module')) {
       console.error('[tab-restore] Dynamic route module fetch failed. This is usually caused by Chrome restoring a discarded tab with a stale HTML shell that points at an outdated lazy route URL.', {
         reason: msg,
-        wasDiscarded: document.wasDiscarded,
+        wasDiscarded: wasDiscarded(),
         path: `${window.location.pathname}${window.location.search}`,
         navigationType: (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined)?.type,
       });
