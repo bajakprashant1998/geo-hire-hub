@@ -65,10 +65,11 @@ function setCachedAuth(profile: Profile | null, user: CachedUser | null) {
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const cached = getCachedAuth();
-  const [user, setUser] = useState<User | null>(null);
+  const hasCachedSession = !!cached.profile && !!cached.user;
+  const [user, setUser] = useState<User | null>(hasCachedSession ? ({ id: cached.user!.id, email: cached.user!.email, email_confirmed_at: cached.user!.email_confirmed_at } as unknown as User) : null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(cached.profile);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!hasCachedSession);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileResolved, setProfileResolved] = useState(!!cached.profile);
 
