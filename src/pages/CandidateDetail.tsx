@@ -409,19 +409,18 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
       )}
 
       {/* Gradient Banner */}
-      <div className="relative h-36 sm:h-44 bg-gradient-to-br from-primary/15 via-primary/8 to-accent/10 overflow-hidden">
+      <div className={`relative ${isOwnProfile ? 'h-24 sm:h-32' : 'h-36 sm:h-44'} bg-gradient-to-br from-primary/15 via-primary/8 to-accent/10 overflow-hidden`}>
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-muted/30 to-transparent" />
-        {/* Decorative elements */}
         <div className="absolute top-6 right-[10%] w-20 h-20 rounded-full bg-primary/5 blur-2xl" />
         <div className="absolute top-12 right-[25%] w-14 h-14 rounded-full bg-accent/10 blur-xl" />
       </div>
 
       {/* Profile Card - overlapping banner */}
-      <div className="container mx-auto px-4 max-w-5xl -mt-20 sm:-mt-24 relative z-10">
+      <div className={`${isOwnProfile ? 'px-2 sm:px-4' : 'container mx-auto px-4 max-w-5xl'} -mt-16 sm:-mt-20 relative z-10`}>
         <motion.div {...fadeUp}>
           <Card className="border-border/50 shadow-xl bg-background/95 backdrop-blur-sm overflow-hidden">
-            <CardContent className="p-5 sm:p-7">
+            <CardContent className="p-3 sm:p-5 lg:p-7">
               <div className="flex flex-col sm:flex-row gap-5 items-center sm:items-start">
                 {/* Avatar */}
                 <div className="relative shrink-0">
