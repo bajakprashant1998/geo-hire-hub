@@ -26,24 +26,54 @@ import { EmployerSectionRouter } from '@/components/employer/EmployerSectionRout
 import { EmployerHomeView } from '@/components/employer/EmployerHomeView';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { readSessionState, writeSessionState, removeSessionState } from '@/lib/sessionState';
+
+const DASHBOARD_CACHE_KEY = 'employer_dashboard_state';
+
+type EmployerDashboardCache = {
+  profileId: string;
+  employer: any;
+  jobs: any[];
+  planName: string;
+  stats: { activeJobs: number; totalApplications: number; scheduledInterviews: number; profileViews: number; notificationCount: number; unreadMessages: number };
+};
 
 const EmployerDashboard = () => {
   const navigate = useNavigate();
   const { activeSection, setActiveSection } = useDashboardTab();
   const { user, profile, loading: authLoading, profileLoading, profileResolved, signOut, refreshProfile } = useAuth();
-  const [dataLoading, setDataLoading] = useState(true);
-  const [employer, setEmployer] = useState<any>(null);
-  const [jobs, setJobs] = useState<any[]>([]);
-  const [selectedJob, setSelectedJob] = useState<any>(null);
+  const cachedDashboard = profile ? readSessionState<EmployerDashboardCache>(DASHBOARD_CACHE_KEY) : null;
+  const hasCachedDashboard = !!cachedDashboard && cachedDashboard.profileId === profile?.id;
+  const [dataLoading, setDataLoading] = useState(!hasCachedDashboard);
+  const [employer, setEmployer] = useState<any>(hasCachedDashboard ? cachedDashboard?.employer ?? null : null);
+  const [jobs, setJobs] = useState<any[]>(hasCachedDashboard ? cachedDashboard?.jobs ?? [] : []);
+  const [selectedJob, setSelectedJob] = useState<any>(hasCachedDashboard ? cachedDashboard?.jobs?.[0] ?? null : null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [profileRetryCount, setProfileRetryCount] = useState(0);
-  const [planName, setPlanName] = useState('Free Plan');
-  const [stats, setStats] = useState({ activeJobs: 0, totalApplications: 0, scheduledInterviews: 0, profileViews: 0, notificationCount: 0, unreadMessages: 0 });
+  const [planName, setPlanName] = useState(hasCachedDashboard ? cachedDashboard?.planName ?? 'Free Plan' : 'Free Plan');
+  const [stats, setStats] = useState(hasCachedDashboard ? cachedDashboard?.stats ?? { activeJobs: 0, totalApplications: 0, scheduledInterviews: 0, profileViews: 0, notificationCount: 0, unreadMessages: 0 } : { activeJobs: 0, totalApplications: 0, scheduledInterviews: 0, profileViews: 0, notificationCount: 0, unreadMessages: 0 });
   const [jobToDelete, setJobToDelete] = useState<any>(null);
   const [deletingJob, setDeletingJob] = useState(false);
 
   const { refreshTrigger } = useRealtimeDashboard({ userId: user?.id, employerId: employer?.id });
+
+  useEffect(() => {
+    if (!profile?.id) {
+      removeSessionState(DASHBOARD_CACHE_KEY);
+      return;
+    }
+
+    if (!employer) return;
+
+    writeSessionState(DASHBOARD_CACHE_KEY, {
+      profileId: profile.id,
+      employer,
+      jobs,
+      planName,
+      stats,
+    });
+  }, [profile?.id, employer, jobs, planName, stats]);
 
   useEffect(() => { if (refreshTrigger > 0 && employer) fetchEmployerData(); }, [refreshTrigger]);
 
@@ -60,19 +90,24 @@ const EmployerDashboard = () => {
     if (user && !profileResolved) return;
     if (!profile) { setDataLoading(false); return; }
     if (profile.user_type !== 'employer') { navigate('/candidate-dashboard'); return; }
-    fetchEmployerData();
+    if (hasCachedDashboard) {
+      setDataLoading(false);
+    }
+    fetchEmployerData({ background: hasCachedDashboard });
   }, [user, profile, authLoading, profileResolved]);
 
-  const fetchEmployerData = async () => {
+  const fetchEmployerData = async ({ background = false }: { background?: boolean } = {}) => {
     if (!profile || !user) return;
-    const loadingTimeout = setTimeout(() => { setDataLoading(false); toast.error('Dashboard data is taking too long.'); }, 10000);
+    if (!background) setDataLoading(true);
+    const loadingTimeout = !background
+      ? setTimeout(() => { setDataLoading(false); toast.error('Dashboard data is taking too long.'); }, 10000)
+      : null;
     try {
       const { data: employerData } = await supabase.from('employers').select('*').eq('profile_id', profile.id).maybeSingle();
       setEmployer(employerData);
       if (employerData) {
         const { data: jobsData } = await supabase.from('jobs').select('id, title, status, is_active, created_at, expires_at, job_type, job_address, view_count, employer_id, job_category, slug').eq('employer_id', employerData.id).order('created_at', { ascending: false });
         const jobIds = (jobsData || []).map(j => j.id);
-        // Batch query: fetch all applications for employer's jobs in one call
         let appCountMap: Record<string, number> = {};
         if (jobIds.length > 0) {
           const { data: appData } = await supabase.from('applications').select('job_id').in('job_id', jobIds);
@@ -96,12 +131,13 @@ const EmployerDashboard = () => {
         const unreadMsgCount = (unreadRes.data as number) || 0;
         if (subRes.data && (subRes.data as any).employer_plans?.name) setPlanName((subRes.data as any).employer_plans.name + ' Plan');
         setStats({ activeJobs, totalApplications, scheduledInterviews: interviewRes.count || 0, profileViews: viewRes.count || 0, notificationCount: notifRes.count || 0, unreadMessages: unreadMsgCount });
-
-        // Refresh response rate in background
         supabase.rpc('calculate_employer_response_rate', { p_employer_id: employerData.id }).then(() => {});
       }
     } catch (error) { console.error('Error fetching employer data:', error); toast.error('Failed to load some dashboard data.'); }
-    finally { clearTimeout(loadingTimeout); setDataLoading(false); }
+    finally {
+      if (loadingTimeout) clearTimeout(loadingTimeout);
+      setDataLoading(false);
+    }
   };
 
   const handleSectionClick = (value: string) => {
