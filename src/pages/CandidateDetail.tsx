@@ -378,33 +378,35 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
   ].filter(Boolean) as { icon: any; label: string; value: string }[];
 
   return (
-    <div className="min-h-screen bg-muted/30 pb-24 lg:pb-8">
+    <div className={isOwnProfile ? 'pb-4' : 'min-h-screen bg-muted/30 pb-24 lg:pb-8'}>
       <SEOHead title={candSeoTitle} description={candSeoDesc} canonicalUrl={candCanonical} ogType="profile" ogImage={candidate.avatar_url || undefined} jsonLd={candJsonLd} />
       
-      {/* Top Navigation */}
-      <div className="bg-background/95 backdrop-blur-md border-b sticky top-0 z-30">
-        <div className="container mx-auto px-4 max-w-5xl">
-          <div className="flex items-center justify-between h-14">
-            <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-1.5 -ml-2 text-muted-foreground hover:text-foreground">
-              <ArrowLeft className="w-4 h-4" />Back
-            </Button>
-            <div className="flex items-center gap-1.5">
-              {isOwnProfile && <ProfilePDFExport targetRef={profileContentRef} fileName={candidate?.full_name || 'profile'} />}
-              <Tooltip><TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={handleShare} className="rounded-full w-9 h-9"><Share2 className="w-4 h-4" /></Button>
-              </TooltipTrigger><TooltipContent>Share profile</TooltipContent></Tooltip>
-              {isEmployerUser && !isOwnProfile && (
+      {/* Top Navigation - hide in embedded mode */}
+      {!isOwnProfile && (
+        <div className="bg-background/95 backdrop-blur-md border-b sticky top-0 z-30">
+          <div className="container mx-auto px-4 max-w-5xl">
+            <div className="flex items-center justify-between h-14">
+              <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-1.5 -ml-2 text-muted-foreground hover:text-foreground">
+                <ArrowLeft className="w-4 h-4" />Back
+              </Button>
+              <div className="flex items-center gap-1.5">
+                {isOwnProfile && <ProfilePDFExport targetRef={profileContentRef} fileName={candidate?.full_name || 'profile'} />}
                 <Tooltip><TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={handleSave} className={`rounded-full w-9 h-9 ${isSaved ? 'text-destructive' : ''}`}>
-                  <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
-                </Button>
-                </TooltipTrigger><TooltipContent>{isSaved ? 'Remove from saved' : 'Save candidate'}</TooltipContent></Tooltip>
-              )}
-              {isEmployerUser && !isOwnProfile && <ReportDialog targetId={candidate?.id || ''} targetType="employer" />}
+                <Button variant="ghost" size="icon" onClick={handleShare} className="rounded-full w-9 h-9"><Share2 className="w-4 h-4" /></Button>
+                </TooltipTrigger><TooltipContent>Share profile</TooltipContent></Tooltip>
+                {isEmployerUser && !isOwnProfile && (
+                  <Tooltip><TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={handleSave} className={`rounded-full w-9 h-9 ${isSaved ? 'text-destructive' : ''}`}>
+                    <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
+                  </Button>
+                  </TooltipTrigger><TooltipContent>{isSaved ? 'Remove from saved' : 'Save candidate'}</TooltipContent></Tooltip>
+                )}
+                {isEmployerUser && !isOwnProfile && <ReportDialog targetId={candidate?.id || ''} targetType="employer" />}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Gradient Banner */}
       <div className="relative h-36 sm:h-44 bg-gradient-to-br from-primary/15 via-primary/8 to-accent/10 overflow-hidden">
