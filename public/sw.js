@@ -1,7 +1,7 @@
-const CACHE_NAME = 'hireforjob-v4';
-const STATIC_CACHE = 'hireforjob-static-v4';
-const DYNAMIC_CACHE = 'hireforjob-dynamic-v4';
-const IMAGE_CACHE = 'hireforjob-images-v4';
+const CACHE_NAME = 'hireforjob-v5';
+const STATIC_CACHE = 'hireforjob-static-v5';
+const DYNAMIC_CACHE = 'hireforjob-dynamic-v5';
+const IMAGE_CACHE = 'hireforjob-images-v5';
 
 const PRECACHE_ASSETS = [
   '/',
@@ -40,7 +40,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Activate — purge old caches (including v3)
+// Activate — purge old caches (including v3, v4)
 self.addEventListener('activate', (event) => {
   const keep = [STATIC_CACHE, DYNAMIC_CACHE, IMAGE_CACHE];
   event.waitUntil(
@@ -72,20 +72,29 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Strategy 1: Navigation → Network-first, fallback to offline page
+  // Strategy 1: Navigation → Stale-While-Revalidate (app shell pattern)
+  // Serve cached HTML instantly (prevents blank screen on Chrome tab restore)
+  // then update cache in background for next visit
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response.ok) {
-            const clone = response.clone();
-            caches.open(DYNAMIC_CACHE).then((cache) => cache.put(request, clone));
-          }
-          return response;
-        })
-        .catch(() =>
-          caches.match(request).then((cached) => cached || caches.match('/offline.html'))
-        )
+      caches.match('/').then((cached) => {
+        const networkFetch = fetch(request)
+          .then((response) => {
+            if (response.ok) {
+              const clone = response.clone();
+              caches.open(STATIC_CACHE).then((cache) => cache.put('/', clone));
+            }
+            return response;
+          })
+          .catch(() => {
+            // Offline — serve cached root or offline page
+            return cached || caches.match('/offline.html');
+          });
+
+        // If we have a cached app shell, serve it immediately
+        // The SPA router will handle the correct route client-side
+        return cached || networkFetch;
+      })
     );
     return;
   }
