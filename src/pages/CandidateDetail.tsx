@@ -433,7 +433,7 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
 
                 <div className="flex-1 min-w-0 text-center sm:text-left">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{candidate.full_name}</h1>
+                    <h1 className={`${isOwnProfile ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl'} font-bold text-foreground tracking-tight`}>{candidate.full_name}</h1>
                     <Badge variant="outline" className={`text-xs w-fit mx-auto sm:mx-0 gap-1.5 font-semibold ${getAvailabilityColor(candidate.availability_status)}`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${getAvailabilityDot(candidate.availability_status)}`} />
                       {getAvailabilityLabel(candidate.availability_status)}
