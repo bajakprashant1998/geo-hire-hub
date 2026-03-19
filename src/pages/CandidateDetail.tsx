@@ -314,31 +314,29 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-muted/30">
-        {/* Hero skeleton */}
-        <div className="h-40 bg-gradient-to-r from-primary/10 to-primary/5" />
-        <div className="container mx-auto px-4 max-w-5xl -mt-16">
-          <div className="bg-background rounded-2xl border shadow-lg p-6">
-            <div className="flex gap-5 items-start">
-              <Skeleton className="w-28 h-28 rounded-2xl shrink-0" />
-              <div className="flex-1 space-y-3 pt-2">
-                <Skeleton className="h-7 w-52" />
-                <Skeleton className="h-5 w-36" />
-                <Skeleton className="h-4 w-64" />
-                <div className="flex gap-2 pt-1">
-                  <Skeleton className="h-8 w-24 rounded-full" />
-                  <Skeleton className="h-8 w-28 rounded-full" />
-                  <Skeleton className="h-8 w-20 rounded-full" />
+      <div className={isOwnProfile ? 'p-4' : 'min-h-screen bg-muted/30'}>
+        {!isOwnProfile && <div className="h-40 bg-gradient-to-r from-primary/10 to-primary/5" />}
+        <div className={isOwnProfile ? '' : 'container mx-auto px-4 max-w-5xl -mt-16'}>
+          <div className="bg-background rounded-2xl border shadow-lg p-4 sm:p-6">
+            <div className="flex gap-4 sm:gap-5 items-start">
+              <Skeleton className={`${isOwnProfile ? 'w-20 h-20' : 'w-28 h-28'} rounded-2xl shrink-0`} />
+              <div className="flex-1 space-y-3 pt-2 min-w-0">
+                <Skeleton className="h-6 sm:h-7 w-40 sm:w-52" />
+                <Skeleton className="h-4 sm:h-5 w-28 sm:w-36" />
+                <Skeleton className="h-4 w-48 sm:w-64" />
+                <div className="flex gap-2 pt-1 flex-wrap">
+                  <Skeleton className="h-8 w-20 sm:w-24 rounded-full" />
+                  <Skeleton className="h-8 w-24 sm:w-28 rounded-full" />
                 </div>
               </div>
             </div>
           </div>
-          <div className="grid lg:grid-cols-3 gap-5 mt-6 pb-8">
-            <div className="lg:col-span-2 space-y-5">
-              {[1, 2, 3].map(i => <Skeleton key={i} className="h-44 rounded-xl" />)}
+          <div className="grid lg:grid-cols-3 gap-4 sm:gap-5 mt-4 sm:mt-6 pb-8">
+            <div className="lg:col-span-2 space-y-4 sm:space-y-5">
+              {[1, 2, 3].map(i => <Skeleton key={i} className="h-36 sm:h-44 rounded-xl" />)}
             </div>
-            <div className="space-y-5">
-              {[1, 2, 3].map(i => <Skeleton key={i} className="h-48 rounded-xl" />)}
+            <div className="space-y-4 sm:space-y-5">
+              {[1, 2].map(i => <Skeleton key={i} className="h-40 sm:h-48 rounded-xl" />)}
             </div>
           </div>
         </div>
@@ -378,52 +376,53 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
   ].filter(Boolean) as { icon: any; label: string; value: string }[];
 
   return (
-    <div className="min-h-screen bg-muted/30 pb-24 lg:pb-8">
+    <div className={isOwnProfile ? 'pb-4' : 'min-h-screen bg-muted/30 pb-24 lg:pb-8'}>
       <SEOHead title={candSeoTitle} description={candSeoDesc} canonicalUrl={candCanonical} ogType="profile" ogImage={candidate.avatar_url || undefined} jsonLd={candJsonLd} />
       
-      {/* Top Navigation */}
-      <div className="bg-background/95 backdrop-blur-md border-b sticky top-0 z-30">
-        <div className="container mx-auto px-4 max-w-5xl">
-          <div className="flex items-center justify-between h-14">
-            <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-1.5 -ml-2 text-muted-foreground hover:text-foreground">
-              <ArrowLeft className="w-4 h-4" />Back
-            </Button>
-            <div className="flex items-center gap-1.5">
-              {isOwnProfile && <ProfilePDFExport targetRef={profileContentRef} fileName={candidate?.full_name || 'profile'} />}
-              <Tooltip><TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" onClick={handleShare} className="rounded-full w-9 h-9"><Share2 className="w-4 h-4" /></Button>
-              </TooltipTrigger><TooltipContent>Share profile</TooltipContent></Tooltip>
-              {isEmployerUser && !isOwnProfile && (
+      {/* Top Navigation - hide in embedded mode */}
+      {!isOwnProfile && (
+        <div className="bg-background/95 backdrop-blur-md border-b sticky top-0 z-30">
+          <div className="container mx-auto px-4 max-w-5xl">
+            <div className="flex items-center justify-between h-14">
+              <Button variant="ghost" size="sm" onClick={() => navigate(-1)} className="gap-1.5 -ml-2 text-muted-foreground hover:text-foreground">
+                <ArrowLeft className="w-4 h-4" />Back
+              </Button>
+              <div className="flex items-center gap-1.5">
+                {isOwnProfile && <ProfilePDFExport targetRef={profileContentRef} fileName={candidate?.full_name || 'profile'} />}
                 <Tooltip><TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" onClick={handleSave} className={`rounded-full w-9 h-9 ${isSaved ? 'text-destructive' : ''}`}>
-                  <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
-                </Button>
-                </TooltipTrigger><TooltipContent>{isSaved ? 'Remove from saved' : 'Save candidate'}</TooltipContent></Tooltip>
-              )}
-              {isEmployerUser && !isOwnProfile && <ReportDialog targetId={candidate?.id || ''} targetType="employer" />}
+                <Button variant="ghost" size="icon" onClick={handleShare} className="rounded-full w-9 h-9"><Share2 className="w-4 h-4" /></Button>
+                </TooltipTrigger><TooltipContent>Share profile</TooltipContent></Tooltip>
+                {isEmployerUser && !isOwnProfile && (
+                  <Tooltip><TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" onClick={handleSave} className={`rounded-full w-9 h-9 ${isSaved ? 'text-destructive' : ''}`}>
+                    <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
+                  </Button>
+                  </TooltipTrigger><TooltipContent>{isSaved ? 'Remove from saved' : 'Save candidate'}</TooltipContent></Tooltip>
+                )}
+                {isEmployerUser && !isOwnProfile && <ReportDialog targetId={candidate?.id || ''} targetType="employer" />}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Gradient Banner */}
-      <div className="relative h-36 sm:h-44 bg-gradient-to-br from-primary/15 via-primary/8 to-accent/10 overflow-hidden">
+      <div className={`relative ${isOwnProfile ? 'h-24 sm:h-32' : 'h-36 sm:h-44'} bg-gradient-to-br from-primary/15 via-primary/8 to-accent/10 overflow-hidden`}>
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-muted/30 to-transparent" />
-        {/* Decorative elements */}
         <div className="absolute top-6 right-[10%] w-20 h-20 rounded-full bg-primary/5 blur-2xl" />
         <div className="absolute top-12 right-[25%] w-14 h-14 rounded-full bg-accent/10 blur-xl" />
       </div>
 
       {/* Profile Card - overlapping banner */}
-      <div className="container mx-auto px-4 max-w-5xl -mt-20 sm:-mt-24 relative z-10">
+      <div className={`${isOwnProfile ? 'px-2 sm:px-4' : 'container mx-auto px-4 max-w-5xl'} -mt-16 sm:-mt-20 relative z-10`}>
         <motion.div {...fadeUp}>
           <Card className="border-border/50 shadow-xl bg-background/95 backdrop-blur-sm overflow-hidden">
-            <CardContent className="p-5 sm:p-7">
-              <div className="flex flex-col sm:flex-row gap-5 items-center sm:items-start">
+            <CardContent className="p-3 sm:p-5 lg:p-7">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-5 items-center sm:items-start">
                 {/* Avatar */}
                 <div className="relative shrink-0">
-                  <Avatar className="w-24 h-24 sm:w-28 sm:h-28 ring-4 ring-background shadow-xl">
+                  <Avatar className={`${isOwnProfile ? 'w-20 h-20 sm:w-24 sm:h-24' : 'w-24 h-24 sm:w-28 sm:h-28'} ring-4 ring-background shadow-xl`}>
                     <AvatarImage src={candidate.avatar_url || ''} alt={candidate.full_name} className="object-cover" />
                     <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-primary/20 to-primary/5 text-primary">{initials}</AvatarFallback>
                   </Avatar>
@@ -432,7 +431,7 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
 
                 <div className="flex-1 min-w-0 text-center sm:text-left">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">{candidate.full_name}</h1>
+                    <h1 className={`${isOwnProfile ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl'} font-bold text-foreground tracking-tight`}>{candidate.full_name}</h1>
                     <Badge variant="outline" className={`text-xs w-fit mx-auto sm:mx-0 gap-1.5 font-semibold ${getAvailabilityColor(candidate.availability_status)}`}>
                       <span className={`w-1.5 h-1.5 rounded-full ${getAvailabilityDot(candidate.availability_status)}`} />
                       {getAvailabilityLabel(candidate.availability_status)}
@@ -449,7 +448,7 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
                   {candidate.headline && <p className="text-muted-foreground text-sm mt-2 italic max-w-xl">"{candidate.headline}"</p>}
 
                   {/* Info chips */}
-                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-3">
+                  <div className="flex flex-wrap items-center justify-center sm:justify-start gap-1.5 sm:gap-2 mt-3">
                     {candidate.experience_years != null && (
                       <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-background border border-border/60 px-3 py-1.5 rounded-full shadow-sm">
                         <Briefcase className="w-3 h-3 text-primary" />{candidate.experience_years} yrs experience
@@ -513,12 +512,12 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
               {/* Quick Stats Bar */}
               {quickStats.length > 0 && (
                 <motion.div {...stagger(0.1)} className="mt-5 pt-5 border-t border-border/50">
-                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
                     {quickStats.slice(0, 6).map((stat, i) => (
-                      <div key={i} className="text-center p-2.5 rounded-xl bg-muted/40 hover:bg-muted/70 transition-colors">
-                        <stat.icon className="w-4 h-4 text-primary mx-auto mb-1" />
-                        <p className="text-lg font-bold text-foreground leading-none">{stat.value}</p>
-                        <p className="text-[10px] text-muted-foreground mt-0.5 uppercase tracking-wider">{stat.label}</p>
+                      <div key={i} className="text-center p-2 sm:p-2.5 rounded-xl bg-muted/40 hover:bg-muted/70 transition-colors">
+                        <stat.icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary mx-auto mb-1" />
+                        <p className="text-sm sm:text-lg font-bold text-foreground leading-none">{stat.value}</p>
+                        <p className="text-[9px] sm:text-[10px] text-muted-foreground mt-0.5 uppercase tracking-wider">{stat.label}</p>
                       </div>
                     ))}
                   </div>
@@ -530,7 +529,7 @@ const CandidateDetail = ({ id: propId }: { id?: string }) => {
       </div>
 
       {/* Content */}
-      <div ref={profileContentRef} className="container mx-auto px-4 py-6 max-w-5xl">
+      <div ref={profileContentRef} className={`${isOwnProfile ? 'px-2 sm:px-4 py-4' : 'container mx-auto px-4 py-6 max-w-5xl'}`}>
         {canView ? (
           <div className="grid lg:grid-cols-3 gap-5">
             {/* Main Column */}

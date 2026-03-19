@@ -100,7 +100,7 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
   const strength = getStrengthLabel(completenessData.percentage);
 
   return (
-    <div className="space-y-4 sm:space-y-5 overflow-x-hidden">
+    <div className="space-y-4 sm:space-y-5 w-full max-w-full overflow-x-hidden">
       {/* Hero Banner */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
@@ -111,22 +111,22 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
         <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-accent/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4" />
         
-        <div className="relative p-4 sm:p-5 sm:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+        <div className="relative p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
             {/* Icon */}
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
-              <Eye className="w-7 h-7 text-primary-foreground" />
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
+              <Eye className="w-6 h-6 sm:w-7 sm:h-7 text-primary-foreground" />
             </div>
             
             <div className="flex-1 min-w-0">
-              <h2 className="text-lg sm:text-xl font-bold text-foreground">Public Profile Preview</h2>
-              <p className="text-sm text-muted-foreground mt-0.5">
+              <h2 className="text-base sm:text-xl font-bold text-foreground">Public Profile Preview</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
                 This is exactly how employers see your profile. Make it stand out!
               </p>
             </div>
 
             {/* Quick Actions */}
-            <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            <div className="flex items-center gap-2 shrink-0">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="outline" size="sm" onClick={handleCopyLink} className="gap-1.5 rounded-xl text-xs h-8 sm:h-9">
@@ -159,24 +159,24 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
 
           {/* Stats Row */}
           <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-4 sm:mt-5">
-            <div className="text-center p-2.5 sm:p-3 rounded-xl bg-background/60 backdrop-blur-sm border border-border/40">
-              <div className="flex items-center justify-center gap-1 text-primary mb-0.5 sm:mb-1">
-                <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span className="text-base sm:text-lg font-bold">{visibilityStats.views}</span>
+            <div className="text-center p-2 sm:p-3 rounded-xl bg-background/60 backdrop-blur-sm border border-border/40">
+              <div className="flex items-center justify-center gap-1 text-primary mb-0.5">
+                <Eye className="w-3.5 h-3.5" />
+                <span className="text-sm sm:text-lg font-bold">{visibilityStats.views}</span>
               </div>
               <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider">Views</p>
             </div>
-            <div className="text-center p-2.5 sm:p-3 rounded-xl bg-background/60 backdrop-blur-sm border border-border/40">
-              <div className="flex items-center justify-center gap-1 text-success mb-0.5 sm:mb-1">
-                <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span className="text-base sm:text-lg font-bold">{visibilityStats.searches}</span>
+            <div className="text-center p-2 sm:p-3 rounded-xl bg-background/60 backdrop-blur-sm border border-border/40">
+              <div className="flex items-center justify-center gap-1 text-success mb-0.5">
+                <Users className="w-3.5 h-3.5" />
+                <span className="text-sm sm:text-lg font-bold">{visibilityStats.searches}</span>
               </div>
               <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider">Searches</p>
             </div>
-            <div className="text-center p-2.5 sm:p-3 rounded-xl bg-background/60 backdrop-blur-sm border border-border/40">
-              <div className="flex items-center justify-center gap-1 text-accent-foreground mb-0.5 sm:mb-1">
-                <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                <span className="text-base sm:text-lg font-bold">{visibilityStats.savedBy}</span>
+            <div className="text-center p-2 sm:p-3 rounded-xl bg-background/60 backdrop-blur-sm border border-border/40">
+              <div className="flex items-center justify-center gap-1 text-accent-foreground mb-0.5">
+                <Star className="w-3.5 h-3.5" />
+                <span className="text-sm sm:text-lg font-bold">{visibilityStats.savedBy}</span>
               </div>
               <p className="text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-wider">Saved</p>
             </div>
@@ -191,26 +191,26 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
         transition={{ delay: 0.1 }}
       >
         <Card className="border-border/50 shadow-sm overflow-hidden">
-          <CardContent className="p-5">
-            <div className="flex items-start justify-between gap-4 mb-4">
-              <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-xl ${strength.bg} flex items-center justify-center`}>
-                  <TrendingUp className={`w-6 h-6 ${strength.color}`} />
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl ${strength.bg} flex items-center justify-center shrink-0`}>
+                  <TrendingUp className={`w-5 h-5 sm:w-6 sm:h-6 ${strength.color}`} />
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-foreground">Profile Strength</h3>
-                    <Badge variant="secondary" className={`text-xs font-semibold ${strength.color} ${strength.bg}`}>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="font-bold text-foreground text-sm sm:text-base">Profile Strength</h3>
+                    <Badge variant="secondary" className={`text-[10px] font-semibold ${strength.color} ${strength.bg}`}>
                       {strength.label}
                     </Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-0.5">
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
                     {completenessData.percentage}% complete • {completenessData.passed.length}/{COMPLETENESS_CHECKS.length} items
                   </p>
                 </div>
               </div>
               {completenessData.percentage < 100 && (
-                <Button size="sm" className="rounded-xl gap-2 shrink-0" onClick={() => onNavigate('profile')}>
+                <Button size="sm" className="rounded-xl gap-2 shrink-0 w-full sm:w-auto" onClick={() => onNavigate('profile')}>
                   <Sparkles className="w-3.5 h-3.5" />
                   Boost Profile
                 </Button>
@@ -225,20 +225,20 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                   <AlertTriangle className="w-3 h-3" /> Missing for a stronger profile
                 </p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   {completenessData.missing.slice(0, 5).map((item) => (
                     <button
                       key={item.key}
                       onClick={() => onNavigate(item.action)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-warning/5 text-warning-foreground rounded-lg border border-warning/15 hover:bg-warning/10 transition-colors"
+                      className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium bg-warning/5 text-warning-foreground rounded-lg border border-warning/15 hover:bg-warning/10 transition-colors"
                     >
-                      <item.icon className="w-3 h-3" />
-                      {item.label}
-                      <ChevronRight className="w-3 h-3 opacity-50" />
+                      <item.icon className="w-3 h-3 shrink-0" />
+                      <span className="truncate">{item.label}</span>
+                      <ChevronRight className="w-3 h-3 opacity-50 shrink-0" />
                     </button>
                   ))}
                   {completenessData.missing.length > 5 && (
-                    <span className="text-xs text-muted-foreground px-2 py-1.5">
+                    <span className="text-[11px] text-muted-foreground px-2 py-1.5">
                       +{completenessData.missing.length - 5} more
                     </span>
                   )}
@@ -338,7 +338,7 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
       {/* Preview Indicator */}
       <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground py-2">
         <Separator className="flex-1" />
-        <span className="px-3 py-1 rounded-full bg-muted/50 border border-border/40 flex items-center gap-1.5">
+        <span className="px-3 py-1 rounded-full bg-muted/50 border border-border/40 flex items-center gap-1.5 whitespace-nowrap shrink-0">
           <Eye className="w-3 h-3" />
           Live Profile Preview
         </span>
@@ -350,26 +350,26 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25 }}
-        className="rounded-2xl border-2 border-dashed border-border/50 overflow-hidden overflow-x-hidden"
+        className="rounded-2xl border-2 border-dashed border-border/50 overflow-hidden"
       >
-        <div className="bg-muted/30 px-4 py-2 border-b border-border/40 flex items-center gap-2">
-          <div className="flex gap-1.5">
+        <div className="bg-muted/30 px-2 sm:px-4 py-2 border-b border-border/40 flex items-center gap-2">
+          <div className="flex gap-1.5 shrink-0">
             <div className="w-2.5 h-2.5 rounded-full bg-destructive/60" />
             <div className="w-2.5 h-2.5 rounded-full bg-warning/60" />
             <div className="w-2.5 h-2.5 rounded-full bg-success/60" />
           </div>
-          <div className="flex-1 flex items-center justify-center">
-            <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-background/60 text-xs text-muted-foreground">
-              <Globe className="w-3 h-3" />
-              <span className="truncate max-w-[200px] sm:max-w-none">{getPublicUrl()}</span>
+          <div className="flex-1 min-w-0 flex items-center justify-center">
+            <div className="flex items-center gap-1.5 px-2 sm:px-3 py-1 rounded-lg bg-background/60 text-[10px] sm:text-xs text-muted-foreground max-w-full overflow-hidden">
+              <Globe className="w-3 h-3 shrink-0" />
+              <span className="truncate">{getPublicUrl()}</span>
             </div>
           </div>
-          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1" onClick={() => window.open(getPublicUrl(), '_blank')}>
-            <ExternalLink className="w-3 h-3" /> Open
+          <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] sm:text-xs gap-1 shrink-0" onClick={() => window.open(getPublicUrl(), '_blank')}>
+            <ExternalLink className="w-3 h-3" /> <span className="hidden sm:inline">Open</span>
           </Button>
         </div>
         
-        <div className="bg-background">
+        <div className="bg-background overflow-x-hidden">
           <CandidateDetail id={candidateId} />
         </div>
       </motion.div>
