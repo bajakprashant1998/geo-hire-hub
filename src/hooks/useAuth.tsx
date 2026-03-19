@@ -119,11 +119,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .maybeSingle();
 
       if (data && !error) {
-        setProfile(data as Profile);
-        setCachedAuth(data as Profile);
+        const profileData = data as Profile;
+        setProfile(profileData);
+        // Cache with current user info for instant tab-restore
+        const currentUserId = currentUserIdRef.current;
+        if (currentUserId) {
+          const currentUser = (await supabase.auth.getUser()).data.user;
+          setCachedAuth(profileData, currentUser ? { id: currentUser.id, email: currentUser.email, email_confirmed_at: currentUser.email_confirmed_at } : null);
+        }
         setProfileResolved(true);
-        migrateSavedJobs(data as Profile);
-        return data as Profile;
+        migrateSavedJobs(profileData);
+        return profileData;
       } else if (error) {
         console.error('Error fetching profile:', error);
         if (retryCount < 2) {
