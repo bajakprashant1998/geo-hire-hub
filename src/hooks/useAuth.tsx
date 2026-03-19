@@ -121,13 +121,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (data && !error) {
         const profileData = data as Profile;
         setProfile(profileData);
-        // Cache with current user info for instant tab-restore
-        const currentUserId = currentUserIdRef.current;
-        if (currentUserId) {
-          const currentUser = (await supabase.auth.getUser()).data.user;
-          setCachedAuth(profileData, currentUser ? { id: currentUser.id, email: currentUser.email, email_confirmed_at: currentUser.email_confirmed_at } : null);
-        }
         setProfileResolved(true);
+        // Cache profile + minimal user for instant tab-restore
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        if (currentSession?.user) {
+          const u = currentSession.user;
+          setCachedAuth(profileData, { id: u.id, email: u.email, email_confirmed_at: u.email_confirmed_at });
+        }
         migrateSavedJobs(profileData);
         return profileData;
       } else if (error) {
