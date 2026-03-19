@@ -225,20 +225,20 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                   <AlertTriangle className="w-3 h-3" /> Missing for a stronger profile
                 </p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2">
                   {completenessData.missing.slice(0, 5).map((item) => (
                     <button
                       key={item.key}
                       onClick={() => onNavigate(item.action)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-warning/5 text-warning-foreground rounded-lg border border-warning/15 hover:bg-warning/10 transition-colors"
+                      className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 text-[11px] sm:text-xs font-medium bg-warning/5 text-warning-foreground rounded-lg border border-warning/15 hover:bg-warning/10 transition-colors"
                     >
-                      <item.icon className="w-3 h-3" />
-                      {item.label}
-                      <ChevronRight className="w-3 h-3 opacity-50" />
+                      <item.icon className="w-3 h-3 shrink-0" />
+                      <span className="truncate">{item.label}</span>
+                      <ChevronRight className="w-3 h-3 opacity-50 shrink-0" />
                     </button>
                   ))}
                   {completenessData.missing.length > 5 && (
-                    <span className="text-xs text-muted-foreground px-2 py-1.5">
+                    <span className="text-[11px] text-muted-foreground px-2 py-1.5">
                       +{completenessData.missing.length - 5} more
                     </span>
                   )}
