@@ -251,6 +251,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     setSession(null);
     setProfile(null);
+    setCachedAuth(null);
     setProfileResolved(false);
   };
 
