@@ -1,7 +1,7 @@
-const CACHE_NAME = 'hireforjob-v5';
-const STATIC_CACHE = 'hireforjob-static-v5';
-const DYNAMIC_CACHE = 'hireforjob-dynamic-v5';
-const IMAGE_CACHE = 'hireforjob-images-v5';
+const CACHE_NAME = 'hireforjob-v6';
+const STATIC_CACHE = 'hireforjob-static-v6';
+const DYNAMIC_CACHE = 'hireforjob-dynamic-v6';
+const IMAGE_CACHE = 'hireforjob-images-v6';
 
 const PRECACHE_ASSETS = [
   '/',

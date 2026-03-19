@@ -14,6 +14,13 @@ interface Profile {
   profile_completed: boolean;
 }
 
+/** Minimal user stub cached in sessionStorage to avoid loading flash on tab restore */
+interface CachedUser {
+  id: string;
+  email: string | undefined;
+  email_confirmed_at: string | null | undefined;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -32,21 +39,24 @@ const PROFILE_FETCH_TIMEOUT = 5000;
 const SESSION_CACHE_KEY = 'hfj_auth_cache';
 
 /** Restore cached auth state so Chrome tab-discard reloads are instant */
-function getCachedAuth(): { profile: Profile | null } {
+function getCachedAuth(): { profile: Profile | null; user: CachedUser | null } {
   try {
     const raw = sessionStorage.getItem(SESSION_CACHE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (parsed?.profile) return { profile: parsed.profile };
+      return { 
+        profile: parsed?.profile || null, 
+        user: parsed?.user || null 
+      };
     }
   } catch { /* ignore */ }
-  return { profile: null };
+  return { profile: null, user: null };
 }
 
-function setCachedAuth(profile: Profile | null) {
+function setCachedAuth(profile: Profile | null, user: CachedUser | null) {
   try {
-    if (profile) {
-      sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify({ profile }));
+    if (profile && user) {
+      sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify({ profile, user }));
     } else {
       sessionStorage.removeItem(SESSION_CACHE_KEY);
     }
@@ -55,10 +65,11 @@ function setCachedAuth(profile: Profile | null) {
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const cached = getCachedAuth();
-  const [user, setUser] = useState<User | null>(null);
+  const hasCachedSession = !!cached.profile && !!cached.user;
+  const [user, setUser] = useState<User | null>(hasCachedSession ? ({ id: cached.user!.id, email: cached.user!.email, email_confirmed_at: cached.user!.email_confirmed_at } as unknown as User) : null);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(cached.profile);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!hasCachedSession);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileResolved, setProfileResolved] = useState(!!cached.profile);
 
@@ -108,11 +119,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .maybeSingle();
 
       if (data && !error) {
-        setProfile(data as Profile);
-        setCachedAuth(data as Profile);
+        const profileData = data as Profile;
+        setProfile(profileData);
         setProfileResolved(true);
-        migrateSavedJobs(data as Profile);
-        return data as Profile;
+        // Cache profile + minimal user for instant tab-restore
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        if (currentSession?.user) {
+          const u = currentSession.user;
+          setCachedAuth(profileData, { id: u.id, email: u.email, email_confirmed_at: u.email_confirmed_at });
+        }
+        migrateSavedJobs(profileData);
+        return profileData;
       } else if (error) {
         console.error('Error fetching profile:', error);
         if (retryCount < 2) {
@@ -196,7 +213,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           }
         } else {
           setProfile(null);
-          setCachedAuth(null);
+          setCachedAuth(null, null);
           setProfileResolved(true);
         }
       }
@@ -252,7 +269,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     setSession(null);
     setProfile(null);
-    setCachedAuth(null);
+    setCachedAuth(null, null);
     setProfileResolved(false);
   };
 
