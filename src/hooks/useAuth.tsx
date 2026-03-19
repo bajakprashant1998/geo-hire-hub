@@ -14,6 +14,13 @@ interface Profile {
   profile_completed: boolean;
 }
 
+/** Minimal user stub cached in sessionStorage to avoid loading flash on tab restore */
+interface CachedUser {
+  id: string;
+  email: string | undefined;
+  email_confirmed_at: string | null | undefined;
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
