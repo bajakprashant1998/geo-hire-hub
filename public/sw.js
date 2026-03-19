@@ -1,7 +1,7 @@
-const CACHE_NAME = 'hireforjob-v7';
-const STATIC_CACHE = 'hireforjob-static-v7';
-const DYNAMIC_CACHE = 'hireforjob-dynamic-v7';
-const IMAGE_CACHE = 'hireforjob-images-v7';
+const CACHE_NAME = 'hireforjob-v8';
+const STATIC_CACHE = 'hireforjob-static-v8';
+const DYNAMIC_CACHE = 'hireforjob-dynamic-v8';
+const IMAGE_CACHE = 'hireforjob-images-v8';
 
 const PRECACHE_ASSETS = [
   '/',
@@ -14,6 +14,7 @@ const PRECACHE_ASSETS = [
 const NO_CACHE_PATHS = ['/login', '/signup', '/verify-email', '/auth/callback', '/update-password', '/forgot-password', '/select-role', '/profile-setup'];
 const DYNAMIC_CACHE_LIMIT = 50;
 const IMAGE_CACHE_LIMIT = 80;
+const IS_PREVIEW_HOST = self.location.hostname.includes('lovableproject.com') || self.location.hostname.includes('id-preview--');
 
 function trimCache(cacheName, maxItems) {
   caches.open(cacheName).then((cache) => {
@@ -53,6 +54,13 @@ self.addEventListener('fetch', (event) => {
   if (url.pathname.startsWith('/~oauth')) return;
   if (url.hostname.includes('supabase')) return;
 
+  if (IS_PREVIEW_HOST) {
+    if (request.mode === 'navigate') {
+      event.respondWith(fetch(request).catch(() => caches.match('/offline.html')));
+    }
+    return;
+  }
+
   if (isNoCachePath(url)) {
     event.respondWith(
       fetch(request).catch(() => caches.match('/offline.html'))
@@ -62,19 +70,15 @@ self.addEventListener('fetch', (event) => {
 
   if (request.mode === 'navigate') {
     event.respondWith(
-      caches.match('/').then((cached) => {
-        const networkFetch = fetch(request)
-          .then((response) => {
-            if (response.ok) {
-              const clone = response.clone();
-              caches.open(STATIC_CACHE).then((cache) => cache.put('/', clone));
-            }
-            return response;
-          })
-          .catch(() => cached || caches.match('/offline.html'));
-
-        return cached || networkFetch;
-      })
+      fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(STATIC_CACHE).then((cache) => cache.put('/', clone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request).then((cached) => cached || caches.match('/') || caches.match('/offline.html')))
     );
     return;
   }

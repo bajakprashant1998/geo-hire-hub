@@ -2,111 +2,111 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://www.hireforjob.com/</loc>
-    <lastmod>2026-03-06</lastmod>
+    <lastmod>2026-03-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://www.hireforjob.com/jobs-near-me</loc>
-    <lastmod>2026-03-08</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.95</priority>
-  </url>
-  <url>
     <loc>https://www.hireforjob.com/browse-jobs</loc>
-    <lastmod>2026-03-06</lastmod>
+    <lastmod>2026-03-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://www.hireforjob.com/login</loc>
-    <lastmod>2026-03-06</lastmod>
+    <lastmod>2026-03-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://www.hireforjob.com/signup</loc>
-    <lastmod>2026-03-06</lastmod>
+    <lastmod>2026-03-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
     <loc>https://www.hireforjob.com/terms</loc>
-    <lastmod>2026-03-06</lastmod>
+    <lastmod>2026-03-19</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
     <loc>https://www.hireforjob.com/privacy</loc>
-    <lastmod>2026-03-06</lastmod>
+    <lastmod>2026-03-19</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
     <loc>https://www.hireforjob.com/plans</loc>
-    <lastmod>2026-03-06</lastmod>
+    <lastmod>2026-03-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://www.hireforjob.com/jobs/architect</loc>
-    <lastmod>2026-02-19</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.hireforjob.com/jobs/architect-1</loc>
-    <lastmod>2026-02-19</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://www.hireforjob.com/jobs/frontend-developer</loc>
-    <lastmod>2026-02-21</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.hireforjob.com/jobs/full-stack-developer</loc>
-    <lastmod>2026-02-25</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.hireforjob.com/jobs/seo-specialist</loc>
-    <lastmod>2026-02-19</lastmod>
+    <lastmod>2026-03-14</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.hireforjob.com/jobs/administrative-assistant</loc>
-    <lastmod>2026-02-20</lastmod>
+    <lastmod>2026-03-14</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://www.hireforjob.com/jobs/finance-manager</loc>
-    <lastmod>2026-02-26</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.hireforjob.com/jobs/accountant</loc>
-    <lastmod>2026-02-26</lastmod>
+    <loc>https://www.hireforjob.com/jobs/full-stack-developer</loc>
+    <lastmod>2026-03-12</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.hireforjob.com/jobs/architect-2</loc>
-    <lastmod>2026-03-02</lastmod>
+    <lastmod>2026-03-14</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://www.hireforjob.com/jobs/ai-engineer</loc>
-    <lastmod>2026-03-02</lastmod>
+    <lastmod>2026-03-17</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.hireforjob.com/jobs/seo-specialist</loc>
+    <lastmod>2026-03-14</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.hireforjob.com/jobs/accountant</loc>
+    <lastmod>2026-03-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.hireforjob.com/jobs/finance-manager</loc>
+    <lastmod>2026-03-13</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.hireforjob.com/jobs/architect-1</loc>
+    <lastmod>2026-03-12</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.hireforjob.com/jobs/india/maharashtra/mumbai/installer-interior-assemblies</loc>
+    <lastmod>2026-03-18</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.hireforjob.com/companies/digital-web-solutions</loc>
+    <lastmod>2026-03-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.hireforjob.com/companies/calisto-astrology</loc>
@@ -164,25 +164,13 @@
   </url>
   <url>
     <loc>https://www.hireforjob.com/companies/digital-bull-technology-pvt-ltd</loc>
-    <lastmod>2026-02-25</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.hireforjob.com/companies/smarttax-solutions</loc>
-    <lastmod>2026-02-26</lastmod>
+    <lastmod>2026-03-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.hireforjob.com/companies/mediastor</loc>
-    <lastmod>2026-03-02</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://www.hireforjob.com/companies/digital-web-solutions</loc>
-    <lastmod>2026-03-02</lastmod>
+    <lastmod>2026-03-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -199,10 +187,10 @@
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://www.hireforjob.com/candidates/vrushu-prajapati</loc>
-    <lastmod>2026-02-27</lastmod>
+    <loc>https://www.hireforjob.com/companies/smarttax-solutions</loc>
+    <lastmod>2026-03-19</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.hireforjob.com/candidates/siddhi-kadaliya</loc>
@@ -211,8 +199,8 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://www.hireforjob.com/candidates/kiaan-jani</loc>
-    <lastmod>2026-02-25</lastmod>
+    <loc>https://www.hireforjob.com/candidates/nanakshahi-devki-devendrakumar</loc>
+    <lastmod>2026-03-08</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -373,12 +361,6 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://www.hireforjob.com/candidates/nanakshahi-devki-devendrakumar</loc>
-    <lastmod>2026-03-05</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://www.hireforjob.com/candidates/amit-dharajiya</loc>
     <lastmod>2026-03-05</lastmod>
     <changefreq>weekly</changefreq>
@@ -403,8 +385,26 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://www.hireforjob.com/candidates/salman-ali</loc>
-    <lastmod>2026-03-06</lastmod>
+    <loc>https://www.hireforjob.com/candidates/harish-yadav</loc>
+    <lastmod>2026-03-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.hireforjob.com/candidates/nawab-ajmeri</loc>
+    <lastmod>2026-03-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.hireforjob.com/candidates/vrushu-prajapati</loc>
+    <lastmod>2026-03-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.hireforjob.com/candidates/om-santi</loc>
+    <lastmod>2026-03-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -457,20 +457,8 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://www.hireforjob.com/candidates/mefuja-panara-1</loc>
-    <lastmod>2026-02-19</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://www.hireforjob.com/candidates/kapadiya-b</loc>
     <lastmod>2026-02-19</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://www.hireforjob.com/candidates/use-work</loc>
-    <lastmod>2026-02-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -525,6 +513,12 @@
   <url>
     <loc>https://www.hireforjob.com/candidates/bajak-prashant-1</loc>
     <lastmod>2026-02-25</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.hireforjob.com/candidates/vidhi-jadav-1</loc>
+    <lastmod>2026-03-10</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -625,14 +619,20 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://www.hireforjob.com/candidates/vidhi-jadav-1</loc>
+    <loc>https://www.hireforjob.com/candidates/bajak-prashant</loc>
     <lastmod>2026-03-06</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://www.hireforjob.com/candidates/bajak-prashant</loc>
-    <lastmod>2026-03-06</lastmod>
+    <loc>https://www.hireforjob.com/candidates/yashika-mawar</loc>
+    <lastmod>2026-03-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.hireforjob.com/candidates/mefuja-panara-1</loc>
+    <lastmod>2026-03-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -709,12 +709,6 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://www.hireforjob.com/candidates/roshani-thakor</loc>
-    <lastmod>2026-02-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
     <loc>https://www.hireforjob.com/candidates/siddharth-sharma</loc>
     <lastmod>2026-02-27</lastmod>
     <changefreq>weekly</changefreq>
@@ -745,8 +739,8 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://www.hireforjob.com/candidates/mk-dryfruits</loc>
-    <lastmod>2026-03-05</lastmod>
+    <loc>https://www.hireforjob.com/candidates/jadav-krish</loc>
+    <lastmod>2026-03-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -771,6 +765,60 @@
   <url>
     <loc>https://www.hireforjob.com/candidates/diya-gehlot</loc>
     <lastmod>2026-03-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.hireforjob.com/candidates/akshay-prajapati</loc>
+    <lastmod>2026-03-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.hireforjob.com/candidates/ayushi-patel</loc>
+    <lastmod>2026-03-09</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.hireforjob.com/candidates/muskan-lakhisarani-1</loc>
+    <lastmod>2026-03-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.hireforjob.com/candidates/nisha-mawar</loc>
+    <lastmod>2026-03-12</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.hireforjob.com/candidates/gudiya-kaur</loc>
+    <lastmod>2026-03-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.hireforjob.com/candidates/roshani-thakor</loc>
+    <lastmod>2026-03-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.hireforjob.com/candidates/rushikesh-dadhania</loc>
+    <lastmod>2026-03-16</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.hireforjob.com/candidates/kiaan-jani</loc>
+    <lastmod>2026-03-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.hireforjob.com/candidates/ruhi-patel</loc>
+    <lastmod>2026-03-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
