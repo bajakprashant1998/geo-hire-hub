@@ -338,7 +338,7 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
       {/* Preview Indicator */}
       <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground py-2">
         <Separator className="flex-1" />
-        <span className="px-3 py-1 rounded-full bg-muted/50 border border-border/40 flex items-center gap-1.5">
+        <span className="px-3 py-1 rounded-full bg-muted/50 border border-border/40 flex items-center gap-1.5 whitespace-nowrap shrink-0">
           <Eye className="w-3 h-3" />
           Live Profile Preview
         </span>
@@ -350,26 +350,26 @@ export const PublicProfilePreview = ({ candidateId, candidate, profile, onNaviga
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.25 }}
-        className="rounded-2xl border-2 border-dashed border-border/50 overflow-hidden overflow-x-hidden"
+        className="rounded-2xl border-2 border-dashed border-border/50 overflow-hidden"
       >
-        <div className="bg-muted/30 px-4 py-2 border-b border-border/40 flex items-center gap-2">
-          <div className="flex gap-1.5">
+        <div className="bg-muted/30 px-2 sm:px-4 py-2 border-b border-border/40 flex items-center gap-2">
+          <div className="flex gap-1.5 shrink-0">
             <div className="w-2.5 h-2.5 rounded-full bg-destructive/60" />
             <div className="w-2.5 h-2.5 rounded-full bg-warning/60" />
             <div className="w-2.5 h-2.5 rounded-full bg-success/60" />
           </div>
-          <div className="flex-1 flex items-center justify-center">
-            <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-background/60 text-xs text-muted-foreground">
-              <Globe className="w-3 h-3" />
-              <span className="truncate max-w-[200px] sm:max-w-none">{getPublicUrl()}</span>
+          <div className="flex-1 min-w-0 flex items-center justify-center">
+            <div className="flex items-center gap-1.5 px-2 sm:px-3 py-1 rounded-lg bg-background/60 text-[10px] sm:text-xs text-muted-foreground max-w-full overflow-hidden">
+              <Globe className="w-3 h-3 shrink-0" />
+              <span className="truncate">{getPublicUrl()}</span>
             </div>
           </div>
-          <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1" onClick={() => window.open(getPublicUrl(), '_blank')}>
-            <ExternalLink className="w-3 h-3" /> Open
+          <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px] sm:text-xs gap-1 shrink-0" onClick={() => window.open(getPublicUrl(), '_blank')}>
+            <ExternalLink className="w-3 h-3" /> <span className="hidden sm:inline">Open</span>
           </Button>
         </div>
         
-        <div className="bg-background">
+        <div className="bg-background overflow-x-hidden">
           <CandidateDetail id={candidateId} />
         </div>
       </motion.div>
