@@ -29,14 +29,38 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const PROFILE_FETCH_TIMEOUT = 5000;
+const SESSION_CACHE_KEY = 'hfj_auth_cache';
+
+/** Restore cached auth state so Chrome tab-discard reloads are instant */
+function getCachedAuth(): { profile: Profile | null } {
+  try {
+    const raw = sessionStorage.getItem(SESSION_CACHE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed?.profile) return { profile: parsed.profile };
+    }
+  } catch { /* ignore */ }
+  return { profile: null };
+}
+
+function setCachedAuth(profile: Profile | null) {
+  try {
+    if (profile) {
+      sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify({ profile }));
+    } else {
+      sessionStorage.removeItem(SESSION_CACHE_KEY);
+    }
+  } catch { /* ignore */ }
+}
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const cached = getCachedAuth();
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(cached.profile);
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
-  const [profileResolved, setProfileResolved] = useState(false);
+  const [profileResolved, setProfileResolved] = useState(!!cached.profile);
 
   // Track current user ID to prevent unnecessary re-renders on token refresh
   const currentUserIdRef = useRef<string | null>(null);
@@ -85,6 +109,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (data && !error) {
         setProfile(data as Profile);
+        setCachedAuth(data as Profile);
         setProfileResolved(true);
         migrateSavedJobs(data as Profile);
         return data as Profile;
@@ -171,6 +196,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           }
         } else {
           setProfile(null);
+          setCachedAuth(null);
           setProfileResolved(true);
         }
       }
@@ -226,6 +252,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     setSession(null);
     setProfile(null);
+    setCachedAuth(null);
     setProfileResolved(false);
   };
 
