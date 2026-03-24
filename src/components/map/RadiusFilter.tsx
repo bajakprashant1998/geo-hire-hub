@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -9,7 +10,7 @@ interface RadiusFilterProps {
   className?: string;
 }
 
-export const RadiusFilter = ({ radius, onRadiusChange, maxRadius = 500, className }: RadiusFilterProps) => {
+export const RadiusFilter = forwardRef<HTMLDivElement, RadiusFilterProps>(({ radius, onRadiusChange, maxRadius = 500, className }, ref) => {
   const presets = [2, 10, 50, 100, 500];
 
   return (
