@@ -497,6 +497,18 @@
   padding: 0 !important;
 }
 
+/* Let the InfoWindow overlay pane pass pointer events through to markers beneath */
+.gm-style > div > div > div > div > div[style*="z-index"] > div {
+  pointer-events: none !important;
+}
+.gm-style .gm-style-iw,
+.gm-style .gm-style-iw-c,
+.gm-style .gm-style-iw-d,
+.gm-style .gm-style-iw-t,
+.gm-style .gm-style-iw-tc {
+  pointer-events: auto !important;
+}
+
 /* Style the close button */
 .gm-style .gm-style-iw-c > button,
 .gm-style .gm-ui-hover-effect {
@@ -505,6 +517,7 @@
   width: 28px !important;
   height: 28px !important;
   opacity: 0.6 !important;
+  pointer-events: auto !important;
 }
 
 /* Show a small pointer/tail */
