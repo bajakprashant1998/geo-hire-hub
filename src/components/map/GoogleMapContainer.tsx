@@ -165,9 +165,13 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
     };
   }, [map, mode]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Sync markers with clusterer
+  // Sync markers with clusterer — use a stable diff instead of clear+add to prevent flicker
+  const prevItemIdsRef = useRef<string>('');
   useEffect(() => {
     if (!clustererRef.current) return;
+    const currentIds = items.map(i => i.id).sort().join(',');
+    if (currentIds === prevItemIdsRef.current) return; // no change
+    prevItemIdsRef.current = currentIds;
     const newMarkers = Array.from(markersRef.current.values());
     clustererRef.current.clearMarkers();
     clustererRef.current.addMarkers(newMarkers);
