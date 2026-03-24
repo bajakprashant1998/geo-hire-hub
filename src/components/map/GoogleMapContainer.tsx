@@ -1,5 +1,5 @@
 /// <reference types="google.maps" />
-import React, { useCallback, useMemo, useState, useEffect, useRef, memo } from 'react';
+import React, { useCallback, useMemo, useState, useEffect, useRef, memo, useLayoutEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Map as GoogleMapView, AdvancedMarker, useMap, InfoWindow } from '@vis.gl/react-google-maps';
 import { MarkerClusterer, type Cluster } from '@googlemaps/markerclusterer';
@@ -165,9 +165,13 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
     };
   }, [map, mode]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Sync markers with clusterer
+  // Sync markers with clusterer — use a stable diff instead of clear+add to prevent flicker
+  const prevItemIdsRef = useRef<string>('');
   useEffect(() => {
     if (!clustererRef.current) return;
+    const currentIds = items.map(i => i.id).sort().join(',');
+    if (currentIds === prevItemIdsRef.current) return; // no change
+    prevItemIdsRef.current = currentIds;
     const newMarkers = Array.from(markersRef.current.values());
     clustererRef.current.clearMarkers();
     clustererRef.current.addMarkers(newMarkers);
@@ -215,15 +219,20 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
     return () => { circle.setMap(null); };
   }, [map, userLocation, radius]);
 
-  // Fit bounds
+  // Fit bounds — only on initial load or mode change, NOT on every data re-render
+  const hasFittedRef = useRef<string>('');
   useEffect(() => {
     if (!map) return;
     if (items.length === 0) return;
+    // Only fit bounds once per mode, or when user location first appears
+    const fitKey = `${mode}-${userLocation ? 'loc' : 'noloc'}`;
+    if (hasFittedRef.current === fitKey) return;
+    hasFittedRef.current = fitKey;
     const bounds = new google.maps.LatLngBounds();
     items.forEach(item => bounds.extend({ lat: item.latitude, lng: item.longitude }));
     if (userLocation) bounds.extend(userLocation);
     map.fitBounds(bounds, { top: 100, right: 50, bottom: 50, left: 50 });
-  }, [map, mode, candidates, jobs, userLocation]);
+  }, [map, mode, items, userLocation]);
 
   // Heatmap layer
   useEffect(() => {
@@ -251,14 +260,21 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
     return () => { heatmap.setMap(null); };
   }, [map, heatmapEnabled, mode, items]);
 
-  // Marker ref callback
+  // Marker ref callback — update clusterer when markers mount/unmount
   const setMarkerRef = useCallback((marker: google.maps.marker.AdvancedMarkerElement | null, id: string) => {
     if (marker) {
       markersRef.current.set(id, marker);
+      // Add new marker to clusterer immediately
+      if (clustererRef.current) {
+        clustererRef.current.addMarkers([marker]);
+      }
     } else {
-      // Safely detach before removing reference
       const existing = markersRef.current.get(id);
       if (existing) {
+        // Remove from clusterer before detaching
+        if (clustererRef.current) {
+          clustererRef.current.removeMarker(existing);
+        }
         try { existing.map = null; } catch (_) { /* suppress getRootNode */ }
       }
       markersRef.current.delete(id);
