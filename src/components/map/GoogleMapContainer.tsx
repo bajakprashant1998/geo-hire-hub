@@ -260,14 +260,21 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
     return () => { heatmap.setMap(null); };
   }, [map, heatmapEnabled, mode, items]);
 
-  // Marker ref callback
+  // Marker ref callback — update clusterer when markers mount/unmount
   const setMarkerRef = useCallback((marker: google.maps.marker.AdvancedMarkerElement | null, id: string) => {
     if (marker) {
       markersRef.current.set(id, marker);
+      // Add new marker to clusterer immediately
+      if (clustererRef.current) {
+        clustererRef.current.addMarkers([marker]);
+      }
     } else {
-      // Safely detach before removing reference
       const existing = markersRef.current.get(id);
       if (existing) {
+        // Remove from clusterer before detaching
+        if (clustererRef.current) {
+          clustererRef.current.removeMarker(existing);
+        }
         try { existing.map = null; } catch (_) { /* suppress getRootNode */ }
       }
       markersRef.current.delete(id);
