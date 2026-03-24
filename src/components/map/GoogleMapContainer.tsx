@@ -219,15 +219,20 @@ const GoogleMapInner = (props: GoogleMapContainerProps) => {
     return () => { circle.setMap(null); };
   }, [map, userLocation, radius]);
 
-  // Fit bounds
+  // Fit bounds — only on initial load or mode change, NOT on every data re-render
+  const hasFittedRef = useRef<string>('');
   useEffect(() => {
     if (!map) return;
     if (items.length === 0) return;
+    // Only fit bounds once per mode, or when user location first appears
+    const fitKey = `${mode}-${userLocation ? 'loc' : 'noloc'}`;
+    if (hasFittedRef.current === fitKey) return;
+    hasFittedRef.current = fitKey;
     const bounds = new google.maps.LatLngBounds();
     items.forEach(item => bounds.extend({ lat: item.latitude, lng: item.longitude }));
     if (userLocation) bounds.extend(userLocation);
     map.fitBounds(bounds, { top: 100, right: 50, bottom: 50, left: 50 });
-  }, [map, mode, candidates, jobs, userLocation]);
+  }, [map, mode, items, userLocation]);
 
   // Heatmap layer
   useEffect(() => {
