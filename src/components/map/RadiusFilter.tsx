@@ -60,4 +60,6 @@ export const RadiusFilter = forwardRef<HTMLDivElement, RadiusFilterProps>(({ rad
       </div>
     </div>
   );
-};
+});
+
+RadiusFilter.displayName = 'RadiusFilter';
