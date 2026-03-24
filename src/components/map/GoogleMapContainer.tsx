@@ -1,5 +1,5 @@
 /// <reference types="google.maps" />
-import React, { useCallback, useMemo, useState, useEffect, useRef, memo } from 'react';
+import React, { useCallback, useMemo, useState, useEffect, useRef, memo, useLayoutEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Map as GoogleMapView, AdvancedMarker, useMap, InfoWindow } from '@vis.gl/react-google-maps';
 import { MarkerClusterer, type Cluster } from '@googlemaps/markerclusterer';
