@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -9,11 +10,11 @@ interface RadiusFilterProps {
   className?: string;
 }
 
-export const RadiusFilter = ({ radius, onRadiusChange, maxRadius = 500, className }: RadiusFilterProps) => {
+export const RadiusFilter = forwardRef<HTMLDivElement, RadiusFilterProps>(({ radius, onRadiusChange, maxRadius = 500, className }, ref) => {
   const presets = [2, 10, 50, 100, 500];
 
   return (
-    <div className={cn("bg-background rounded-xl p-4 shadow-lg border border-border/50", className)}>
+    <div ref={ref} className={cn("bg-background rounded-xl p-4 shadow-lg border border-border/50", className)}>
       <div className="flex items-center gap-2 mb-4">
         <div className="p-2 bg-primary/10 rounded-lg">
           <Target className="w-4 h-4 text-primary" />
@@ -59,4 +60,6 @@ export const RadiusFilter = ({ radius, onRadiusChange, maxRadius = 500, classNam
       </div>
     </div>
   );
-};
+});
+
+RadiusFilter.displayName = 'RadiusFilter';
