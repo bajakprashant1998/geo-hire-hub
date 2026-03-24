@@ -637,7 +637,7 @@ export const LeftSidebarPanel = ({
                     transition={{ delay: index * 0.03 }}
                   >
                     <Link
-                      to={`/candidate/${candidate.id}`}
+                      to={`/candidates/${candidate.id}`}
                       className="group block p-3.5 rounded-xl border border-border/20 hover:border-primary/30 bg-card/40 hover:bg-card/80 hover:shadow-md transition-all duration-200"
                     >
                       <div className="flex items-start justify-between gap-2">
