@@ -98,9 +98,9 @@ export const CandidateHomeView = ({
       )}
 
       {/* ─── Hero Welcome + Daily Tip ─── */}
-      <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
         {/* Welcome Card */}
-        <div className="lg:col-span-2 relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary via-primary/85 to-primary/60 p-6 sm:p-7 flex flex-col justify-between min-h-[180px] group">
+        <div className="lg:col-span-2 relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary via-primary/85 to-primary/60 p-5 sm:p-7 flex flex-col justify-between min-h-[160px] sm:min-h-[180px] group">
           {/* Decorative orbs */}
           <div className="absolute -top-20 -right-20 w-56 h-56 bg-white/[0.06] rounded-full blur-3xl transition-transform duration-700 group-hover:scale-110" />
           <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/[0.04] rounded-full blur-2xl translate-y-12 -translate-x-10" />
