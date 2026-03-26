@@ -191,7 +191,7 @@ const CandidateDashboard = () => {
             canonicalUrl="https://www.hireforjob.com/candidate-dashboard"
             noindex
           />
-          <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/80 flex overflow-x-hidden">
+          <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/80 flex overflow-hidden">
             {user && <OnboardingTour userId={user.id} type="candidate" />}
             <DashboardSidebar type="candidate" items={sidebarItems} activeItem={activeSection} onItemClick={handleSectionClick} userName={profile.full_name} userTitle={candidate?.job_title || 'Job Seeker'} avatarUrl={profile.avatar_url} onSignOut={signOut} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} profileCompleteness={calculateCompleteness()} />
             <div className="flex-1 flex flex-col min-h-screen lg:ml-0 overflow-x-hidden">
