@@ -198,7 +198,7 @@ export const CandidateHomeView = ({
             Job Radar <ChevronRight className="w-3 h-3" />
           </button>
         </div>
-        <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
+        <div className="grid grid-cols-4 gap-2 sm:grid-cols-8 sm:gap-3">
           {quickActions.map((action, i) => (
             <motion.button
               key={action.label}
