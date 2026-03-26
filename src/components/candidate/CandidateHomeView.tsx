@@ -221,7 +221,7 @@ export const CandidateHomeView = ({
                   {action.badge > 99 ? '99+' : action.badge}
                 </span>
               )}
-              <span className="text-[10px] sm:text-[11px] font-medium text-muted-foreground leading-tight text-center group-hover:text-foreground transition-colors">{action.label}</span>
+              <span className="text-[9px] sm:text-[11px] font-medium text-muted-foreground leading-tight text-center group-hover:text-foreground transition-colors truncate w-full">{action.label}</span>
             </motion.button>
           ))}
         </div>
