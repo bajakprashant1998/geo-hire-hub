@@ -99,14 +99,14 @@ export const EmployerHomeView = ({
       {/* ─── Hero Welcome + Hiring Health ─── */}
       <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {/* Welcome Card */}
-        <div className="lg:col-span-2 relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary via-primary/85 to-primary/65 p-4 sm:p-5 md:p-6 flex flex-col justify-between min-h-[160px] sm:min-h-[170px]">
+        <div className="lg:col-span-2 relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary via-primary/85 to-primary/65 p-4 sm:p-5 md:p-6 flex flex-col justify-between min-h-[150px] sm:min-h-[170px]">
           <div className="absolute -top-16 -right-16 w-48 h-48 bg-white/8 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full blur-2xl translate-y-10 -translate-x-8" />
           <div className="relative z-10">
             <p className="text-primary-foreground/60 text-[11px] font-semibold uppercase tracking-[0.15em] mb-1.5">{getGreeting()}</p>
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-primary-foreground tracking-tight leading-tight break-words">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-primary-foreground tracking-tight leading-tight break-words">
               {employer?.company_name || 'Your Company'} 🏢
-            </h2>
+            </h1>
             <p className="text-primary-foreground/55 text-sm mt-1.5 leading-relaxed max-w-md">
               {stats.totalApplications > 0
                 ? `${stats.totalApplications} application${stats.totalApplications !== 1 ? 's' : ''} awaiting review across ${stats.activeJobs} active job${stats.activeJobs !== 1 ? 's' : ''}.`
@@ -223,7 +223,7 @@ export const EmployerHomeView = ({
             View Analytics <ChevronRight className="w-3 h-3" />
           </button>
         </div>
-        <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-8 sm:gap-3">
+        <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-8 sm:gap-3 overflow-hidden">
           {quickActions.map((action, i) => (
             <motion.button
               key={action.label}
@@ -233,7 +233,7 @@ export const EmployerHomeView = ({
               whileHover={{ y: -3, scale: 1.04 }}
               whileTap={{ scale: 0.95 }}
               onClick={action.onClick}
-              className="flex flex-col items-center gap-1 sm:gap-1.5 p-1.5 sm:p-2.5 rounded-xl hover:bg-muted/50 transition-all relative group"
+              className="flex flex-col items-center gap-1 sm:gap-1.5 p-1.5 sm:p-2.5 rounded-xl hover:bg-muted/50 transition-all relative group min-w-0"
             >
               <div className={cn(
                 "w-9 h-9 sm:w-11 sm:h-11 rounded-xl flex items-center justify-center ring-1 transition-shadow group-hover:shadow-md",
@@ -246,7 +246,7 @@ export const EmployerHomeView = ({
                   {action.badge > 99 ? '99+' : action.badge}
                 </span>
               )}
-              <span className="text-[10px] sm:text-[11px] font-medium text-muted-foreground leading-tight text-center group-hover:text-foreground transition-colors">{action.label}</span>
+              <span className="text-[9px] sm:text-[11px] font-medium text-muted-foreground leading-tight text-center group-hover:text-foreground transition-colors truncate w-full">{action.label}</span>
             </motion.button>
           ))}
         </div>
@@ -254,8 +254,8 @@ export const EmployerHomeView = ({
 
       {/* ─── Active Jobs + Pipeline ─── */}
       <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        <div className="lg:col-span-2 rounded-2xl border border-border/30 bg-card/50 backdrop-blur-xl overflow-hidden">
-          <div className="p-1">{employer && <ActiveJobsTable employerId={employer.id} onManageJobs={() => onSectionClick('jobs')} />}</div>
+        <div className="lg:col-span-2 rounded-2xl border border-border/30 bg-card/50 backdrop-blur-xl overflow-hidden min-w-0">
+          <div className="p-1 overflow-x-auto">{employer && <ActiveJobsTable employerId={employer.id} onManageJobs={() => onSectionClick('jobs')} />}</div>
         </div>
         <div className="rounded-2xl border border-border/30 bg-card/50 backdrop-blur-xl overflow-hidden">
           <div className="p-4 sm:p-5">{employer && <HiringPipeline employerId={employer.id} />}</div>
@@ -264,8 +264,8 @@ export const EmployerHomeView = ({
 
       {/* ─── Interviews + Tasks + Messages ─── */}
       <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        <div className="rounded-2xl border border-border/30 bg-card/50 backdrop-blur-xl overflow-hidden">
-          <div className="p-1">{employer && <EmployerInterviewsCard employerId={employer.id} />}</div>
+        <div className="rounded-2xl border border-border/30 bg-card/50 backdrop-blur-xl overflow-hidden min-w-0">
+          <div className="p-1 overflow-x-auto">{employer && <EmployerInterviewsCard employerId={employer.id} />}</div>
         </div>
         <div className="rounded-2xl border border-border/30 bg-card/50 backdrop-blur-xl overflow-hidden">
           <div className="p-4 sm:p-5">
