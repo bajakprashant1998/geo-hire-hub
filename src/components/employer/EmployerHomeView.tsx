@@ -254,8 +254,8 @@ export const EmployerHomeView = ({
 
       {/* ─── Active Jobs + Pipeline ─── */}
       <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        <div className="lg:col-span-2 rounded-2xl border border-border/30 bg-card/50 backdrop-blur-xl overflow-hidden">
-          <div className="p-1">{employer && <ActiveJobsTable employerId={employer.id} onManageJobs={() => onSectionClick('jobs')} />}</div>
+        <div className="lg:col-span-2 rounded-2xl border border-border/30 bg-card/50 backdrop-blur-xl overflow-hidden min-w-0">
+          <div className="p-1 overflow-x-auto">{employer && <ActiveJobsTable employerId={employer.id} onManageJobs={() => onSectionClick('jobs')} />}</div>
         </div>
         <div className="rounded-2xl border border-border/30 bg-card/50 backdrop-blur-xl overflow-hidden">
           <div className="p-4 sm:p-5">{employer && <HiringPipeline employerId={employer.id} />}</div>
