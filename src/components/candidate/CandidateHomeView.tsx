@@ -336,9 +336,9 @@ export const CandidateHomeView = ({
       )}
 
       {/* ─── Trust Signals / Social Proof ─── */}
-      <motion.div variants={fadeUp} className="rounded-2xl border border-border/30 bg-card/40 backdrop-blur-xl p-5 sm:p-6">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-6 sm:gap-8 flex-wrap justify-center">
+      <motion.div variants={fadeUp} className="rounded-2xl border border-border/30 bg-card/40 backdrop-blur-xl p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-4 sm:gap-8 flex-wrap justify-center">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Shield className="w-4 h-4 text-success" />
               <span className="text-xs font-medium">SSL Secured</span>
