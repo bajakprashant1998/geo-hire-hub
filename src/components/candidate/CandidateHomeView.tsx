@@ -89,7 +89,7 @@ export const CandidateHomeView = ({
       variants={stagger}
       initial="hidden"
       animate="show"
-      className="max-w-6xl mx-auto space-y-5 sm:space-y-6"
+      className="max-w-6xl mx-auto space-y-4 sm:space-y-6 overflow-x-hidden"
     >
       <PlatformNotificationBanner userType="candidate" />
 
