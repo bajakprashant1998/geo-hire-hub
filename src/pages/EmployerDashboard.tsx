@@ -210,9 +210,9 @@ const EmployerDashboard = () => {
           <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/80 flex overflow-hidden">
             {user && <OnboardingTour userId={user.id} type="employer" />}
             <DashboardSidebar type="employer" items={sidebarItems} activeItem={activeSection} onItemClick={handleSectionClick} userName={employer?.company_name || 'Your Company'} userTitle={employer?.industry || 'Employer'} avatarUrl={profile.avatar_url} onSignOut={signOut} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} profileCompleteness={employer?.profile_completeness || 0} />
-            <div className="flex-1 flex flex-col min-h-screen lg:ml-0 overflow-x-hidden">
+            <div className="flex-1 flex flex-col min-h-screen min-w-0 lg:ml-0 overflow-x-hidden">
               <EmployerHeader companyName={employer?.company_name || 'Your Company'} planName={planName} avatarUrl={profile.avatar_url} onMenuClick={() => setSidebarOpen(true)} onSignOut={signOut} notificationCount={stats.notificationCount} profileCompleteness={employer?.profile_completeness || 0} onNotificationClick={() => handleSectionClick('notifications')} onPostJob={() => handleSectionClick('post-job')} />
-              <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto pb-24 md:pb-6">
+              <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto overflow-x-hidden pb-28 md:pb-6">
                 {activeSection ? (
                   <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ type: 'spring', stiffness: 100, damping: 20 }} className="max-w-6xl mx-auto">
                     <Button variant="ghost" onClick={() => setActiveSection(null)} className="mb-4 text-muted-foreground hover:text-foreground rounded-xl gap-2 backdrop-blur-sm">

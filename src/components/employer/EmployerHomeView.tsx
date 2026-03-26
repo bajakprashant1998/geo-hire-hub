@@ -264,8 +264,8 @@ export const EmployerHomeView = ({
 
       {/* ─── Interviews + Tasks + Messages ─── */}
       <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        <div className="rounded-2xl border border-border/30 bg-card/50 backdrop-blur-xl overflow-hidden">
-          <div className="p-1">{employer && <EmployerInterviewsCard employerId={employer.id} />}</div>
+        <div className="rounded-2xl border border-border/30 bg-card/50 backdrop-blur-xl overflow-hidden min-w-0">
+          <div className="p-1 overflow-x-auto">{employer && <EmployerInterviewsCard employerId={employer.id} />}</div>
         </div>
         <div className="rounded-2xl border border-border/30 bg-card/50 backdrop-blur-xl overflow-hidden">
           <div className="p-4 sm:p-5">
