@@ -191,12 +191,12 @@ const CandidateDashboard = () => {
             canonicalUrl="https://www.hireforjob.com/candidate-dashboard"
             noindex
           />
-          <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/80 flex overflow-x-hidden">
+          <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/80 flex overflow-hidden">
             {user && <OnboardingTour userId={user.id} type="candidate" />}
             <DashboardSidebar type="candidate" items={sidebarItems} activeItem={activeSection} onItemClick={handleSectionClick} userName={profile.full_name} userTitle={candidate?.job_title || 'Job Seeker'} avatarUrl={profile.avatar_url} onSignOut={signOut} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} profileCompleteness={calculateCompleteness()} />
             <div className="flex-1 flex flex-col min-h-screen lg:ml-0 overflow-x-hidden">
               <DashboardHeader type="candidate" userName={profile.full_name} userTitle={candidate?.job_title} avatarUrl={profile.avatar_url} onMenuClick={() => setSidebarOpen(true)} onSignOut={signOut} messageCount={stats.unreadMessages} notificationCount={stats.unreadNotifications} profileCompleteness={calculateCompleteness()} onNotificationClick={() => handleSectionClick('notifications')} />
-              <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto pb-24 md:pb-6">
+              <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto overflow-x-hidden pb-28 md:pb-6">
                 {activeSection ? (
                   <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ type: 'spring', stiffness: 100, damping: 20 }} className="max-w-6xl mx-auto">
                     <Button variant="ghost" onClick={() => setActiveSection(null)} className="mb-4 text-muted-foreground hover:text-foreground rounded-xl gap-2 backdrop-blur-sm">

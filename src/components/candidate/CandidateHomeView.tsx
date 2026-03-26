@@ -89,7 +89,7 @@ export const CandidateHomeView = ({
       variants={stagger}
       initial="hidden"
       animate="show"
-      className="max-w-6xl mx-auto space-y-5 sm:space-y-6"
+      className="max-w-6xl mx-auto space-y-4 sm:space-y-6 overflow-x-hidden"
     >
       <PlatformNotificationBanner userType="candidate" />
 
@@ -98,9 +98,9 @@ export const CandidateHomeView = ({
       )}
 
       {/* ─── Hero Welcome + Daily Tip ─── */}
-      <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
         {/* Welcome Card */}
-        <div className="lg:col-span-2 relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary via-primary/85 to-primary/60 p-6 sm:p-7 flex flex-col justify-between min-h-[180px] group">
+        <div className="lg:col-span-2 relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary via-primary/85 to-primary/60 p-5 sm:p-7 flex flex-col justify-between min-h-[160px] sm:min-h-[180px] group">
           {/* Decorative orbs */}
           <div className="absolute -top-20 -right-20 w-56 h-56 bg-white/[0.06] rounded-full blur-3xl transition-transform duration-700 group-hover:scale-110" />
           <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/[0.04] rounded-full blur-2xl translate-y-12 -translate-x-10" />
@@ -172,11 +172,11 @@ export const CandidateHomeView = ({
       </motion.div>
 
       {/* ─── Stats Row ─── */}
-      <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+      <motion.div variants={fadeUp} className="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-1 lg:grid-cols-5 sm:gap-4">
         <div className="lg:col-span-1">
           <ProfileStrengthCard score={completeness} onImprove={() => onSectionClick('profile')} />
         </div>
-        <div className="lg:col-span-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="lg:col-span-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
           <DashboardStatCard icon={FileText} label="Applied" value={stats.applications} subtitle="total" accentColor="blue" onClick={() => onSectionClick('jobs')} delay={0} />
           <DashboardStatCard icon={Eye} label="Views" value={stats.views} subtitle="profile views" accentColor="green" onClick={onEditProfile} delay={1} />
           <DashboardStatCard icon={MessageSquare} label="Messages" value={stats.unreadMessages} subtitle={stats.unreadMessages > 0 ? 'unread' : 'all read'} accentColor="amber" onClick={() => onSectionClick('messages')} delay={2} />
@@ -198,7 +198,7 @@ export const CandidateHomeView = ({
             Job Radar <ChevronRight className="w-3 h-3" />
           </button>
         </div>
-        <div className="grid grid-cols-4 sm:grid-cols-8 gap-3">
+        <div className="grid grid-cols-4 gap-2 sm:grid-cols-8 sm:gap-3">
           {quickActions.map((action, i) => (
             <motion.button
               key={action.label}
@@ -208,20 +208,20 @@ export const CandidateHomeView = ({
               whileHover={{ y: -4, scale: 1.06 }}
               whileTap={{ scale: 0.94 }}
               onClick={action.onClick}
-              className="flex flex-col items-center gap-2 p-3 rounded-xl hover:bg-muted/50 transition-all relative group"
+              className="flex flex-col items-center gap-1.5 p-2 sm:p-3 rounded-xl hover:bg-muted/50 transition-all relative group min-w-0"
             >
               <div className={cn(
-                "w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center ring-1 transition-all duration-200 group-hover:shadow-lg group-hover:ring-2",
+                "w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center ring-1 transition-all duration-200 group-hover:shadow-lg group-hover:ring-2",
                 action.bg, action.ring
               )}>
-                <action.icon className={cn("w-5 h-5", action.color)} />
+                <action.icon className={cn("w-4 h-4 sm:w-5 sm:h-5", action.color)} />
               </div>
               {action.badge !== undefined && action.badge > 0 && (
                 <span className="absolute top-1 right-1 sm:top-1.5 sm:right-2 min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center px-1 shadow-md shadow-destructive/30">
                   {action.badge > 99 ? '99+' : action.badge}
                 </span>
               )}
-              <span className="text-[10px] sm:text-[11px] font-medium text-muted-foreground leading-tight text-center group-hover:text-foreground transition-colors">{action.label}</span>
+              <span className="text-[9px] sm:text-[11px] font-medium text-muted-foreground leading-tight text-center group-hover:text-foreground transition-colors truncate w-full">{action.label}</span>
             </motion.button>
           ))}
         </div>
@@ -231,29 +231,31 @@ export const CandidateHomeView = ({
       {completeness < 100 && completeness >= 30 && (
         <motion.div variants={fadeUp}>
           <div className="relative rounded-2xl overflow-hidden border border-primary/15 bg-gradient-to-r from-primary/8 via-primary/4 to-transparent p-4 sm:p-5 hover:border-primary/25 transition-colors">
-            <div className="flex items-center gap-4">
-              <div className="relative shrink-0">
-                <svg width="52" height="52" viewBox="0 0 52 52" className="-rotate-90">
-                  <circle cx="26" cy="26" r="21" fill="none" stroke="hsl(var(--border))" strokeWidth="3.5" />
-                  <motion.circle
-                    cx="26" cy="26" r="21" fill="none" stroke="hsl(var(--primary))" strokeWidth="3.5" strokeLinecap="round"
-                    strokeDasharray={2 * Math.PI * 21}
-                    initial={{ strokeDashoffset: 2 * Math.PI * 21 }}
-                    animate={{ strokeDashoffset: 2 * Math.PI * 21 * (1 - completeness / 100) }}
-                    transition={{ duration: 1.2, ease: 'easeOut', delay: 0.3 }}
-                  />
-                </svg>
-                <span className="absolute inset-0 flex items-center justify-center text-xs font-extrabold text-primary">{completeness}%</span>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="relative shrink-0">
+                  <svg width="48" height="48" viewBox="0 0 52 52" className="-rotate-90">
+                    <circle cx="26" cy="26" r="21" fill="none" stroke="hsl(var(--border))" strokeWidth="3.5" />
+                    <motion.circle
+                      cx="26" cy="26" r="21" fill="none" stroke="hsl(var(--primary))" strokeWidth="3.5" strokeLinecap="round"
+                      strokeDasharray={2 * Math.PI * 21}
+                      initial={{ strokeDashoffset: 2 * Math.PI * 21 }}
+                      animate={{ strokeDashoffset: 2 * Math.PI * 21 * (1 - completeness / 100) }}
+                      transition={{ duration: 1.2, ease: 'easeOut', delay: 0.3 }}
+                    />
+                  </svg>
+                  <span className="absolute inset-0 flex items-center justify-center text-xs font-extrabold text-primary">{completeness}%</span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-sm text-foreground">Your profile is {completeness}% complete</p>
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed line-clamp-2">
+                    {completeness < 60
+                      ? 'Add skills, experience & photo to stand out'
+                      : 'Almost there! A few more steps to go'}
+                  </p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-sm text-foreground">Your profile is {completeness}% complete</p>
-                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                  {completeness < 60
-                    ? 'Add your skills, experience, and a photo to stand out to recruiters'
-                    : 'Almost there! A few more steps to maximize your visibility'}
-                </p>
-              </div>
-              <Button size="sm" className="rounded-xl text-xs h-9 px-5 shadow-sm shrink-0 gap-1.5 hover:scale-[1.02] active:scale-[0.98] transition-transform" onClick={() => onSectionClick('profile')}>
+              <Button size="sm" className="rounded-xl text-xs h-9 px-5 shadow-sm shrink-0 gap-1.5 hover:scale-[1.02] active:scale-[0.98] transition-transform w-full sm:w-auto" onClick={() => onSectionClick('profile')}>
                 Complete <ArrowRight className="w-3 h-3" />
               </Button>
             </div>
@@ -262,7 +264,7 @@ export const CandidateHomeView = ({
       )}
 
       {/* ─── Messages + Interviews ─── */}
-      <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
         <div className="lg:col-span-2 rounded-2xl border border-border/40 bg-card/60 backdrop-blur-xl overflow-hidden hover:border-border/60 transition-colors">
           <MessagesPreview profileId={profile.id} onOpenChat={() => onSectionClick('messages')} />
         </div>
@@ -334,9 +336,9 @@ export const CandidateHomeView = ({
       )}
 
       {/* ─── Trust Signals / Social Proof ─── */}
-      <motion.div variants={fadeUp} className="rounded-2xl border border-border/30 bg-card/40 backdrop-blur-xl p-5 sm:p-6">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-6 sm:gap-8 flex-wrap justify-center">
+      <motion.div variants={fadeUp} className="rounded-2xl border border-border/30 bg-card/40 backdrop-blur-xl p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
+          <div className="flex items-center gap-4 sm:gap-8 flex-wrap justify-center">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Shield className="w-4 h-4 text-success" />
               <span className="text-xs font-medium">SSL Secured</span>
