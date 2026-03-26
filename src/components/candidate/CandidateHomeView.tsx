@@ -211,10 +211,10 @@ export const CandidateHomeView = ({
               className="flex flex-col items-center gap-1.5 p-2 sm:p-3 rounded-xl hover:bg-muted/50 transition-all relative group min-w-0"
             >
               <div className={cn(
-                "w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center ring-1 transition-all duration-200 group-hover:shadow-lg group-hover:ring-2",
+                "w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center ring-1 transition-all duration-200 group-hover:shadow-lg group-hover:ring-2",
                 action.bg, action.ring
               )}>
-                <action.icon className={cn("w-5 h-5", action.color)} />
+                <action.icon className={cn("w-4 h-4 sm:w-5 sm:h-5", action.color)} />
               </div>
               {action.badge !== undefined && action.badge > 0 && (
                 <span className="absolute top-1 right-1 sm:top-1.5 sm:right-2 min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center px-1 shadow-md shadow-destructive/30">
