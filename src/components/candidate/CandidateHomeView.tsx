@@ -172,11 +172,11 @@ export const CandidateHomeView = ({
       </motion.div>
 
       {/* ─── Stats Row ─── */}
-      <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+      <motion.div variants={fadeUp} className="space-y-3 sm:space-y-0 sm:grid sm:grid-cols-1 lg:grid-cols-5 sm:gap-4">
         <div className="lg:col-span-1">
           <ProfileStrengthCard score={completeness} onImprove={() => onSectionClick('profile')} />
         </div>
-        <div className="lg:col-span-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="lg:col-span-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
           <DashboardStatCard icon={FileText} label="Applied" value={stats.applications} subtitle="total" accentColor="blue" onClick={() => onSectionClick('jobs')} delay={0} />
           <DashboardStatCard icon={Eye} label="Views" value={stats.views} subtitle="profile views" accentColor="green" onClick={onEditProfile} delay={1} />
           <DashboardStatCard icon={MessageSquare} label="Messages" value={stats.unreadMessages} subtitle={stats.unreadMessages > 0 ? 'unread' : 'all read'} accentColor="amber" onClick={() => onSectionClick('messages')} delay={2} />
