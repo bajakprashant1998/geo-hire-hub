@@ -231,29 +231,31 @@ export const CandidateHomeView = ({
       {completeness < 100 && completeness >= 30 && (
         <motion.div variants={fadeUp}>
           <div className="relative rounded-2xl overflow-hidden border border-primary/15 bg-gradient-to-r from-primary/8 via-primary/4 to-transparent p-4 sm:p-5 hover:border-primary/25 transition-colors">
-            <div className="flex items-center gap-4">
-              <div className="relative shrink-0">
-                <svg width="52" height="52" viewBox="0 0 52 52" className="-rotate-90">
-                  <circle cx="26" cy="26" r="21" fill="none" stroke="hsl(var(--border))" strokeWidth="3.5" />
-                  <motion.circle
-                    cx="26" cy="26" r="21" fill="none" stroke="hsl(var(--primary))" strokeWidth="3.5" strokeLinecap="round"
-                    strokeDasharray={2 * Math.PI * 21}
-                    initial={{ strokeDashoffset: 2 * Math.PI * 21 }}
-                    animate={{ strokeDashoffset: 2 * Math.PI * 21 * (1 - completeness / 100) }}
-                    transition={{ duration: 1.2, ease: 'easeOut', delay: 0.3 }}
-                  />
-                </svg>
-                <span className="absolute inset-0 flex items-center justify-center text-xs font-extrabold text-primary">{completeness}%</span>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="relative shrink-0">
+                  <svg width="48" height="48" viewBox="0 0 52 52" className="-rotate-90">
+                    <circle cx="26" cy="26" r="21" fill="none" stroke="hsl(var(--border))" strokeWidth="3.5" />
+                    <motion.circle
+                      cx="26" cy="26" r="21" fill="none" stroke="hsl(var(--primary))" strokeWidth="3.5" strokeLinecap="round"
+                      strokeDasharray={2 * Math.PI * 21}
+                      initial={{ strokeDashoffset: 2 * Math.PI * 21 }}
+                      animate={{ strokeDashoffset: 2 * Math.PI * 21 * (1 - completeness / 100) }}
+                      transition={{ duration: 1.2, ease: 'easeOut', delay: 0.3 }}
+                    />
+                  </svg>
+                  <span className="absolute inset-0 flex items-center justify-center text-xs font-extrabold text-primary">{completeness}%</span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-sm text-foreground">Your profile is {completeness}% complete</p>
+                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed line-clamp-2">
+                    {completeness < 60
+                      ? 'Add skills, experience & photo to stand out'
+                      : 'Almost there! A few more steps to go'}
+                  </p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-sm text-foreground">Your profile is {completeness}% complete</p>
-                <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                  {completeness < 60
-                    ? 'Add your skills, experience, and a photo to stand out to recruiters'
-                    : 'Almost there! A few more steps to maximize your visibility'}
-                </p>
-              </div>
-              <Button size="sm" className="rounded-xl text-xs h-9 px-5 shadow-sm shrink-0 gap-1.5 hover:scale-[1.02] active:scale-[0.98] transition-transform" onClick={() => onSectionClick('profile')}>
+              <Button size="sm" className="rounded-xl text-xs h-9 px-5 shadow-sm shrink-0 gap-1.5 hover:scale-[1.02] active:scale-[0.98] transition-transform w-full sm:w-auto" onClick={() => onSectionClick('profile')}>
                 Complete <ArrowRight className="w-3 h-3" />
               </Button>
             </div>
