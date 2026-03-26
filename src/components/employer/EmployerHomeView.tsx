@@ -99,12 +99,12 @@ export const EmployerHomeView = ({
       {/* ─── Hero Welcome + Hiring Health ─── */}
       <motion.div variants={fadeUp} className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         {/* Welcome Card */}
-        <div className="lg:col-span-2 relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary via-primary/85 to-primary/65 p-4 sm:p-5 md:p-6 flex flex-col justify-between min-h-[160px] sm:min-h-[170px]">
+        <div className="lg:col-span-2 relative rounded-2xl overflow-hidden bg-gradient-to-br from-primary via-primary/85 to-primary/65 p-4 sm:p-5 md:p-6 flex flex-col justify-between min-h-[150px] sm:min-h-[170px]">
           <div className="absolute -top-16 -right-16 w-48 h-48 bg-white/8 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full blur-2xl translate-y-10 -translate-x-8" />
           <div className="relative z-10">
             <p className="text-primary-foreground/60 text-[11px] font-semibold uppercase tracking-[0.15em] mb-1.5">{getGreeting()}</p>
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-primary-foreground tracking-tight leading-tight break-words">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-primary-foreground tracking-tight leading-tight break-words">
               {employer?.company_name || 'Your Company'} 🏢
             </h2>
             <p className="text-primary-foreground/55 text-sm mt-1.5 leading-relaxed max-w-md">
