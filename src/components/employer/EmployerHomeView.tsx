@@ -106,7 +106,7 @@ export const EmployerHomeView = ({
             <p className="text-primary-foreground/60 text-[11px] font-semibold uppercase tracking-[0.15em] mb-1.5">{getGreeting()}</p>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-primary-foreground tracking-tight leading-tight break-words">
               {employer?.company_name || 'Your Company'} 🏢
-            </h2>
+            </h1>
             <p className="text-primary-foreground/55 text-sm mt-1.5 leading-relaxed max-w-md">
               {stats.totalApplications > 0
                 ? `${stats.totalApplications} application${stats.totalApplications !== 1 ? 's' : ''} awaiting review across ${stats.activeJobs} active job${stats.activeJobs !== 1 ? 's' : ''}.`
