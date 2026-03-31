@@ -15,8 +15,7 @@ interface PageMeta {
   ogType: string;
   image: string;
   url: string;
-  jsonLd?: Record<string, unknown>;
-  breadcrumbJsonLd?: Record<string, unknown>;
+  jsonLd?: Record<string, unknown>[];
 }
 
 function buildBreadcrumbJsonLd(items: { name: string; url?: string }[]) {
@@ -32,7 +31,24 @@ function buildBreadcrumbJsonLd(items: { name: string; url?: string }[]) {
   };
 }
 
+function buildSpeakableJsonLd(title: string, url: string) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: title,
+    url,
+    speakable: {
+      '@type': 'SpeakableSpecification',
+      cssSelector: ['h1', '[data-speakable]', '.description'],
+    },
+  };
+}
+
 function buildHtml(meta: PageMeta): string {
+  const jsonLdScripts = (meta.jsonLd || [])
+    .map(ld => `<script type="application/ld+json">${JSON.stringify(ld)}</script>`)
+    .join('\n  ');
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -56,14 +72,13 @@ function buildHtml(meta: PageMeta): string {
   <meta name="twitter:description" content="${escHtml(meta.description)}" />
   <meta name="twitter:image" content="${escHtml(meta.image)}" />
 
-  ${meta.jsonLd ? `<script type="application/ld+json">${JSON.stringify(meta.jsonLd)}</script>` : ''}
-  ${meta.breadcrumbJsonLd ? `<script type="application/ld+json">${JSON.stringify(meta.breadcrumbJsonLd)}</script>` : ''}
+  ${jsonLdScripts}
 
   <meta http-equiv="refresh" content="0;url=${escHtml(meta.url)}" />
 </head>
 <body>
   <h1>${escHtml(meta.title)}</h1>
-  <p>${escHtml(meta.description)}</p>
+  <p class="description" data-speakable="true">${escHtml(meta.description)}</p>
   <a href="${escHtml(meta.url)}">Visit page</a>
 </body>
 </html>`;
@@ -86,12 +101,13 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   );
 
-  let meta: PageMeta = {
+  const meta: PageMeta = {
     title: `${SITE_NAME} - Find Jobs & Talent Near You`,
     description: 'Discover jobs and talent on an interactive map. Connect with employers and candidates in your area.',
     ogType: 'website',
     image: DEFAULT_IMAGE,
     url: `${BASE_URL}${path}`,
+    jsonLd: [],
   };
 
   try {
@@ -120,14 +136,15 @@ Deno.serve(async (req) => {
         const created = new Date(job.created_at);
         const validThrough = new Date(created);
         validThrough.setDate(validThrough.getDate() + 30);
-
         const addressParts = job.job_address?.split(',').map((s: string) => s.trim()) || [];
 
         meta.title = `${job.title} at ${emp.company_name} | ${SITE_NAME}`;
         meta.description = `Apply for ${job.title} at ${emp.company_name}. ${job.job_type || 'Full-time'}${job.salary_range ? ` | ${job.salary_range}` : ''}${job.job_address ? ` | ${job.job_address}` : ''}`.slice(0, 160);
         meta.ogType = 'article';
         meta.image = emp.profiles?.avatar_url || DEFAULT_IMAGE;
-        meta.jsonLd = {
+
+        // JobPosting schema
+        meta.jsonLd!.push({
           '@context': 'https://schema.org',
           '@type': 'JobPosting',
           title: job.title,
@@ -160,12 +177,17 @@ Deno.serve(async (req) => {
               value: { '@type': 'QuantitativeValue', value: job.salary_range, unitText: 'MONTH' },
             },
           }),
-        };
-        meta.breadcrumbJsonLd = buildBreadcrumbJsonLd([
+        });
+
+        // Breadcrumb
+        meta.jsonLd!.push(buildBreadcrumbJsonLd([
           { name: 'Home', url: BASE_URL },
           { name: 'Jobs', url: `${BASE_URL}/browse-jobs` },
           { name: job.title },
-        ]);
+        ]));
+
+        // Speakable (AEO)
+        meta.jsonLd!.push(buildSpeakableJsonLd(meta.title, meta.url));
       }
     }
 
@@ -184,7 +206,8 @@ Deno.serve(async (req) => {
         meta.description = `${emp.company_name}${emp.industry ? `, ${emp.industry}` : ''}. View company profile and open positions on ${SITE_NAME}.`.slice(0, 160);
         meta.ogType = 'profile';
         meta.image = profile?.avatar_url || DEFAULT_IMAGE;
-        meta.jsonLd = {
+
+        meta.jsonLd!.push({
           '@context': 'https://schema.org',
           '@type': 'Organization',
           name: emp.company_name,
@@ -200,12 +223,15 @@ Deno.serve(async (req) => {
               ...(emp.location_country && { addressCountry: emp.location_country }),
             },
           }),
-        };
-        meta.breadcrumbJsonLd = buildBreadcrumbJsonLd([
+        });
+
+        meta.jsonLd!.push(buildBreadcrumbJsonLd([
           { name: 'Home', url: BASE_URL },
           { name: 'Companies', url: `${BASE_URL}/browse-jobs` },
           { name: emp.company_name },
-        ]);
+        ]));
+
+        meta.jsonLd!.push(buildSpeakableJsonLd(meta.title, meta.url));
       }
     }
 
@@ -221,7 +247,7 @@ Deno.serve(async (req) => {
       if (profile) {
         const { data: cand } = await supabase
           .from('candidates')
-          .select('job_title, experience_years, bio')
+          .select('job_title, experience_years, bio, skills, city, state, country')
           .eq('profile_id', profile.id)
           .maybeSingle();
 
@@ -230,12 +256,45 @@ Deno.serve(async (req) => {
           meta.description = `${profile.full_name}, ${cand.job_title}${cand.experience_years ? ` with ${cand.experience_years}+ years experience` : ''}. View profile on ${SITE_NAME}.`.slice(0, 160);
           meta.ogType = 'profile';
           meta.image = profile.avatar_url || DEFAULT_IMAGE;
+
+          // Person schema (AEO/GEO)
+          meta.jsonLd!.push({
+            '@context': 'https://schema.org',
+            '@type': 'Person',
+            name: profile.full_name,
+            jobTitle: cand.job_title,
+            ...(profile.avatar_url && { image: profile.avatar_url }),
+            ...(cand.bio && { description: cand.bio }),
+            ...(cand.skills?.length && { knowsAbout: cand.skills }),
+            ...(cand.city && {
+              address: {
+                '@type': 'PostalAddress',
+                addressLocality: cand.city,
+                ...(cand.state && { addressRegion: cand.state }),
+                ...(cand.country && { addressCountry: cand.country }),
+              },
+            }),
+          });
+
+          meta.jsonLd!.push(buildBreadcrumbJsonLd([
+            { name: 'Home', url: BASE_URL },
+            { name: 'Candidates' },
+            { name: profile.full_name },
+          ]));
         }
       }
     }
 
     // Static pages
     const staticMeta: Record<string, Partial<PageMeta>> = {
+      '/': {
+        title: `${SITE_NAME} – Jobs Near Me & Job Listings`,
+        description: 'Find jobs near me on an interactive map. Browse job listings near me and discover jobs hiring near me.',
+      },
+      '/jobs-near-me': {
+        title: `Jobs Near Me – Find Local Job Listings | ${SITE_NAME}`,
+        description: 'Find jobs near me on Hire For Job. Browse job listings near me, discover jobs hiring near me on an interactive map.',
+      },
       '/login': { title: `Login | ${SITE_NAME}`, description: 'Sign in to find jobs and connect with employers near you.' },
       '/signup': { title: `Sign Up | ${SITE_NAME}`, description: 'Create your account to find jobs or hire talent on HireForJob.' },
       '/browse-jobs': { title: `Browse Jobs | ${SITE_NAME}`, description: 'Browse all open job listings. Filter by type, location, and keywords.' },
@@ -245,7 +304,23 @@ Deno.serve(async (req) => {
     };
 
     if (staticMeta[path]) {
-      meta = { ...meta, ...staticMeta[path] };
+      Object.assign(meta, staticMeta[path]);
+    }
+
+    // Add Organization schema to homepage
+    if (path === '/') {
+      meta.jsonLd!.push({
+        '@context': 'https://schema.org',
+        '@type': 'Organization',
+        name: SITE_NAME,
+        url: BASE_URL,
+        logo: DEFAULT_IMAGE,
+        contactPoint: {
+          '@type': 'ContactPoint',
+          contactType: 'customer service',
+          availableLanguage: ['English', 'Hindi'],
+        },
+      });
     }
   } catch (e) {
     console.error('Error fetching meta:', e);
@@ -254,6 +329,10 @@ Deno.serve(async (req) => {
   const html = buildHtml(meta);
 
   return new Response(html, {
-    headers: { ...corsHeaders, 'Content-Type': 'text/html; charset=utf-8' },
+    headers: {
+      ...corsHeaders,
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'public, max-age=3600, s-maxage=86400',
+    },
   });
 });
