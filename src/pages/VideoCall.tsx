@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { SEOHead } from '@/components/SEOHead';
 
 interface InterviewDetails {
   id: string;
