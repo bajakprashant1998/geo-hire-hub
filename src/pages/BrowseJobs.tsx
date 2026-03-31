@@ -102,6 +102,9 @@ const BrowseJobs = () => {
         jsonLd={browseJsonLd}
         breadcrumbJsonLd={buildBreadcrumbJsonLd([{ label: 'Browse Jobs' }])}
         canonicalUrl="https://www.hireforjob.com/browse-jobs"
+        extraJsonLd={[faqJsonLd]}
+        speakableSelectors={['h1', '.job-card-title']}
+        geoKeywords={['browse jobs', 'job listings near me', 'apply for jobs', 'full time jobs', 'part time jobs', 'remote jobs', 'contract jobs']}
       />
 
       <BrowseHeader
