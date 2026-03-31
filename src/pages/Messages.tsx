@@ -29,6 +29,7 @@ import { SmartReplies } from '@/components/messaging/SmartReplies';
 import { uploadAttachment } from '@/components/messaging/AttachmentUpload';
 import { cn } from '@/lib/utils';
 import { format, isToday, isYesterday, isSameDay } from 'date-fns';
+import { SEOHead } from '@/components/SEOHead';
 
 interface Attachment {
   id: string;
