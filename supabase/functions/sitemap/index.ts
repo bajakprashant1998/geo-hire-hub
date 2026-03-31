@@ -21,12 +21,13 @@ Deno.serve(async (req) => {
   // Static pages with priorities
   const staticPages = [
     { path: '/', changefreq: 'daily', priority: '1.0' },
+    { path: '/jobs-near-me', changefreq: 'daily', priority: '0.95' },
     { path: '/browse-jobs', changefreq: 'daily', priority: '0.9' },
+    { path: '/plans', changefreq: 'monthly', priority: '0.5' },
     { path: '/login', changefreq: 'monthly', priority: '0.3' },
     { path: '/signup', changefreq: 'monthly', priority: '0.3' },
     { path: '/terms', changefreq: 'yearly', priority: '0.2' },
     { path: '/privacy', changefreq: 'yearly', priority: '0.2' },
-    { path: '/plans', changefreq: 'monthly', priority: '0.5' },
   ];
 
   // Fetch jobs with slugs
