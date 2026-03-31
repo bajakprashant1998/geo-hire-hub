@@ -241,6 +241,19 @@ const JobsNearMe = () => {
 
   const handleLoadMore = () => setVisibleCount(prev => prev + 12);
 
+  const howToJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    'name': 'How to Find Jobs Near Me on Hire For Job',
+    'description': 'Step-by-step guide to discovering and applying for local jobs using the interactive map on Hire For Job.',
+    'step': [
+      { '@type': 'HowToStep', 'name': 'Open the Map', 'text': 'Visit hireforjob.com and allow location access to see jobs near you on the interactive map.' },
+      { '@type': 'HowToStep', 'name': 'Filter & Discover', 'text': 'Use filters for job type, salary range, distance, and keywords to narrow your search.' },
+      { '@type': 'HowToStep', 'name': 'Apply in Seconds', 'text': 'Click on a job pin, review details, and submit your application with one click using AI-generated cover letters.' },
+    ],
+    'totalTime': 'PT5M',
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
@@ -250,6 +263,9 @@ const JobsNearMe = () => {
         ogImage="https://www.hireforjob.com/logo.png"
         jsonLd={jobListJsonLd}
         breadcrumbJsonLd={breadcrumb}
+        extraJsonLd={[faqJsonLd, howToJsonLd]}
+        speakableSelectors={['h1', '.hero-description', '.faq-answer']}
+        geoKeywords={['jobs near me', 'job listings near me', 'jobs hiring near me', 'hire for job', 'local jobs', 'find jobs near me', 'apply for jobs near me']}
       />
 
       {/* ── Hero Section ── */}
