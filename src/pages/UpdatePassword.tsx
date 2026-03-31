@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { isPasswordLeaked } from '@/lib/passwordCheck';
 import { motion } from 'framer-motion';
+import { SEOHead } from '@/components/SEOHead';
 
 const UpdatePassword = () => {
   const navigate = useNavigate();
