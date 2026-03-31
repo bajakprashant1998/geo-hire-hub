@@ -34,6 +34,7 @@ import { CompanyInfoSection } from '@/components/post-job/CompanyInfoSection';
 import { JobPreviewStep } from '@/components/post-job/JobPreviewStep';
 import { PerformanceInsightsPanel } from '@/components/post-job/PerformanceInsightsPanel';
 import { JobTranslationsPanel } from '@/components/post-job/JobTranslationsPanel';
+import { SEOHead } from '@/components/SEOHead';
 
 const STEPS = [
   { id: 1, title: 'Job Basics', icon: Briefcase, description: 'Title, type & location', tip: 'A clear title gets 3x more views' },
@@ -765,6 +766,7 @@ const PostJob = ({ embedded = false }: PostJobProps) => {
 
   return (
     <EmailVerificationGuard fallbackMessage="Please verify your email to post jobs.">
+      <SEOHead title="Post a Job – Hire For Job" description="Post a job listing on Hire For Job to reach candidates near you." noindex />
       <div className={embedded ? '' : 'min-h-screen bg-gradient-to-br from-background via-secondary/30 to-background'}>
       {/* Header - hidden when embedded */}
       {!embedded && (

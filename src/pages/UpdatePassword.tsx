@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { isPasswordLeaked } from '@/lib/passwordCheck';
 import { motion } from 'framer-motion';
+import { SEOHead } from '@/components/SEOHead';
 
 const UpdatePassword = () => {
   const navigate = useNavigate();
@@ -105,6 +106,7 @@ const UpdatePassword = () => {
 
   return (
     <div className="min-h-screen flex">
+      <SEOHead title="Update Password – Hire For Job" description="Set a new password for your Hire For Job account." noindex />
       {/* Left side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary via-primary/90 to-primary/80 relative overflow-hidden">
         {/* Animated background shapes */}

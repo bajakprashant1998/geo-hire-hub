@@ -46,7 +46,7 @@
     <meta name="twitter:description" content="Find jobs near me, browse job listings near me, and discover jobs hiring near me on an interactive map." />
     <meta name="twitter:image" content="https://www.hireforjob.com/logo.png" />
 
-    <!-- JSON-LD Structured Data -->
+    <!-- JSON-LD Structured Data: WebSite -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -55,10 +55,27 @@
       "alternateName": ["HireForJob", "Hire For Job"],
       "url": "https://www.hireforjob.com",
       "description": "Hire for job – Find jobs near me, browse job listings near me, and discover jobs hiring near me on an interactive map",
+      "inLanguage": ["en", "hi", "es", "fr", "ar", "pt", "zh", "ja"],
       "potentialAction": {
         "@type": "SearchAction",
-        "target": "https://www.hireforjob.com/?q={search_term_string}",
+        "target": "https://www.hireforjob.com/browse-jobs?q={search_term_string}",
         "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    <!-- JSON-LD Structured Data: Organization -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Hire For Job",
+      "url": "https://www.hireforjob.com",
+      "logo": "https://www.hireforjob.com/logo.png",
+      "sameAs": [],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "contactType": "customer service",
+        "availableLanguage": ["English", "Hindi"]
       }
     }
     </script>

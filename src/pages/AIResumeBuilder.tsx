@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { SEOHead } from '@/components/SEOHead';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -1353,6 +1354,7 @@ const AIResumeBuilder = ({ embedded = false }: { embedded?: boolean }) => {
 
   return (
     <div className="min-h-screen bg-secondary">
+      <SEOHead title="AI Resume Builder – Hire For Job" description="Build a professional resume with AI on Hire For Job. Stand out to employers near you." noindex />
       <header className="bg-card border-b sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center gap-4">
           <Link to="/candidate-dashboard">

@@ -26,6 +26,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { SecuritySettings } from '@/components/candidate/SecuritySettings';
+import { SEOHead } from '@/components/SEOHead';
 import { JobAlertsManager } from '@/components/candidate/JobAlertsManager';
 
 import { LocationMapPicker } from '@/components/post-job/LocationMapPicker';
@@ -296,6 +297,7 @@ const CandidateSettings = () => {
 
   return (
     <div className="min-h-screen bg-secondary py-8 px-4">
+      <SEOHead title="Settings – Hire For Job" description="Manage your privacy, location, and notification settings on Hire For Job." noindex />
         <div className="max-w-4xl mx-auto space-y-6">
           {/* Header */}
           <div className="flex items-center justify-between">

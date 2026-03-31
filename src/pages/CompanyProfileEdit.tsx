@@ -4,12 +4,14 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { ArrowLeft } from 'lucide-react';
 import { EmailVerificationGuard } from '@/components/auth/EmailVerificationGuard';
 import { CompanyProfileSection } from '@/components/employer/CompanyProfileSection';
+import { SEOHead } from '@/components/SEOHead';
 
 const CompanyProfileEdit = () => {
   const navigate = useNavigate();
 
   return (
     <EmailVerificationGuard fallbackMessage="Please verify your email to edit your company profile.">
+      <SEOHead title="Edit Company Profile – Hire For Job" description="Update your company profile and branding on Hire For Job." noindex />
       <div className="min-h-screen bg-secondary py-6 px-4">
         <div className="max-w-3xl mx-auto space-y-4">
           <div className="flex items-center gap-3">

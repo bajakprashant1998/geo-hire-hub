@@ -29,6 +29,7 @@ import { SmartReplies } from '@/components/messaging/SmartReplies';
 import { uploadAttachment } from '@/components/messaging/AttachmentUpload';
 import { cn } from '@/lib/utils';
 import { format, isToday, isYesterday, isSameDay } from 'date-fns';
+import { SEOHead } from '@/components/SEOHead';
 
 interface Attachment {
   id: string;
@@ -346,6 +347,7 @@ const Messages = () => {
 
   return (
     <div className="h-dvh bg-background flex flex-col md:flex-row overflow-hidden">
+      <SEOHead title="Messages – Hire For Job" description="Chat with employers and candidates on Hire For Job." noindex />
       {/* ── Conversation List ── */}
       <div className={cn(
         "w-full md:w-[360px] lg:w-[400px] flex-col border-r border-border/50 bg-card",

@@ -6,6 +6,7 @@ import { Briefcase, Users } from 'lucide-react'; // Example icons
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { SEOHead } from '@/components/SEOHead';
 
 const RoleSelection = () => {
     const navigate = useNavigate();
@@ -38,6 +39,7 @@ const RoleSelection = () => {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-secondary/30 p-4">
+            <SEOHead title="Select Your Role – Hire For Job" description="Choose whether you're a candidate or employer on Hire For Job." noindex />
             <Card className="max-w-md w-full shadow-lg">
                 <CardHeader className="text-center">
                     <CardTitle className="text-2xl font-bold">Welcome! Who are you?</CardTitle>

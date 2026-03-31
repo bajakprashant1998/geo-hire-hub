@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { PhotoUpload } from '@/components/PhotoUpload';
+import { SEOHead } from '@/components/SEOHead';
 
 const industries = [
   'Technology',
@@ -199,6 +200,7 @@ const ProfileSetup = () => {
 
   return (
     <div className="min-h-screen bg-secondary py-12 px-4">
+      <SEOHead title="Profile Setup – Hire For Job" description="Complete your profile to start finding jobs or hiring talent on Hire For Job." noindex />
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center">
