@@ -128,6 +128,7 @@ const VerifyEmail = () => {
 
   return (
     <div className="min-h-screen flex">
+      <SEOHead title="Verify Email – Hire For Job" description="Verify your email address to activate your Hire For Job account." noindex />
       {/* Left side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary via-primary/90 to-primary/80 relative overflow-hidden">
         {/* Animated background shapes */}

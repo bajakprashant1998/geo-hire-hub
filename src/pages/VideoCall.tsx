@@ -229,6 +229,7 @@ const VideoCall = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-muted/50 to-background p-4">
+      <SEOHead title="Video Call – Hire For Job" description="Join your interview video call on Hire For Job." noindex />
       <div className="w-full max-w-3xl mx-auto space-y-4">
         <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
           <ArrowLeft className="w-4 h-4" /> Back

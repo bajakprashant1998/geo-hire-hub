@@ -1353,6 +1353,7 @@ const AIResumeBuilder = ({ embedded = false }: { embedded?: boolean }) => {
 
   return (
     <div className="min-h-screen bg-secondary">
+      <SEOHead title="AI Resume Builder – Hire For Job" description="Build a professional resume with AI on Hire For Job. Stand out to employers near you." noindex />
       <header className="bg-card border-b sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center gap-4">
           <Link to="/candidate-dashboard">
