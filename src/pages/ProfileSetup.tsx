@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { PhotoUpload } from '@/components/PhotoUpload';
+import { SEOHead } from '@/components/SEOHead';
 
 const industries = [
   'Technology',
