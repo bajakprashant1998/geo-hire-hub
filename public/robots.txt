@@ -13,19 +13,44 @@ Disallow: /video-call
 Disallow: /verify-email
 Disallow: /update-password
 Disallow: /forgot-password
+Disallow: /post-job
+Disallow: /edit-profile
+Disallow: /company-profile
+Disallow: /resume-builder
+
+User-agent: Googlebot-Image
+Allow: /
 
 User-agent: Bingbot
 Allow: /
 Disallow: /admin
 Disallow: /candidate-dashboard
 Disallow: /employer-dashboard
-Disallow: /messages
+Disallow: /candidate-settings
+Disallow: /employer-settings
 Disallow: /profile-setup
+Disallow: /messages
+Disallow: /auth/callback
+Disallow: /select-role
+Disallow: /video-call
+Disallow: /verify-email
+Disallow: /update-password
+Disallow: /forgot-password
+Disallow: /post-job
 
 User-agent: Twitterbot
 Allow: /
 
 User-agent: facebookexternalhit
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+User-agent: WhatsApp
+Allow: /
+
+User-agent: Slackbot
 Allow: /
 
 User-agent: *
@@ -43,11 +68,15 @@ Disallow: /video-call
 Disallow: /verify-email
 Disallow: /update-password
 Disallow: /forgot-password
+Disallow: /post-job
+Disallow: /edit-profile
+Disallow: /company-profile
+Disallow: /resume-builder
 Crawl-delay: 1
 
 Sitemap: https://www.hireforjob.com/sitemap.xml
 
 # SEO-friendly URL structure
 # /jobs/{country}/{state}/{city}/{job-slug}
-# /candidates/{country}/{state}/{city}/{candidate-slug}
-# /companies/{country}/{state}/{city}/{company-slug}
+# /candidates/{candidate-slug}
+# /companies/{company-slug}
