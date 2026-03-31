@@ -26,6 +26,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { SecuritySettings } from '@/components/candidate/SecuritySettings';
+import { SEOHead } from '@/components/SEOHead';
 import { JobAlertsManager } from '@/components/candidate/JobAlertsManager';
 
 import { LocationMapPicker } from '@/components/post-job/LocationMapPicker';
