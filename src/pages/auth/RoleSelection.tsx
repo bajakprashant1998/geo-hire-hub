@@ -6,6 +6,7 @@ import { Briefcase, Users } from 'lucide-react'; // Example icons
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { SEOHead } from '@/components/SEOHead';
 
 const RoleSelection = () => {
     const navigate = useNavigate();

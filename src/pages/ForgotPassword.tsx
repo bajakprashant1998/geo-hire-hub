@@ -48,6 +48,7 @@ const ForgotPassword = () => {
 
   return (
     <div className="min-h-screen flex">
+      <SEOHead title="Forgot Password – Hire For Job" description="Reset your Hire For Job password to regain access to jobs near me and your employer dashboard." noindex />
       {/* Left side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary via-primary/90 to-primary/80 relative overflow-hidden">
         {/* Animated background shapes */}

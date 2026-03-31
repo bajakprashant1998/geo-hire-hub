@@ -4,6 +4,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { ArrowLeft } from 'lucide-react';
 import { EmailVerificationGuard } from '@/components/auth/EmailVerificationGuard';
 import { CompanyProfileSection } from '@/components/employer/CompanyProfileSection';
+import { SEOHead } from '@/components/SEOHead';
 
 const CompanyProfileEdit = () => {
   const navigate = useNavigate();

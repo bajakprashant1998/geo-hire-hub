@@ -5,6 +5,7 @@ import { ArrowLeft, Mail, MapPin, CheckCircle2, Loader2, RefreshCw, AlertCircle 
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { motion } from 'framer-motion';
+import { SEOHead } from '@/components/SEOHead';
 
 const VerifyEmail = () => {
   const navigate = useNavigate();
