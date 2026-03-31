@@ -830,7 +830,20 @@ const Plans = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <SEOHead title="Hiring Plans & Pricing – Hire For Job" description="Choose the right plan to hire for job positions. Post jobs near me, reach candidates, and grow your team with Hire For Job." canonicalUrl="https://www.hireforjob.com/plans" />
+      <SEOHead
+        title="Hiring Plans & Pricing – Hire For Job"
+        description="Choose the right plan to hire for job positions. Post jobs near me, reach candidates, and grow your team with Hire For Job."
+        canonicalUrl="https://www.hireforjob.com/plans"
+        extraJsonLd={[{
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          'mainEntity': faqs.map(f => ({
+            '@type': 'Question', 'name': f.q,
+            'acceptedAnswer': { '@type': 'Answer', 'text': f.a },
+          })),
+        }]}
+        geoKeywords={['hire for job pricing', 'job posting plans', 'employer plans', 'post jobs free', 'hiring plans']}
+      />
 
       {/* Hero Section */}
       <div className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/8 pt-8 pb-20 px-4">

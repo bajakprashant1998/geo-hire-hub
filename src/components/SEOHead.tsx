@@ -13,9 +13,15 @@ interface SEOHeadProps {
   ogType?: 'website' | 'article' | 'profile';
   jsonLd?: Record<string, any>;
   breadcrumbJsonLd?: Record<string, any>;
+  /** Additional JSON-LD blocks (FAQ, HowTo, Speakable, etc.) */
+  extraJsonLd?: Record<string, any>[];
   noindex?: boolean;
   publishedTime?: string;
   modifiedTime?: string;
+  /** AEO: CSS selectors for Speakable content */
+  speakableSelectors?: string[];
+  /** GEO: keywords for AI engines */
+  geoKeywords?: string[];
 }
 
 export const SEOHead = ({
@@ -28,9 +34,12 @@ export const SEOHead = ({
   ogType = 'website',
   jsonLd,
   breadcrumbJsonLd,
+  extraJsonLd,
   noindex = false,
   publishedTime,
   modifiedTime,
+  speakableSelectors,
+  geoKeywords,
 }: SEOHeadProps) => {
   useEffect(() => {
     // Title
@@ -71,6 +80,16 @@ export const SEOHead = ({
     setMeta('twitter:title', title);
     setMeta('twitter:description', metaDesc);
     if (ogImage) setMeta('twitter:image', ogImage);
+
+    // AEO: Speakable meta hint for voice assistants
+    if (speakableSelectors?.length) {
+      setMeta('speakable', speakableSelectors.join(','));
+    }
+
+    // GEO: AI engine keywords
+    if (geoKeywords?.length) {
+      setMeta('keywords', geoKeywords.join(', '));
+    }
 
     // Canonical
     let link = document.querySelector('link[rel="canonical"]') as HTMLLinkElement;
@@ -128,11 +147,43 @@ export const SEOHead = ({
       document.head.appendChild(script);
     }
 
+    // Extra JSON-LD blocks (FAQ, HowTo, Speakable, etc.)
+    document.querySelectorAll('script[data-seo-extra-ld]').forEach(el => el.remove());
+    if (extraJsonLd?.length) {
+      extraJsonLd.forEach((ld, i) => {
+        const script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.setAttribute('data-seo-extra-ld', String(i));
+        script.textContent = JSON.stringify(ld);
+        document.head.appendChild(script);
+      });
+    }
+
+    // Speakable JSON-LD (AEO)
+    document.querySelectorAll('script[data-seo-speakable]').forEach(el => el.remove());
+    if (speakableSelectors?.length && canonicalUrl) {
+      const speakableJsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'WebPage',
+        'name': title,
+        'url': canonicalUrl,
+        'speakable': {
+          '@type': 'SpeakableSpecification',
+          'cssSelector': speakableSelectors,
+        },
+      };
+      const script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.setAttribute('data-seo-speakable', 'true');
+      script.textContent = JSON.stringify(speakableJsonLd);
+      document.head.appendChild(script);
+    }
+
     return () => {
-      document.querySelectorAll('script[data-seo-jsonld], script[data-seo-breadcrumb]').forEach(el => el.remove());
+      document.querySelectorAll('script[data-seo-jsonld], script[data-seo-breadcrumb], script[data-seo-extra-ld], script[data-seo-speakable]').forEach(el => el.remove());
       document.querySelectorAll('link[data-seo-hreflang]').forEach(el => el.remove());
     };
-  }, [title, description, canonicalUrl, ogImage, ogImageWidth, ogImageHeight, ogType, jsonLd, breadcrumbJsonLd, noindex, publishedTime, modifiedTime]);
+  }, [title, description, canonicalUrl, ogImage, ogImageWidth, ogImageHeight, ogType, jsonLd, breadcrumbJsonLd, extraJsonLd, noindex, publishedTime, modifiedTime, speakableSelectors, geoKeywords]);
 
   return null;
 };

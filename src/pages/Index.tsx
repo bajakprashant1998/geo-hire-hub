@@ -195,6 +195,8 @@ const Index = () => {
           'offers': { '@type': 'Offer', 'price': '0', 'priceCurrency': 'USD' },
           'aggregateRating': { '@type': 'AggregateRating', 'ratingValue': '4.8', 'ratingCount': '1200', 'bestRating': '5' },
         }}
+        speakableSelectors={['h1', '[data-speakable]']}
+        geoKeywords={['hire for job', 'jobs near me', 'job listings near me', 'jobs hiring near me', 'find jobs', 'local jobs map', 'employment near me']}
       />
       {loading && <MapLoadingSkeleton mode={mode === 'hiring' ? 'hiring' : 'job'} />}
       {!authLoading && !user && <GoogleSignInPrompt />}
