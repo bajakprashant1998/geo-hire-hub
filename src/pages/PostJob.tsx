@@ -34,6 +34,7 @@ import { CompanyInfoSection } from '@/components/post-job/CompanyInfoSection';
 import { JobPreviewStep } from '@/components/post-job/JobPreviewStep';
 import { PerformanceInsightsPanel } from '@/components/post-job/PerformanceInsightsPanel';
 import { JobTranslationsPanel } from '@/components/post-job/JobTranslationsPanel';
+import { SEOHead } from '@/components/SEOHead';
 
 const STEPS = [
   { id: 1, title: 'Job Basics', icon: Briefcase, description: 'Title, type & location', tip: 'A clear title gets 3x more views' },
